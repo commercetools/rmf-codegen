@@ -1,0 +1,16 @@
+#%RAML 1.0
+title: Test api spec
+version: v1
+mediaType: application/json
+baseUri: http://test.example.com
+
+/{department}:
+  /users:
+    post:
+    /{userId}:
+      uriParameters:
+        userId:
+          type: string
+      get:
+      delete:
+
