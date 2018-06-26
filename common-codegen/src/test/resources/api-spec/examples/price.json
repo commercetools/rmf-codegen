@@ -1,0 +1,16 @@
+[
+  {
+    "key": "cheap-red-t-shirt",
+    "value": {
+      "centAmount": 1000,
+      "currencyCode": "EUR"
+    },
+    "country": "DE",
+    "product": {
+      "key": "t-shirt"
+    },
+    "productVariant": {
+      "key": "red-t-shirt"
+    }
+  }
+]

@@ -1,0 +1,56 @@
+#%RAML 1.0 Library
+usage: Import item types.
+(generator.package): importitems
+
+uses:
+  common: common.raml
+  error: error.raml
+  generator: ../annotationTypes/generator.raml
+
+types:
+  ImportItem:
+    description: This type represents an import item.
+    properties:
+      resourceKey:
+        description: The key of the imported resource.
+        type: string
+      resourceType:
+        description: The type of the imported resource.
+        type: common.ResourceType
+      state:
+        description: |
+          The status of a single import request.
+          TODO: clearify how this works for batch requests
+        type: ProcessingState
+      errors?:
+        description: Used to report errors when an import item is in the state VALIDATION_FAILED or REJECTED.
+        type: error.ErrorObject[]
+      createdAt:
+        description: The creation time of this import item.
+        type: datetime
+      lastModifiedAt:
+        description: The last modification time of this import item.
+        type: datetime
+    examples:
+      validated:        !include ../examples/validated-import-item.json
+      validationFailed: !include ../examples/validation-failed-import-item.json
+  ProcessingState:
+    description: |
+      This enumeration describes the processing state of an import item.
+
+      * VALIDATED The import item was succesfully validated.
+      * VALIDATION_FAILED The validation of the import items data failed.
+      * UNRESOLVED The import item contains unresolved references and needs to be resolved further.
+      * RESOLVED The import item is resolved and doesn't contain any unresolved references.
+      * IMPORTED The import item was succesfully imported into the ctp.
+      * REJECTED The import item couldn't be imported after several retries.
+    type: string
+    enum:
+    - DELETING
+    - VALIDATED
+    - VALIDATION_FAILED
+    - UNRESOLVED
+    - RESOLVED
+    - IMPORTED
+    - REJECTED
+    - DELETED

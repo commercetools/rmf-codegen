@@ -1,6 +1,42 @@
+plugins {
+    id "net.ltgt.apt-idea" version "0.15"
+}
 
 dependencies {
     compile "io.vrap.rmf:raml-model:${versions.rmf}"
 
+    compile "org.immutables:value:2.6.1"
+    annotationProcessor "org.immutables:value:2.6.1"
+    compile 'com.google.dagger:dagger:2.16'
+    apt 'com.google.dagger:dagger-compiler:2.16'
+    compile 'com.squareup:javapoet:1.10.0'
+    compile 'org.apache.commons:commons-lang3:3.7'
+    compile group: 'io.reactivex.rxjava2', name: 'rxjava', version: '2.1.14'
+    compile group: 'org.slf4j', name: 'slf4j-simple', version: '1.7.25'
+    compile group: 'com.atlassian.commonmark', name: 'commonmark', version: '0.11.0'
+
+    compile group: 'org.joda', name: 'joda-beans', version: '2.2.2'
+
     testCompile "org.spockframework:spock-core:${versions.spock}"
+    testCompile("org.assertj:assertj-core:3.10.0")
+
+
 }
+
+
+
+idea {
+    module {
+        apt {
+//            // whether generated sources dirs are added as generated sources root
+            addGeneratedSourcesDirs = true
+//            // whether the annotationProcessor/apt and testAnnotationProcessor/testApt dependencies are added as module dependencies
+            addAptDependencies = true
+        }
+    }
+}
+
+//In case you want to customize the generated output directory.
+//compileJava{
+//    generatedSourcesDestinationDir = "generatedDir"
+//}

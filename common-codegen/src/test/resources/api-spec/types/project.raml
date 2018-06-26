@@ -1,0 +1,22 @@
+#%RAML 1.0 Library
+usage: Project import configuration types.
+(generator.package): projects
+
+uses:
+  generator: ../annotationTypes/generator.raml
+
+types:
+  ProjectImportConfiguration:
+    description: Describes the configuration used for a project import.
+    properties:
+      projectKey:
+        description: The CTP project key.
+        type: string
+      topics:
+        description: The topics used for this project import.
+        type: string[]
+      subscriptions:
+        description: The subscriptions used for this project import.
+        type: string[]
+    example: !include ../examples/project.json
+

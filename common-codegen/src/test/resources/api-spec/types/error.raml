@@ -1,0 +1,47 @@
+#%RAML 1.0 Library
+usage: Error types.
+(generator.package): errors
+
+uses:
+  generator: ../annotationTypes/generator.raml
+
+types:
+  ErrorResponse:
+    properties:
+        statusCode:
+            type: integer
+        message:
+            type: string
+        error?:
+            type: string
+        error_description?:
+            type: string
+        errors?:
+            type: ErrorObject[]
+  ErrorObject:
+    discriminator: code
+    properties:
+        code:
+            type: string
+        message:
+            type: string
+  InvalidFieldError:
+    type: ErrorObject
+    discriminatorValue: InvalidField
+    properties:
+      field:
+          type: string
+      invalidValue:
+          type: any
+      allowedValues?:
+          type: string[]
+  ResourceNotFoundError:
+    type: ErrorObject
+    discriminatorValue: ResourceNotFound
+  RequiredFieldError:
+    type: ErrorObject
+    discriminatorValue: RequiredField
+    properties:
+      field:
+        type: string
+

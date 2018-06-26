@@ -1,0 +1,52 @@
+#%RAML 1.0
+---
+title: Internal import storage api
+version: v1
+mediaType: application/json
+baseUri: http://import-storage
+
+uses:
+  error: types/error.raml
+  import-item: types/import-item.raml
+
+
+/{projectKey}:
+  /import-item:
+    post:
+      description: |
+        Creates or updates the import item given in the body.
+      body:
+        type: import-item.ImportItem
+    /{resourceType}:
+      uriParameters:
+        resourceType:
+          description: |
+              The resource type.
+          type: string
+      /{key}:
+        uriParameters:
+          key:
+            description: |
+              The key of the import item to retrieve.
+            type: string
+        get:
+          description: |
+            Retrieves the import item with the given key.
+          responses:
+            200:
+              body:
+                type: import-item.ImportItem
+            404:
+              body:
+                type: error.ErrorResponse
+        delete:
+          description: |
+            Deletes the import item with the given key.
+          responses:
+            200:
+              body:
+                type: import-item.ImportItem
+            404:
+              body:
+                type: error.ErrorResponse
+

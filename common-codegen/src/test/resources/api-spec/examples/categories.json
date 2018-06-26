@@ -1,0 +1,23 @@
+[
+  {
+    "key": "root-category",
+    "name": {
+      "en": "Root Category"
+    },
+    "slug": {
+      "en": "root-category-slug"
+    }
+  },
+  {
+    "key": "child-category",
+    "name": {
+      "en": "Child Category"
+    },
+    "slug": {
+      "en": "child-category-slug"
+    },
+    "parent": {
+      "key": "root-category"
+    }
+  }
+]
