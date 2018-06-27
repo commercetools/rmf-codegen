@@ -82,7 +82,6 @@ public class ImmutableModelGenerator extends CodeGenerator {
     }
 
     protected Stream<AnnotationSpec> getAdditionalTypeAnnotations(final ObjectType object) {
-        AnnotationSpec immutableAnnotationSpec = AnnotationSpec.builder(Value.Style.class).build();
         AnnotationSpec immutablesValueAnnotationSpec = AnnotationSpec.builder(Value.Style.class)
                 .addMember("visibility", "$T.PRIVATE", Value.Style.ImplementationVisibility.class)
                 .addMember("builderVisibility", "$T.PUBLIC", Value.Style.BuilderVisibility.class)
@@ -92,7 +91,7 @@ public class ImmutableModelGenerator extends CodeGenerator {
         AnnotationSpec jacksonAnnotationSpec = AnnotationSpec.builder(JsonDeserialize.class)
                 .addMember("builder", "$T.class", builderName)
                 .build();
-        return Stream.of(immutableAnnotationSpec, immutablesValueAnnotationSpec, jacksonAnnotationSpec);
+        return Stream.of(immutablesValueAnnotationSpec, jacksonAnnotationSpec);
     }
 
     public Single<GenerationResult> generateStub() {

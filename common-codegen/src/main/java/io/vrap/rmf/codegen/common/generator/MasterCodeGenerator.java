@@ -22,8 +22,7 @@ public class MasterCodeGenerator {
     private final List<CodeGeneratorFactory> codeGenerators;
     private final String packagePrefix;
     private final JavaDocProcessor javaDocProcessor;
-    @Inject
-    Path outputFolder;
+    private final Path outputFolder;
 
 
     @Inject

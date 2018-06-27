@@ -13,8 +13,6 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.lang.model.element.Modifier;
 import javax.tools.JavaFileObject;
@@ -30,10 +28,6 @@ import java.util.stream.Stream;
 import static io.vrap.rmf.codegen.common.generator.util.CodeGeneratorUtil.*;
 
 public class BeanGenerator extends CodeGenerator {
-
-    protected final Logger LOGGER = LoggerFactory.getLogger(getClass());
-    private ClassName objectClassName = ClassName.get(Object.class);
-
 
     public BeanGenerator(String packagePrefix, Path outputFolder, JavaDocProcessor javaDocProcessor, Flowable<AnyType> ramlObjects) {
         super(packagePrefix, outputFolder, javaDocProcessor, ramlObjects);

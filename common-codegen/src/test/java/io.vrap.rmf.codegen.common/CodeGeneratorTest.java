@@ -31,7 +31,7 @@ public class CodeGeneratorTest {
         final ClassLoader classLoader = getClass().getClassLoader();
         final File file = new File(classLoader.getResource("api-spec/api.raml").getFile());
         //TODO set output path
-        final Path outputPath = null;
+        final Path outputPath = Paths.get("/Users/abeniasaad/IdeaProjects/rmf-codegen/common-codegen/src/main/java");
         generatorConfig = new GeneratorConfigBuilder()
                 .packagePrefix("com.commercetools")
                 .outputFolder(outputPath)
@@ -51,12 +51,11 @@ public class CodeGeneratorTest {
                 .build();
 
         MasterCodeGenerator masterCodeGenerator = generatorComponent.getMasterCodeGenerator();
-        masterCodeGenerator.generateStub()
-                .subscribe(resultTestObserver);
+        masterCodeGenerator.generateStub().subscribe(resultTestObserver);
 
         resultTestObserver.assertComplete();
         resultTestObserver.assertNoErrors();
-        Assertions.assertThat(resultTestObserver.values()).hasSize(1);
+        resultTestObserver.assertValueCount(1);
         Assertions.assertThat(resultTestObserver.values().get(0).getGeneratedFiles()).isNotEmpty();
 
     }

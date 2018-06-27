@@ -6,7 +6,7 @@ dependencies {
     compile "io.vrap.rmf:raml-model:${versions.rmf}"
 
     compile "org.immutables:value:2.6.1"
-    annotationProcessor "org.immutables:value:2.6.1"
+    apt "org.immutables:value:2.6.1"
     compile 'com.google.dagger:dagger:2.16'
     apt 'com.google.dagger:dagger-compiler:2.16'
     compile 'com.squareup:javapoet:1.10.0'
