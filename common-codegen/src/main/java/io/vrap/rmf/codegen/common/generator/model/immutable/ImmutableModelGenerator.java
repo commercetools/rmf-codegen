@@ -7,8 +7,10 @@ import io.reactivex.Flowable;
 import io.reactivex.Single;
 import io.vrap.rmf.codegen.common.generator.core.CodeGenerator;
 import io.vrap.rmf.codegen.common.generator.core.GenerationResult;
+import io.vrap.rmf.codegen.common.generator.core.GeneratorConfig;
 import io.vrap.rmf.codegen.common.generator.doc.JavaDocProcessor;
 import io.vrap.rmf.codegen.common.generator.util.CtAnnotationProcessor;
+import io.vrap.rmf.raml.model.modules.Api;
 import io.vrap.rmf.raml.model.types.*;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.emf.ecore.util.EObjectContainmentEList;
@@ -34,8 +36,8 @@ public class ImmutableModelGenerator extends CodeGenerator {
 
     protected final Logger LOGGER = LoggerFactory.getLogger(getClass());
 
-    public ImmutableModelGenerator(String packagePrefix, Path outputFolder, JavaDocProcessor javaDocProcessor, Flowable<AnyType> ramlObjects) {
-        super(packagePrefix, outputFolder, javaDocProcessor, ramlObjects);
+    public ImmutableModelGenerator(GeneratorConfig generatorConfig, Api api) {
+        super(generatorConfig, api);
     }
 
     private static String getMethodName(final Property property) {

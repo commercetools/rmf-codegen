@@ -3,10 +3,13 @@ package io.vrap.rmf.codegen.common.generator.model.codegen;
 import com.fasterxml.jackson.annotation.*;
 import com.squareup.javapoet.*;
 import io.reactivex.Flowable;
+import io.reactivex.Maybe;
 import io.reactivex.Single;
 import io.vrap.rmf.codegen.common.generator.core.CodeGenerator;
 import io.vrap.rmf.codegen.common.generator.core.GenerationResult;
+import io.vrap.rmf.codegen.common.generator.core.GeneratorConfig;
 import io.vrap.rmf.codegen.common.generator.doc.JavaDocProcessor;
+import io.vrap.rmf.raml.model.modules.Api;
 import io.vrap.rmf.raml.model.types.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -18,10 +21,7 @@ import javax.lang.model.element.Modifier;
 import javax.tools.JavaFileObject;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -29,8 +29,9 @@ import static io.vrap.rmf.codegen.common.generator.util.CodeGeneratorUtil.*;
 
 public class BeanGenerator extends CodeGenerator {
 
-    public BeanGenerator(String packagePrefix, Path outputFolder, JavaDocProcessor javaDocProcessor, Flowable<AnyType> ramlObjects) {
-        super(packagePrefix, outputFolder, javaDocProcessor, ramlObjects);
+
+    public BeanGenerator(GeneratorConfig generatorConfig, Api api) {
+        super(generatorConfig, api);
     }
 
     private static String getPropertyMethodNameSuffix(final Property property) {
@@ -82,10 +83,11 @@ public class BeanGenerator extends CodeGenerator {
         return Stream.empty();
     }
 
+    @Override
     public Single<GenerationResult> generateStub() {
 
         final Single<GenerationResult> generationResult = getRamlObjects()
-                .map(this::transformToJavaFile)
+                .flatMapMaybe(this::transformToJavaFile)
                 .concatWith(Single.just(getJavaFileForBase()))
                 .doOnNext(javaFile -> javaFile.writeTo(getOutputFolder()))
                 .map(JavaFile::toJavaFileObject)
@@ -96,31 +98,29 @@ public class BeanGenerator extends CodeGenerator {
         return generationResult;
     }
 
-    public JavaFile transformToJavaFile(final AnyType object) {
-        final TypeSpec resultTypeSpec = buildTypeSpec(object);
-        if (resultTypeSpec == null) {
-            return null;
-        }
-        final JavaFile javaFile = JavaFile.builder(getObjectPackage(getPackagePrefix(), object), resultTypeSpec).build();
-        return javaFile;
+    public Maybe<JavaFile> transformToJavaFile(final AnyType object) {
+        return buildTypeSpec(object).map(typeSpec -> JavaFile.builder(getObjectPackage(getPackagePrefix(), object), typeSpec).build());
+
     }
 
     private JavaFile getJavaFileForBase() {
         return JavaFile.builder(getBaseClassName().packageName(), getBaseClassTypeSpec()).build();
     }
 
-    private TypeSpec buildTypeSpec(final AnyType type) {
+    private Maybe<TypeSpec> buildTypeSpec(final AnyType type) {
 
         final TypeSpec typeSpec;
         if (getCustomTypeMapping().get(type.getName()) != null) {
-            return null;
+            return Maybe.empty();
         } else if (type instanceof ObjectType) {
             typeSpec = buildTypeSpecForObjectType(((ObjectType) type));
         } else if (type instanceof StringType) {
             typeSpec = buildTypeSpecForStringType((StringType) type);
-        } else throw new RuntimeException("unhandled type " + type);
+        } else {
+            return Maybe.error(new RuntimeException("unhandled type " + type));
+        }
 
-        return typeSpec;
+        return Maybe.just(typeSpec);
     }
 
     private TypeSpec buildTypeSpecForStringType(final StringType stringType) {

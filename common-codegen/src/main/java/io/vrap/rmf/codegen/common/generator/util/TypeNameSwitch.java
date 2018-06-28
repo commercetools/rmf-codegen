@@ -8,10 +8,12 @@ import io.vrap.rmf.raml.model.types.*;
 import io.vrap.rmf.raml.model.types.util.TypesSwitch;
 import org.eclipse.emf.ecore.EObject;
 
+import javax.annotation.Nullable;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.ZonedDateTime;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 public class TypeNameSwitch extends TypesSwitch<TypeName> {
 
@@ -23,9 +25,8 @@ public class TypeNameSwitch extends TypesSwitch<TypeName> {
         this.customTypeMapping = customTypeMapping;
     }
 
-    public static TypeNameSwitch of(final String basePackageName, final Map<String, String> customTypeMapping) {
-        Objects.requireNonNull(customTypeMapping);
-        return new TypeNameSwitch(basePackageName, customTypeMapping);
+    public static TypeNameSwitch of(final String basePackageName, @Nullable final Map<String, String> customTypeMapping) {
+        return new TypeNameSwitch(basePackageName, Optional.ofNullable(customTypeMapping).orElseGet(HashMap::new));
     }
 
     public Map<String, String> getCustomTypeMapping() {
@@ -66,12 +67,12 @@ public class TypeNameSwitch extends TypesSwitch<TypeName> {
 
     @Override
     public TypeName caseTimeOnlyType(TimeOnlyType object) {
-        return TypeName.get(ZonedDateTime.class);
+        return TypeName.get(LocalTime.class);
     }
 
     @Override
     public TypeName caseDateOnlyType(DateOnlyType object) {
-        return TypeName.get(ZonedDateTime.class);
+        return TypeName.get(LocalDate.class);
     }
 
     @Override

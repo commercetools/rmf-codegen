@@ -16,11 +16,10 @@ dependencies {
     compile group: 'com.atlassian.commonmark', name: 'commonmark', version: '0.11.0'
 
     compile group: 'org.joda', name: 'joda-beans', version: '2.2.2'
+    compile 'com.neovisionaries:nv-i18n:1.17'
 
     testCompile "org.spockframework:spock-core:${versions.spock}"
-    testCompile("org.assertj:assertj-core:3.10.0")
-
-
+    testCompile "org.assertj:assertj-core:3.10.0"
 }
 
 

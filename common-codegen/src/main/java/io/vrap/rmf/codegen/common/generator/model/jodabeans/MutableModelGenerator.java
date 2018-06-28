@@ -9,7 +9,9 @@ import io.reactivex.Flowable;
 import io.reactivex.Single;
 import io.vrap.rmf.codegen.common.generator.core.CodeGenerator;
 import io.vrap.rmf.codegen.common.generator.core.GenerationResult;
+import io.vrap.rmf.codegen.common.generator.core.GeneratorConfig;
 import io.vrap.rmf.codegen.common.generator.doc.JavaDocProcessor;
+import io.vrap.rmf.raml.model.modules.Api;
 import io.vrap.rmf.raml.model.types.*;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.emf.ecore.util.EObjectContainmentEList;
@@ -37,9 +39,11 @@ public class MutableModelGenerator extends CodeGenerator {
 
     protected final Logger LOGGER = LoggerFactory.getLogger(getClass());
 
-    public MutableModelGenerator(String packagePrefix, Path outputFolder, JavaDocProcessor javaDocProcessor, Flowable<AnyType> ramlObjects) {
-        super(packagePrefix, outputFolder, javaDocProcessor, ramlObjects);
+
+    public MutableModelGenerator(GeneratorConfig generatorConfig, Api api) {
+        super(generatorConfig, api);
     }
+
 
     public Path getPaths(JavaFileObject javaFile, Path outputFolder) {
         return Paths.get(outputFolder.toString(), javaFile.getName());

@@ -19,6 +19,10 @@ public interface GenerationResult {
         return new GenerationResultBuilder().addAllGeneratedFiles(generatedFiles).build();
     }
 
+    static GenerationResult empty() {
+        return new GenerationResultBuilder().build();
+    }
+
     List<Path> getGeneratedFiles();
 
 

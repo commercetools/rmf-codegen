@@ -1,8 +1,10 @@
 package io.vrap.rmf.codegen.common.generator.core;
 
+import io.vrap.rmf.codegen.common.generator.doc.JavaDocProcessor;
 import org.immutables.value.Value;
 
 import java.nio.file.Path;
+import java.util.Map;
 
 @Value.Immutable
 @Value.Style(
@@ -23,5 +25,10 @@ public interface GeneratorConfig {
     Path getOutputFolder();
 
     Path getRamlFileLocation();
+
+    JavaDocProcessor getJavaDocProcessor();
+
+    Map<String, String> getCustomTypeMapping();
+
 
 }

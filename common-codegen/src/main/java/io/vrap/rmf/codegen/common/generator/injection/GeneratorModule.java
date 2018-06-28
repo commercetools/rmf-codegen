@@ -3,6 +3,7 @@ package io.vrap.rmf.codegen.common.generator.injection;
 import dagger.Module;
 import dagger.Provides;
 import io.reactivex.Flowable;
+import io.vrap.rmf.codegen.common.generator.core.CodeGenerator;
 import io.vrap.rmf.codegen.common.generator.core.CodeGeneratorFactory;
 import io.vrap.rmf.codegen.common.generator.core.GeneratorConfig;
 import io.vrap.rmf.codegen.common.generator.doc.JavaDocProcessor;
@@ -20,37 +21,37 @@ import javax.inject.Singleton;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
+import static io.vrap.rmf.codegen.common.generator.core.GeneratorConfig.*;
 
 @Module
 public class GeneratorModule {
 
     private final Logger LOGGER = LoggerFactory.getLogger(GeneratorModule.class);
     private final GeneratorConfig generatorConfig;
-    private final JavaDocProcessor javaDocProcessor;
-    private final List<CodeGeneratorFactory> codeGenerators;
+    private final List<CodeGeneratorFactory> codeGeneratorFactories;
 
-
-    GeneratorModule(final GeneratorConfig generatorConfig, final JavaDocProcessor javaDocProcessor, final List<CodeGeneratorFactory> codeGenerators) {
+    private GeneratorModule(final GeneratorConfig generatorConfig, final List<CodeGeneratorFactory> codeGeneratorFactories) {
         Objects.requireNonNull(generatorConfig);
-        Objects.requireNonNull(codeGenerators);
         this.generatorConfig = generatorConfig;
-        this.codeGenerators = codeGenerators;
-        this.javaDocProcessor = javaDocProcessor;
+        this.codeGeneratorFactories = codeGeneratorFactories;
+
     }
 
-    public static GeneratorModule of(final GeneratorConfig generatorConfig, JavaDocProcessor javaDocProcessor, final List<CodeGeneratorFactory> codeGenerators) {
+    public static GeneratorModule of(final GeneratorConfig generatorConfig, final List<CodeGeneratorFactory> codeGeneratorFactories) {
         Objects.requireNonNull(generatorConfig);
-        Objects.requireNonNull(codeGenerators);
-        return new GeneratorModule(generatorConfig, javaDocProcessor, codeGenerators);
+        Objects.requireNonNull(codeGeneratorFactories);
+        return new GeneratorModule(generatorConfig, codeGeneratorFactories);
     }
-
-    public static GeneratorModule of(final GeneratorConfig generatorConfig, final JavaDocProcessor javaDocProcessor, final CodeGeneratorFactory codeGenerators) {
+    public static GeneratorModule of(final GeneratorConfig generatorConfig, final CodeGeneratorFactory... codeGeneratorFactories) {
         Objects.requireNonNull(generatorConfig);
-        Objects.requireNonNull(codeGenerators);
-        return new GeneratorModule(generatorConfig, javaDocProcessor, Arrays.asList(codeGenerators));
+        Objects.requireNonNull(codeGeneratorFactories);
+        return new GeneratorModule(generatorConfig, Arrays.asList(codeGeneratorFactories));
     }
 
+    @Provides
     public GeneratorConfig getGeneratorConfig() {
         return generatorConfig;
     }
@@ -76,13 +77,18 @@ public class GeneratorModule {
 
     @Provides
     public JavaDocProcessor getJavaDocProcessor() {
-        return javaDocProcessor;
+        return getGeneratorConfig().getJavaDocProcessor();
     }
 
 
     @Provides
     public List<CodeGeneratorFactory> getCodeGeneratorFactories() {
-        return codeGenerators;
+        return codeGeneratorFactories;
+    }
+
+    @Provides
+    public Map<String,String> getCustomTypeMapping() {
+        return getGeneratorConfig().getCustomTypeMapping();
     }
 
     @Provides
@@ -106,5 +112,12 @@ public class GeneratorModule {
                 .flatMapIterable(libraryUse -> libraryUse.getLibrary().getTypes());
         return resultFlow;
     }
+
+    @Provides
+    @Singleton
+    public List<CodeGenerator> getCodeGenerators(final GeneratorConfig generatorConfig, final Api api ){
+        return getCodeGeneratorFactories().stream().map(codeGeneratorFactory ->codeGeneratorFactory.createCodeGenerator(generatorConfig ,api )).collect(Collectors.toList());
+    }
+
 
 }

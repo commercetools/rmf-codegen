@@ -1,7 +1,12 @@
 package io.vrap.rmf.codegen.common;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.neovisionaries.i18n.CountryCode;
+import com.neovisionaries.i18n.CurrencyCode;
+import com.sun.istack.internal.localization.LocalizableMessage;
 import io.reactivex.observers.TestObserver;
 import io.vrap.rmf.codegen.common.generator.MasterCodeGenerator;
+import io.vrap.rmf.codegen.common.generator.client.ClientCodeGenerator;
 import io.vrap.rmf.codegen.common.generator.core.GenerationResult;
 import io.vrap.rmf.codegen.common.generator.core.GeneratorConfig;
 import io.vrap.rmf.codegen.common.generator.core.GeneratorConfigBuilder;
@@ -13,29 +18,44 @@ import io.vrap.rmf.codegen.common.generator.model.codegen.BeanGenerator;
 import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalTime;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 public class CodeGeneratorTest {
 
 
     private GeneratorConfig generatorConfig;
+    final Logger logger = LoggerFactory.getLogger(getClass());
 
 
     @Before
     public void init() {
 
+        Map<String, String> customTypeMapping = new HashMap<>();
+        {
+            customTypeMapping.put("CountryCode", CountryCode.class.getCanonicalName());
+            customTypeMapping.put("CurrencyCode", CurrencyCode.class.getCanonicalName());
+        }
+
         final ClassLoader classLoader = getClass().getClassLoader();
         final File file = new File(classLoader.getResource("api-spec/api.raml").getFile());
         //TODO set output path
-        final Path outputPath = Paths.get("/Users/abeniasaad/IdeaProjects/rmf-codegen/common-codegen/src/main/java");
+        final Path outputPath = Paths.get("/Users/abeniasaad/IdeaProjects/rmf-codegen/common-codegen/build/generated/source/apt/main");
         generatorConfig = new GeneratorConfigBuilder()
                 .packagePrefix("com.commercetools")
                 .outputFolder(outputPath)
                 .ramlFileLocation(file.toPath())
+                .javaDocProcessor(new DefaultJavaDocProcessor())
+                .customTypeMapping(customTypeMapping)
                 .build();
     }
 
@@ -47,18 +67,20 @@ public class CodeGeneratorTest {
 
         final GeneratorComponent generatorComponent = DaggerGeneratorComponent
                 .builder()
-                .generatorModule(GeneratorModule.of(generatorConfig, new DefaultJavaDocProcessor(),BeanGenerator::new))
+                .generatorModule(GeneratorModule.of(generatorConfig, BeanGenerator::new, ClientCodeGenerator::new))
                 .build();
 
         MasterCodeGenerator masterCodeGenerator = generatorComponent.getMasterCodeGenerator();
-        masterCodeGenerator.generateStub().subscribe(resultTestObserver);
 
+        masterCodeGenerator.generateStub().subscribe(resultTestObserver);
         resultTestObserver.assertComplete();
         resultTestObserver.assertNoErrors();
         resultTestObserver.assertValueCount(1);
         Assertions.assertThat(resultTestObserver.values().get(0).getGeneratedFiles()).isNotEmpty();
+        logger.info("{} files were generated", resultTestObserver.values().get(0).getGeneratedFiles().size());
 
     }
+
 
 
 }
