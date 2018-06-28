@@ -49,7 +49,7 @@ public class CodeGeneratorTest {
         final ClassLoader classLoader = getClass().getClassLoader();
         final File file = new File(classLoader.getResource("api-spec/api.raml").getFile());
         //TODO set output path
-        final Path outputPath = Paths.get("/Users/abeniasaad/IdeaProjects/rmf-codegen/common-codegen/build/generated/source/apt/main");
+        final Path outputPath = null;
         generatorConfig = new GeneratorConfigBuilder()
                 .packagePrefix("com.commercetools")
                 .outputFolder(outputPath)
@@ -80,6 +80,9 @@ public class CodeGeneratorTest {
         logger.info("{} files were generated", resultTestObserver.values().get(0).getGeneratedFiles().size());
 
     }
+
+
+
 
 
 

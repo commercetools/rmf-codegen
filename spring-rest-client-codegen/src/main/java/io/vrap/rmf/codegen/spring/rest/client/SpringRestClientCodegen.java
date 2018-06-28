@@ -1,13 +1,12 @@
 //package io.vrap.rmf.codegen.spring.rest.client;
 //
-//import com.google.common1.collect.LinkedListMultimap;
-//import com.google.common1.collect.Multimap;
+//import com.google.common.collect.LinkedListMultimap;
+//import com.google.common.collect.Multimap;
 //import com.squareup.javapoet.JavaFile;
 //import com.squareup.javapoet.MethodSpec;
 //import com.squareup.javapoet.TypeSpec;
-//import io.vrap.rmf.codegen.common1.generator.CodeGenerator;
-//import io.vrap.rmf.codegen.common1.generator.GenerationResult;
-//import io.vrap.rmf.codegen.common1.generator.GeneratorConfig;
+//import io.vrap.rmf.codegen.common.generator.core.GenerationResult;
+//import io.vrap.rmf.codegen.common.generator.core.GeneratorConfig;
 //import io.vrap.rmf.raml.model.modules.Api;
 //import io.vrap.rmf.raml.model.resources.Method;
 //import io.vrap.rmf.raml.model.resources.Resource;
