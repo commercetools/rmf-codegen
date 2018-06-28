@@ -33,8 +33,12 @@ public final class CodeGeneratorUtil {
 
 
     public static String getObjectPackage(final String basePackage, final AnyType anyType) {
+
         AnyType type = anyType;
         while (type.getType() != null) {
+            if ((type.eContainer() instanceof Library) && (((Library) type.eContainer()).getAnnotation("package") != null)) {
+                break;
+            }
             type = type.getType();
         }
         EObject eContainer = type.eContainer();
