@@ -4,6 +4,8 @@ usage: Error types.
 
 uses:
   generator: ../annotationTypes/generator.raml
+  product-variant-import: product-variant-import.raml
+  price-import: price-import.raml
 
 types:
   ErrorResponse:
@@ -25,6 +27,52 @@ types:
             type: string
         message:
             type: string
+  AccessDeniedError:
+    type: ErrorObject
+    discriminatorValue: access_denied
+  DuplicateAttributeValueError:
+    type: ErrorObject
+    discriminatorValue: DuplicateAttributeValue
+    properties:
+      attribute:
+        type: product-variant-import.Attribute
+  DuplicateAttributeValuesError:
+    type: ErrorObject
+    discriminatorValue: DuplicateAttributeValues
+    properties:
+      attributes:
+        type: product-variant-import.Attribute[]
+  DuplicateFieldError:
+    type: ErrorObject
+    discriminatorValue: DuplicateField
+    properties:
+      field?:
+        type: string
+      duplicateValue?:
+        type: any
+  DuplicateVariantValuesError:
+    type: ErrorObject
+    discriminatorValue: DuplicateVariantValues
+    properties:
+      variantValues:
+        type: VariantValues
+  VariantValues:
+    properties:
+      sku?:
+        type: string
+      prices:
+        type: price-import.PriceImport[]
+      attributes:
+        type: product-variant-import.Attribute[]
+  InsufficientScopeError:
+    type: ErrorObject
+    discriminatorValue: insufficient_scope
+  InvalidCredentialsError:
+    type: ErrorObject
+    discriminatorValue: InvalidCredentials
+  InvalidTokenError:
+    type: ErrorObject
+    discriminatorValue: invalid_token
   InvalidFieldError:
     type: ErrorObject
     discriminatorValue: InvalidField
@@ -34,7 +82,7 @@ types:
       invalidValue:
           type: any
       allowedValues?:
-          type: string[]
+          type: any[]
   ResourceNotFoundError:
     type: ErrorObject
     discriminatorValue: ResourceNotFound

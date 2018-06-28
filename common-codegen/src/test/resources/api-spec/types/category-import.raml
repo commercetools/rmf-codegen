@@ -1,6 +1,5 @@
 #%RAML 1.0 Library
 usage: Category import types.
-(generator.package): categories
 
 uses:
   common: common.raml
@@ -17,7 +16,7 @@ types:
         description?:
             type: common.LocalizedString
         parent?:
-            (common.ReferenceType): CATEGORY
+            (common.ReferenceType): category
             type: common.ImportReference
         orderHint?:
             type: string

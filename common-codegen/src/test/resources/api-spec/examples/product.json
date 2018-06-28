@@ -1,20 +1,17 @@
 [
   {
+    "typeId": "product",
     "key": "t-shirt",
     "name": {
       "en": "t-shirt"
     },
     "productType": {
-      "key": "main"
+      "key": "main",
+      "typeId": "product-type"
     },
     "slug": {
       "en": "t-shirt-slug"
     },
-    "categories": [
-      {
-        "key": "men"
-      }
-    ],
     "categoryOrderHints": {
       "men": "2"
     },
@@ -26,9 +23,6 @@
     },
     "metaKeywords": {
       "en": "Keywords"
-    },
-    "taxCategory": {
-      "key": "standard-tax"
     },
     "searchKeywords": {
       "en": [
@@ -51,9 +45,6 @@
           }
         }
       ]
-    },
-    "state": {
-      "key": "Initial"
     }
   }
 ]

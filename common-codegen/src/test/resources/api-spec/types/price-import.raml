@@ -18,13 +18,14 @@ types:
             type: datetime
         validUntil?:
             type: datetime
-        product:
-            description: |
-              The product in which this price is contained.
-            (common.ReferenceType): PRODUCT
+        customerGroup?:
+            (common.ReferenceType): customer-group
+            type: common.ImportReference
+        channel?:
+            (common.ReferenceType): channel
             type: common.ImportReference
         productVariant:
             description: |
               The product variant in which this price is contained.
-            (common.ReferenceType): PRODUCT_VARIANT
+            (common.ReferenceType): product-variant
             type: common.ImportReference

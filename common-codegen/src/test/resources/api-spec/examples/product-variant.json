@@ -1,8 +1,10 @@
 [
   {
+    "typeId": "product-variant",
     "key": "red-t-shirt",
     "product": {
-      "key": "t-shirt"
+      "key": "t-shirt",
+      "typeId": "product"
     },
     "isMasterVariant": true,
     "attributes": [

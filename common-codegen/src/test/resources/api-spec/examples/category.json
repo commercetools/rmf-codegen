@@ -1,5 +1,6 @@
 [
   {
+    "typeId": "category",
     "key": "root-category",
     "name": {
       "en": "Root Category"

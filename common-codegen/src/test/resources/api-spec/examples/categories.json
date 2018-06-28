@@ -1,5 +1,6 @@
 [
   {
+    "typeId": "category",
     "key": "root-category",
     "name": {
       "en": "Root Category"
@@ -9,6 +10,7 @@
     }
   },
   {
+    "typeId": "category",
     "key": "child-category",
     "name": {
       "en": "Child Category"
@@ -17,7 +19,8 @@
       "en": "child-category-slug"
     },
     "parent": {
-      "key": "root-category"
+      "key": "root-category",
+      "typeId": "category"
     }
   }
 ]
