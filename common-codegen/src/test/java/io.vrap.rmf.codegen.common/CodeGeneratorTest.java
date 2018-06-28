@@ -47,9 +47,9 @@ public class CodeGeneratorTest {
         }
 
         final ClassLoader classLoader = getClass().getClassLoader();
-        final Path inputPath = Paths.get("/Users/abeniasaad/IdeaProjects/rmf-codegen/common-codegen/src/test/resources/api-spec/api.raml");
+        final Path inputPath = null;
         //TODO set output path
-        final Path outputPath = Paths.get("/Users/abeniasaad/IdeaProjects/rmf-codegen/common-codegen/src/main/java");
+        final Path outputPath = null;
         generatorConfig = new GeneratorConfigBuilder()
                 .packagePrefix("com.commercetools")
                 .outputFolder(outputPath)
