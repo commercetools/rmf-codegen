@@ -8,7 +8,6 @@ import io.reactivex.Single;
 import io.vrap.rmf.codegen.common.generator.core.CodeGenerator;
 import io.vrap.rmf.codegen.common.generator.core.GenerationResult;
 import io.vrap.rmf.codegen.common.generator.core.GeneratorConfig;
-import io.vrap.rmf.codegen.common.generator.doc.JavaDocProcessor;
 import io.vrap.rmf.raml.model.modules.Api;
 import io.vrap.rmf.raml.model.types.*;
 import org.apache.commons.lang3.StringUtils;
@@ -21,7 +20,10 @@ import javax.lang.model.element.Modifier;
 import javax.tools.JavaFileObject;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -34,54 +36,6 @@ public class BeanGenerator extends CodeGenerator {
         super(generatorConfig, api);
     }
 
-    private static String getPropertyMethodNameSuffix(final Property property) {
-        final String javaPropertyName = Arrays.stream(property.getName().split("_"))
-                .map(StringUtils::capitalize)
-                .collect(Collectors.joining());
-
-        return javaPropertyName;
-    }
-
-    private static boolean isBoolean(FieldSpec fieldSpec) {
-        return fieldSpec.type.equals(ClassName.BOOLEAN.box()) || fieldSpec.type.equals(ClassName.BOOLEAN);
-    }
-
-    public Path getPath(JavaFileObject javaFile, Path outputFolder) {
-        return Paths.get(outputFolder.toString(), javaFile.getName());
-    }
-
-    protected Stream<AnnotationSpec> getDiscriminatorAnnotations(final ObjectType object) {
-        if (StringUtils.isEmpty(object.getDiscriminator()) || object.getSubTypes().isEmpty()) {
-            return Stream.empty();
-        }
-        final AnnotationSpec jsonTypeInfoAnnotation = AnnotationSpec.builder(JsonTypeInfo.class)
-                .addMember("use", "$T.NAME", JsonTypeInfo.Id.class)
-                .addMember("include", "$T.PROPERTY", JsonTypeInfo.As.class)
-                .addMember("property", "$S", object.getDiscriminator())
-                .addMember("visible", "true")
-                .build();
-
-        CodeBlock.Builder annotationBodyBuilder = CodeBlock.builder();
-        List<ObjectType> children = getSubtypes(object).collect(Collectors.toList());
-        if (!children.isEmpty()) {
-            for (int i = 0; i < children.size(); i++) {
-                annotationBodyBuilder.add(
-                        (i == 0 ? "{" : ",") +
-                                "\n@$T(value = $T.class, name = $S)"
-                                + (i == children.size() - 1 ? "\n}" : "")
-                        , JsonSubTypes.Type.class, getClassName(getPackagePrefix(), children.get(i)), children.get(i).getDiscriminatorValue());
-            }
-        }
-        final AnnotationSpec jsonSubTypesAnnotation = AnnotationSpec.builder(JsonSubTypes.class)
-                .addMember("value", annotationBodyBuilder.build())
-                .build();
-
-        return Stream.of(jsonSubTypesAnnotation, jsonTypeInfoAnnotation);
-    }
-
-    protected Stream<AnnotationSpec> getAdditionalTypeAnnotations(final ObjectType object) {
-        return Stream.empty();
-    }
 
     @Override
     public Single<GenerationResult> generateStub() {
@@ -129,7 +83,8 @@ public class BeanGenerator extends CodeGenerator {
             stringType.getEnum()
                     .stream()
                     .map(StringInstance.class::cast)
-                    .forEach(value -> enumBuilder.addEnumConstant(value.getValue()));
+                    .map(StringInstance::getValue)
+                    .forEach(value-> addConstantToEnumConstant(enumBuilder,value));
             enumBuilder.addJavadoc(getJavaDocProcessor().markDownToJavaDoc(stringType));
             return enumBuilder.build();
         } else {
@@ -141,6 +96,18 @@ public class BeanGenerator extends CodeGenerator {
             return typeSpec;
         }
     }
+
+
+    private void addConstantToEnumConstant(TypeSpec.Builder enumBuilder, final String enumValue) {
+
+        TypeSpec anootationSpec = TypeSpec.anonymousClassBuilder("")
+                .addAnnotation(AnnotationSpec.builder(JsonProperty.class).addMember("value", "$S",enumValue).build())
+                .build();
+        enumBuilder.addEnumConstant(toEnumValueName(enumValue), anootationSpec);
+
+    }
+
+
 
     private TypeSpec buildTypeSpecForObjectType(final ObjectType object) {
 
@@ -222,6 +189,57 @@ public class BeanGenerator extends CodeGenerator {
                 .addCode("return " + fieldSpec.name + ";\n");
         return methdBuilder.build();
     }
+
+
+    private static String getPropertyMethodNameSuffix(final Property property) {
+        final String javaPropertyName = Arrays.stream(property.getName().split("_"))
+                .map(StringUtils::capitalize)
+                .collect(Collectors.joining());
+
+        return javaPropertyName;
+    }
+
+    private static boolean isBoolean(FieldSpec fieldSpec) {
+        return fieldSpec.type.equals(ClassName.BOOLEAN.box()) || fieldSpec.type.equals(ClassName.BOOLEAN);
+    }
+
+    public Path getPath(JavaFileObject javaFile, Path outputFolder) {
+        return Paths.get(outputFolder.toString(), javaFile.getName());
+    }
+
+    protected Stream<AnnotationSpec> getDiscriminatorAnnotations(final ObjectType object) {
+        if (StringUtils.isEmpty(object.getDiscriminator()) || object.getSubTypes().isEmpty()) {
+            return Stream.empty();
+        }
+        final AnnotationSpec jsonTypeInfoAnnotation = AnnotationSpec.builder(JsonTypeInfo.class)
+                .addMember("use", "$T.NAME", JsonTypeInfo.Id.class)
+                .addMember("include", "$T.PROPERTY", JsonTypeInfo.As.class)
+                .addMember("property", "$S", object.getDiscriminator())
+                .addMember("visible", "true")
+                .build();
+
+        CodeBlock.Builder annotationBodyBuilder = CodeBlock.builder();
+        List<ObjectType> children = getSubtypes(object).collect(Collectors.toList());
+        if (!children.isEmpty()) {
+            for (int i = 0; i < children.size(); i++) {
+                annotationBodyBuilder.add(
+                        (i == 0 ? "{" : ",") +
+                                "\n@$T(value = $T.class, name = $S)"
+                                + (i == children.size() - 1 ? "\n}" : "")
+                        , JsonSubTypes.Type.class, getClassName(getPackagePrefix(), children.get(i)), children.get(i).getDiscriminatorValue());
+            }
+        }
+        final AnnotationSpec jsonSubTypesAnnotation = AnnotationSpec.builder(JsonSubTypes.class)
+                .addMember("value", annotationBodyBuilder.build())
+                .build();
+
+        return Stream.of(jsonSubTypesAnnotation, jsonTypeInfoAnnotation);
+    }
+
+    protected Stream<AnnotationSpec> getAdditionalTypeAnnotations(final ObjectType object) {
+        return Stream.empty();
+    }
+
 
     private ClassName getBaseClassName() {
         return ClassName.get(getPackagePrefix() + ".base", "Base");
