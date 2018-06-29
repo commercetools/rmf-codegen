@@ -74,7 +74,7 @@ public class BeanGenerator extends CodeGenerator {
             if((eObject instanceof AnyType)&&(getCustomTypeMapping().get(((AnyType)eObject).getName()) != null) ){
                 return Maybe.empty();
             }
-            return Optional.ofNullable(super.doSwitch(eObject)).orElse(Maybe.error(new RuntimeException("no TypeSpec transformer found for " + eObject)));
+            return Optional.ofNullable(super.doSwitch(eObject)).orElse(Maybe.error(new RuntimeException("No TypeSpec transformer found for " + eObject)));
         }
 
         @Override

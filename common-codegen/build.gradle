@@ -4,6 +4,7 @@ plugins {
 
 dependencies {
 
+
     compile "io.vrap.rmf:raml-model:${versions.rmf}"
     compile "org.immutables:value:2.6.1"
     apt "org.immutables:value:2.6.1"
@@ -17,6 +18,10 @@ dependencies {
     compile 'org.joda:joda-beans:2.2.2'
     compile 'com.neovisionaries:nv-i18n:1.17'
     compile 'javax.validation:validation-api:2.0.1.Final'
+
+    testCompile 'com.fasterxml.jackson.module:jackson-module-parameter-names:2.9.5'
+    testCompile 'com.fasterxml.jackson.datatype:jackson-datatype-jdk8:2.9.5'
+    testCompile 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.9.5'
 
     testCompile "org.spockframework:spock-core:${versions.spock}"
     testCompile "org.assertj:assertj-core:3.10.0"

@@ -12,6 +12,7 @@ import javax.annotation.Generated;
 import javax.lang.model.element.Modifier;
 
 import static io.vrap.rmf.codegen.common.generator.util.CodeGeneratorUtil.getClassName;
+import static io.vrap.rmf.codegen.common.generator.util.CodeGeneratorUtil.getGeneratedAnnotation;
 
 public class StringTypeTransformer extends TypeTransformer<StringType> {
 
@@ -28,7 +29,7 @@ public class StringTypeTransformer extends TypeTransformer<StringType> {
         if (!stringType.getEnum().isEmpty()) {
             TypeSpec.Builder enumBuilder = TypeSpec.enumBuilder(getClassName(getPackagePrefix(), stringType))
                     .addModifiers(Modifier.PUBLIC)
-                    .addAnnotation(AnnotationSpec.builder(Generated.class).addMember("value","$S",getClass().getCanonicalName() ).build());
+                    .addAnnotation(getGeneratedAnnotation(this));
             stringType.getEnum()
                     .stream()
                     .map(StringInstance.class::cast)
@@ -38,7 +39,7 @@ public class StringTypeTransformer extends TypeTransformer<StringType> {
             return enumBuilder.build();
         } else {
             TypeSpec typeSpec = TypeSpec.classBuilder(getClassName(getPackagePrefix(), stringType))
-                    .addAnnotation(AnnotationSpec.builder(Generated.class).addMember("value","$S",getClass().getCanonicalName() ).build())
+                    .addAnnotation(getGeneratedAnnotation(this))
                     .addModifiers(Modifier.PUBLIC)
                     .superclass(baseClass.getClassName())
                     .addJavadoc(getJavaDocProcessor().markDownToJavaDoc(stringType))

@@ -8,18 +8,13 @@ import io.vrap.rmf.raml.model.types.ObjectType;
 import io.vrap.rmf.raml.model.types.Property;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.annotation.Generated;
 import javax.lang.model.element.Modifier;
 import javax.validation.constraints.NotNull;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static io.vrap.rmf.codegen.common.generator.util.CodeGeneratorUtil.getClassName;
-import static io.vrap.rmf.codegen.common.generator.util.CodeGeneratorUtil.getSubtypes;
+import static io.vrap.rmf.codegen.common.generator.util.CodeGeneratorUtil.*;
 
 public class ObjectTypeTransformer extends TypeTransformer<ObjectType> {
 
@@ -42,7 +37,7 @@ public class ObjectTypeTransformer extends TypeTransformer<ObjectType> {
         // object.getPropertyType() return the supper type
         final ClassName className = getClassName(getPackagePrefix(), objectType);
         final TypeSpec.Builder typeSpecBuilder = TypeSpec.classBuilder(className)
-                .addAnnotation(AnnotationSpec.builder(Generated.class).addMember("value","$S",getClass().getCanonicalName() ).build())
+                .addAnnotation(getGeneratedAnnotation(this))
                 .addJavadoc(getJavaDocProcessor().markDownToJavaDoc(objectType))
                 .addModifiers(Modifier.PUBLIC);
 
@@ -71,7 +66,9 @@ public class ObjectTypeTransformer extends TypeTransformer<ObjectType> {
         if (property.getName().startsWith("/")) {
             final TypeName valueType = getTypeNameSwitch().doSwitch(property.getType());
             builder =  FieldSpec.builder(
-                    ParameterizedTypeName.get(ClassName.get(Map.class), ClassName.get(String.class), valueType), "values", Modifier.PRIVATE);
+                    ParameterizedTypeName.get(ClassName.get(Map.class), ClassName.get(String.class), valueType), "values", Modifier.PRIVATE)
+                    .initializer("new $T()",HashMap.class)
+                    .addAnnotation(JsonAnySetter.class);
         } else {
             final TypeName valueType = getTypeNameSwitch().doSwitch(property.getType());
             builder = FieldSpec.builder(valueType, property.getName(), Modifier.PRIVATE);
@@ -108,7 +105,6 @@ public class ObjectTypeTransformer extends TypeTransformer<ObjectType> {
         final MethodSpec.Builder methdBuilder;
         if (property.getName().startsWith("/")) {
             methdBuilder = MethodSpec.methodBuilder("values");
-            methdBuilder.addAnnotation(JsonAnySetter.class);
             methdBuilder.addAnnotation(JsonAnyGetter.class);
         } else {
             final String attributePrefix = isBoolean(fieldSpec) ? "is" : "get";

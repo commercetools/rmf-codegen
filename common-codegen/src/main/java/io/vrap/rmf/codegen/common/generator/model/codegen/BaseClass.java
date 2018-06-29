@@ -3,12 +3,12 @@ package io.vrap.rmf.codegen.common.generator.model.codegen;
 import com.squareup.javapoet.*;
 import io.vrap.rmf.codegen.common.generator.core.ConfigDecorator;
 import io.vrap.rmf.codegen.common.generator.core.GeneratorConfig;
+import io.vrap.rmf.codegen.common.generator.util.CodeGeneratorUtil;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
-import javax.annotation.Generated;
 import javax.lang.model.element.Modifier;
 
 class BaseClass extends ConfigDecorator {
@@ -57,7 +57,7 @@ class BaseClass extends ConfigDecorator {
 
         final TypeSpec typeSpec = TypeSpec.classBuilder(getClassName())
                 .addModifiers(Modifier.PUBLIC)
-                .addAnnotation(AnnotationSpec.builder(Generated.class).addMember("value","$S",getClass().getCanonicalName() ).build())
+                .addAnnotation(CodeGeneratorUtil.getGeneratedAnnotation(this))
                 .addMethod(toString)
                 .addMethod(equals)
                 .addMethod(hashCode)
