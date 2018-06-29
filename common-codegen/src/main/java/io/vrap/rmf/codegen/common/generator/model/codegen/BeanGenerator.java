@@ -220,19 +220,19 @@ public class BeanGenerator extends CodeGenerator {
         return Paths.get(outputFolder.toString(), javaFile.getName());
     }
 
-    protected Stream<AnnotationSpec> getDiscriminatorAnnotations(final ObjectType object) {
-        if (StringUtils.isEmpty(object.getDiscriminator()) || object.getSubTypes().isEmpty()) {
+    protected Stream<AnnotationSpec> getDiscriminatorAnnotations(final ObjectType objectType) {
+        if (StringUtils.isEmpty(objectType.getDiscriminator()) || objectType.getSubTypes().isEmpty()) {
             return Stream.empty();
         }
         final AnnotationSpec jsonTypeInfoAnnotation = AnnotationSpec.builder(JsonTypeInfo.class)
                 .addMember("use", "$T.NAME", JsonTypeInfo.Id.class)
                 .addMember("include", "$T.PROPERTY", JsonTypeInfo.As.class)
-                .addMember("property", "$S", object.getDiscriminator())
+                .addMember("property", "$S", objectType.getDiscriminator())
                 .addMember("visible", "true")
                 .build();
 
         CodeBlock.Builder annotationBodyBuilder = CodeBlock.builder();
-        List<ObjectType> children = getSubtypes(object).collect(Collectors.toList());
+        List<ObjectType> children = getSubtypes(objectType).collect(Collectors.toList());
         if (!children.isEmpty()) {
             for (int i = 0; i < children.size(); i++) {
                 annotationBodyBuilder.add(
