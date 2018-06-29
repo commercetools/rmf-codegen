@@ -31,8 +31,8 @@ public class MasterCodeGenerator {
     public Single<GenerationResult> generateStub() {
         return Flowable.fromIterable(codeGenerators)
                 .flatMapSingle(CodeGenerator::generateStub)
-                .flatMapIterable(generationResult -> generationResult.getGeneratedFiles())
+                .flatMapIterable(GenerationResult::getGeneratedFiles)
                 .toList()
-                .map(paths -> GenerationResult.of(paths));
+                .map(GenerationResult::of);
     }
 }

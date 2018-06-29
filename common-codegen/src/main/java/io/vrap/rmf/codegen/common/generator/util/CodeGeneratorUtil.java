@@ -9,6 +9,8 @@ import io.vrap.rmf.raml.model.types.StringInstance;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.emf.ecore.EObject;
 
+import java.text.CharacterIterator;
+import java.text.StringCharacterIterator;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -57,5 +59,36 @@ public final class CodeGeneratorUtil {
             eContainer = eContainer.eContainer();
         }
         return basePackage;
+    }
+
+
+    public static String toJavaIdentifier(final String input){
+        if (input.length() == 0) {
+            return "_";
+        }
+        CharacterIterator ci = new StringCharacterIterator(input);
+        StringBuilder sb = new StringBuilder();
+        for (char c = ci.first(); c != CharacterIterator.DONE; c = ci.next()) {
+            if (c == ' ')
+                c = '_';
+            if (sb.length() == 0) {
+                if (Character.isJavaIdentifierStart(c)) {
+                    sb.append(c);
+                    continue;
+                } else
+                    sb.append('_');
+            }
+            if (Character.isJavaIdentifierPart(c)) {
+                sb.append(c);
+            } else {
+                sb.append('_');
+            }
+        };
+        return sb.toString();
+
+    }
+
+    public static String toEnumValueName(final String input){
+        return toJavaIdentifier(input).toUpperCase();
     }
 }

@@ -81,8 +81,8 @@ public class TypeNameSwitch extends TypesSwitch<TypeName> {
     }
 
     @Override
-    public TypeName caseObjectType(ObjectType object) {
-        return CodeGeneratorUtil.getClassName(basePackageName, object);
+    public TypeName caseObjectType(ObjectType objectType) {
+        return CodeGeneratorUtil.getClassName(basePackageName, objectType);
     }
 
     @Override

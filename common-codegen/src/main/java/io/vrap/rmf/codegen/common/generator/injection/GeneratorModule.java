@@ -92,6 +92,7 @@ public class GeneratorModule {
     }
 
     @Provides
+    @Singleton
     public Api provideRamlModel(@Named(GeneratorConfig.RAML_FILE_LOCATION) final Path ramlFilePath) {
         final URI fileURI = URI.createFileURI(ramlFilePath.toString());
         final RamlModelResult<Api> modelResult = new RamlModelBuilder().buildApi(fileURI);

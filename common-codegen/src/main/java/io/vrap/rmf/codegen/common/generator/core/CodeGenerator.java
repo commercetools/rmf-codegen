@@ -37,7 +37,7 @@ public abstract class CodeGenerator {
         return api;
     }
 
-    public final String getPackagePrefix() {
+    public String getPackagePrefix() {
         return getGeneratorConfig().getPackagePrefix();
     }
 
@@ -68,33 +68,4 @@ public abstract class CodeGenerator {
     }
 
 
-    protected String toJavaIdentifier(final String input){
-            if (input.length() == 0) {
-                return "_";
-            }
-            CharacterIterator ci = new StringCharacterIterator(input);
-            StringBuilder sb = new StringBuilder();
-            for (char c = ci.first(); c != CharacterIterator.DONE; c = ci.next()) {
-                if (c == ' ')
-                    c = '_';
-                if (sb.length() == 0) {
-                    if (Character.isJavaIdentifierStart(c)) {
-                        sb.append(c);
-                        continue;
-                    } else
-                        sb.append('_');
-                }
-                if (Character.isJavaIdentifierPart(c)) {
-                    sb.append(c);
-                } else {
-                    sb.append('_');
-                }
-            };
-            return sb.toString();
-
-    }
-
-    protected String toEnumValueName(final String input){
-        return toJavaIdentifier(input).toUpperCase();
-    }
 }

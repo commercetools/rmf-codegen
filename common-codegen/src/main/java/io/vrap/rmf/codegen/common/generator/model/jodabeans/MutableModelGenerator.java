@@ -50,19 +50,19 @@ public class MutableModelGenerator extends CodeGenerator {
     }
 
 
-    protected Stream<AnnotationSpec> getDiscriminatorAnnotations(final ObjectType object) {
-        if (StringUtils.isEmpty(object.getDiscriminator()) || object.getSubTypes().isEmpty()) {
+    protected Stream<AnnotationSpec> getDiscriminatorAnnotations(final ObjectType objectType) {
+        if (StringUtils.isEmpty(objectType.getDiscriminator()) || objectType.getSubTypes().isEmpty()) {
             return Stream.empty();
         }
         final AnnotationSpec jsonTypeInfoAnnotation = AnnotationSpec.builder(JsonTypeInfo.class)
                 .addMember("use", "$T.NAME", JsonTypeInfo.Id.class)
                 .addMember("include", "$T.PROPERTY", JsonTypeInfo.As.class)
-                .addMember("property", "$S", object.getDiscriminator())
+                .addMember("property", "$S", objectType.getDiscriminator())
                 .addMember("visible", "true")
                 .build();
 
         CodeBlock.Builder annotationBodyBuilder = CodeBlock.builder();
-        List<ObjectType> children = getSubtypes(object).collect(Collectors.toList());
+        List<ObjectType> children = getSubtypes(objectType).collect(Collectors.toList());
         if (!children.isEmpty()) {
             for (int i = 0; i < children.size(); i++) {
                 annotationBodyBuilder.add(
@@ -79,7 +79,7 @@ public class MutableModelGenerator extends CodeGenerator {
         return Stream.of(jsonSubTypesAnnotation, jsonTypeInfoAnnotation);
     }
 
-    protected Stream<AnnotationSpec> getAdditionalTypeAnnotations(final ObjectType object) {
+    protected Stream<AnnotationSpec> getAdditionalTypeAnnotations(final ObjectType objectType) {
         final AnnotationSpec annotationSpec = AnnotationSpec.builder(BeanDefinition.class)
                 .addMember("style", "\"lighter\"")
                 .build();
@@ -100,24 +100,24 @@ public class MutableModelGenerator extends CodeGenerator {
     }
 
 
-    public JavaFile transformToJavaFile(final AnyType object) {
-        final TypeSpec resultTypeSpec = buildTypeSpec(object);
+    public JavaFile transformToJavaFile(final AnyType anyType) {
+        final TypeSpec resultTypeSpec = buildTypeSpec(anyType);
         if (resultTypeSpec == null) {
             return null;
         }
-        final JavaFile javaFile = JavaFile.builder(getObjectPackage(getPackagePrefix(), object), resultTypeSpec).build();
+        final JavaFile javaFile = JavaFile.builder(getObjectPackage(getPackagePrefix(), anyType), resultTypeSpec).build();
         return javaFile;
     }
 
 
-    private TypeSpec buildTypeSpec(final AnyType type) {
-        if (getCustomTypeMapping().get(type.getName()) != null) {
+    private TypeSpec buildTypeSpec(final AnyType anyType) {
+        if (getCustomTypeMapping().get(anyType.getName()) != null) {
             return null;
-        } else if (type instanceof ObjectType) {
-            return buildTypeSpecForObjectType(((ObjectType) type));
-        } else if (type instanceof StringType) {
-            return buildTypeSpecForStringType((StringType) type);
-        } else throw new RuntimeException("unhandled type " + type);
+        } else if (anyType instanceof ObjectType) {
+            return buildTypeSpecForObjectType(((ObjectType) anyType));
+        } else if (anyType instanceof StringType) {
+            return buildTypeSpecForStringType((StringType) anyType);
+        } else throw new RuntimeException("unhandled type " + anyType);
     }
 
     private TypeSpec buildTypeSpecForStringType(final StringType stringType) {
@@ -144,49 +144,49 @@ public class MutableModelGenerator extends CodeGenerator {
         }
     }
 
-    private TypeSpec buildTypeSpecForObjectType(final ObjectType object) {
+    private TypeSpec buildTypeSpecForObjectType(final ObjectType objectType) {
 
 
         // object.getPropertyType() return the supper type
-        final ClassName interfaceName = getClassName(getPackagePrefix(), object);
+        final ClassName interfaceName = getClassName(getPackagePrefix(), objectType);
         final TypeSpec.Builder typeSpecBuilder = TypeSpec.classBuilder(interfaceName)
-                .addJavadoc(getJavaDocProcessor().markDownToJavaDoc(object))
+                .addJavadoc(getJavaDocProcessor().markDownToJavaDoc(objectType))
                 .addModifiers(Modifier.PUBLIC, Modifier.FINAL);
 
-        Stream.concat(getAdditionalTypeAnnotations(object), getDiscriminatorAnnotations(object)).forEach(typeSpecBuilder::addAnnotation);
+        Stream.concat(getAdditionalTypeAnnotations(objectType), getDiscriminatorAnnotations(objectType)).forEach(typeSpecBuilder::addAnnotation);
 
 
         //Add super interfaces
-        Optional.ofNullable(object.getType())
+        Optional.ofNullable(objectType.getType())
                 .map(anyType -> getClassName(getPackagePrefix(), anyType))
                 .map(typeSpecBuilder::superclass)
                 .orElse(null);
         typeSpecBuilder.addSuperinterface(Bean.class);
         //Add Properties
-        object.getProperties().stream()
-                .map(property -> mapField(object, property))
+        objectType.getProperties().stream()
+                .map(property -> mapField(objectType, property))
                 .forEach(typeSpecBuilder::addField);
         return typeSpecBuilder.build();
     }
 
 
-    private FieldSpec mapField(final ObjectType object, Property property) {
+    private FieldSpec mapField(final ObjectType objectType, Property property) {
 
         if (property.getName().startsWith("/")) {
-            return mapFieldWithPattern(object, property);
+            return mapFieldWithPattern(objectType, property);
         }
         return mapField(property);
     }
 
-    private FieldSpec mapFieldWithPattern(final ObjectType object, Property property) {
+    private FieldSpec mapFieldWithPattern(final ObjectType objectType, Property property) {
         final ClassName keyType = ClassName.get(String.class);
         final TypeName valueType = getTypeNameSwitch().doSwitch(property.getType());
 
         String reaKeyType;
         try {
-            reaKeyType = (String) ((PropertyValue) ((EObjectContainmentEList) object.getAnnotation("asMap").getValue().getValue()).get(0)).getValue().getValue();
+            reaKeyType = (String) ((PropertyValue) ((EObjectContainmentEList) objectType.getAnnotation("asMap").getValue().getValue()).get(0)).getValue().getValue();
         } catch (Exception e) {
-            LOGGER.error("Error while parsing key for asMap annotation in object " + object, e);
+            LOGGER.error("Error while parsing key for asMap annotation in object " + objectType, e);
             reaKeyType = "string";
         }
 

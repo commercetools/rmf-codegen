@@ -8,6 +8,7 @@ import io.reactivex.Single;
 import io.vrap.rmf.codegen.common.generator.core.CodeGenerator;
 import io.vrap.rmf.codegen.common.generator.core.GenerationResult;
 import io.vrap.rmf.codegen.common.generator.core.GeneratorConfig;
+import io.vrap.rmf.codegen.common.generator.util.CodeGeneratorUtil;
 import io.vrap.rmf.raml.model.modules.Api;
 import io.vrap.rmf.raml.model.types.*;
 import org.apache.commons.lang3.StringUtils;
@@ -16,6 +17,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
+import javax.annotation.Generated;
 import javax.lang.model.element.Modifier;
 import javax.tools.JavaFileObject;
 import java.nio.file.Path;
@@ -37,6 +39,7 @@ public class BeanGenerator extends CodeGenerator {
     }
 
 
+
     @Override
     public Single<GenerationResult> generateStub() {
 
@@ -50,6 +53,11 @@ public class BeanGenerator extends CodeGenerator {
                 .map(GenerationResult::of);
 
         return generationResult;
+    }
+
+    @Override
+    public String getPackagePrefix() {
+        return super.getPackagePrefix()+".models";
     }
 
     public Maybe<JavaFile> transformToJavaFile(final AnyType object) {
@@ -79,7 +87,9 @@ public class BeanGenerator extends CodeGenerator {
 
     private TypeSpec buildTypeSpecForStringType(final StringType stringType) {
         if (!stringType.getEnum().isEmpty()) {
-            TypeSpec.Builder enumBuilder = TypeSpec.enumBuilder(getClassName(getPackagePrefix(), stringType)).addModifiers(Modifier.PUBLIC);
+            TypeSpec.Builder enumBuilder = TypeSpec.enumBuilder(getClassName(getPackagePrefix(), stringType))
+                    .addModifiers(Modifier.PUBLIC)
+                    .addAnnotation(AnnotationSpec.builder(Generated.class).addMember("value","$S",getClass().getCanonicalName() ).build());
             stringType.getEnum()
                     .stream()
                     .map(StringInstance.class::cast)
@@ -89,6 +99,7 @@ public class BeanGenerator extends CodeGenerator {
             return enumBuilder.build();
         } else {
             TypeSpec typeSpec = TypeSpec.classBuilder(getClassName(getPackagePrefix(), stringType))
+                    .addAnnotation(AnnotationSpec.builder(Generated.class).addMember("value","$S",getClass().getCanonicalName() ).build())
                     .addModifiers(Modifier.PUBLIC)
                     .superclass(getBaseClassName())
                     .addJavadoc(getJavaDocProcessor().markDownToJavaDoc(stringType))
@@ -103,34 +114,36 @@ public class BeanGenerator extends CodeGenerator {
         TypeSpec anootationSpec = TypeSpec.anonymousClassBuilder("")
                 .addAnnotation(AnnotationSpec.builder(JsonProperty.class).addMember("value", "$S",enumValue).build())
                 .build();
-        enumBuilder.addEnumConstant(toEnumValueName(enumValue), anootationSpec);
+
+        enumBuilder.addEnumConstant(CodeGeneratorUtil.toEnumValueName(enumValue), anootationSpec);
 
     }
 
 
 
-    private TypeSpec buildTypeSpecForObjectType(final ObjectType object) {
+    private TypeSpec buildTypeSpecForObjectType(final ObjectType objectType) {
 
 
         // object.getPropertyType() return the supper type
-        final ClassName interfaceName = getClassName(getPackagePrefix(), object);
-        final TypeSpec.Builder typeSpecBuilder = TypeSpec.classBuilder(interfaceName)
-                .addJavadoc(getJavaDocProcessor().markDownToJavaDoc(object))
+        final ClassName className = getClassName(getPackagePrefix(), objectType);
+        final TypeSpec.Builder typeSpecBuilder = TypeSpec.classBuilder(className)
+                .addAnnotation(AnnotationSpec.builder(Generated.class).addMember("value","$S",getClass().getCanonicalName() ).build())
+                .addJavadoc(getJavaDocProcessor().markDownToJavaDoc(objectType))
                 .addModifiers(Modifier.PUBLIC);
 
-        Stream.concat(getAdditionalTypeAnnotations(object), getDiscriminatorAnnotations(object)).forEach(typeSpecBuilder::addAnnotation);
+        getDiscriminatorAnnotations(objectType).forEach(typeSpecBuilder::addAnnotation);
 
 
         //Add super interfaces
         Optional.of(
-                Optional.ofNullable(object.getType())
+                Optional.ofNullable(objectType.getType())
                         .map(anyType -> getClassName(getPackagePrefix(), anyType)).orElse(getBaseClassName())
         )
                 .map(typeSpecBuilder::superclass)
                 .orElse(null);
 
 
-        Flowable.fromIterable(object.getProperties())
+        Flowable.fromIterable(objectType.getProperties())
                 .doOnNext(property -> typeSpecBuilder.addField(getFieldSpec(property)))
                 .doOnNext(property -> typeSpecBuilder.addMethod(getFieldGetter(property)))
                 .doOnNext(property -> typeSpecBuilder.addMethod(getFieldSetter(property)))
@@ -236,10 +249,6 @@ public class BeanGenerator extends CodeGenerator {
         return Stream.of(jsonSubTypesAnnotation, jsonTypeInfoAnnotation);
     }
 
-    protected Stream<AnnotationSpec> getAdditionalTypeAnnotations(final ObjectType object) {
-        return Stream.empty();
-    }
-
 
     private ClassName getBaseClassName() {
         return ClassName.get(getPackagePrefix() + ".base", "Base");
@@ -272,6 +281,7 @@ public class BeanGenerator extends CodeGenerator {
 
         final TypeSpec typeSpec = TypeSpec.classBuilder(getBaseClassName())
                 .addModifiers(Modifier.PUBLIC)
+                .addAnnotation(AnnotationSpec.builder(Generated.class).addMember("value","$S",getClass().getCanonicalName() ).build())
                 .addMethod(toString)
                 .addMethod(equals)
                 .addMethod(hashCode)
