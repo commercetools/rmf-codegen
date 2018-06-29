@@ -3,19 +3,18 @@ plugins {
 }
 
 dependencies {
-    compile "io.vrap.rmf:raml-model:${versions.rmf}"
 
+    compile "io.vrap.rmf:raml-model:${versions.rmf}"
     compile "org.immutables:value:2.6.1"
     apt "org.immutables:value:2.6.1"
     compile 'com.google.dagger:dagger:2.16'
     apt 'com.google.dagger:dagger-compiler:2.16'
     compile 'com.squareup:javapoet:1.10.0'
     compile 'org.apache.commons:commons-lang3:3.7'
-    compile group: 'io.reactivex.rxjava2', name: 'rxjava', version: '2.1.14'
-    compile group: 'org.slf4j', name: 'slf4j-simple', version: '1.7.25'
-    compile group: 'com.atlassian.commonmark', name: 'commonmark', version: '0.11.0'
-
-    compile group: 'org.joda', name: 'joda-beans', version: '2.2.2'
+    compile 'io.reactivex.rxjava2:rxjava:2.1.14'
+    compile 'org.slf4j:slf4j-simple:1.7.25'
+    compile 'com.atlassian.commonmark:commonmark:0.11.0'
+    compile 'org.joda:joda-beans:2.2.2'
     compile 'com.neovisionaries:nv-i18n:1.17'
 
     testCompile "org.spockframework:spock-core:${versions.spock}"
