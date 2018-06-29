@@ -20,6 +20,7 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 import javax.annotation.Generated;
 import javax.lang.model.element.Modifier;
 import javax.tools.JavaFileObject;
+import javax.validation.constraints.NotNull;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -154,16 +155,22 @@ public class BeanGenerator extends CodeGenerator {
     }
 
     private FieldSpec getFieldSpec(final Property property) {
-
+        FieldSpec.Builder builder;
         if (property.getName().startsWith("/")) {
             final TypeName valueType = getTypeNameSwitch().doSwitch(property.getType());
-            return FieldSpec.builder(
-                    ParameterizedTypeName.get(ClassName.get(Map.class), ClassName.get(String.class), valueType), "values", Modifier.PRIVATE)
-                    .build();
+            builder =  FieldSpec.builder(
+                    ParameterizedTypeName.get(ClassName.get(Map.class), ClassName.get(String.class), valueType), "values", Modifier.PRIVATE);
         } else {
             final TypeName valueType = getTypeNameSwitch().doSwitch(property.getType());
-            return FieldSpec.builder(valueType, property.getName(), Modifier.PRIVATE).build();
+            builder = FieldSpec.builder(valueType, property.getName(), Modifier.PRIVATE);
         }
+        if(property.getRequired()){
+            builder.addAnnotation(NotNull.class);
+        }
+
+        return builder.build();
+
+
     }
 
     private MethodSpec getFieldSetter(final Property property) {
