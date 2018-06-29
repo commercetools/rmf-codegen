@@ -1,0 +1,61 @@
+#%RAML 1.0 Library
+usage: Import item types.
+(generator.package): importitems
+
+uses:
+  common: common.raml
+  error: error.raml
+  generator: ../annotationTypes/generator.raml
+
+types:
+  ImportItem:
+    description: This type represents an import item.
+    properties:
+      resourceKey:
+        description: The key of the imported resource.
+        type: string
+      resourceType:
+        description: The type of the imported resource.
+        type: common.ResourceType
+      state:
+        description: |
+          The status of a single import request.
+          TODO: clearify how this works for batch requests
+        type: ProcessingState
+      errors?:
+        description: Used to report errors when an import item is in the state VALIDATION_FAILED or REJECTED.
+        type: error.ErrorObject[]
+      createdAt:
+        description: The creation time of this import item.
+        type: datetime
+      lastModifiedAt:
+        description: The last modification time of this import item.
+        type: datetime
+    examples:
+      validated:        !include ../examples/validated-import-item.json
+      validationFailed: !include ../examples/validation-failed-import-item.json
+  ProcessingState:
+    description: |
+      This enumeration describes the processing state of an import item.
+
+      * VALIDATED The import resource was succesfully validated.
+      * VALIDATION_FAILED The validation of the import resource failed.
+      * UNRESOLVED The import resource contains unresolved references and needs to be resolved further.
+      * RESOLVED The import resource is resolved and doesn't contain any unresolved references.
+      * DELETING The import resource is in the process of being deleted.
+      * IMPORTED The import resource was imported successfully.
+      * IMPORTING The import resource is in the process of being imported.
+      * DELETING The import resource is in the process of being deleted.
+      * DELETED The import resource was deleted successfully.
+      * REJECTED The import resource couldn't be imported or deleted after several retries.
+    type: string
+    enum:
+    - VALIDATED
+    - VALIDATION_FAILED
+    - UNRESOLVED
+    - RESOLVED
+    - IMPORTING
+    - IMPORTED
+    - DELETING
+    - DELETED
+    - REJECTED

@@ -1,0 +1,31 @@
+#%RAML 1.0 Library
+usage: Price import types.
+(generator.package): prices
+
+uses:
+  common: common.raml
+  generator: ../annotationTypes/generator.raml
+
+types:
+  PriceImport:
+    type: common.ImportResource
+    properties:
+        value:
+            type: common.Money
+        country?:
+            type: common.CountryCode
+        validFrom?:
+            type: datetime
+        validUntil?:
+            type: datetime
+        customerGroup?:
+            (common.ReferenceType): customer-group
+            type: common.ImportReference
+        channel?:
+            (common.ReferenceType): channel
+            type: common.ImportReference
+        productVariant:
+            description: |
+              The product variant in which this price is contained.
+            (common.ReferenceType): product-variant
+            type: common.ImportReference
