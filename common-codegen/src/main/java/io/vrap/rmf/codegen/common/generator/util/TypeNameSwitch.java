@@ -38,11 +38,7 @@ public class TypeNameSwitch extends TypesSwitch<TypeName> {
         if ((eObject instanceof NamedElement) && (getCustomTypeMapping().get(((NamedElement) eObject).getName()) != null)) {
             return ClassName.bestGuess(getCustomTypeMapping().get(((NamedElement) eObject).getName()));
         }
-        final TypeName result = super.doSwitch(eObject);
-        if (result != null) {
-            return result;
-        }
-        return TypeName.get(Object.class);
+        return Optional.ofNullable(super.doSwitch(eObject)).orElse(TypeName.get(Object.class));
     }
 
     @Override

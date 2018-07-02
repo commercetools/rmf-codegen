@@ -1,5 +1,6 @@
 package io.vrap.rmf.codegen.common.generator.util;
 
+import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.ClassName;
 import io.vrap.rmf.raml.model.modules.Library;
 import io.vrap.rmf.raml.model.types.Annotation;
@@ -9,8 +10,10 @@ import io.vrap.rmf.raml.model.types.StringInstance;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.emf.ecore.EObject;
 
+import javax.annotation.Generated;
 import java.text.CharacterIterator;
 import java.text.StringCharacterIterator;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -59,6 +62,20 @@ public final class CodeGeneratorUtil {
             eContainer = eContainer.eContainer();
         }
         return basePackage;
+    }
+
+    public static AnnotationSpec getGeneratedAnnotation(Class clazz){
+        Objects.requireNonNull(clazz);
+        AnnotationSpec result = AnnotationSpec.builder(Generated.class)
+                .addMember("value","$S",clazz.getCanonicalName() )
+                .addMember("comments","$S","https://github.com/vrapio/rmf-codegen" )
+                .build();
+        return result;
+    }
+
+    public static AnnotationSpec getGeneratedAnnotation(Object object){
+        Objects.requireNonNull(object);
+        return getGeneratedAnnotation(object.getClass());
     }
 
 
