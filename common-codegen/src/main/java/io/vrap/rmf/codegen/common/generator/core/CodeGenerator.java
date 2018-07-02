@@ -7,7 +7,7 @@ import io.vrap.rmf.raml.model.types.AnyType;
 
 import java.util.Objects;
 
-public abstract class CodeGenerator extends ConfigDecorator {
+public abstract class CodeGenerator extends ConfigDecoratorBase {
 
 
     private final Flowable<AnyType> ramlObjects;

@@ -7,13 +7,13 @@ import java.nio.file.Path;
 import java.util.Map;
 import java.util.Objects;
 
-public class ConfigDecorator implements GeneratorConfig{
+public class ConfigDecoratorBase implements GeneratorConfig{
 
     private final GeneratorConfig delegate;
 
     private final TypeNameSwitch typeNameSwitch;
 
-    public ConfigDecorator(final GeneratorConfig delegate) {
+    public ConfigDecoratorBase(final GeneratorConfig delegate) {
         Objects.requireNonNull(delegate);
         this.delegate = delegate;
         this.typeNameSwitch = TypeNameSwitch.of(getPackagePrefix(), getCustomTypeMapping());

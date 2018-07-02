@@ -1,7 +1,7 @@
 package io.vrap.rmf.codegen.common.generator.model.codegen;
 
 import com.squareup.javapoet.*;
-import io.vrap.rmf.codegen.common.generator.core.ConfigDecorator;
+import io.vrap.rmf.codegen.common.generator.core.ConfigDecoratorBase;
 import io.vrap.rmf.codegen.common.generator.core.GeneratorConfig;
 import io.vrap.rmf.codegen.common.generator.util.CodeGeneratorUtil;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -11,7 +11,7 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 
 import javax.lang.model.element.Modifier;
 
-class BaseClass extends ConfigDecorator {
+class BaseClass extends ConfigDecoratorBase {
 
     private final ClassName className;
     private final TypeSpec typeSpec;
