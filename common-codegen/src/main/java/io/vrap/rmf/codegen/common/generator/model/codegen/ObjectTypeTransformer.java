@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.*;
 import com.squareup.javapoet.*;
 import io.reactivex.Flowable;
 import io.vrap.rmf.codegen.common.generator.core.GeneratorConfig;
+import io.vrap.rmf.codegen.common.generator.model.codegen.base.BaseClass;
 import io.vrap.rmf.raml.model.types.ObjectType;
 import io.vrap.rmf.raml.model.types.Property;
 import org.apache.commons.lang3.StringUtils;
@@ -52,9 +53,10 @@ public class ObjectTypeTransformer extends TypeTransformer<ObjectType> {
                 .orElse(null);
 
         Flowable.fromIterable(objectType.getProperties())
+                .filter(property -> !StringUtils.equals(objectType.getDiscriminator(),property.getName()))
                 .doOnNext(property -> typeSpecBuilder.addField(getFieldSpec(property)))
                 .doOnNext(property -> typeSpecBuilder.addMethod(getFieldGetter(property)))
-                .doOnNext(property -> typeSpecBuilder.addMethod(getFieldSetter(property)))
+                .doOnNext(property -> typeSpecBuilder.addMethods(getFieldSetter(property)))
                 .blockingSubscribe();
 
 
@@ -67,37 +69,58 @@ public class ObjectTypeTransformer extends TypeTransformer<ObjectType> {
             final TypeName valueType = getTypeNameSwitch().doSwitch(property.getType());
             builder =  FieldSpec.builder(
                     ParameterizedTypeName.get(ClassName.get(Map.class), ClassName.get(String.class), valueType), "values", Modifier.PRIVATE)
-                    .initializer("new $T()",HashMap.class)
-                    .addAnnotation(JsonAnySetter.class);
+                    .initializer("new $T()",HashMap.class);
         } else {
             final TypeName valueType = getTypeNameSwitch().doSwitch(property.getType());
             builder = FieldSpec.builder(valueType, property.getName(), Modifier.PRIVATE);
         }
-        if(property.getRequired()){
-            builder.addAnnotation(NotNull.class);
-        }
 
         return builder.build();
-
-
     }
 
-    private MethodSpec getFieldSetter(final Property property) {
+    private List<MethodSpec> getFieldSetter(final Property property) {
         final FieldSpec fieldSpec = getFieldSpec(property);
-        final MethodSpec.Builder methodSpec;
-
 
         if (property.getName().startsWith("/")) {
-            methodSpec = MethodSpec.methodBuilder("setValues");
+            final MethodSpec.Builder methodSpec = MethodSpec.methodBuilder("setValues");
+
+            methodSpec.addParameter(fieldSpec.type, fieldSpec.name)
+                    .addModifiers(Modifier.PUBLIC)
+                    .addCode("this." + fieldSpec.name + " = " + fieldSpec.name + ";\n")
+                    .addAnnotation(NotNull.class)
+                    .build();
+
+            final TypeName valueType = getTypeNameSwitch().doSwitch(property.getType());
+            final String methodBody = " if(values==null){\n" +
+                    "        values = new $T<>();\n" +
+                    "      }\n" +
+                    "      values.put(key, value);\n";
+
+            final MethodSpec.Builder valueSetter = MethodSpec.methodBuilder("setValue")
+                    .addModifiers(Modifier.PUBLIC)
+                    .addAnnotation(JsonAnySetter.class)
+                    .addParameter(ParameterSpec.builder(String.class, "key").build())
+                    .addParameter(ParameterSpec.builder(valueType, "value").build())
+                    .addCode(methodBody, HashMap.class);
+
+
+            return Arrays.asList(methodSpec.build(), valueSetter.build());
+
+
         } else {
-            methodSpec = MethodSpec.methodBuilder("set" + getPropertyMethodNameSuffix(property));
+
+            final MethodSpec.Builder methodSpec = MethodSpec.methodBuilder("set" + getPropertyMethodNameSuffix(property));
+            methodSpec.addParameter(fieldSpec.type, fieldSpec.name)
+                    .addModifiers(Modifier.PUBLIC)
+                    .addCode("this." + fieldSpec.name + " = " + fieldSpec.name + ";\n")
+                    .build();
+            if (property.getRequired()) {
+                methodSpec.addAnnotation(NotNull.class);
+            }
+            return Arrays.asList(methodSpec.build());
         }
 
-        methodSpec.addParameter(fieldSpec.type, fieldSpec.name)
-                .addModifiers(Modifier.PUBLIC)
-                .addCode("this." + fieldSpec.name + " = " + fieldSpec.name + ";\n")
-                .build();
-        return methodSpec.build();
+
     }
 
     private MethodSpec getFieldGetter(final Property property) {
@@ -111,6 +134,9 @@ public class ObjectTypeTransformer extends TypeTransformer<ObjectType> {
             methdBuilder = MethodSpec.methodBuilder(attributePrefix + getPropertyMethodNameSuffix(property))
                     .addAnnotation(AnnotationSpec.builder(JsonProperty.class)
                             .addMember("value", "$S", property.getName()).build());
+        }
+        if(property.getRequired()){
+            methdBuilder.addAnnotation(NotNull.class);
         }
         methdBuilder.addModifiers(Modifier.PUBLIC)
                 .returns(fieldSpec.type)
@@ -141,7 +167,6 @@ public class ObjectTypeTransformer extends TypeTransformer<ObjectType> {
                 .addMember("use", "$T.NAME", JsonTypeInfo.Id.class)
                 .addMember("include", "$T.PROPERTY", JsonTypeInfo.As.class)
                 .addMember("property", "$S", objectType.getDiscriminator())
-                .addMember("visible", "true")
                 .build();
 
         CodeBlock.Builder annotationBodyBuilder = CodeBlock.builder();
