@@ -2,11 +2,13 @@ package io.vrap.rmf.codegen.common.generator.model.codegen;
 
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.TypeSpec;
+import io.reactivex.Flowable;
 import io.reactivex.Maybe;
 import io.reactivex.Single;
 import io.vrap.rmf.codegen.common.generator.core.CodeGenerator;
 import io.vrap.rmf.codegen.common.generator.core.GenerationResult;
 import io.vrap.rmf.codegen.common.generator.core.GeneratorConfig;
+import io.vrap.rmf.codegen.common.generator.model.codegen.base.BaseClass;
 import io.vrap.rmf.raml.model.modules.Api;
 import io.vrap.rmf.raml.model.types.AnyType;
 import io.vrap.rmf.raml.model.types.ObjectType;

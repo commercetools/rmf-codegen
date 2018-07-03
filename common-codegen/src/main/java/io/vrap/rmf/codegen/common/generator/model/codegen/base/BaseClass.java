@@ -1,4 +1,4 @@
-package io.vrap.rmf.codegen.common.generator.model.codegen;
+package io.vrap.rmf.codegen.common.generator.model.codegen.base;
 
 import com.squareup.javapoet.*;
 import io.vrap.rmf.codegen.common.generator.core.ConfigDecoratorBase;
@@ -11,27 +11,30 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 
 import javax.lang.model.element.Modifier;
 
-class BaseClass extends ConfigDecoratorBase {
+public class BaseClass extends ConfigDecoratorBase {
 
     private final ClassName className;
     private final TypeSpec typeSpec;
 
     public BaseClass(GeneratorConfig delegate) {
         super(delegate);
-        this.className = ClassName.get(getPackagePrefix() + ".base", "Base");
+        this.className = ClassName.get(getPackagePrefix() + ".base", getSimpleClassName());
         this.typeSpec = createTypeSpec();
     }
 
-    public ClassName getClassName() {
+    public final ClassName getClassName() {
         return className;
     }
 
-
-    public TypeSpec getTypeSpec() {
-       return typeSpec;
+    public final TypeSpec getTypeSpec() {
+        return typeSpec;
     }
 
-    private TypeSpec createTypeSpec() {
+    protected String getSimpleClassName() {
+        return "Base";
+    }
+
+    protected TypeSpec createTypeSpec() {
 
         final MethodSpec toString = MethodSpec.methodBuilder("toString")
                 .addCode("return $T.reflectionToString(this, $T.SHORT_PREFIX_STYLE);\n", ToStringBuilder.class, ToStringStyle.class)
