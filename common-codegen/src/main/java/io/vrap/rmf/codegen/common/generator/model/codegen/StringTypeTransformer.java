@@ -51,7 +51,7 @@ public class StringTypeTransformer extends TypeTransformer<StringType> {
 
             TypeSpec.Builder enumBuilder = TypeSpec.enumBuilder(getClassName(getPackagePrefix(), stringType))
                     .addModifiers(Modifier.PUBLIC)
-                    .addField(FieldSpec.builder(ClassName.get(String.class),"jsonName",Modifier.FINAL).build())
+                    .addField(FieldSpec.builder(ClassName.get(String.class),"jsonName",Modifier.FINAL,Modifier.PRIVATE).build())
                     .addMethod(constructor)
                     .addMethod(getJsonName)
                     .addMethod(findEnumViaJsonName)
