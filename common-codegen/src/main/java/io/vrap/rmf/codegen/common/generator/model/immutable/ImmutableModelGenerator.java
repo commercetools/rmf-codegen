@@ -3,12 +3,10 @@ package io.vrap.rmf.codegen.common.generator.model.immutable;
 import com.fasterxml.jackson.annotation.*;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.squareup.javapoet.*;
-import io.reactivex.Flowable;
 import io.reactivex.Single;
 import io.vrap.rmf.codegen.common.generator.core.CodeGenerator;
 import io.vrap.rmf.codegen.common.generator.core.GenerationResult;
 import io.vrap.rmf.codegen.common.generator.core.GeneratorConfig;
-import io.vrap.rmf.codegen.common.generator.doc.JavaDocProcessor;
 import io.vrap.rmf.codegen.common.generator.util.CtAnnotationProcessor;
 import io.vrap.rmf.raml.model.modules.Api;
 import io.vrap.rmf.raml.model.types.*;
@@ -98,7 +96,7 @@ public class ImmutableModelGenerator extends CodeGenerator {
 
     public Single<GenerationResult> generateStub() {
 
-        Single<GenerationResult> generationResult = getRamlObjects().map(this::transformToJavaFile)
+        Single<GenerationResult> generationResult = getTypes().map(this::transformToJavaFile)
                 .doOnNext(javaFile -> javaFile.writeTo(getOutputFolder()))
                 .map(JavaFile::toJavaFileObject)
                 .toList()
