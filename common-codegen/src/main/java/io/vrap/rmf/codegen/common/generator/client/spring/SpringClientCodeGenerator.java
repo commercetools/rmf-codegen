@@ -13,7 +13,6 @@ import io.vrap.rmf.raml.model.modules.Api;
 import io.vrap.rmf.raml.model.resources.HttpMethod;
 import io.vrap.rmf.raml.model.resources.Method;
 import io.vrap.rmf.raml.model.resources.Resource;
-import io.vrap.rmf.raml.model.responses.Response;
 import io.vrap.rmf.raml.model.types.AnyType;
 import io.vrap.rmf.raml.model.types.ArrayType;
 
@@ -29,12 +28,15 @@ import java.util.stream.Collectors;
 
 import static io.vrap.rmf.codegen.common.generator.util.CodeGeneratorUtil.getGeneratedAnnotation;
 
+/**
+ * Generates a very simple spring client based on the RestTemplate.
+ */
 public class SpringClientCodeGenerator extends CodeGenerator {
     private final Converter<String, String> classNameMapper =
             CaseFormat.LOWER_HYPHEN.converterTo(CaseFormat.UPPER_CAMEL);
 
 
-    public SpringClientCodeGenerator(GeneratorConfig generatorConfig, Api api) {
+    public SpringClientCodeGenerator(final GeneratorConfig generatorConfig, final Api api) {
         super(generatorConfig, api);
     }
 
@@ -128,16 +130,22 @@ public class SpringClientCodeGenerator extends CodeGenerator {
     }
 
     public TypeSpec.Builder createRequestBuilder(final String className) {
+        final ClassName componentAnnotationTypeName = ClassName.get("org.springframework.stereotype", "Component");
         final TypeSpec.Builder classBuilder = TypeSpec.classBuilder(className)
                 .addModifiers(Modifier.PUBLIC)
-                .addAnnotation(getGeneratedAnnotation(getClass()));
-
+                .addAnnotation(getGeneratedAnnotation(getClass()))
+                .addAnnotation(componentAnnotationTypeName);
 
         classBuilder.addField(ClassName.get(String.class), "baseUri", Modifier.PRIVATE, Modifier.FINAL);
         classBuilder.addField(ClassName.get("org.springframework.web.client", "RestTemplate"), "restTemplate", Modifier.PRIVATE, Modifier.FINAL);
 
+        final ClassName valueAnnotationTypeName = ClassName.get("org.springframework.beans.factory.annotation", "Value");
+        final AnnotationSpec valueAnnotation = AnnotationSpec.builder(valueAnnotationTypeName).addMember("value", "$S", "${sdk.baseUri}").build();
+
+        final ParameterSpec baseUri = ParameterSpec.builder(ClassName.get(String.class), "baseUri", Modifier.FINAL)
+                .addAnnotation(valueAnnotation).build();
         final MethodSpec constructor = MethodSpec.constructorBuilder().addModifiers(Modifier.PUBLIC)
-                .addParameter(ClassName.get(String.class), "baseUri", Modifier.FINAL)
+                .addParameter(baseUri)
                 .addParameter(ClassName.get("org.springframework.web.client", "RestTemplate"), "restTemplate", Modifier.FINAL)
                 .addCode("this.baseUri = baseUri;\n")
                 .addCode("this.restTemplate = restTemplate;\n")
