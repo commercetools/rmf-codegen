@@ -67,7 +67,9 @@ public class SpringClientCodeGenerator extends CodeGenerator {
                 final String methodName = method.getMethodName();
                 final AnyType returnType = method.getResponses().stream().filter(r -> r.getStatusCode().equals("200")).findFirst().orElse(null).getBodies().get(0).getType();
                 final TypeName resourceTypeName = getTypeNameSwitch().doSwitch(returnType);
+                final String javaDoc = getJavaDocProcessor().markDownToJavaDoc(method);
                 final MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder(methodName).addModifiers(Modifier.PUBLIC)
+                        .addJavadoc(javaDoc)
                         .returns(resourceTypeName);
                 final List<ParameterSpec> parameters = resource.getAllUriParameters().stream()
                         .map(uriParameter -> ParameterSpec.builder(getTypeNameSwitch().doSwitch(uriParameter.getType()), uriParameter.getName(), Modifier.FINAL))
