@@ -1,6 +1,7 @@
 package io.vrap.rmf.codegen.common.generator.core;
 
 import io.vrap.rmf.codegen.common.generator.doc.JavaDocProcessor;
+import org.eclipse.emf.common.util.URI;
 import org.immutables.value.Value;
 
 import java.nio.file.Path;
@@ -24,7 +25,7 @@ public interface GeneratorConfig {
 
     Path getOutputFolder();
 
-    Path getRamlFileLocation();
+    URI getRamlFileLocation();
 
     JavaDocProcessor getJavaDocProcessor();
 

@@ -5,12 +5,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.squareup.javapoet.*;
-import io.reactivex.Flowable;
 import io.reactivex.Single;
 import io.vrap.rmf.codegen.common.generator.core.CodeGenerator;
 import io.vrap.rmf.codegen.common.generator.core.GenerationResult;
 import io.vrap.rmf.codegen.common.generator.core.GeneratorConfig;
-import io.vrap.rmf.codegen.common.generator.doc.JavaDocProcessor;
 import io.vrap.rmf.raml.model.modules.Api;
 import io.vrap.rmf.raml.model.types.*;
 import org.apache.commons.lang3.StringUtils;
@@ -89,7 +87,7 @@ public class MutableModelGenerator extends CodeGenerator {
 
     public Single<GenerationResult> generateStub() {
 
-        final Single<GenerationResult> generationResult = getRamlObjects().map(this::transformToJavaFile)
+        final Single<GenerationResult> generationResult = getTypes().map(this::transformToJavaFile)
                 .doOnNext(javaFile -> javaFile.writeTo(getOutputFolder()))
                 .map(JavaFile::toJavaFileObject)
                 .map(javaFile -> getPaths(javaFile, getOutputFolder()))

@@ -2,7 +2,6 @@ package io.vrap.rmf.codegen.common.generator.model.codegen;
 
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.TypeSpec;
-import io.reactivex.Flowable;
 import io.reactivex.Maybe;
 import io.reactivex.Single;
 import io.vrap.rmf.codegen.common.generator.core.CodeGenerator;
@@ -37,7 +36,7 @@ public class BeanGenerator extends CodeGenerator {
     @Override
     public Single<GenerationResult> generateStub() {
 
-        final Single<GenerationResult> generationResult = getRamlObjects()
+        final Single<GenerationResult> generationResult = getTypes()
 
                 .flatMapMaybe(this::transformToJavaFile)
                 .concatWith(Single.just(getJavaFileForBase()))
