@@ -58,7 +58,7 @@ public class GeneratorModule {
 
     @Provides
     @Named(GeneratorConfig.RAML_FILE_LOCATION)
-    public Path getRamlFileLocation() {
+    public URI getRamlFileLocation() {
         return getGeneratorConfig().getRamlFileLocation();
     }
 
@@ -93,8 +93,7 @@ public class GeneratorModule {
 
     @Provides
     @Singleton
-    public Api provideRamlModel(@Named(GeneratorConfig.RAML_FILE_LOCATION) final Path ramlFilePath) {
-        final URI fileURI = URI.createFileURI(ramlFilePath.toString());
+    public Api provideRamlModel(@Named(GeneratorConfig.RAML_FILE_LOCATION) final URI fileURI) {
         final RamlModelResult<Api> modelResult = new RamlModelBuilder().buildApi(fileURI);
         final List<RamlDiagnostic> validationResults = modelResult.getValidationResults();
         if (!validationResults.isEmpty()) {
