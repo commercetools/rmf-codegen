@@ -1,0 +1,14 @@
+apply plugin: 'java'
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile project(':common-codegen')
+    compile gradleApi()
+    compile group: 'junit', name: 'junit', version: '4.12'
+    testCompile gradleTestKit()
+}

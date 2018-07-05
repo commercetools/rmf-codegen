@@ -1,1 +1,3 @@
 include 'common-codegen', 'spring-rest-client-codegen'
+include 'plugin'
+
