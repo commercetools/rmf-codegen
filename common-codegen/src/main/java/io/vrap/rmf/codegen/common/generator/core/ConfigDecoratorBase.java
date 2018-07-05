@@ -2,6 +2,7 @@ package io.vrap.rmf.codegen.common.generator.core;
 
 import io.vrap.rmf.codegen.common.generator.doc.JavaDocProcessor;
 import io.vrap.rmf.codegen.common.generator.util.TypeNameSwitch;
+import org.eclipse.emf.common.util.URI;
 
 import java.nio.file.Path;
 import java.util.Map;
@@ -30,7 +31,7 @@ public class ConfigDecoratorBase implements GeneratorConfig{
     }
 
     @Override
-    public Path getRamlFileLocation() {
+    public URI getRamlFileLocation() {
         return delegate.getRamlFileLocation();
     }
 

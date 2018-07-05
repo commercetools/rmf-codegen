@@ -1,10 +1,12 @@
 package io.vrap.rmf.codegen.common;
 
+import com.google.common.io.Files;
 import com.neovisionaries.i18n.CountryCode;
 import com.neovisionaries.i18n.CurrencyCode;
 import io.reactivex.observers.TestObserver;
 import io.vrap.rmf.codegen.common.generator.MasterCodeGenerator;
 import io.vrap.rmf.codegen.common.generator.client.spring.SpringClientCodeGenerator;
+import io.vrap.rmf.codegen.common.generator.core.CodeGenerator;
 import io.vrap.rmf.codegen.common.generator.core.GenerationResult;
 import io.vrap.rmf.codegen.common.generator.core.GeneratorConfig;
 import io.vrap.rmf.codegen.common.generator.core.GeneratorConfigBuilder;
@@ -14,13 +16,14 @@ import io.vrap.rmf.codegen.common.generator.injection.GeneratorComponent;
 import io.vrap.rmf.codegen.common.generator.injection.GeneratorModule;
 import io.vrap.rmf.codegen.common.generator.model.codegen.BeanGenerator;
 import org.assertj.core.api.Assertions;
+import org.eclipse.emf.common.util.URI;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.net.URI;
+import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
@@ -42,14 +45,14 @@ public class CodeGeneratorTest {
             customTypeMapping.put("CurrencyCode", CurrencyCode.class.getCanonicalName());
         }
 
-        final ClassLoader classLoader = getClass().getClassLoader();
-        final Path inputPath = Paths.get("/Users/mkoester/Development/commercetools-importer/api-spec/api.raml");;
-        //TODO set output path
-        final Path outputPath = Paths.get(URI.create("file:/Users/mkoester/Development/rmf-codegen/gensrc"));
+        final URL url = CodeGenerator.class.getResource("/api-spec/api.raml");
+        final URI ramlFileLocation = URI.createURI(url.toString());
+        final String current = System.getProperty("user.dir");
+        final Path outputPath = Paths.get(current, "build/gensrc");
         generatorConfig = new GeneratorConfigBuilder()
                 .packagePrefix("com.commercetools.importapi.models")
                 .outputFolder(outputPath)
-                .ramlFileLocation(inputPath)
+                .ramlFileLocation(ramlFileLocation)
                 .javaDocProcessor(new DefaultJavaDocProcessor())
                 .customTypeMapping(customTypeMapping)
                 .build();

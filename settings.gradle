@@ -1,1 +1,1 @@
-include 'common-codegen', 'spring-rest-client-codegen'
+include 'common-codegen'
