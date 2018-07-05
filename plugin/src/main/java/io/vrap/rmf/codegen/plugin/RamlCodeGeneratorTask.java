@@ -1,6 +1,6 @@
 package io.vrap.rmf.codegen.plugin;
 
-import io.vrap.rmf.codegen.common.generator.client.ClientCodeGenerator;
+import io.vrap.rmf.codegen.common.generator.client.spring.SpringClientCodeGenerator;
 import io.vrap.rmf.codegen.common.generator.core.GenerationResult;
 import io.vrap.rmf.codegen.common.generator.core.GeneratorConfigBuilder;
 import io.vrap.rmf.codegen.common.generator.doc.DefaultJavaDocProcessor;
@@ -8,6 +8,7 @@ import io.vrap.rmf.codegen.common.generator.injection.DaggerGeneratorComponent;
 import io.vrap.rmf.codegen.common.generator.injection.GeneratorComponent;
 import io.vrap.rmf.codegen.common.generator.injection.GeneratorModule;
 import io.vrap.rmf.codegen.common.generator.model.codegen.BeanGenerator;
+import org.eclipse.emf.common.util.URI;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -16,6 +17,7 @@ import org.gradle.api.tasks.TaskAction;
 
 import javax.annotation.Nonnull;
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Map;
 
@@ -27,8 +29,12 @@ public class RamlCodeGeneratorTask extends DefaultTask {
     @Input
     @Nonnull
     public RamlCodeGeneratorTask setRamlFileLocation(final File ramlFilePath) {
-        builder.ramlFileLocation(ramlFilePath.toPath());
-        return RamlCodeGeneratorTask.this;
+        try {
+            builder.ramlFileLocation(URI.createFileURI(ramlFilePath.getCanonicalPath()));
+            return RamlCodeGeneratorTask.this;
+        } catch (final IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Input
@@ -55,7 +61,7 @@ public class RamlCodeGeneratorTask extends DefaultTask {
     void generateRamlStub() {
         final GeneratorComponent generatorComponent = DaggerGeneratorComponent
                 .builder()
-                .generatorModule(GeneratorModule.of(builder.build(), BeanGenerator::new, ClientCodeGenerator::new))
+                .generatorModule(GeneratorModule.of(builder.build(), BeanGenerator::new, SpringClientCodeGenerator::new))
                 .build();
         generatorComponent.getMasterCodeGenerator()
                 .generateStub()

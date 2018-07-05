@@ -6,9 +6,24 @@ repositories {
     mavenCentral()
 }
 
+publishing {
+    publications {
+        Maven(MavenPublication) {
+            from components.java
+            artifactId 'rmf-codegen-gradle-plugin'
+
+            artifact sourceJar {
+                classifier 'sources'
+            }
+        }
+    }
+}
+
 dependencies {
     compile project(':common-codegen')
     compile gradleApi()
-    compile group: 'junit', name: 'junit', version: '4.12'
+
+    testCompile 'junit:junit:4.12'
+
     testCompile gradleTestKit()
 }
