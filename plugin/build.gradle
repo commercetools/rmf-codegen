@@ -1,23 +1,8 @@
 apply plugin: 'java'
+apply plugin: 'java'
+
 
 sourceCompatibility = 1.8
-
-repositories {
-    mavenCentral()
-}
-
-publishing {
-    publications {
-        Maven(MavenPublication) {
-            from components.java
-            artifactId 'rmf-codegen-gradle-plugin'
-
-            artifact sourceJar {
-                classifier 'sources'
-            }
-        }
-    }
-}
 
 dependencies {
     compile project(':common-codegen')
@@ -26,4 +11,35 @@ dependencies {
     testCompile 'junit:junit:4.12'
 
     testCompile gradleTestKit()
+
+    testCompile "org.spockframework:spock-core:${versions.spock}"
+    testCompile "org.assertj:assertj-core:3.10.0"
 }
+
+task createClasspathManifest {
+    def outputDir = file("$buildDir/testClasspath")
+    inputs.files sourceSets.main.runtimeClasspath
+    outputs.dir outputDir
+    doLast {
+        outputDir.mkdirs()
+        file("$outputDir/plugin-under-test-metadata.properties").text = "implementation-classpath="+sourceSets.main.runtimeClasspath.join(":")
+    }
+}
+
+// Add the classpath file to the test runtime classpath
+dependencies {
+    testRuntime files(createClasspathManifest)
+}
+
+
+build.finalizedBy(createClasspathManifest)
+
+//plugins {
+//    id 'raml-source-generator'
+//}
+//generateRamlStub{
+//    ramlFileLocation= file('/Users/abeniasaad/IdeaProjects/rmf-codegen/plugin/src/test/resources/api-spec/api.raml')
+//    outputFolder=file('/Users/abeniasaad/IdeaProjects/rmf-codegen/plugin/src/test/resources/outputFilder')
+//    packagePrefix= 'com.commercetools'
+//    customTypeMapping = []
+//}

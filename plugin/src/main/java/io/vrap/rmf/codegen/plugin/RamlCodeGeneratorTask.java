@@ -3,7 +3,6 @@ package io.vrap.rmf.codegen.plugin;
 import io.vrap.rmf.codegen.common.generator.client.spring.SpringClientCodeGenerator;
 import io.vrap.rmf.codegen.common.generator.core.GenerationResult;
 import io.vrap.rmf.codegen.common.generator.core.GeneratorConfigBuilder;
-import io.vrap.rmf.codegen.common.generator.doc.DefaultJavaDocProcessor;
 import io.vrap.rmf.codegen.common.generator.injection.DaggerGeneratorComponent;
 import io.vrap.rmf.codegen.common.generator.injection.GeneratorComponent;
 import io.vrap.rmf.codegen.common.generator.injection.GeneratorModule;
@@ -12,53 +11,93 @@ import org.eclipse.emf.common.util.URI;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.TaskAction;
 
-import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.Map;
+import java.util.Optional;
 
 public class RamlCodeGeneratorTask extends DefaultTask {
 
-    private final GeneratorConfigBuilder builder = new GeneratorConfigBuilder().javaDocProcessor(new DefaultJavaDocProcessor());
+
     private static final Logger LOGGER = Logging.getLogger(RamlCodeGeneratorTask.class);
 
-    @Input
-    @Nonnull
-    public RamlCodeGeneratorTask setRamlFileLocation(final File ramlFilePath) {
-        try {
-            builder.ramlFileLocation(URI.createFileURI(ramlFilePath.getCanonicalPath()));
-            return RamlCodeGeneratorTask.this;
-        } catch (final IOException e) {
-            throw new RuntimeException(e);
-        }
+
+    private File ramlFileLocation;
+    private File outputFolder;
+    private String packagePrefix;
+    private Map<String, String> customTypeMapping;
+
+    public RamlCodeGeneratorTask() {
     }
 
-    @Input
-    public RamlCodeGeneratorTask setOutputFolder(final File outputFolder) {
-        builder.outputFolder(outputFolder.toPath());
-        return RamlCodeGeneratorTask.this;
-    }
-
-    @Input
-    public RamlCodeGeneratorTask setPackagePrefix(final String packagePrefix) {
-        builder.packagePrefix(packagePrefix);
-        return RamlCodeGeneratorTask.this;
+    public void setRamlFileLocation(File ramlFileLocation) {
+        this.ramlFileLocation = ramlFileLocation;
     }
 
 
-    @Input
-    public RamlCodeGeneratorTask setCustomTypeMapping(final Map<String, String> customTypeMapping) {
-        builder.customTypeMapping(customTypeMapping);
-        return RamlCodeGeneratorTask.this;
+    @InputFile
+    public File getRamlFileLocation() {
+        return ramlFileLocation;
     }
 
+
+    public File getOutputFolder() {
+        return outputFolder;
+    }
+
+    public void setOutputFolder(File outputFolder) {
+        System.err.println("outputFolder "+outputFolder);
+        this.outputFolder = outputFolder;
+    }
+
+    public String getPackagePrefix() {
+        return packagePrefix;
+    }
+
+
+    public void setPackagePrefix(String packagePrefix) {
+        this.packagePrefix = packagePrefix;
+    }
+
+    public Map<String, String> getCustomTypeMapping() {
+        return customTypeMapping;
+    }
+
+
+    public void setCustomTypeMapping(Map<String, String> customTypeMapping) {
+        this.customTypeMapping = customTypeMapping;
+    }
+
+
+    @Override
+    public String toString() {
+        return "RamlCodeGeneratorTask{" +
+                "ramlFileLocation=" + ramlFileLocation +
+                ", outputFolder=" + outputFolder +
+                ", packagePrefix='" + packagePrefix + '\'' +
+                ", customTypeMapping=" + customTypeMapping +
+                '}';
+    }
 
     @TaskAction
     void generateRamlStub() {
+
+        final GeneratorConfigBuilder builder = new GeneratorConfigBuilder();
+        try {
+            builder.ramlFileLocation(URI.createFileURI(ramlFileLocation.getCanonicalPath()));
+
+        } catch (final IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        Optional.ofNullable(packagePrefix).map(builder::packagePrefix).orElse(null);
+        Optional.ofNullable(outputFolder).map(File::toPath).map(builder::outputFolder).orElse(null);
+        Optional.ofNullable(customTypeMapping).map(builder::customTypeMapping).orElse(null);
+
+
         final GeneratorComponent generatorComponent = DaggerGeneratorComponent
                 .builder()
                 .generatorModule(GeneratorModule.of(builder.build(), BeanGenerator::new, SpringClientCodeGenerator::new))

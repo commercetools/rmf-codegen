@@ -11,15 +11,8 @@ public class RamlCodegenPlugin implements Plugin<Project> {
 
     @Override
     public void apply(Project project) {
-        final File defaultOutputFolder = Paths.get(project.getBuildDir().getPath(), "/generated-sources/main/java").toFile();
-        final String defaultPrefix = "io.vrap.rmf.codegen";
 
-        final RamlCodeGeneratorExtension extension = project.getExtensions().create("generateEntities", RamlCodeGeneratorExtension.class, defaultOutputFolder, defaultPrefix);
-
-        project.getTasks().create("generateEntities", RamlCodeGeneratorTask.class)
-                .setPackagePrefix(extension.getPackagePrefix())
-                .setOutputFolder(extension.getOutputFolder())
-                .setCustomTypeMapping(extension.getCustomTypeMapping());
+        RamlCodeGeneratorTask task = project.getTasks().create("generateRamlStub", RamlCodeGeneratorTask.class);
     }
 
 

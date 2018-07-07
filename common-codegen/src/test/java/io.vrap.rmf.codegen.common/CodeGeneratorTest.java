@@ -56,7 +56,6 @@ public class CodeGeneratorTest {
                 .packagePrefix("com.commercetools.importapi.models")
                 .outputFolder(outputPath)
                 .ramlFileLocation(ramlFileLocation)
-                .javaDocProcessor(new DefaultJavaDocProcessor())
                 .customTypeMapping(customTypeMapping)
                 .build();
     }

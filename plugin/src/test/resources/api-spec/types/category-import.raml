@@ -1,0 +1,33 @@
+#%RAML 1.0 Library
+usage: Category import types.
+(generator.package): categoryimport
+
+uses:
+  common: common.raml
+  generator: ../annotationTypes/generator.raml
+
+types:
+  CategoryImport:
+    type: common.ImportResource
+    properties:
+        name:
+            type: common.LocalizedString
+        slug:
+            type: common.LocalizedString
+        description?:
+            type: common.LocalizedString
+        parent?:
+            (common.ReferenceType): category
+            type: common.ImportReference
+        orderHint?:
+            type: string
+        externalId?:
+            type: string
+        metaTitle?:
+            type: common.LocalizedString
+        metaDescription?:
+            type: common.LocalizedString
+        metaKeywords?:
+            type: common.LocalizedString
+        assets?:
+            type: common.Asset[]

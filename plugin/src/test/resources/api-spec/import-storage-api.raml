@@ -1,0 +1,114 @@
+#%RAML 1.0
+---
+title: Internal import storage api
+version: v1
+mediaType: application/json
+baseUri: http://import-storage
+
+uses:
+  error: types/error.raml
+  common: types/common.raml
+  import-item: types/import-item.raml
+  unresolved-import-resource: types/unresolved-import-resource.raml
+
+
+/{projectKey}:
+  /import-item:
+    post:
+      description: |
+        Creates or updates the import item given in the body.
+      body:
+        type: import-item.ImportItem
+    /{resourceType}:
+      uriParameters:
+        resourceType:
+          description: |
+              The resource type.
+          type: string
+      /{key}:
+        uriParameters:
+          key:
+            description: |
+              The key of the import item to retrieve.
+            type: string
+        get:
+          description: |
+            Retrieves the import item with the given key.
+          responses:
+            200:
+              body:
+                type: import-item.ImportItem
+            404:
+              body:
+                type: error.ErrorResponse
+        delete:
+          description: |
+            Deletes the import item with the given key.
+          responses:
+            200:
+              body:
+                type: import-item.ImportItem
+            404:
+              body:
+                type: error.ErrorResponse
+  /unresolved-import-resource:
+    post:
+      description: |
+        Creates or updates the unresolved import resource given in the body.
+      body:
+        type: unresolved-import-resource.UnresolvedImportResource
+    /{resourceType}:
+      uriParameters:
+        resourceType:
+          description: |
+              The resource type.
+          type: string
+      /{key}:
+        uriParameters:
+          key:
+            description: |
+              The key of the import resource to retrieve.
+            type: string
+        get:
+          description: |
+            Retrieves the import resource with the given key.
+          responses:
+            200:
+              body:
+                type: unresolved-import-resource.UnresolvedImportResource
+            404:
+              body:
+                type: error.ErrorResponse
+        delete:
+          description: |
+            Deletes the import resource with the given key.
+          responses:
+            200:
+              body:
+                type: unresolved-import-resource.UnresolvedImportResource
+            404:
+              body:
+                type: error.ErrorResponse
+    /search:
+      /{resourceType}:
+        uriParameters:
+          resourceType:
+            description: |
+              The resource type.
+            type: common.ResourceType
+        /{key}:
+          uriParameters:
+            key:
+              description: |
+                The key of the import resource to retrieve.
+              type: string
+          get:
+            description: |
+              Retrieves all unresolved import resources that reference the given resource.
+            responses:
+              200:
+                body:
+                  type: unresolved-import-resource.UnresolvedImportResource[]
+              404:
+                body:
+                  type: error.ErrorResponse
