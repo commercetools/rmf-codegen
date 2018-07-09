@@ -34,11 +34,12 @@ public class BuildLogicFunctionalTest {
     public void testGenerateEntitiesTask() throws IOException {
 
         final File apiFile = Paths.get("src/test/resources/api-spec/api.raml").toAbsolutePath().toFile();
+        System.err.println(apiFile);
         Assertions.assertThat(apiFile).exists();
 
         String buildFileContent =
                         "plugins {\n" +
-                        "    id 'raml-source-generator'\n" +
+                        "    id 'io.vrap.rmf.codegen-plugin'\n" +
                         "}\n" +
                         "generateRamlStub{\n" +
                         "    ramlFileLocation= file('"+apiFile.getAbsolutePath()+"')\n" +

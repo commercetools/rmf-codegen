@@ -1,5 +1,5 @@
 apply plugin: 'java'
-apply plugin: 'java'
+apply plugin: 'java-gradle-plugin'
 
 
 sourceCompatibility = 1.8
@@ -15,6 +15,18 @@ dependencies {
     testCompile "org.spockframework:spock-core:${versions.spock}"
     testCompile "org.assertj:assertj-core:3.10.0"
 }
+
+
+gradlePlugin {
+    plugins {
+        gradlePlugin {
+            id = 'io.vrap.rmf.codegen-plugin'
+            implementationClass = 'io.vrap.rmf.codegen.plugin.RamlCodegenPlugin'
+
+        }
+    }
+}
+
 
 task createClasspathManifest {
     def outputDir = file("$buildDir/testClasspath")

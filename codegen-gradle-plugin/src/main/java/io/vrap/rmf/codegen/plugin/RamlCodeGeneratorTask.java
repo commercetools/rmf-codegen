@@ -11,7 +11,9 @@ import org.eclipse.emf.common.util.URI;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFile;
+import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
 
 import java.io.File;
@@ -37,39 +39,44 @@ public class RamlCodeGeneratorTask extends DefaultTask {
         this.ramlFileLocation = ramlFileLocation;
     }
 
+    public void setCustomTypeMapping(Map<String, String> customTypeMapping) {
+        this.customTypeMapping = customTypeMapping;
+    }
+
+    public void setPackagePrefix(String packagePrefix) {
+        this.packagePrefix = packagePrefix;
+    }
 
     @InputFile
     public File getRamlFileLocation() {
         return ramlFileLocation;
     }
 
-
+    @OutputDirectory
+    @org.gradle.api.tasks.Optional
     public File getOutputFolder() {
         return outputFolder;
     }
 
     public void setOutputFolder(File outputFolder) {
-        System.err.println("outputFolder "+outputFolder);
         this.outputFolder = outputFolder;
     }
 
+    @org.gradle.api.tasks.Optional
+    @Input
     public String getPackagePrefix() {
         return packagePrefix;
     }
 
 
-    public void setPackagePrefix(String packagePrefix) {
-        this.packagePrefix = packagePrefix;
-    }
 
+
+    @org.gradle.api.tasks.Optional
+    @Input
     public Map<String, String> getCustomTypeMapping() {
         return customTypeMapping;
     }
 
-
-    public void setCustomTypeMapping(Map<String, String> customTypeMapping) {
-        this.customTypeMapping = customTypeMapping;
-    }
 
 
     @Override
