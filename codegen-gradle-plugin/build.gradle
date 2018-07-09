@@ -1,0 +1,47 @@
+apply plugin: 'java'
+apply plugin: 'java-gradle-plugin'
+
+
+sourceCompatibility = 1.8
+
+dependencies {
+    compile project(':common-codegen')
+    compile gradleApi()
+
+    testCompile 'junit:junit:4.12'
+
+    testCompile gradleTestKit()
+
+    testCompile "org.spockframework:spock-core:${versions.spock}"
+    testCompile "org.assertj:assertj-core:3.10.0"
+}
+
+
+gradlePlugin {
+    plugins {
+        gradlePlugin {
+            id = 'io.vrap.rmf.codegen-plugin'
+            implementationClass = 'io.vrap.rmf.codegen.plugin.RamlCodegenPlugin'
+
+        }
+    }
+}
+
+
+task createClasspathManifest {
+    def outputDir = file("$buildDir/testClasspath")
+    inputs.files sourceSets.main.runtimeClasspath
+    outputs.dir outputDir
+    doLast {
+        outputDir.mkdirs()
+        file("$outputDir/plugin-under-test-metadata.properties").text = "implementation-classpath="+sourceSets.main.runtimeClasspath.join(":")
+    }
+}
+
+// Add the classpath file to the test runtime classpath
+dependencies {
+    testRuntime files(createClasspathManifest)
+}
+
+
+build.finalizedBy(createClasspathManifest)

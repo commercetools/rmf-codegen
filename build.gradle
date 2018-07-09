@@ -17,6 +17,7 @@ plugins {
     id 'java'
     id 'java-library' // needed to make sure that transitive deps have 'compile' scope
     id 'groovy'
+    id 'java-gradle-plugin'
 
     id 'de.undercouch.download' version '3.4.3'
     id 'com.jfrog.bintray' version '1.8.0'
