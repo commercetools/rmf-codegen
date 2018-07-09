@@ -33,13 +33,3 @@ dependencies {
 
 
 build.finalizedBy(createClasspathManifest)
-
-//plugins {
-//    id 'raml-source-generator'
-//}
-//generateRamlStub{
-//    ramlFileLocation= file('/Users/abeniasaad/IdeaProjects/rmf-codegen/plugin/src/test/resources/api-spec/api.raml')
-//    outputFolder=file('/Users/abeniasaad/IdeaProjects/rmf-codegen/plugin/src/test/resources/outputFilder')
-//    packagePrefix= 'com.commercetools'
-//    customTypeMapping = []
-//}

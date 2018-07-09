@@ -1,6 +1,5 @@
 package io.vrap.rmf.codegen.common;
 
-import com.google.common.io.Files;
 import com.neovisionaries.i18n.CountryCode;
 import com.neovisionaries.i18n.CurrencyCode;
 import io.reactivex.observers.TestObserver;
@@ -10,7 +9,6 @@ import io.vrap.rmf.codegen.common.generator.core.CodeGenerator;
 import io.vrap.rmf.codegen.common.generator.core.GenerationResult;
 import io.vrap.rmf.codegen.common.generator.core.GeneratorConfig;
 import io.vrap.rmf.codegen.common.generator.core.GeneratorConfigBuilder;
-import io.vrap.rmf.codegen.common.generator.doc.DefaultJavaDocProcessor;
 import io.vrap.rmf.codegen.common.generator.injection.DaggerGeneratorComponent;
 import io.vrap.rmf.codegen.common.generator.injection.GeneratorComponent;
 import io.vrap.rmf.codegen.common.generator.injection.GeneratorModule;

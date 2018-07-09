@@ -2,19 +2,6 @@ plugins {
     id "net.ltgt.apt-idea" version "0.15"
 }
 
-publishing {
-    publications {
-        Maven(MavenPublication) {
-            from components.java
-            artifactId 'commom-codegen'
-
-            artifact sourceJar {
-                classifier 'sources'
-            }
-        }
-    }
-}
-
 dependencies {
 
 
