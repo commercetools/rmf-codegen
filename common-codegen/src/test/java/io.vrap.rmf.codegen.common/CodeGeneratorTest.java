@@ -76,7 +76,7 @@ public class CodeGeneratorTest {
         resultTestObserver.assertNoErrors();
         resultTestObserver.assertValueCount(1);
         Assertions.assertThat(resultTestObserver.values().get(0).getGeneratedFiles()).isNotEmpty();
-        logger.info("{} files were generated", resultTestObserver.values().get(0).getGeneratedFiles().size());
+        logger.debug("{} files were generated", resultTestObserver.values().get(0).getGeneratedFiles().size());
 
     }
 

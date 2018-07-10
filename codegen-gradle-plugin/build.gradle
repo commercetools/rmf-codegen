@@ -1,7 +1,7 @@
 apply plugin: 'java'
 apply plugin: 'java-gradle-plugin'
-
-
+apply plugin: 'com.gradle.plugin-publish'
+apply plugin: 'maven-publish'
 sourceCompatibility = 1.8
 
 dependencies {
@@ -27,6 +27,19 @@ gradlePlugin {
     }
 }
 
+pluginBundle {
+    website = 'http://www.vrap.io/'
+    vcsUrl = 'https://github.com/vrapio/rmf-codegen/tree/master/codegen-gradle-plugin'
+    plugins {
+        gradlePlugin {
+            id = 'io.vrap.rmf.codegen-plugin'
+            displayName = 'Raml codegenerator for java'
+            description = 'This a code generator for the ramle specification, the supported language for this version is java'
+            tags = ['RAML', 'java']
+            version = "$currentVersion"
+        }
+    }
+}
 
 task createClasspathManifest {
     def outputDir = file("$buildDir/testClasspath")
@@ -44,4 +57,4 @@ dependencies {
 }
 
 
-build.finalizedBy(createClasspathManifest)
+compileJava.finalizedBy(createClasspathManifest)
