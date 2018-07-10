@@ -114,9 +114,7 @@ public class ObjectTypeTransformer extends TypeTransformer<ObjectType> {
                     .addModifiers(Modifier.PUBLIC)
                     .addCode("this." + fieldSpec.name + " = " + fieldSpec.name + ";\n")
                     .build();
-            if (property.getRequired()) {
-                methodSpec.addAnnotation(NotNull.class);
-            }
+
             return Arrays.asList(methodSpec.build());
         }
 
