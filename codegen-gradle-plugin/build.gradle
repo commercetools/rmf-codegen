@@ -1,7 +1,8 @@
 apply plugin: 'java'
 apply plugin: 'java-gradle-plugin'
 apply plugin: 'com.gradle.plugin-publish'
-apply plugin: 'maven-publish'
+
+
 sourceCompatibility = 1.8
 
 dependencies {
@@ -36,7 +37,6 @@ pluginBundle {
             displayName = 'Raml codegenerator for java'
             description = 'This a code generator for the ramle specification, the supported language for this version is java'
             tags = ['RAML', 'java']
-            version = "$currentVersion"
         }
     }
 }
