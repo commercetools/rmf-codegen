@@ -20,5 +20,5 @@ diagrams/
 .gradletasknamecache
 
 .idea
-raml-model/buildresources/test/raml-tck-1.1
+raml-model/buildresources/AnnotationProcessorTests/raml-tck-1.1
 cache/

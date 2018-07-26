@@ -1,12 +1,15 @@
 package io.vrap.rmf.codegen.common.generator.injection;
 
-import dagger.Module;
-import dagger.Provides;
+
+import com.google.inject.AbstractModule;
+import com.google.inject.Provides;
 import io.reactivex.Flowable;
 import io.vrap.rmf.codegen.common.generator.core.CodeGenerator;
 import io.vrap.rmf.codegen.common.generator.core.CodeGeneratorFactory;
 import io.vrap.rmf.codegen.common.generator.core.GeneratorConfig;
 import io.vrap.rmf.codegen.common.generator.doc.JavaDocProcessor;
+import io.vrap.rmf.codegen.common.generator.extensions.types.AnyTypeExtension;
+import io.vrap.rmf.codegen.common.generator.util.TypeNameSwitch;
 import io.vrap.rmf.raml.model.RamlDiagnostic;
 import io.vrap.rmf.raml.model.RamlModelBuilder;
 import io.vrap.rmf.raml.model.RamlModelResult;
@@ -24,10 +27,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
-import static io.vrap.rmf.codegen.common.generator.core.GeneratorConfig.*;
 
-@Module
-public class GeneratorModule {
+public class GeneratorModule extends AbstractModule {
 
     private final Logger LOGGER = LoggerFactory.getLogger(GeneratorModule.class);
     private final GeneratorConfig generatorConfig;
@@ -115,9 +116,14 @@ public class GeneratorModule {
 
     @Provides
     @Singleton
-    public List<CodeGenerator> getCodeGenerators(final GeneratorConfig generatorConfig, final Api api ){
-        return getCodeGeneratorFactories().stream().map(codeGeneratorFactory ->codeGeneratorFactory.createCodeGenerator(generatorConfig ,api )).collect(Collectors.toList());
+    public List<CodeGenerator> getCodeGenerators(final GeneratorConfig generatorConfig, final Api api ) {
+        return getCodeGeneratorFactories().stream().map(codeGeneratorFactory -> codeGeneratorFactory.createCodeGenerator(generatorConfig, api)).collect(Collectors.toList());
     }
 
+    @Provides
+    @Singleton
+    public TypeNameSwitch getTypeNameSwitch(GeneratorConfig generatorConfig){
+        return TypeNameSwitch.of(generatorConfig);
+    }
 
 }

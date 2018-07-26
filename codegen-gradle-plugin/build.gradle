@@ -44,4 +44,4 @@ dependencies {
 }
 
 
-build.finalizedBy(createClasspathManifest)
+processResources.finalizedBy(createClasspathManifest)

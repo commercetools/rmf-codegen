@@ -1,0 +1,4 @@
+template(input) ::=
+<<
+ <input.properties:{ property | <property.name> }>;
+>>

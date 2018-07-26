@@ -3,7 +3,6 @@ package io.vrap.rmf.codegen.plugin;
 import io.vrap.rmf.codegen.common.generator.client.spring.SpringClientCodeGenerator;
 import io.vrap.rmf.codegen.common.generator.core.GenerationResult;
 import io.vrap.rmf.codegen.common.generator.core.GeneratorConfigBuilder;
-import io.vrap.rmf.codegen.common.generator.injection.DaggerGeneratorComponent;
 import io.vrap.rmf.codegen.common.generator.injection.GeneratorComponent;
 import io.vrap.rmf.codegen.common.generator.injection.GeneratorModule;
 import io.vrap.rmf.codegen.common.generator.model.codegen.BeanGenerator;
@@ -105,10 +104,7 @@ public class RamlCodeGeneratorTask extends DefaultTask {
         Optional.ofNullable(customTypeMapping).map(builder::customTypeMapping).orElse(null);
 
 
-        final GeneratorComponent generatorComponent = DaggerGeneratorComponent
-                .builder()
-                .generatorModule(GeneratorModule.of(builder.build(), BeanGenerator::new, SpringClientCodeGenerator::new))
-                .build();
+        final GeneratorComponent generatorComponent = new GeneratorComponent(GeneratorModule.of(builder.build(), BeanGenerator::new, SpringClientCodeGenerator::new));
         generatorComponent.getMasterCodeGenerator()
                 .generateStub()
                 .flattenAsFlowable(GenerationResult::getGeneratedFiles)

@@ -3,6 +3,7 @@ package io.vrap.rmf.codegen.common.generator.util;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
+import io.vrap.rmf.codegen.common.generator.core.GeneratorConfig;
 import io.vrap.rmf.raml.model.elements.NamedElement;
 import io.vrap.rmf.raml.model.types.*;
 import io.vrap.rmf.raml.model.types.util.TypesSwitch;
@@ -27,6 +28,10 @@ public class TypeNameSwitch extends TypesSwitch<TypeName> {
 
     public static TypeNameSwitch of(final String basePackageName, @Nullable final Map<String, String> customTypeMapping) {
         return new TypeNameSwitch(basePackageName, Optional.ofNullable(customTypeMapping).orElseGet(HashMap::new));
+    }
+
+    public static TypeNameSwitch of(final GeneratorConfig generatorConfig) {
+        return new TypeNameSwitch(generatorConfig.getPackagePrefix(), generatorConfig.getCustomTypeMapping());
     }
 
     public Map<String, String> getCustomTypeMapping() {
