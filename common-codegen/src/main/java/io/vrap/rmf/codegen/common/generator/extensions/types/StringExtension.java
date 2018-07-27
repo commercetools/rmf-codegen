@@ -2,6 +2,7 @@ package io.vrap.rmf.codegen.common.generator.extensions.types;
 
 import io.vrap.rmf.codegen.common.processor.annotations.ExtensionMethod;
 import io.vrap.rmf.codegen.common.processor.annotations.ModelExtension;
+import org.apache.commons.lang3.StringUtils;
 
 import java.text.CharacterIterator;
 import java.text.StringCharacterIterator;
@@ -42,6 +43,12 @@ public class StringExtension {
     public String getEnumValueName(final String input) {
         return getJavaIdentifier(input).toUpperCase();
     }
+
+    @ExtensionMethod
+    public String getCapitalize(final String input) {
+        return StringUtils.capitalize(input);
+    }
+
 
 
 }

@@ -33,20 +33,11 @@ public class RmfModelAdaptor extends ObjectModelAdaptor {
 
         Object result = Flowable.fromIterable(mappers)
                 .flatMapMaybe(extensionMapper -> extensionMapper.apply(o, propertyName))
-                .blockingSingle(defaultValue(interp, self, o, property,propertyName ));
+                .blockingFirst(NULL);
 
-        if(result == NULL){
-            LOGGER.warn("property {} of object {} not found", propertyName,o);
+        if (result != NULL) {
+            return result;
         }
-        return result;
+        return super.getProperty(interp, self, o, property, propertyName);
     }
-
-    private Object defaultValue(Interpreter interp, ST self, Object o, Object property, String propertyName){
-        try{
-            return super.getProperty(interp, self, o, property,propertyName );
-        }catch(STNoSuchPropertyException ex){
-            return NULL;
-        }
-    }
-
 }

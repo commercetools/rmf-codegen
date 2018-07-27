@@ -3,26 +3,21 @@ package io.vrap.rmf.codegen.common.generator.extensions;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.squareup.javapoet.ClassName;
-import com.squareup.javapoet.TypeVariableName;
 import io.reactivex.Flowable;
 import io.reactivex.Single;
 import io.vrap.rmf.codegen.common.generator.core.GenerationResult;
 import io.vrap.rmf.codegen.common.generator.core.GeneratorConfig;
 import io.vrap.rmf.codegen.common.generator.util.TypeNameSwitch;
-import io.vrap.rmf.codegen.common.processor.extension.ExtensionMapperFactory;
 import io.vrap.rmf.raml.model.types.AnyType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.stringtemplate.v4.ST;
-import org.stringtemplate.v4.STGroup;
-import org.stringtemplate.v4.STGroupFile;
 
 import javax.inject.Named;
 import java.io.PrintWriter;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
-import java.util.ServiceLoader;
 
 
 public class STCodeGenerator {
@@ -51,34 +46,24 @@ public class STCodeGenerator {
         this.outputDir = outputDir;
         this.typeNameSwitch = typeNameSwitch;
         this.customMapping = customMapping;
+        injector.injectMembers(javaSTFileSwitch);
+
     }
 
     public Single<GenerationResult> generateClasses() {
 
         return alltypes.filter(anyType -> isNotMapped(anyType))
-        .flatMap(anyType ->
-                Flowable.just(anyType).map(javaSTFileSwitch::doSwitch)
-                        .doOnNext(stGroupFile -> addModelAdaptors(stGroupFile, injector))
-                        .doOnNext(STGroupFile::load)
-                        .map(o -> o.getInstanceOf("template"))
-                        .doOnNext(st -> st.add("input", anyType))
-                        .map(st -> getenerateFile(anyType, st)))
+                .flatMap(anyType ->
+                        Flowable.just(anyType).map(javaSTFileSwitch::doSwitch)
+                                .map(o -> o.getInstanceOf("template"))
+                                .doOnNext(st -> st.add("input", anyType))
+                                .map(st -> generateFile(anyType, st)))
                 .toList()
                 .map(GenerationResult::of);
     }
 
 
-    private static void addModelAdaptors(final STGroup stGroupDir, Injector injector) {
-        Flowable.fromIterable(ServiceLoader.load(ExtensionMapperFactory.class))
-                .map(ExtensionMapperFactory::create)
-                .doOnNext(extensionMapper -> injector.injectMembers(extensionMapper.getExtension()))
-                .toList()
-                .map(extensionMappers -> new RmfModelAdaptor(Object.class, extensionMappers))
-                .subscribe(rmfodelAdaptor -> stGroupDir.registerModelAdaptor(rmfodelAdaptor.getHandledClass(), rmfodelAdaptor), Throwable::printStackTrace);
-    }
-
-
-    private Path getenerateFile(AnyType anyType, ST st) throws Exception {
+    private Path generateFile(AnyType anyType, ST st) throws Exception {
         ClassName className = (ClassName) typeNameSwitch.doSwitch(anyType);
         String packagePath = className.reflectionName().replaceAll("\\.", "/") + ".java";
         Path outputPath = Paths.get(outputDir.toAbsolutePath().toString(), packagePath);
@@ -91,7 +76,7 @@ public class STCodeGenerator {
     }
 
 
-    boolean isNotMapped(AnyType anyType){
+    boolean isNotMapped(AnyType anyType) {
         return customMapping.get(anyType.getName()) == null;
     }
 }
