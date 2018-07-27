@@ -12,6 +12,7 @@ import io.vrap.rmf.codegen.common.generator.extensions.STCodeGenerator;
 import io.vrap.rmf.codegen.common.processor.extension.ExtensionMapperFactory;
 import io.vrap.rmf.raml.model.types.AnyType;
 
+import java.util.List;
 import java.util.ServiceLoader;
 
 
@@ -31,8 +32,8 @@ public final class GeneratorComponent {
         return injector.getInstance(MasterCodeGenerator.class);
     }
 
-    public Flowable<AnyType> getRamleTypes(){
-        return injector.getInstance(Key.get(new TypeLiteral<Flowable<AnyType>>(){}));
+    public List<AnyType> getRamleTypes(){
+        return injector.getInstance(Key.get(new TypeLiteral<List<AnyType>>(){}));
     }
 
     public Injector getInjector() {

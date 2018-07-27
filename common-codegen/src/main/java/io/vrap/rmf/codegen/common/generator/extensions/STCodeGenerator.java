@@ -19,6 +19,7 @@ import javax.inject.Named;
 import java.io.PrintWriter;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.Map;
 
 
@@ -29,7 +30,8 @@ public class STCodeGenerator {
 
     private Injector injector;
 
-    private Flowable<AnyType> alltypes;
+    private List<AnyType> alltypes;
+
 
     private Path outputDir;
 
@@ -38,7 +40,7 @@ public class STCodeGenerator {
     private Map<String, String> customMapping;
 
     @Inject
-    public STCodeGenerator(Injector injector, Flowable<AnyType> alltypes,
+    public STCodeGenerator(Injector injector, List<AnyType> alltypes,
                            @Named(GeneratorConfig.OUTPUT_FOLDER) Path outputDir,
                            TypeNameSwitch typeNameSwitch,
                            Map<String, String> customMapping) {
@@ -54,7 +56,7 @@ public class STCodeGenerator {
 
     public Single<GenerationResult> generateClasses() {
 
-        return alltypes.filter(anyType -> isNotMapped(anyType))
+        return Flowable.fromIterable(alltypes).filter(anyType -> isNotMapped(anyType))
                 .flatMap(anyType ->
                         Flowable.just(anyType).map(javaSTFileSwitch::doSwitch)
                                 .map(o -> o.getInstanceOf("template"))

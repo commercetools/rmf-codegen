@@ -108,9 +108,11 @@ public class GeneratorModule extends AbstractModule {
 
     @Provides
     @Singleton
-    public Flowable<AnyType> provideRamlEntitiesObjects(final Api ramlApi) {
-        final Flowable<AnyType> resultFlow = Flowable.fromIterable(ramlApi.getUses())
-                .flatMapIterable(libraryUse -> libraryUse.getLibrary().getTypes());
+    public List<AnyType> provideRamlEntitiesObjects(final Api ramlApi) {
+        final List<AnyType> resultFlow = Flowable.fromIterable(ramlApi.getUses())
+                .flatMapIterable(libraryUse -> libraryUse.getLibrary().getTypes())
+                .toList()
+                .blockingGet();
         return resultFlow;
     }
 
