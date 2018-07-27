@@ -11,7 +11,9 @@ import io.vrap.rmf.codegen.common.generator.util.TypeNameSwitch;
 import io.vrap.rmf.raml.model.types.AnyType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.stringtemplate.v4.AutoIndentWriter;
 import org.stringtemplate.v4.ST;
+import org.stringtemplate.v4.misc.ErrorBuffer;
 
 import javax.inject.Named;
 import java.io.PrintWriter;
@@ -69,8 +71,12 @@ public class STCodeGenerator {
         Path outputPath = Paths.get(outputDir.toAbsolutePath().toString(), packagePath);
         outputPath.getParent().toFile().mkdirs();
         PrintWriter printWriter = new PrintWriter(outputPath.toFile());
-        printWriter.write(st.render());
+        ErrorBuffer errorBuffer = new ErrorBuffer();
+        st.write(new AutoIndentWriter(printWriter), errorBuffer);
         printWriter.close();
+        if(!errorBuffer.errors.isEmpty()){
+            LOGGER.error(errorBuffer.toString());
+        }
         return outputPath;
 
     }
