@@ -19,4 +19,9 @@ public class PropertyExtension {
     }
 
 
+    @ExtensionMethod
+    public boolean hasChildren(Property property){
+        return false;
+
+    }
 }

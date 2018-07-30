@@ -17,7 +17,7 @@ dependencies {
     compile 'com.google.auto.service:auto-service:1.0-rc4'
     apt 'com.google.auto.service:auto-service:1.0-rc4'
 
-    compile group: 'com.google.guava', name: 'guava', version: '25.1-jre'
+    compile 'com.google.guava:guava:25.1-jre'
 
 
 
@@ -38,10 +38,6 @@ idea {
             addAptDependencies = true
         }
     }
-}
-
-sourceSets {
-    resources
 }
 
 

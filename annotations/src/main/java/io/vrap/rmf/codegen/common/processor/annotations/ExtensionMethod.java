@@ -5,7 +5,10 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-
+/**
+ * If a class is marked as {@link ModelExtension} an extension method has to be marked via this method
+ * it should accept either no argument or an argument of the type extended type.
+ */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ExtensionMethod {

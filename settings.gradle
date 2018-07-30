@@ -1,3 +1,2 @@
-include 'common-codegen', 'codegen-gradle-plugin'
-include 'annotations'
+include 'common-codegen', 'codegen-gradle-plugin','annotations'
 

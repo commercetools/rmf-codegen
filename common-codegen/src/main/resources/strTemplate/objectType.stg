@@ -17,14 +17,13 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 <subtypeAnnotation(input)>
 <endif>
 @Generated(
-    value = "io.vrap.rmf.codegen.common.generator.model.codegen.ObjectTypeTransformer",
+    value = "io.vrap.rmf.codegen.common.generator.extensions.STCodeGenerator",
     comments = "https://github.com/vrapio/rmf-codegen"
 )
 public class <input.simpleClassName> <if(input.type)>extends <input.type.simpleClassName><endif> {
 
     <properties(input)>
     <setters(input)>
-
     <getters(input)>
 
     <standardMethods()>
@@ -43,7 +42,7 @@ subtypeAnnotation(input) ::=<<
 >>
 
 properties(input) ::=<<
-<input.properties:{ property | <if(property.patternProperty)> private Map\<String, <property.type.simpleClassName>\> values = new HashMap();
+<input.properties:{ property | <if(property.patternProperty)>private Map\<String, <property.type.simpleClassName>\> values = new HashMap();
 <else>private <property.type.simpleClassName> <property.name>;
 <endif>}; separator = "\n">
 >>
@@ -114,6 +113,6 @@ public boolean equals(Object o) {
 
 @Override
 public int hashCode() {
-  return HashCodeBuilder.reflectionHashCode(this);
+    return HashCodeBuilder.reflectionHashCode(this);
 }
 >>

@@ -10,7 +10,7 @@ import javax.annotation.Generated;
 
 
 @Generated(
-    value = "io.vrap.rmf.codegen.common.generator.model.codegen.inputTransformer",
+    value = "io.vrap.rmf.codegen.common.generator.extensions.STCodeGenerator",
     comments = "https://github.com/vrapio/rmf-codegen"
 )
 public enum <input.simpleClassName> {

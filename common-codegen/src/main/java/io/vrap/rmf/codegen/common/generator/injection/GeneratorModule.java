@@ -14,6 +14,7 @@ import io.vrap.rmf.raml.model.RamlDiagnostic;
 import io.vrap.rmf.raml.model.RamlModelBuilder;
 import io.vrap.rmf.raml.model.RamlModelResult;
 import io.vrap.rmf.raml.model.modules.Api;
+import io.vrap.rmf.raml.model.resources.Resource;
 import io.vrap.rmf.raml.model.types.AnyType;
 import org.eclipse.emf.common.util.URI;
 import org.slf4j.Logger;
@@ -30,7 +31,7 @@ import java.util.stream.Collectors;
 
 public class GeneratorModule extends AbstractModule {
 
-    private final Logger LOGGER = LoggerFactory.getLogger(GeneratorModule.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(GeneratorModule.class);
     private final GeneratorConfig generatorConfig;
     private final List<CodeGeneratorFactory> codeGeneratorFactories;
 
@@ -114,6 +115,12 @@ public class GeneratorModule extends AbstractModule {
                 .toList()
                 .blockingGet();
         return resultFlow;
+    }
+
+    @Provides
+    @Singleton
+    public List<Resource> getAllReources(final Api ramlApi) {
+        return ramlApi.getAllContainedResources();
     }
 
     @Provides

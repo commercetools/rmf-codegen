@@ -81,6 +81,7 @@ public class TypeNameSwitch extends TypesSwitch<TypeName> {
         return ParameterizedTypeName.get(ClassName.get(List.class), doSwitch(arrayType.getItems()));
     }
 
+
     @Override
     public TypeName caseObjectType(ObjectType objectType) {
         return CodeGeneratorUtil.getClassName(basePackageName, objectType);

@@ -6,7 +6,7 @@ public interface ExtensionMapper {
 
     Class getHandledType();
 
-    Maybe apply(final Object self, final String methodName);
+    Maybe apply(final Object self, final String propertyName);
 
     Object getExtension();
 

@@ -23,9 +23,4 @@ public class DescriptionFacetExtension {
     public String getDescription(DescriptionFacet descriptionFacet) {
         return javaDocProcessor.markDownToJavaDoc(descriptionFacet);
     }
-
-    @ExtensionMethod
-    public Boolean hasDescription(DescriptionFacet descriptionFacet) {
-        return Objects.nonNull(descriptionFacet.getDescription());
-    }
 }

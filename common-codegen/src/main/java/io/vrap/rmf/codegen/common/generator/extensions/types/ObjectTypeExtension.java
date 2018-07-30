@@ -11,11 +11,13 @@ import io.vrap.rmf.codegen.common.generator.util.TypeNameSwitch;
 import io.vrap.rmf.codegen.common.processor.annotations.ExtensionMethod;
 import io.vrap.rmf.codegen.common.processor.annotations.ModelExtension;
 import io.vrap.rmf.raml.model.types.ObjectType;
+import io.vrap.rmf.raml.model.types.Property;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.inject.Inject;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @ModelExtension(extend = ObjectType.class)
 public class ObjectTypeExtension {
@@ -29,8 +31,16 @@ public class ObjectTypeExtension {
 
     @ExtensionMethod
     public String getDiscriminatorValue(ObjectType objectType) {
-        objectType.getType();
         return objectType.getDiscriminatorValue();
+    }
+
+
+    @ExtensionMethod
+    public List<Property> getProperties(ObjectType objectType) {
+        return objectType.getProperties()
+                .stream()
+                .filter(property -> !(hasSubtypes(objectType) && property.getName().equals(getDiscriminator(objectType))))
+                .collect(Collectors.toList());
     }
 
     @ExtensionMethod
@@ -49,10 +59,11 @@ public class ObjectTypeExtension {
         return Flowable.fromIterable(objectType.getProperties())
                 .map(property -> property.getType())
                 .concatWith(Flowable.fromIterable(objectType.getSubTypes()).filter(anyType -> hasSubtypes(objectType)))
-                .concatWith(Maybe.fromCallable(objectType::getType) )
+                .concatWith(Maybe.fromCallable(objectType::getType))
                 .map(typeNameSwitch::doSwitch)
                 .flatMapIterable(this::getAllClassNames)
                 .filter(s -> !s.startsWith("java.lang"))
+                .filter(s -> !s.startsWith("java.util"))
                 .distinct()
                 .toList()
                 .blockingGet();
@@ -73,7 +84,6 @@ public class ObjectTypeExtension {
         }
         throw new IllegalStateException("shouldn't arrive here");
     }
-
 
 
 }

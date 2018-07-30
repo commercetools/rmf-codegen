@@ -8,6 +8,7 @@ import io.reactivex.Single;
 import io.vrap.rmf.codegen.common.generator.core.GenerationResult;
 import io.vrap.rmf.codegen.common.generator.core.GeneratorConfig;
 import io.vrap.rmf.codegen.common.generator.util.TypeNameSwitch;
+import io.vrap.rmf.raml.model.resources.Resource;
 import io.vrap.rmf.raml.model.types.AnyType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,12 +27,13 @@ import java.util.Map;
 public class STCodeGenerator {
 
     private final JavaSTFileSwitch javaSTFileSwitch = new JavaSTFileSwitch();
-    private static Logger LOGGER = LoggerFactory.getLogger(STCodeGenerator.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(STCodeGenerator.class);
 
     private Injector injector;
 
     private List<AnyType> alltypes;
 
+    List<Resource> allResources;
 
     private Path outputDir;
 
@@ -43,20 +45,23 @@ public class STCodeGenerator {
     public STCodeGenerator(Injector injector, List<AnyType> alltypes,
                            @Named(GeneratorConfig.OUTPUT_FOLDER) Path outputDir,
                            TypeNameSwitch typeNameSwitch,
-                           Map<String, String> customMapping) {
+                           Map<String, String> customMapping,
+                           List<Resource> allResources) {
 
         this.injector = injector;
         this.alltypes = alltypes;
         this.outputDir = outputDir;
         this.typeNameSwitch = typeNameSwitch;
         this.customMapping = customMapping;
+        this.allResources = allResources;
         injector.injectMembers(javaSTFileSwitch);
 
     }
 
     public Single<GenerationResult> generateClasses() {
 
-        return Flowable.fromIterable(alltypes).filter(anyType -> isNotMapped(anyType))
+        return Flowable.fromIterable(alltypes)
+                .filter(anyType -> isNotMapped(anyType))
                 .flatMap(anyType ->
                         Flowable.just(anyType).map(javaSTFileSwitch::doSwitch)
                                 .map(o -> o.getInstanceOf("template"))

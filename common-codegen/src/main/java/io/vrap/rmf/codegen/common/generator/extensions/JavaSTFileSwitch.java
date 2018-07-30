@@ -20,7 +20,7 @@ import java.util.ServiceLoader;
 
 public class JavaSTFileSwitch extends TypesSwitch<STGroupFile> {
 
-    final Logger LOGGER = LoggerFactory.getLogger(JavaSTFileSwitch.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(JavaSTFileSwitch.class);
 
     Map<String,STGroupFile> cache = new HashMap<>();
 

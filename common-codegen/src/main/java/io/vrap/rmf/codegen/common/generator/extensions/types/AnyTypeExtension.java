@@ -16,7 +16,7 @@ import java.lang.reflect.Type;
 @ModelExtension(extend = AnyType.class)
 public class AnyTypeExtension {
 
-    TypeNameSwitch typeNameSwitch;
+    private TypeNameSwitch typeNameSwitch;
 
     @Inject
     public void setGeneratorConfig(final GeneratorConfig generatorConfig) {

@@ -183,6 +183,8 @@ public class ModelExtensionProcessor extends AbstractProcessor {
             property = property.replaceFirst("get", "");
         } else if (property.startsWith("is")) {
             property = property.replaceFirst("is", "");
+        } else if (property.startsWith("has")) {
+            property = property.replaceFirst("has", "");
         }
         return StringUtils.uncapitalize(property);
     }
