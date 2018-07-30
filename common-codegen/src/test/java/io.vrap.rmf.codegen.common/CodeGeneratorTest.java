@@ -1,7 +1,9 @@
 package io.vrap.rmf.codegen.common;
 
+import com.google.inject.Injector;
 import com.neovisionaries.i18n.CountryCode;
 import com.neovisionaries.i18n.CurrencyCode;
+import io.reactivex.Flowable;
 import io.reactivex.observers.TestObserver;
 import io.vrap.rmf.codegen.common.generator.MasterCodeGenerator;
 import io.vrap.rmf.codegen.common.generator.client.spring.SpringClientCodeGenerator;
@@ -9,16 +11,23 @@ import io.vrap.rmf.codegen.common.generator.core.CodeGenerator;
 import io.vrap.rmf.codegen.common.generator.core.GenerationResult;
 import io.vrap.rmf.codegen.common.generator.core.GeneratorConfig;
 import io.vrap.rmf.codegen.common.generator.core.GeneratorConfigBuilder;
-import io.vrap.rmf.codegen.common.generator.injection.DaggerGeneratorComponent;
+import io.vrap.rmf.codegen.common.generator.extensions.JavaSTFileSwitch;
+import io.vrap.rmf.codegen.common.generator.extensions.RmfModelAdaptor;
+import io.vrap.rmf.codegen.common.generator.extensions.STCodeGenerator;
 import io.vrap.rmf.codegen.common.generator.injection.GeneratorComponent;
 import io.vrap.rmf.codegen.common.generator.injection.GeneratorModule;
 import io.vrap.rmf.codegen.common.generator.model.codegen.BeanGenerator;
+import io.vrap.rmf.codegen.common.processor.extension.ExtensionMapperFactory;
+import io.vrap.rmf.raml.model.types.StringType;
 import org.assertj.core.api.Assertions;
 import org.eclipse.emf.common.util.URI;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.stringtemplate.v4.ST;
+import org.stringtemplate.v4.STGroup;
+import org.stringtemplate.v4.STGroupFile;
 
 import java.io.IOException;
 import java.net.URL;
@@ -26,12 +35,14 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.ServiceLoader;
 
 public class CodeGeneratorTest {
 
 
     private GeneratorConfig generatorConfig;
-    final Logger logger = LoggerFactory.getLogger(getClass());
+    private GeneratorComponent generatorComponent;
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
 
     @Before
@@ -50,12 +61,15 @@ public class CodeGeneratorTest {
         final Path outputPath = gensrc == null ?
                 Paths.get(current, "build/gensrc") :
                 Paths.get(gensrc);
+
         generatorConfig = new GeneratorConfigBuilder()
                 .packagePrefix("com.commercetools.importapi.models")
                 .outputFolder(outputPath)
                 .ramlFileLocation(ramlFileLocation)
                 .customTypeMapping(customTypeMapping)
                 .build();
+
+        generatorComponent = new GeneratorComponent(GeneratorModule.of(generatorConfig, BeanGenerator::new, SpringClientCodeGenerator::new));
     }
 
 
@@ -63,12 +77,6 @@ public class CodeGeneratorTest {
     public void testCodeGeneration() throws IOException {
 
         TestObserver<GenerationResult> resultTestObserver = new TestObserver<>();
-
-        final GeneratorComponent generatorComponent = DaggerGeneratorComponent
-                .builder()
-                .generatorModule(GeneratorModule.of(generatorConfig, BeanGenerator::new, SpringClientCodeGenerator::new))
-                .build();
-
         MasterCodeGenerator masterCodeGenerator = generatorComponent.getMasterCodeGenerator();
 
         masterCodeGenerator.generateStub().subscribe(resultTestObserver);
@@ -81,8 +89,11 @@ public class CodeGeneratorTest {
     }
 
 
-
-
+    @Test
+    public void testTemplate() throws Exception {
+        STCodeGenerator stCodeGenerator = generatorComponent.getStCodeGenerator();
+        stCodeGenerator.generateClasses().subscribe(generationResult -> System.out.println(generationResult));
+    }
 
 
 }

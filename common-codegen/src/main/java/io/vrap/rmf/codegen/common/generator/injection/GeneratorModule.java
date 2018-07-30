@@ -1,16 +1,20 @@
 package io.vrap.rmf.codegen.common.generator.injection;
 
-import dagger.Module;
-import dagger.Provides;
+
+import com.google.inject.AbstractModule;
+import com.google.inject.Provides;
 import io.reactivex.Flowable;
 import io.vrap.rmf.codegen.common.generator.core.CodeGenerator;
 import io.vrap.rmf.codegen.common.generator.core.CodeGeneratorFactory;
 import io.vrap.rmf.codegen.common.generator.core.GeneratorConfig;
 import io.vrap.rmf.codegen.common.generator.doc.JavaDocProcessor;
+import io.vrap.rmf.codegen.common.generator.extensions.types.AnyTypeExtension;
+import io.vrap.rmf.codegen.common.generator.util.TypeNameSwitch;
 import io.vrap.rmf.raml.model.RamlDiagnostic;
 import io.vrap.rmf.raml.model.RamlModelBuilder;
 import io.vrap.rmf.raml.model.RamlModelResult;
 import io.vrap.rmf.raml.model.modules.Api;
+import io.vrap.rmf.raml.model.resources.Resource;
 import io.vrap.rmf.raml.model.types.AnyType;
 import org.eclipse.emf.common.util.URI;
 import org.slf4j.Logger;
@@ -24,12 +28,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
-import static io.vrap.rmf.codegen.common.generator.core.GeneratorConfig.*;
 
-@Module
-public class GeneratorModule {
+public class GeneratorModule extends AbstractModule {
 
-    private final Logger LOGGER = LoggerFactory.getLogger(GeneratorModule.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(GeneratorModule.class);
     private final GeneratorConfig generatorConfig;
     private final List<CodeGeneratorFactory> codeGeneratorFactories;
 
@@ -107,17 +109,30 @@ public class GeneratorModule {
 
     @Provides
     @Singleton
-    public Flowable<AnyType> provideRamlEntitiesObjects(final Api ramlApi) {
-        final Flowable<AnyType> resultFlow = Flowable.fromIterable(ramlApi.getUses())
-                .flatMapIterable(libraryUse -> libraryUse.getLibrary().getTypes());
+    public List<AnyType> provideRamlEntitiesObjects(final Api ramlApi) {
+        final List<AnyType> resultFlow = Flowable.fromIterable(ramlApi.getUses())
+                .flatMapIterable(libraryUse -> libraryUse.getLibrary().getTypes())
+                .toList()
+                .blockingGet();
         return resultFlow;
     }
 
     @Provides
     @Singleton
-    public List<CodeGenerator> getCodeGenerators(final GeneratorConfig generatorConfig, final Api api ){
-        return getCodeGeneratorFactories().stream().map(codeGeneratorFactory ->codeGeneratorFactory.createCodeGenerator(generatorConfig ,api )).collect(Collectors.toList());
+    public List<Resource> getAllReources(final Api ramlApi) {
+        return ramlApi.getAllContainedResources();
     }
 
+    @Provides
+    @Singleton
+    public List<CodeGenerator> getCodeGenerators(final GeneratorConfig generatorConfig, final Api api ) {
+        return getCodeGeneratorFactories().stream().map(codeGeneratorFactory -> codeGeneratorFactory.createCodeGenerator(generatorConfig, api)).collect(Collectors.toList());
+    }
+
+    @Provides
+    @Singleton
+    public TypeNameSwitch getTypeNameSwitch(GeneratorConfig generatorConfig){
+        return TypeNameSwitch.of(generatorConfig);
+    }
 
 }
