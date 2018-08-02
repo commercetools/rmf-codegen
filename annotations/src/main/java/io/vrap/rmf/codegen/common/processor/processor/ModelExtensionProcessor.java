@@ -48,7 +48,7 @@ public class ModelExtensionProcessor extends AbstractProcessor {
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         for (TypeElement annotation : annotations) {
             Set<? extends Element> annotatedElements = roundEnv.getElementsAnnotatedWith(annotation);
-//            annotatedElements.forEach(o -> generateMapper(o));
+            annotatedElements.forEach(o -> generateMapper(o));
         }
         return false;
     }
