@@ -1,4 +1,4 @@
-package io.vrap.rmf.codegen.common.generator.extensions.types;
+package io.vrap.rmf.codegen.common.generator.extensions;
 
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.ParameterizedTypeName;
@@ -9,12 +9,13 @@ import io.vrap.rmf.codegen.common.generator.util.TypeNameSwitch;
 import io.vrap.rmf.codegen.common.processor.annotations.ExtensionMethod;
 import io.vrap.rmf.codegen.common.processor.annotations.ModelExtension;
 import io.vrap.rmf.raml.model.types.AnyType;
+import org.eclipse.emf.ecore.EObject;
 
 import javax.inject.Inject;
 import java.lang.reflect.Type;
 
-@ModelExtension(extend = AnyType.class)
-public class AnyTypeExtension {
+@ModelExtension(extend = EObject.class)
+public class EObjectExtension {
 
     private TypeNameSwitch typeNameSwitch;
 
@@ -24,24 +25,21 @@ public class AnyTypeExtension {
     }
 
     @ExtensionMethod
-    public TypeName getTypeName(final AnyType anyType) {
+    public TypeName getTypeName(final EObject anyType) {
         return typeNameSwitch.doSwitch(anyType);
     }
 
     @ExtensionMethod
-    public String getPackageName(final AnyType anyType) {
+    public String getPackageName(final EObject anyType) {
         return ((ClassName) getTypeName(anyType)).packageName();
     }
 
     @ExtensionMethod
-    public String getSimpleClassName(final AnyType anyType) {
+    public String getSimpleClassName(final EObject anyType) {
 
         TypeName typeName = getTypeName(anyType);
         if (typeName instanceof ClassName) {
             return ((ClassName) typeName).simpleName();
-        }
-        else if (typeName instanceof ParameterizedTypeName) {
-            return ((ParameterizedTypeName) typeName).toString();
         }
         return typeName.toString();
     }

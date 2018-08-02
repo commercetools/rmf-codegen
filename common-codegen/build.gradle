@@ -11,13 +11,15 @@ dependencies {
     compile 'io.reactivex.rxjava2:rxjava:2.1.14'
     compile 'org.slf4j:slf4j-simple:1.7.25'
     compile 'com.atlassian.commonmark:commonmark:0.11.0'
-    compile 'org.joda:joda-beans:2.2.2'
     compile 'com.neovisionaries:nv-i18n:1.17'
     compile 'javax.validation:validation-api:2.0.1.Final'
     compile 'com.google.auto.service:auto-service:1.0-rc4'
     apt 'com.google.auto.service:auto-service:1.0-rc4'
 
     compile 'com.google.guava:guava:25.1-jre'
+
+//    compile group: 'org.springframework.boot', name: 'spring-boot-starter-web', version: '2.0.4.RELEASE'
+
 
 
 

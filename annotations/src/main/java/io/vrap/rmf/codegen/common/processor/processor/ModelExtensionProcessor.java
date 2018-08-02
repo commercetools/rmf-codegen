@@ -9,6 +9,8 @@ import io.vrap.rmf.codegen.common.processor.annotations.ModelExtension;
 import io.vrap.rmf.codegen.common.processor.extension.ExtensionMapper;
 import io.vrap.rmf.codegen.common.processor.extension.ExtensionMapperFactory;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
@@ -46,7 +48,7 @@ public class ModelExtensionProcessor extends AbstractProcessor {
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         for (TypeElement annotation : annotations) {
             Set<? extends Element> annotatedElements = roundEnv.getElementsAnnotatedWith(annotation);
-            annotatedElements.forEach(o -> generateMapper(o));
+//            annotatedElements.forEach(o -> generateMapper(o));
         }
         return false;
     }
@@ -85,7 +87,7 @@ public class ModelExtensionProcessor extends AbstractProcessor {
 
     TypeSpec createJavaFile(final TypeElement typeElement, TypeMirror extendedTypeName) {
 
-        TypeSpec.Builder typeSpecBuilder = TypeSpec.classBuilder(typeElement.getSimpleName().toString() + "Mapper")
+        TypeSpec.Builder typeSpecBuilder = TypeSpec.classBuilder(getExtensionMapperName(typeElement))
                 .addSuperinterface(ExtensionMapper.class)
                 .addSuperinterface(ExtensionMapperFactory.class)
                 .addModifiers(Modifier.PUBLIC)
@@ -99,8 +101,6 @@ public class ModelExtensionProcessor extends AbstractProcessor {
 
     private List<MethodSpec> getMethodSpecs(TypeElement typeElement, TypeMirror extendedTypeName) {
 
-
-        ClassName extensionTypeName = (ClassName) ClassName.get(typeUtils.getDeclaredType(typeElement));
 
         MethodSpec getExtension = MethodSpec.methodBuilder("getExtension")
                 .addModifiers(Modifier.PUBLIC)
@@ -121,7 +121,7 @@ public class ModelExtensionProcessor extends AbstractProcessor {
                 .addModifiers(Modifier.PUBLIC)
                 .returns(ExtensionMapper.class)
                 .addAnnotation(Override.class)
-                .addCode("return new $T();\n", ClassName.get(extensionTypeName.packageName(), extensionTypeName.simpleName() + "Mapper"))
+                .addCode("return new $T();\n", getExtensionMapperName(typeElement))
                 .build();
 
         MethodSpec apply = MethodSpec.methodBuilder("apply")
@@ -137,12 +137,15 @@ public class ModelExtensionProcessor extends AbstractProcessor {
     }
 
     private List<FieldSpec> getFiledsSpec(TypeElement typeElement) {
-        //private final <extensionType.name> extension = new <extensionType.name>();
         TypeName typeName = TypeName.get(typeUtils.getDeclaredType(typeElement));
-        FieldSpec fieldSpec = FieldSpec.builder(typeName, "extension", Modifier.PRIVATE, Modifier.FINAL)
+        FieldSpec extension = FieldSpec.builder(typeName, "extension", Modifier.PRIVATE, Modifier.FINAL)
                 .initializer("new $T()", typeName)
                 .build();
-        return Arrays.asList(fieldSpec);
+
+        FieldSpec logger = FieldSpec.builder(ClassName.get(Logger.class), "LOGGER", Modifier.PRIVATE, Modifier.FINAL,Modifier.STATIC)
+                .initializer("$T.getLogger($T.class)", LoggerFactory.class,getExtensionMapperName(typeElement))
+                .build();
+        return Arrays.asList(extension,logger);
     }
 
     CodeBlock getApplyCodeBlock(TypeElement typeElement, ClassName extendedTypeName) {
@@ -169,10 +172,12 @@ public class ModelExtensionProcessor extends AbstractProcessor {
                 ));
 
         codeBlockBuilder.add("  default:\n")
-                .add("      result = null;\n")
+                .addStatement("       LOGGER.debug(\"property '{}' not found in type {}\", trimmedMethodName, $T.class )",getExtensionMapperName(typeElement))
+                .add("       result = null;\n")
                 .add("}\n")
                 .addStatement(" return result != null ? $T.just(result) : $T.empty()", Maybe.class, Maybe.class)
                 .build();
+
         return codeBlockBuilder.build();
     }
 
@@ -183,8 +188,6 @@ public class ModelExtensionProcessor extends AbstractProcessor {
             property = property.replaceFirst("get", "");
         } else if (property.startsWith("is")) {
             property = property.replaceFirst("is", "");
-        } else if (property.startsWith("has")) {
-            property = property.replaceFirst("has", "");
         }
         return StringUtils.uncapitalize(property);
     }
@@ -220,5 +223,10 @@ public class ModelExtensionProcessor extends AbstractProcessor {
                         }
                     });
         }
+    }
+
+    private ClassName getExtensionMapperName(TypeElement typeElement){
+        ClassName extensionTypeName = (ClassName) ClassName.get(typeUtils.getDeclaredType(typeElement));
+        return ClassName.get(extensionTypeName.packageName(), extensionTypeName.simpleName() + "Mapper");
     }
 }

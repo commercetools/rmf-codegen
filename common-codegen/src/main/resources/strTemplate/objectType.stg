@@ -1,3 +1,5 @@
+import "description.stg"
+
 template(input) ::=
 <<
 package <input.packageName>;
@@ -17,7 +19,7 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 <subtypeAnnotation(input)>
 <endif>
 @Generated(
-    value = "io.vrap.rmf.codegen.common.generator.extensions.STCodeGenerator",
+    value = "io.vrap.rmf.codegen.common.generator.core.STCodeGenerator",
     comments = "https://github.com/vrapio/rmf-codegen"
 )
 public class <input.simpleClassName> <if(input.type)>extends <input.type.simpleClassName><endif> {
@@ -90,13 +92,6 @@ public <property.type.simpleClassName> get<property.name.capitalize>(){
     return this.<property.name>;
 \}<endif>
 }; separator = "\n\n">
->>
-
-description(input) ::=<<
-<if(input.hasDescription)>
-/**
-  <input.description>*/
-<endif>
 >>
 
 

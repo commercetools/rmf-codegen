@@ -1,3 +1,5 @@
+import "description.stg"
+
 template(input) ::=
 <<
 package <input.packageName>;
@@ -8,9 +10,9 @@ import java.util.Arrays;
 import java.util.Optional;
 import javax.annotation.Generated;
 
-
+<description(input)>
 @Generated(
-    value = "io.vrap.rmf.codegen.common.generator.extensions.STCodeGenerator",
+    value = "io.vrap.rmf.codegen.common.generator.core.STCodeGenerator",
     comments = "https://github.com/vrapio/rmf-codegen"
 )
 public enum <input.simpleClassName> {
@@ -34,5 +36,7 @@ public enum <input.simpleClassName> {
 
 >>
 developEnum(enumLateral) ::=
-<<@JsonProperty("<enumLateral>")
-<enumLateral.enumValueName>("<enumLateral>")>>
+<<
+@JsonProperty("<enumLateral>")
+<enumLateral.enumValueName>("<enumLateral>")
+>>

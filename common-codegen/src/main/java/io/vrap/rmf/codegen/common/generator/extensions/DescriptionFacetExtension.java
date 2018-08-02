@@ -1,4 +1,4 @@
-package io.vrap.rmf.codegen.common.generator.extensions.types;
+package io.vrap.rmf.codegen.common.generator.extensions;
 
 import com.google.inject.Inject;
 import io.vrap.rmf.codegen.common.generator.doc.JavaDocProcessor;
@@ -22,5 +22,10 @@ public class DescriptionFacetExtension {
     @ExtensionMethod
     public String getDescription(DescriptionFacet descriptionFacet) {
         return javaDocProcessor.markDownToJavaDoc(descriptionFacet);
+    }
+
+    @ExtensionMethod
+    public Boolean hasDescription(DescriptionFacet descriptionFacet) {
+        return StringUtils.isNotEmpty(getDescription(descriptionFacet));
     }
 }
