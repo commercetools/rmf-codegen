@@ -1,12 +1,12 @@
 package io.vrap.rmf.codegen.common.generator.extensions;
 
-import io.vrap.rmf.codegen.common.generator.util.RmfNilTypeImpl;
 import io.vrap.rmf.codegen.common.processor.annotations.ExtensionMethod;
 import io.vrap.rmf.codegen.common.processor.annotations.ModelExtension;
 import io.vrap.rmf.raml.model.resources.Method;
 import io.vrap.rmf.raml.model.responses.Body;
 import io.vrap.rmf.raml.model.types.AnyType;
 import io.vrap.rmf.raml.model.types.TypedElement;
+import io.vrap.rmf.raml.model.types.impl.TypesFactoryImpl;
 
 @ModelExtension(extend = Method.class)
 public class MethodExtension {
@@ -20,7 +20,7 @@ public class MethodExtension {
                 .findFirst()
                 .map(method1 -> method1.getBodies().get(0))
                 .map(TypedElement::getType)
-                .orElse(new RmfNilTypeImpl());
+                .orElse(TypesFactoryImpl.eINSTANCE.createNilType());
     }
 
     @ExtensionMethod
