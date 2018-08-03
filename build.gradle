@@ -21,8 +21,8 @@ plugins {
 
     id 'de.undercouch.download' version '3.4.3'
     id 'com.jfrog.bintray' version '1.8.0'
-    id 'net.ltgt.apt-idea' version '0.15'
     id 'com.github.johnrengelman.shadow' version '2.0.4' apply false
+    id 'org.inferred.processors' version '1.2.16'
 }
 
 ext {
@@ -82,7 +82,7 @@ subprojects { project ->
     apply plugin: 'java'
     apply plugin: 'java-library' // needed to make sure that transitive deps have 'compile' scope
     apply plugin: 'groovy'
-    apply plugin: 'net.ltgt.apt-idea'
+    apply plugin: 'org.inferred.processors'
     apply plugin: 'com.jfrog.bintray'
 
     group='io.vrap.rmf.codegen'

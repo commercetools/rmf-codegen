@@ -1,0 +1,5 @@
+description(input) ::=<<
+<if(input.hasDescription)>
+/**
+  <input.description>*/<endif>
+>>

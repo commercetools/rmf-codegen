@@ -1,0 +1,21 @@
+#%RAML 1.0 Library
+(generator.package): pricemapping
+
+uses:
+  common: common.raml
+  generator: ../annotationTypes/generator.raml
+
+types:
+  PriceMapping:
+    description: This type represents a mapping between the priceId and the priceKey.
+    properties:
+      priceKey:
+        description: The key of the imported price.
+        type: string
+      priceId:
+        description: The ctp-id of the price.
+        type: string
+      productVariant:
+        description: the variant where the price is included
+        properties:
+          key: string

@@ -1,0 +1,66 @@
+import "description.stg"
+
+template(input) ::=
+<<
+package <input.collectionClassName.packageName>;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import javax.annotation.Generated;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
+import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestTemplate;
+
+<description(input.sample)>
+@Generated(
+    value = "io.vrap.rmf.codegen.common.generator.core.STCodeGenerator",
+    comments = "https://github.com/vrapio/rmf-codegen"
+)
+@Component
+public class <input.collectionClassName.simpleClassName> {
+
+    private final String baseUri;
+
+    private final RestTemplate restTemplate;
+
+    public <input.collectionClassName.simpleClassName>(@Value("${sdk.baseUri}") final String baseUri,final RestTemplate restTemplate) {
+        this.baseUri = baseUri;
+        this.restTemplate = restTemplate;
+    }
+
+    <input.eObjects:{ resource |<handleResource(resource)>}; separator = "\n">
+
+}
+>>
+
+
+handleResource(resource) ::=
+<<
+<resource.methods:{ method |<httpMethod(resource,method)> }; separator = "\n">
+>>
+
+httpMethod(resource,method) ::=
+<<
+<description(method)>
+public <method.returnType.typeName.fullClassName> <method.method>(<resource.allUriParameters :{ parameter | final <parameter.type.typeName.simpleClassName> <parameter.name>}; separator = ", "> <if(method.hasBody)>, final <method.firstBody.type.typeName.fullClassName> body<endif>) {
+
+    final Map\<String, Object> parameters = new HashMap\<>();
+
+    <resource.allUriParameters :{ parameter |parameters.put("<parameter.name>",<parameter.name>);};separator = "\n"}>
+
+    <if(method.hasBody)>
+    final HttpEntity\<<method.firstBody.type.typeName.fullClassName>\> entity = new HttpEntity\<>(body);
+    <else>
+    final HttpEntity entity = null;
+    <endif>
+    final ParameterizedTypeReference\<<method.returnType.typeName.fullClassName>\> type = new ParameterizedTypeReference\<<method.returnType.typeName.fullClassName>\>() {};
+    final String fullUri = baseUri + "<resource.fullUri.template>";
+
+    return restTemplate.exchange(fullUri, HttpMethod.<method.method.name.upperCase>, entity, type, parameters).getBody();
+}
+>>
+

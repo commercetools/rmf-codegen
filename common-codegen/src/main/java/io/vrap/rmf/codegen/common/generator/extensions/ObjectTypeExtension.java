@@ -1,4 +1,4 @@
-package io.vrap.rmf.codegen.common.generator.extensions.types;
+package io.vrap.rmf.codegen.common.generator.extensions;
 
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.ParameterizedTypeName;
@@ -55,7 +55,7 @@ public class ObjectTypeExtension {
 
     @ExtensionMethod
     public List<String> getImports(ObjectType objectType) {
-
+        ClassName className = (ClassName) typeNameSwitch.doSwitch(objectType);
         return Flowable.fromIterable(objectType.getProperties())
                 .map(property -> property.getType())
                 .concatWith(Flowable.fromIterable(objectType.getSubTypes()).filter(anyType -> hasSubtypes(objectType)))
@@ -64,6 +64,7 @@ public class ObjectTypeExtension {
                 .flatMapIterable(this::getAllClassNames)
                 .filter(s -> !s.startsWith("java.lang"))
                 .filter(s -> !s.startsWith("java.util"))
+                .filter(s -> !s.startsWith(className.packageName()))
                 .distinct()
                 .toList()
                 .blockingGet();

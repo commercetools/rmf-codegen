@@ -1,4 +1,4 @@
-package io.vrap.rmf.codegen.common.generator.extensions;
+package io.vrap.rmf.codegen.common.generator.core;
 
 import io.reactivex.Flowable;
 import io.vrap.rmf.codegen.common.processor.extension.ExtensionMapper;
@@ -38,6 +38,11 @@ public class RmfModelAdaptor extends ObjectModelAdaptor {
         if (result != NULL) {
             return result;
         }
-        return super.getProperty(interp, self, o, property, propertyName);
+        try{
+            return super.getProperty(interp, self, o, property, propertyName);
+        }catch (STNoSuchPropertyException exception){
+            LOGGER.warn("property '{}' not found in {} or any of its extensions",propertyName, o.getClass());
+            throw exception;
+        }
     }
 }

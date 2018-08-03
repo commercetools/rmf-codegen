@@ -2,14 +2,16 @@ package io.vrap.rmf.codegen.common.generator.injection;
 
 
 import com.google.inject.AbstractModule;
+import com.google.inject.Injector;
 import com.google.inject.Provides;
+import com.google.inject.Singleton;
+import com.google.inject.name.Named;
 import io.reactivex.Flowable;
-import io.vrap.rmf.codegen.common.generator.core.CodeGenerator;
-import io.vrap.rmf.codegen.common.generator.core.CodeGeneratorFactory;
 import io.vrap.rmf.codegen.common.generator.core.GeneratorConfig;
 import io.vrap.rmf.codegen.common.generator.doc.JavaDocProcessor;
-import io.vrap.rmf.codegen.common.generator.extensions.types.AnyTypeExtension;
 import io.vrap.rmf.codegen.common.generator.util.TypeNameSwitch;
+import io.vrap.rmf.codegen.common.processor.extension.ExtensionMapper;
+import io.vrap.rmf.codegen.common.processor.extension.ExtensionMapperFactory;
 import io.vrap.rmf.raml.model.RamlDiagnostic;
 import io.vrap.rmf.raml.model.RamlModelBuilder;
 import io.vrap.rmf.raml.model.RamlModelResult;
@@ -20,37 +22,27 @@ import org.eclipse.emf.common.util.URI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.inject.Named;
-import javax.inject.Singleton;
+
 import java.nio.file.Path;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.stream.Collectors;
+import java.util.ServiceLoader;
 
 public class GeneratorModule extends AbstractModule {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(GeneratorModule.class);
     private final GeneratorConfig generatorConfig;
-    private final List<CodeGeneratorFactory> codeGeneratorFactories;
 
-    private GeneratorModule(final GeneratorConfig generatorConfig, final List<CodeGeneratorFactory> codeGeneratorFactories) {
+    private GeneratorModule(final GeneratorConfig generatorConfig) {
         Objects.requireNonNull(generatorConfig);
         this.generatorConfig = generatorConfig;
-        this.codeGeneratorFactories = codeGeneratorFactories;
 
     }
 
-    public static GeneratorModule of(final GeneratorConfig generatorConfig, final List<CodeGeneratorFactory> codeGeneratorFactories) {
+    public static GeneratorModule of(final GeneratorConfig generatorConfig) {
         Objects.requireNonNull(generatorConfig);
-        Objects.requireNonNull(codeGeneratorFactories);
-        return new GeneratorModule(generatorConfig, codeGeneratorFactories);
-    }
-    public static GeneratorModule of(final GeneratorConfig generatorConfig, final CodeGeneratorFactory... codeGeneratorFactories) {
-        Objects.requireNonNull(generatorConfig);
-        Objects.requireNonNull(codeGeneratorFactories);
-        return new GeneratorModule(generatorConfig, Arrays.asList(codeGeneratorFactories));
+        return new GeneratorModule(generatorConfig);
     }
 
     @Provides
@@ -80,12 +72,6 @@ public class GeneratorModule extends AbstractModule {
     @Provides
     public JavaDocProcessor getJavaDocProcessor() {
         return getGeneratorConfig().getJavaDocProcessor();
-    }
-
-
-    @Provides
-    public List<CodeGeneratorFactory> getCodeGeneratorFactories() {
-        return codeGeneratorFactories;
     }
 
     @Provides
@@ -125,14 +111,23 @@ public class GeneratorModule extends AbstractModule {
 
     @Provides
     @Singleton
-    public List<CodeGenerator> getCodeGenerators(final GeneratorConfig generatorConfig, final Api api ) {
-        return getCodeGeneratorFactories().stream().map(codeGeneratorFactory -> codeGeneratorFactory.createCodeGenerator(generatorConfig, api)).collect(Collectors.toList());
+    public TypeNameSwitch getTypeNameSwitch(GeneratorConfig generatorConfig){
+        return TypeNameSwitch.of(generatorConfig);
     }
 
     @Provides
     @Singleton
-    public TypeNameSwitch getTypeNameSwitch(GeneratorConfig generatorConfig){
-        return TypeNameSwitch.of(generatorConfig);
+    public List<ExtensionMapper> getAllExtensionMappers(Injector injector){
+        List<ExtensionMapper> result =  Flowable.fromIterable(ServiceLoader.load(ExtensionMapperFactory.class))
+                .map(ExtensionMapperFactory::create)
+                .doOnNext(extensionMapper -> injector.injectMembers(extensionMapper.getExtension()))
+                .toList()
+                .blockingGet();
+
+        if(result.isEmpty()){
+            LOGGER.warn("no Extension mapper detected");
+        }
+        return result;
     }
 
 }

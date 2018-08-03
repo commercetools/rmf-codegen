@@ -1,11 +1,9 @@
 package io.vrap.rmf.codegen.plugin;
 
-import io.vrap.rmf.codegen.common.generator.client.spring.SpringClientCodeGenerator;
 import io.vrap.rmf.codegen.common.generator.core.GenerationResult;
 import io.vrap.rmf.codegen.common.generator.core.GeneratorConfigBuilder;
 import io.vrap.rmf.codegen.common.generator.injection.GeneratorComponent;
 import io.vrap.rmf.codegen.common.generator.injection.GeneratorModule;
-import io.vrap.rmf.codegen.common.generator.model.codegen.BeanGenerator;
 import org.eclipse.emf.common.util.URI;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.logging.Logger;
@@ -104,9 +102,9 @@ public class RamlCodeGeneratorTask extends DefaultTask {
         Optional.ofNullable(customTypeMapping).map(builder::customTypeMapping).orElse(null);
 
 
-        final GeneratorComponent generatorComponent = new GeneratorComponent(GeneratorModule.of(builder.build(), BeanGenerator::new, SpringClientCodeGenerator::new));
-        generatorComponent.getMasterCodeGenerator()
-                .generateStub()
+        final GeneratorComponent generatorComponent = new GeneratorComponent(GeneratorModule.of(builder.build()));
+        generatorComponent.getStCodeGenerator()
+                .generateClasses()
                 .flattenAsFlowable(GenerationResult::getGeneratedFiles)
                 .subscribe(
                         path -> LOGGER.info("generated file " + path),

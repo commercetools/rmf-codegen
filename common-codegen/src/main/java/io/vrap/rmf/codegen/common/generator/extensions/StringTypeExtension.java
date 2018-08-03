@@ -1,4 +1,4 @@
-package io.vrap.rmf.codegen.common.generator.extensions.types;
+package io.vrap.rmf.codegen.common.generator.extensions;
 
 import io.vrap.rmf.codegen.common.processor.annotations.ExtensionMethod;
 import io.vrap.rmf.codegen.common.processor.annotations.ModelExtension;

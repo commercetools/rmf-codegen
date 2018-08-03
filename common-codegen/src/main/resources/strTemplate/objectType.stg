@@ -1,6 +1,8 @@
+import "description.stg"
+
 template(input) ::=
 <<
-package <input.packageName>;
+package <input.typeName.packageName>;
 
 <imports(input)>
 import com.fasterxml.jackson.annotation.*;
@@ -17,10 +19,10 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 <subtypeAnnotation(input)>
 <endif>
 @Generated(
-    value = "io.vrap.rmf.codegen.common.generator.extensions.STCodeGenerator",
+    value = "io.vrap.rmf.codegen.common.generator.core.STCodeGenerator",
     comments = "https://github.com/vrapio/rmf-codegen"
 )
-public class <input.simpleClassName> <if(input.type)>extends <input.type.simpleClassName><endif> {
+public class <input.typeName.simpleClassName> <if(input.type)>extends <input.type.typeName.simpleClassName><endif> {
 
     <properties(input)>
     <setters(input)>
@@ -32,7 +34,7 @@ public class <input.simpleClassName> <if(input.type)>extends <input.type.simpleC
 
 subtypeAnnotation(input) ::=<<
 @JsonSubTypes({
-    <input.subTypes:{subType |@JsonSubTypes.Type(value = <subType.simpleClassName>.class, name = "<subType.discriminatorValue>") };separator=",\n">
+    <input.subTypes:{subType |@JsonSubTypes.Type(value = <subType.typeName.simpleClassName>.class, name = "<subType.discriminatorValue>") };separator=",\n">
 })
 @JsonTypeInfo(
     use = JsonTypeInfo.Id.NAME,
@@ -42,8 +44,8 @@ subtypeAnnotation(input) ::=<<
 >>
 
 properties(input) ::=<<
-<input.properties:{ property | <if(property.patternProperty)>private Map\<String, <property.type.simpleClassName>\> values = new HashMap();
-<else>private <property.type.simpleClassName> <property.name>;
+<input.properties:{ property | <if(property.patternProperty)>private Map\<String, <property.type.typeName.simpleClassName>\> values = new HashMap();
+<else>private <property.type.typeName.simpleClassName> <property.name>;
 <endif>}; separator = "\n">
 >>
 
@@ -56,12 +58,12 @@ setters(input) ::=<<
 <input.properties:{ property
 | <if(property.patternProperty)>
 @NotNull
-public void setValues(Map\<String, <property.type.simpleClassName>\> values) {
+public void setValues(Map\<String, <property.type.typeName.simpleClassName>\> values) {
     this.values = values;
 \}
 
 @JsonAnySetter
-public void setValue(String key, <property.type.simpleClassName> value) {
+public void setValue(String key, <property.type.typeName.simpleClassName> value) {
     if (values == null) {
         values = new HashMap\<>();
     \}
@@ -70,7 +72,7 @@ public void setValue(String key, <property.type.simpleClassName> value) {
 <else><if(property.required)>
 @NotNull
 <endif>
-public void set<property.name.capitalize>(final <property.type.simpleClassName> <property.name>){
+public void set<property.name.capitalize>(final <property.type.typeName.simpleClassName> <property.name>){
     this.<property.name> = <property.name>;
 \}
 <endif>
@@ -82,21 +84,14 @@ getters(input) ::=<<
 | <if(property.patternProperty)>
 @JsonAnyGetter
 @NotNull
-public Map\<String, <property.type.simpleClassName>\> values() {
+public Map\<String, <property.type.typeName.simpleClassName>\> values() {
     return values;
 \}
 <else>@JsonProperty("<property.name>")
-public <property.type.simpleClassName> get<property.name.capitalize>(){
+public <property.type.typeName.simpleClassName> get<property.name.capitalize>(){
     return this.<property.name>;
 \}<endif>
 }; separator = "\n\n">
->>
-
-description(input) ::=<<
-<if(input.hasDescription)>
-/**
-  <input.description>*/
-<endif>
 >>
 
 
