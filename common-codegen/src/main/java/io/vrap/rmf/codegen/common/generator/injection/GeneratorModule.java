@@ -118,11 +118,16 @@ public class GeneratorModule extends AbstractModule {
     @Provides
     @Singleton
     public List<ExtensionMapper> getAllExtensionMappers(Injector injector){
-        return Flowable.fromIterable(ServiceLoader.load(ExtensionMapperFactory.class))
+        List<ExtensionMapper> result =  Flowable.fromIterable(ServiceLoader.load(ExtensionMapperFactory.class))
                 .map(ExtensionMapperFactory::create)
                 .doOnNext(extensionMapper -> injector.injectMembers(extensionMapper.getExtension()))
                 .toList()
                 .blockingGet();
+
+        if(result.isEmpty()){
+            LOGGER.warn("no Extension mapper detected");
+        }
+        return result;
     }
 
 }
