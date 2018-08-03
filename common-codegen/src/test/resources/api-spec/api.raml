@@ -10,6 +10,7 @@ uses:
   import-item: types/import-item.raml
   price-import: types/price-import.raml
   product-import: types/product-import.raml
+  product-type-import: types/product-type-import.raml
   product-variant-import: types/product-variant-import.raml
   category-import: types/category-import.raml
   common: types/common.raml
@@ -29,7 +30,7 @@ resourceTypes:
         type: string
     get:
       description: |
-        Get an import item by key. This allows monitoring the progress of importing a resource withnthe given key.
+        Get an import item by key. This allows monitoring the progress of importing a resource with the given key.
       responses:
         200:
           body:
@@ -45,7 +46,7 @@ resourceTypes:
       responses:
         200:
           body:
-            type: import-item.ImportItem[]
+            type: import-item.ImportItem
 
 /{projectKey}:
   uriParameters:
@@ -73,6 +74,17 @@ resourceTypes:
         type: product-import.ProductImport[]
         examples:
           single: !include examples/product.json
+      responses:
+        200:
+          body:
+            type: import-item.ImportItem[]
+    /{key}:
+      type: import-resource-by-key
+  /product-type:
+    post:
+      description: Creates or updates a batch of product types.
+      body:
+        type: product-type-import.ProductTypeImport[]
       responses:
         200:
           body:

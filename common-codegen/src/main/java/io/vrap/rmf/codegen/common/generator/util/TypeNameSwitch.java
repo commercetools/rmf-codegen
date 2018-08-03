@@ -55,6 +55,4 @@ public class TypeNameSwitch extends ComposedSwitch<TypeName> {
     public Map<String, String> getCustomTypeMapping() {
         return customTypeMapping;
     }
-
-
 }

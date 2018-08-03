@@ -29,4 +29,9 @@ public class StringExtension {
         return StringUtils.capitalize(input);
     }
 
+    @ExtensionMethod
+    public String getUpperCase(final String input) {
+        return StringUtils.upperCase(input);
+    }
+
 }

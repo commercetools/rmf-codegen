@@ -10,7 +10,7 @@ uses:
   common: types/common.raml
   import-item: types/import-item.raml
   unresolved-import-resource: types/unresolved-import-resource.raml
-
+  price-mapping: types/price-mapping.raml
 
 /{projectKey}:
   /import-item:
@@ -19,6 +19,10 @@ uses:
         Creates or updates the import item given in the body.
       body:
         type: import-item.ImportItem
+      responses:
+        200:
+          body:
+            type: import-item.ImportItem
     /{resourceType}:
       uriParameters:
         resourceType:
@@ -41,6 +45,9 @@ uses:
             404:
               body:
                 type: error.ErrorResponse
+            503:
+              body:
+                type: error.ErrorResponse
         delete:
           description: |
             Deletes the import item with the given key.
@@ -51,12 +58,19 @@ uses:
             404:
               body:
                 type: error.ErrorResponse
+            503:
+              body:
+                type: error.ErrorResponse
   /unresolved-import-resource:
     post:
       description: |
         Creates or updates the unresolved import resource given in the body.
       body:
         type: unresolved-import-resource.UnresolvedImportResource
+      responses:
+        200:
+          body:
+            type: unresolved-import-resource.UnresolvedImportResource
     /{resourceType}:
       uriParameters:
         resourceType:
@@ -104,7 +118,7 @@ uses:
               type: string
           get:
             description: |
-              Retrieves all unresolved import resources that reference the given resource.
+              Retrieves all unresolved import eObjects that reference the given resource.
             responses:
               200:
                 body:
@@ -112,3 +126,35 @@ uses:
               404:
                 body:
                   type: error.ErrorResponse
+  /price-mapping:
+      post:
+        description: |
+          Creates or updates the price-mapping given in the body.
+        body:
+          type: price-mapping.PriceMapping
+      /{key}:
+        uriParameters:
+          key:
+            description: |
+              The key of the import price to retrieve.
+            type: string
+        get:
+          description: |
+            Retrieves the price mapping with the given key.
+          responses:
+            200:
+              body:
+                type: price-mapping.PriceMapping
+            404:
+              body:
+                type: error.ErrorResponse
+        delete:
+          description: |
+            Deletes the price mapping with the given key.
+          responses:
+            200:
+              body:
+                type: price-mapping.PriceMapping
+            404:
+              body:
+                type: error.ErrorResponse

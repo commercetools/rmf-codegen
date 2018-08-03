@@ -2,11 +2,16 @@ package io.vrap.rmf.codegen.common.generator.injection;
 
 
 import com.google.inject.AbstractModule;
+import com.google.inject.Injector;
 import com.google.inject.Provides;
+import com.google.inject.Singleton;
+import com.google.inject.name.Named;
 import io.reactivex.Flowable;
 import io.vrap.rmf.codegen.common.generator.core.GeneratorConfig;
 import io.vrap.rmf.codegen.common.generator.doc.JavaDocProcessor;
 import io.vrap.rmf.codegen.common.generator.util.TypeNameSwitch;
+import io.vrap.rmf.codegen.common.processor.extension.ExtensionMapper;
+import io.vrap.rmf.codegen.common.processor.extension.ExtensionMapperFactory;
 import io.vrap.rmf.raml.model.RamlDiagnostic;
 import io.vrap.rmf.raml.model.RamlModelBuilder;
 import io.vrap.rmf.raml.model.RamlModelResult;
@@ -17,12 +22,12 @@ import org.eclipse.emf.common.util.URI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.inject.Named;
-import javax.inject.Singleton;
+
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.ServiceLoader;
 
 public class GeneratorModule extends AbstractModule {
 
@@ -108,6 +113,16 @@ public class GeneratorModule extends AbstractModule {
     @Singleton
     public TypeNameSwitch getTypeNameSwitch(GeneratorConfig generatorConfig){
         return TypeNameSwitch.of(generatorConfig);
+    }
+
+    @Provides
+    @Singleton
+    public List<ExtensionMapper> getAllExtensionMappers(Injector injector){
+        return Flowable.fromIterable(ServiceLoader.load(ExtensionMapperFactory.class))
+                .map(ExtensionMapperFactory::create)
+                .doOnNext(extensionMapper -> injector.injectMembers(extensionMapper.getExtension()))
+                .toList()
+                .blockingGet();
     }
 
 }

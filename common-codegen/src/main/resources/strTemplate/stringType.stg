@@ -2,7 +2,7 @@ import "description.stg"
 
 template(input) ::=
 <<
-package <input.packageName>;
+package <input.typeName.packageName>;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.lang.String;
@@ -15,13 +15,13 @@ import javax.annotation.Generated;
     value = "io.vrap.rmf.codegen.common.generator.core.STCodeGenerator",
     comments = "https://github.com/vrapio/rmf-codegen"
 )
-public enum <input.simpleClassName> {
+public enum <input.typeName.simpleClassName> {
 
   <input.enumJsonNames:{ item |<developEnum(item)>};separator=",\n\n">;
 
   private final String jsonName;
 
-  private <input.simpleClassName>(final String jsonName) {
+  private <input.typeName.simpleClassName>(final String jsonName) {
     this.jsonName = jsonName;
   }
 
@@ -29,7 +29,7 @@ public enum <input.simpleClassName> {
      return jsonName;
   }
 
-  public static Optional\<<input.simpleClassName>\> findEnumViaJsonName(String jsonName) {
+  public static Optional\<<input.typeName.simpleClassName>\> findEnumViaJsonName(String jsonName) {
     return Arrays.stream(values()).filter(t -> t.getJsonName().equals(jsonName)).findFirst();
   }
 }

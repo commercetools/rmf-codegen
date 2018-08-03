@@ -29,18 +29,5 @@ public class EObjectExtension {
         return typeNameSwitch.doSwitch(anyType);
     }
 
-    @ExtensionMethod
-    public String getPackageName(final EObject anyType) {
-        return ((ClassName) getTypeName(anyType)).packageName();
-    }
 
-    @ExtensionMethod
-    public String getSimpleClassName(final EObject anyType) {
-
-        TypeName typeName = getTypeName(anyType);
-        if (typeName instanceof ClassName) {
-            return ((ClassName) typeName).simpleName();
-        }
-        return typeName.toString();
-    }
 }

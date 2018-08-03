@@ -19,6 +19,14 @@ types:
           type: string
         type:
           type: string
+  AnyAttribute:
+    description: |
+      This type allows to send any json object as value and is mainly intended to ease the migration from the CTP api.
+    type: Attribute
+    discriminatorValue: any
+    properties:
+        value:
+          type: any
   BooleanAttribute:
     type: Attribute
     discriminatorValue: boolean

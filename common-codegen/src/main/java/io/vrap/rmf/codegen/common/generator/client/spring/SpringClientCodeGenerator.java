@@ -42,7 +42,7 @@
 //
 //    @Override
 //    public Single<GenerationResult> generateStub() {
-//        return getResources()
+//        return geteObjects()
 //                .filter(r -> r.getResourcePathName().length() > 0)
 //                .collect(LinkedListMultimap::<String, Resource>create, (byPathName, r) -> byPathName.put(r.getResourcePathName(), r))
 //                .flattenAsFlowable(map -> map.asMap().entrySet())

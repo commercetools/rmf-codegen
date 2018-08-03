@@ -12,6 +12,12 @@
     "slug": {
       "en": "t-shirt-slug"
     },
+    "categories": [
+      {
+        "key": "men",
+        "typeId": "category"
+      }
+    ],
     "categoryOrderHints": {
       "men": "2"
     },
@@ -23,6 +29,10 @@
     },
     "metaKeywords": {
       "en": "Keywords"
+    },
+    "taxCategory": {
+      "key": "standard-tax",
+      "typeId": "tax-category"
     },
     "searchKeywords": {
       "en": [
@@ -45,6 +55,10 @@
           }
         }
       ]
+    },
+    "state": {
+      "key": "Initial",
+      "typeId": "state"
     }
   }
 ]

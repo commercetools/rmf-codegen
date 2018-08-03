@@ -32,16 +32,17 @@ public class CodeGeneratorTest {
 
         Map<String, String> customTypeMapping = new HashMap<>();
         {
-//            customTypeMapping.put("CountryCode", CountryCode.class.getCanonicalName());
-//            customTypeMapping.put("CurrencyCode", CurrencyCode.class.getCanonicalName());
+            customTypeMapping.put("CountryCode", CountryCode.class.getCanonicalName());
+            customTypeMapping.put("CurrencyCode", CurrencyCode.class.getCanonicalName());
         }
 
         final URL url = CodeGeneratorTest.class.getResource("/api-spec/api.raml");
         final URI ramlFileLocation = URI.createURI(url.toString());
         final String gensrc = System.getProperty("GENSRC");
         final String current = System.getProperty("user.dir");
-        final Path outputPath = Paths.get("/Users/abeniasaad/IdeaProjects/rmf-codegen/common-codegen/src/main/java");
-
+        final Path outputPath = gensrc == null ?
+                Paths.get(current, "build/gensrc") :
+                Paths.get(gensrc);
         generatorConfig = new GeneratorConfigBuilder()
                 .packagePrefix("com.commercetools.importapi")
                 .outputFolder(outputPath)

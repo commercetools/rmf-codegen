@@ -1,7 +1,5 @@
 package io.vrap.rmf.codegen.common.generator.util;
 
-import com.google.common.base.CaseFormat;
-import com.google.common.base.Converter;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
@@ -14,8 +12,8 @@ import java.time.ZonedDateTime;
 import java.util.List;
 
 public class TypeNameTypeSwitch extends TypesSwitch<TypeName> {
+
     private final PackageSwitch packageSwitch;
-    private final Converter<String, String> classNameMapper = CaseFormat.LOWER_HYPHEN.converterTo(CaseFormat.UPPER_CAMEL);
 
     public TypeNameTypeSwitch(PackageSwitch packageSwitch) {
         this.packageSwitch = packageSwitch;
@@ -61,26 +59,24 @@ public class TypeNameTypeSwitch extends TypesSwitch<TypeName> {
         return ParameterizedTypeName.get(ClassName.get(List.class), doSwitch(arrayType.getItems()));
     }
 
-
     @Override
     public TypeName caseObjectType(ObjectType objectType) {
-        return ClassName.get(packageSwitch.doSwitch(objectType), classNameMapper.convert(objectType.getName()));
+        return ClassName.get(packageSwitch.doSwitch(objectType), objectType.getName());
+    }
+
+    @Override
+    public TypeName caseNilType(NilType object) {
+        return TypeName.VOID;
     }
 
     @Override
     public TypeName caseStringType(StringType stringType) {
-        if (stringType.getName().equalsIgnoreCase("string")
-        ||stringType.getEnum() == null
-        ||stringType.getEnum().isEmpty()
-        ) {
+        if (stringType.getName().equalsIgnoreCase("string") || stringType.getEnum() == null || stringType.getEnum().isEmpty()) {
             return TypeName.get(String.class);
         }
         //This case happens for enumerations
-        return ClassName.get(packageSwitch.doSwitch(stringType), classNameMapper.convert(stringType.getName()));
+        return ClassName.get(packageSwitch.doSwitch(stringType), stringType.getName());
     }
-
-
-
 
 
 }
