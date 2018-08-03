@@ -1,6 +1,6 @@
 .gradle
 build/
-generated/
+generated_*/
 out/
 target/
 .project
@@ -8,8 +8,6 @@ target/
 classes/
 .classpath
 bin
-java-gen/
-diagrams/
 
 # Avoid ignoring Gradle wrapper jar file (.jar files are usually ignored)
 !gradle-wrapper.jar
