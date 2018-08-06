@@ -30,4 +30,24 @@ dependencies {
 
     testCompile "org.spockframework:spock-core:${versions.spock}"
     testCompile "org.assertj:assertj-core:3.10.0"
+
+
+    String generatedSources = "$buildDir/generated-sources/java"
+    compileJava {
+        options.compilerArgs << "-s"
+        options.compilerArgs << generatedSources
+        doFirst {
+            //Clean up
+            file(generatedSources).deleteDir()
+            // make sure that directory exists
+            file(generatedSources).mkdirs()
+        }
+    }
+    sourceSets {
+        main {
+            java {
+                srcDir generatedSources
+            }
+        }
+    }
 }

@@ -50,7 +50,7 @@ public <method.returnType.typeName.fullClassName> <method.method>(<resource.allU
 
     final Map\<String, Object> parameters = new HashMap\<>();
 
-    <resource.allUriParameters :{ parameter |parameters.put("<parameter.name>",<parameter.name>);};separator = "\n"}>
+    <resource.allUriParameters :{ parameter |parameters.put("<parameter.name>",<parameter.name>);};separator = "\n">
 
     <if(method.hasBody)>
     final HttpEntity\<<method.firstBody.type.typeName.fullClassName>\> entity = new HttpEntity\<>(body);
