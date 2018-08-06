@@ -82,12 +82,14 @@ public void set<property.name.capitalize>(final <property.type.typeName.simpleCl
 getters(input) ::=<<
 <input.properties:{ property
 | <if(property.patternProperty)>
+<description(property)>
 @JsonAnyGetter
 @NotNull
 public Map\<String, <property.type.typeName.simpleClassName>\> values() {
     return values;
 \}
-<else>@JsonProperty("<property.name>")
+<else><description(property)>
+@JsonProperty("<property.name>")
 public <property.type.typeName.simpleClassName> get<property.name.capitalize>(){
     return this.<property.name>;
 \}<endif>
