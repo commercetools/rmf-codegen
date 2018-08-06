@@ -11,7 +11,9 @@ import javax.annotation.Generated;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
@@ -33,7 +35,6 @@ public class <input.collectionClassName.simpleClassName> {
     }
 
     <input.eObjects:{ resource |<handleResource(resource)>}; separator = "\n">
-
 }
 >>
 
@@ -47,13 +48,15 @@ httpMethod(resource,method) ::=
 <<
 <description(method)>
 public <method.returnType.typeName.fullClassName> <method.method>(<resource.allUriParameters :{ parameter | final <parameter.type.typeName.simpleClassName> <parameter.name>}; separator = ", "> <if(method.hasBody)>, final <method.firstBody.type.typeName.fullClassName> body<endif>) {
-
     final Map\<String, Object> parameters = new HashMap\<>();
 
     <resource.allUriParameters :{ parameter |parameters.put("<parameter.name>",<parameter.name>);};separator = "\n">
 
     <if(method.hasBody)>
-    final HttpEntity\<<method.firstBody.type.typeName.fullClassName>\> entity = new HttpEntity\<>(body);
+    final HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.parseMediaType(("<method.firstBody.contentType>")));
+    final HttpEntity\<<method.firstBody.type.typeName.fullClassName>\> entity = new HttpEntity\<>(body, headers);
+
     <else>
     final HttpEntity entity = null;
     <endif>
