@@ -10,6 +10,7 @@ import org.joda.time.LocalTime;
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class TypeNameTypeSwitch extends TypesSwitch<TypeName> {
 
@@ -22,6 +23,17 @@ public class TypeNameTypeSwitch extends TypesSwitch<TypeName> {
     @Override
     public TypeName caseAnyType(AnyType object) {
         return TypeName.get(Object.class);
+    }
+
+    @Override
+    public TypeName caseUnionType(final UnionType unionType) {
+        final List<AnyType> oneOfWithoutNilType = unionType.getOneOf().stream()
+                .filter(t -> !(t instanceof NilType)).collect(Collectors.toList());
+        if (oneOfWithoutNilType.size() == 1) {
+            return doSwitch(oneOfWithoutNilType.get(0));
+        } else {
+            return TypeName.get(Object.class);
+        }
     }
 
     @Override
