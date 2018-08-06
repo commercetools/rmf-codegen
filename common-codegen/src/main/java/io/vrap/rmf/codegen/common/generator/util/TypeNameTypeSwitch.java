@@ -83,12 +83,14 @@ public class TypeNameTypeSwitch extends TypesSwitch<TypeName> {
 
     @Override
     public TypeName caseStringType(StringType stringType) {
-        if (stringType.getName().equalsIgnoreCase("string") || stringType.getEnum() == null || stringType.getEnum().isEmpty()) {
+        if (stringType.isInlineType()) {
+            // for inline types we have to check their type and they always have a non null type
+            return doSwitch(stringType.getType());
+        } else if (stringType.getName().equals("string") || stringType.getEnum() == null || stringType.getEnum().isEmpty()) {
             return TypeName.get(String.class);
+        } else {
+            //This case happens for enumerations
+            return ClassName.get(packageSwitch.doSwitch(stringType), stringType.getName());
         }
-        //This case happens for enumerations
-        return ClassName.get(packageSwitch.doSwitch(stringType), stringType.getName());
     }
-
-
 }

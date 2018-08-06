@@ -4,6 +4,7 @@ import com.google.common.base.CaseFormat;
 import com.google.common.base.Converter;
 import io.vrap.rmf.codegen.common.processor.annotations.ExtensionMethod;
 import io.vrap.rmf.codegen.common.processor.annotations.ModelExtension;
+import io.vrap.rmf.raml.model.util.StringCaseFormat;
 import org.apache.commons.lang3.StringUtils;
 
 import java.text.CharacterIterator;
@@ -21,7 +22,7 @@ public class StringExtension {
 
     @ExtensionMethod
     public String getEnumValueName(final String input) {
-        return getJavaIdentifier(input).toUpperCase();
+        return StringCaseFormat.UPPER_UNDERSCORE_CASE.apply(input);
     }
 
     @ExtensionMethod

@@ -35,8 +35,8 @@ public enum <input.typeName.simpleClassName> {
 }
 
 >>
-developEnum(enumLateral) ::=
+developEnum(enumLiteral) ::=
 <<
-@JsonProperty("<enumLateral>")
-<enumLateral.enumValueName>("<enumLateral>")
+@JsonProperty("<enumLiteral>")
+<enumLiteral.enumValueName>("<enumLiteral>")
 >>
