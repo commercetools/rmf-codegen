@@ -7,6 +7,7 @@ package <input.typeName.packageName>;
 <imports(input)>
 import com.fasterxml.jackson.annotation.*;
 import javax.annotation.Generated;
+import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import java.util.*;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -57,7 +58,6 @@ setters(input) ::=<<
 
 <input.properties:{ property
 | <if(property.patternProperty)>
-@NotNull
 public void setValues(Map\<String, <property.type.typeName.simpleClassName>\> values) {
     this.values = values;
 \}
@@ -69,9 +69,7 @@ public void setValue(String key, <property.type.typeName.simpleClassName> value)
     \}
     values.put(key, value);
 \}
-<else><if(property.required)>
-@NotNull
-<endif>
+<else>
 public void set<property.name.capitalize>(final <property.type.typeName.simpleClassName> <property.name>){
     this.<property.name> = <property.name>;
 \}
@@ -83,12 +81,13 @@ getters(input) ::=<<
 <input.properties:{ property
 | <if(property.patternProperty)>
 <description(property)>
+<property.validationAnnotations:{ annotation |@<annotation>};separator="\n">
 @JsonAnyGetter
-@NotNull
 public Map\<String, <property.type.typeName.simpleClassName>\> values() {
     return values;
 \}
 <else><description(property)>
+<property.validationAnnotations:{ annotation |@<annotation>};separator="\n">
 @JsonProperty("<property.name>")
 public <property.type.typeName.simpleClassName> get<property.name.capitalize>(){
     return this.<property.name>;

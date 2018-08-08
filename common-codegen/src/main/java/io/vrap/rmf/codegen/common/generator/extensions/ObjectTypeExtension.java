@@ -65,6 +65,7 @@ public class ObjectTypeExtension {
                 .filter(s -> !s.startsWith("java.lang"))
                 .filter(s -> !s.startsWith("java.util"))
                 .filter(s -> !s.startsWith(className.packageName()))
+                .sorted()
                 .distinct()
                 .toList()
                 .blockingGet();
