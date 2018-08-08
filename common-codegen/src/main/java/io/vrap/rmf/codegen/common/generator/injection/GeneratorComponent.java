@@ -1,14 +1,20 @@
 package io.vrap.rmf.codegen.common.generator.injection;
 
-import dagger.Component;
-import io.vrap.rmf.codegen.common.generator.MasterCodeGenerator;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import io.vrap.rmf.codegen.common.generator.core.STCodeGenerator;
 
-import javax.inject.Singleton;
 
-@Singleton
-@Component(modules = GeneratorModule.class)
-public interface GeneratorComponent {
+public final class GeneratorComponent {
 
-    MasterCodeGenerator getMasterCodeGenerator();
+    private final Injector injector ;
+
+    public GeneratorComponent(GeneratorModule generatorModule) {
+        this.injector = Guice.createInjector(generatorModule);
+    }
+
+    public STCodeGenerator getStCodeGenerator(){
+        return injector.getInstance(STCodeGenerator.class);
+    }
 
 }

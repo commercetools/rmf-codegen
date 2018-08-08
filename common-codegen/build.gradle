@@ -1,24 +1,28 @@
-plugins {
-    id "net.ltgt.apt-idea" version "0.15"
-}
-
-
 dependencies {
 
-
+    compile project(':annotations')
+    processor project(':annotations')
     compile "io.vrap.rmf:raml-model:${versions.rmf}"
+    compile 'com.google.inject:guice:4.2.0'
     compile "org.immutables:value:2.6.1"
-    apt "org.immutables:value:2.6.1"
-    compile 'com.google.dagger:dagger:2.16'
-    apt 'com.google.dagger:dagger-compiler:2.16'
+    processor "org.immutables:value:2.6.1"
     compile 'com.squareup:javapoet:1.10.0'
     compile 'org.apache.commons:commons-lang3:3.7'
     compile 'io.reactivex.rxjava2:rxjava:2.1.14'
     compile 'org.slf4j:slf4j-simple:1.7.25'
     compile 'com.atlassian.commonmark:commonmark:0.11.0'
-    compile 'org.joda:joda-beans:2.2.2'
     compile 'com.neovisionaries:nv-i18n:1.17'
     compile 'javax.validation:validation-api:2.0.1.Final'
+    compile 'com.google.auto.service:auto-service:1.0-rc4'
+    processor 'com.google.auto.service:auto-service:1.0-rc4'
+
+    compile 'com.google.guava:guava:25.1-jre'
+
+    //Added dependency only to check generated code is compilable, might be removed later
+    compile 'org.springframework.boot:spring-boot-starter-web:2.0.4.RELEASE'
+
+
+
 
     testCompile 'com.fasterxml.jackson.module:jackson-module-parameter-names:2.9.5'
     testCompile 'com.fasterxml.jackson.datatype:jackson-datatype-jdk8:2.9.5'
@@ -26,22 +30,24 @@ dependencies {
 
     testCompile "org.spockframework:spock-core:${versions.spock}"
     testCompile "org.assertj:assertj-core:3.10.0"
-}
 
 
-
-idea {
-    module {
-        apt {
-//            // whether generated sources dirs are added as generated sources root
-            addGeneratedSourcesDirs = true
-//            // whether the annotationProcessor/apt and testAnnotationProcessor/testApt dependencies are added as module dependencies
-            addAptDependencies = true
+    String generatedSources = "$buildDir/generated-sources/java"
+    compileJava {
+        options.compilerArgs << "-s"
+        options.compilerArgs << generatedSources
+        doFirst {
+            //Clean up
+            file(generatedSources).deleteDir()
+            // make sure that directory exists
+            file(generatedSources).mkdirs()
+        }
+    }
+    sourceSets {
+        main {
+            java {
+                srcDir generatedSources
+            }
         }
     }
 }
-
-//In case you want to customize the generated output directory.
-//compileJava{
-//    generatedSourcesDestinationDir = "generatedDir"
-//}

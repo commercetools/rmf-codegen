@@ -1,12 +1,5 @@
 {
-  "state": "VALIDATION_FAILED",
-  "errors": [
-    {
-      "code": "RequiredField",
-      "message": "The required field 'key' is missing.",
-      "field": "key"
-    }
-  ],
+  "state": "ACCEPTED",
   "resourceKey": "root-category",
   "resourceType": "category",
   "createdAt": "2018-02-05T09:47:16.648Z",

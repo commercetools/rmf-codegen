@@ -23,6 +23,7 @@ plugins {
     id 'com.jfrog.bintray' version '1.8.3'
     id 'com.github.johnrengelman.shadow' version '2.0.4' apply false
     id 'com.gradle.plugin-publish' version '0.9.1'
+    id 'org.inferred.processors' version '1.2.16'
 }
 
 ext {
@@ -31,6 +32,7 @@ ext {
             rmf: "0.2.0-20180608162209"
     ]
 }
+
 
 import java.text.SimpleDateFormat
 
@@ -66,7 +68,6 @@ class Version {
     }
 }
 
-
 subprojects { project ->
     repositories {
         mavenCentral()
@@ -77,12 +78,13 @@ subprojects { project ->
     apply plugin: 'eclipse'
 
     apply plugin: 'maven'
+    apply plugin: 'maven-publish'
 
     apply plugin: 'java'
     apply plugin: 'java-library' // needed to make sure that transitive deps have 'compile' scope
     apply plugin: 'groovy'
+    apply plugin: 'org.inferred.processors'
     apply plugin: 'com.jfrog.bintray'
-    apply plugin: 'maven-publish'
 
     group='io.vrap.rmf.codegen'
     version=globalVersion

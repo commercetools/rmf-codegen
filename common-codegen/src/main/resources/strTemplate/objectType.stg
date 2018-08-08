@@ -1,0 +1,114 @@
+import "description.stg"
+
+template(input) ::=
+<<
+package <input.typeName.packageName>;
+
+<imports(input)>
+import com.fasterxml.jackson.annotation.*;
+import javax.annotation.Generated;
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+import java.util.*;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
+
+<description(input)>
+<if(input.hasSubtypes)>
+<subtypeAnnotation(input)>
+<endif>
+@Generated(
+    value = "io.vrap.rmf.codegen.common.generator.core.STCodeGenerator",
+    comments = "https://github.com/vrapio/rmf-codegen"
+)
+public class <input.typeName.simpleClassName> <if(input.type)>extends <input.type.typeName.simpleClassName><endif> {
+
+    <properties(input)>
+    <setters(input)>
+    <getters(input)>
+
+    <standardMethods()>
+}
+>>
+
+subtypeAnnotation(input) ::=<<
+@JsonSubTypes({
+    <input.subTypes:{subType |@JsonSubTypes.Type(value = <subType.typeName.simpleClassName>.class, name = "<subType.discriminatorValue>") };separator=",\n">
+})
+@JsonTypeInfo(
+    use = JsonTypeInfo.Id.NAME,
+    include = JsonTypeInfo.As.PROPERTY,
+    property = "<input.discriminator>"
+)
+>>
+
+properties(input) ::=<<
+<input.properties:{ property | <if(property.patternProperty)>private Map\<String, <property.type.typeName.simpleClassName>\> values = new HashMap();
+<else>private <property.type.typeName.simpleClassName> <property.name>;
+<endif>}; separator = "\n">
+>>
+
+imports(input) ::=<<
+<input.imports:{ import | import <import>;}; separator = "\n">
+>>
+
+setters(input) ::=<<
+
+<input.properties:{ property
+| <if(property.patternProperty)>
+public void setValues(Map\<String, <property.type.typeName.simpleClassName>\> values) {
+    this.values = values;
+\}
+
+@JsonAnySetter
+public void setValue(String key, <property.type.typeName.simpleClassName> value) {
+    if (values == null) {
+        values = new HashMap\<>();
+    \}
+    values.put(key, value);
+\}
+<else>
+public void set<property.name.capitalize>(final <property.type.typeName.simpleClassName> <property.name>){
+    this.<property.name> = <property.name>;
+\}
+<endif>
+}; separator = "\n">
+>>
+
+getters(input) ::=<<
+<input.properties:{ property
+| <if(property.patternProperty)>
+<description(property)>
+<property.validationAnnotations:{ annotation |@<annotation>};separator="\n">
+@JsonAnyGetter
+public Map\<String, <property.type.typeName.simpleClassName>\> values() {
+    return values;
+\}
+<else><description(property)>
+<property.validationAnnotations:{ annotation |@<annotation>};separator="\n">
+@JsonProperty("<property.name>")
+public <property.type.typeName.simpleClassName> get<property.name.capitalize>(){
+    return this.<property.name>;
+\}<endif>
+}; separator = "\n\n">
+>>
+
+
+standardMethods() ::=<<
+@Override
+public String toString() {
+    return ToStringBuilder.reflectionToString(this, ToStringStyle.SHORT_PREFIX_STYLE);
+}
+
+@Override
+public boolean equals(Object o) {
+    return EqualsBuilder.reflectionEquals(this, o);
+}
+
+@Override
+public int hashCode() {
+    return HashCodeBuilder.reflectionHashCode(this);
+}
+>>
