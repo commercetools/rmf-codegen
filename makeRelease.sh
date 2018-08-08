@@ -1,4 +1,3 @@
 #!/bin/sh
-./gradlew clean build
-./gradlew bintrayUpload
-./gradlew :codegen-gradle-plugin:publishPlugins
+
+./gradlew clean build bintrayUpload :codegen-gradle-plugin:publishPlugins
