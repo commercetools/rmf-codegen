@@ -9,9 +9,7 @@ dependencies {
     compile gradleApi()
 
     testCompile 'junit:junit:4.12'
-
     testCompile gradleTestKit()
-
     testCompile "org.spockframework:spock-core:${versions.spock}"
     testCompile "org.assertj:assertj-core:3.10.0"
 }
