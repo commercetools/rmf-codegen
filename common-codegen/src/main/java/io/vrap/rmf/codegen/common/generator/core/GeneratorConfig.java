@@ -16,18 +16,19 @@ import java.util.Map;
         builderVisibility = Value.Style.BuilderVisibility.PUBLIC
 )
 public interface GeneratorConfig {
-
-    String PACKAGE_PREFIX = "PACKAGE_PREFIX";
-
-    String OUTPUT_FOLDER = "OUTPUT_FOLDER";
-
-    String RAML_FILE_LOCATION = "RAML_FILE_LOCATION";
-
-
-
     @Value.Default
     default String getPackagePrefix(){
         return "io.vrap.rmf";
+    }
+
+    /**
+     * The language to generate.
+     *
+     * @return language to generate
+     */
+    @Value.Default
+    default String getGenLanguage(){
+        return "java";
     }
 
     @Value.Default

@@ -31,39 +31,32 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-
+/**
+ * Stringtemplate (ST) based code generator.
+ */
 public class STCodeGenerator {
-
-
     private static final Logger LOGGER = LoggerFactory.getLogger(STCodeGenerator.class);
 
-    private final JavaSTFileSwitch javaSTFileSwitch;
+    private final STTemplateSwitch templateSwitch;
+    private final GeneratorConfig generatorConfig;
 
     private List<AnyType> allTypes;
 
     private List<Resource> allResources;
 
-    private Path outputDir;
-
     private TypeNameSwitch typeNameSwitch;
 
-    private Map<String, String> customMapping;
-
     @Inject
-    public STCodeGenerator(List<AnyType> allTypes,
-                           @Named(GeneratorConfig.OUTPUT_FOLDER) Path outputDir,
-                           TypeNameSwitch typeNameSwitch,
-                           Map<String, String> customMapping,
-                           List<Resource> allResources,
-                           List<ExtensionMapper> extensionMappers) {
-
+    public STCodeGenerator(final List<AnyType> allTypes,
+                           final GeneratorConfig generatorConfig,
+                           final TypeNameSwitch typeNameSwitch,
+                           final List<Resource> allResources,
+                           final List<ExtensionMapper> extensionMappers) {
         this.allTypes = allTypes;
-        this.outputDir = outputDir;
+        this.generatorConfig = generatorConfig;
         this.typeNameSwitch = typeNameSwitch;
-        this.customMapping = customMapping;
         this.allResources = allResources;
-        javaSTFileSwitch = new JavaSTFileSwitch(extensionMappers);
-
+        templateSwitch = new STTemplateSwitch(generatorConfig.getGenLanguage(), extensionMappers);
     }
 
     public Single<GenerationResult> generateClasses() {
@@ -101,7 +94,7 @@ public class STCodeGenerator {
 
     private Path generateFile(Object object) throws Exception {
 
-        STGroupFile groupFile = javaSTFileSwitch.getSTFileFor(object);
+        STGroupFile groupFile = templateSwitch.getSTFileFor(object);
         ST template = getTemplate(groupFile);
         template.add("input", object);
 
@@ -116,7 +109,8 @@ public class STCodeGenerator {
 
         String packagePath = className.reflectionName().replaceAll("\\.", "/") + ".java";
 
-        Path outputPath = Paths.get(outputDir.toAbsolutePath().toString(), packagePath);
+        final String output = generatorConfig.getOutputFolder().toAbsolutePath().toString();
+        final Path outputPath = Paths.get(output, packagePath);
         outputPath.getParent().toFile().mkdirs();
         PrintWriter printWriter = new PrintWriter(outputPath.toFile());
         ErrorBuffer errorBuffer = new ErrorBuffer();
@@ -153,7 +147,7 @@ public class STCodeGenerator {
         private class FilterTypeSwitch extends TypesSwitch<Boolean> {
             @Override
             public Boolean caseNamedElement(NamedElement object) {
-                return customMapping.get(object.getName()) == null;
+                return generatorConfig.getCustomTypeMapping().get(object.getName()) == null;
             }
 
             @Override
@@ -183,5 +177,4 @@ public class STCodeGenerator {
             }
         }
     }
-
 }
