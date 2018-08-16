@@ -19,10 +19,11 @@ plugins {
     id 'groovy'
     id 'java-gradle-plugin'
 
+    id 'net.ltgt.apt-idea' version '0.18'
+
     id 'de.undercouch.download' version '3.4.3'
     id 'com.jfrog.bintray' version '1.8.0'
     id 'com.github.johnrengelman.shadow' version '2.0.4' apply false
-    id 'org.inferred.processors' version '1.2.16'
 }
 
 ext {
@@ -58,7 +59,7 @@ class Version {
     String getTimestamp() {
         // Convert local file timestamp to UTC
         def format = new SimpleDateFormat('yyyyMMddHHmmss')
-        format.setCalendar(Calendar.getInstance(TimeZone.getTimeZone('UTC')));
+        format.setCalendar(Calendar.getInstance(TimeZone.getTimeZone('UTC')))
         return format.format(buildTime)
     }
 
@@ -82,8 +83,8 @@ subprojects { project ->
     apply plugin: 'java'
     apply plugin: 'java-library' // needed to make sure that transitive deps have 'compile' scope
     apply plugin: 'groovy'
-    apply plugin: 'org.inferred.processors'
     apply plugin: 'com.jfrog.bintray'
+    apply plugin: 'net.ltgt.apt-idea'
 
     group='io.vrap.rmf.codegen'
     version=globalVersion
