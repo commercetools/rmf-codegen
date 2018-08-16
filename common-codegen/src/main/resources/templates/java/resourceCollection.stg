@@ -58,7 +58,7 @@ public <method.returnType.typeName.fullClassName> <method.method>(<resource.allU
     final HttpEntity\<<method.firstBody.type.typeName.fullClassName>\> entity = new HttpEntity\<>(body, headers);
 
     <else>
-    final HttpEntity entity = null;
+    final HttpEntity\<?> entity = null;
     <endif>
     final ParameterizedTypeReference\<<method.returnType.typeName.fullClassName>\> type = new ParameterizedTypeReference\<<method.returnType.typeName.fullClassName>\>() {};
     final String fullUri = baseUri + "<resource.fullUri.template>";
