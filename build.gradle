@@ -22,8 +22,11 @@ plugins {
     id 'net.ltgt.apt-idea' version '0.18'
 
     id 'de.undercouch.download' version '3.4.3'
-    id 'com.jfrog.bintray' version '1.8.0'
+    id 'com.jfrog.bintray' version '1.8.3'
     id 'com.github.johnrengelman.shadow' version '2.0.4' apply false
+    id 'com.gradle.plugin-publish' version '0.9.1'
+    id 'org.inferred.processors' version '1.2.16'
+
 }
 
 ext {
@@ -98,7 +101,6 @@ subprojects { project ->
         user = System.getenv('BINTRAY_USER')
         key = System.getenv('BINTRAY_KEY')
         publications = [ 'Maven' ]
-
         publish = true
 
         pkg {
