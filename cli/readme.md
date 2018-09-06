@@ -36,4 +36,4 @@ OPTIONS
 
 ### Use example
 
-`./cli generate api.raml`
+`./vrap generate api.raml`

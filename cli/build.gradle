@@ -8,3 +8,4 @@ dependencies {
 }
 
 mainClassName = "io.vrap.cli.CommandLine"
+applicationName = "vrap"
