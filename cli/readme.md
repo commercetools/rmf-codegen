@@ -14,7 +14,7 @@ NAME
         cli generate - generate raml stub
 
 SYNOPSIS
-        vrap generate [-out <outputFolder>] [-p <basePackageName>] [--]
+        cli generate [-out <outputFolder>] [-p <basePackageName>] [--]
                 <apiFileLocation>
 
 OPTIONS
