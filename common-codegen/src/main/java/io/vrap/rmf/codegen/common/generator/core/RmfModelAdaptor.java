@@ -11,37 +11,35 @@ import org.stringtemplate.v4.misc.STNoSuchPropertyException;
 
 import java.util.List;
 
+/**
+ * Adapts RMF objects for usage in our string templates.
+ */
 public class RmfModelAdaptor extends ObjectModelAdaptor {
-
-    private final List<ExtensionMapper> mappers;
-    private final Class handledClass;
     private static final Logger LOGGER = LoggerFactory.getLogger(RmfModelAdaptor.class);
 
     private final static Object NULL = new Object();
 
-    public RmfModelAdaptor(final Class handledClass, List<ExtensionMapper> mappers) {
-        this.mappers = mappers;
-        this.handledClass = handledClass;
-    }
+    private final List<ExtensionMapper> mappers;
 
-    public Class getHandledClass() {
-        return handledClass;
+    public RmfModelAdaptor(final List<ExtensionMapper> mappers) {
+        this.mappers = mappers;
     }
 
     @Override
-    public synchronized Object getProperty(Interpreter interp, ST self, Object o, Object property, String propertyName) throws STNoSuchPropertyException {
-
-        Object result = Flowable.fromIterable(mappers)
-                .flatMapMaybe(extensionMapper -> extensionMapper.apply(o, propertyName))
+    public synchronized Object getProperty(final Interpreter interp,
+                                           final ST self, final Object extendedObject,
+                                           final Object property, final String propertyName) throws STNoSuchPropertyException {
+        final Object result = Flowable.fromIterable(mappers)
+                .flatMapMaybe(extensionMapper -> extensionMapper.apply(extendedObject, propertyName))
                 .blockingFirst(NULL);
 
         if (result != NULL) {
             return result;
         }
         try{
-            return super.getProperty(interp, self, o, property, propertyName);
+            return super.getProperty(interp, self, extendedObject, property, propertyName);
         }catch (STNoSuchPropertyException exception){
-            LOGGER.warn("property '{}' not found in {} or any of its extensions",propertyName, o.getClass());
+            LOGGER.warn("property '{}' not found in {} or any of its extensions",propertyName, extendedObject.getClass());
             throw exception;
         }
     }

@@ -16,26 +16,27 @@ import java.util.List;
 import java.util.Map;
 
 
-public class JavaSTFileSwitch extends ComposedSwitch<STGroupFile> {
+public class STTemplateSwitch extends ComposedSwitch<STGroupFile> {
+    private static final Logger LOGGER = LoggerFactory.getLogger(STTemplateSwitch.class);
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(JavaSTFileSwitch.class);
+    private final Map<String, STGroupFile> cache = new HashMap<>();
 
-    private Map<String, STGroupFile> cache = new HashMap<>();
+    private final RmfModelAdaptor rmfModelAdaptor;
+    private final String genLanguage;
 
-    RmfModelAdaptor rmfModelAdaptor;
-
-    public JavaSTFileSwitch(List<ExtensionMapper> extensionMappers) {
-        rmfModelAdaptor = new RmfModelAdaptor(Object.class, extensionMappers);
+    public STTemplateSwitch(final String genLanguage, final List<ExtensionMapper> extensionMappers) {
+        this.genLanguage = genLanguage;
+        rmfModelAdaptor = new RmfModelAdaptor(extensionMappers);
         addSwitch(new JavaSTFileTypesSwitch());
     }
 
-    public STGroupFile getSTFileFor(Object object) {
+    public STGroupFile getSTFileFor(final Object object) {
         STGroupFile result;
         if (object instanceof EObject) {
             result = doSwitch((EObject) object);
         } else if (object instanceof EObjectsCollection) {
             if (((EObjectsCollection) object).getSample() instanceof Resource) {
-                result = getSTFileFor("strTemplate/resourceCollection.stg");
+                result = getSTFileFor("resourceCollection.stg");
             } else {
                 throw new IllegalArgumentException("unhandled input " + object + " of type " + object.getClass().getCanonicalName());
             }
@@ -49,19 +50,20 @@ public class JavaSTFileSwitch extends ComposedSwitch<STGroupFile> {
         return result;
     }
 
-    public STGroupFile getSTFileFor(String str) {
-        if (cache.get(str) == null) {
-            STGroupFile groupFile = new STGroupFile(str);
-            groupFile.registerModelAdaptor(rmfModelAdaptor.getHandledClass(), rmfModelAdaptor);
+    public STGroupFile getSTFileFor(final String templateName) {
+        final String templateLocation = String.format("templates/%s/%s", genLanguage, templateName);
+        if (cache.get(templateLocation) == null) {
+            STGroupFile groupFile = new STGroupFile(templateLocation);
+            groupFile.registerModelAdaptor(Object.class, rmfModelAdaptor);
             groupFile.load();
-            cache.put(str, groupFile);
+            cache.put(templateLocation, groupFile);
         }
-        return cache.get(str);
+        return cache.get(templateLocation);
     }
 
 
     @Override
-    public STGroupFile doSwitch(EObject eObject) {
+    public STGroupFile doSwitch(final EObject eObject) {
         final STGroupFile result = super.doSwitch(eObject);
         if (result == null) {
             throw new RuntimeException("no file associated with type " + eObject);
@@ -72,13 +74,13 @@ public class JavaSTFileSwitch extends ComposedSwitch<STGroupFile> {
     private class JavaSTFileTypesSwitch extends TypesSwitch<STGroupFile> {
 
         @Override
-        public STGroupFile caseStringType(StringType object) {
-            return getSTFileFor("strTemplate/stringType.stg");
+        public STGroupFile caseStringType(final StringType stringType) {
+            return getSTFileFor("stringType.stg");
         }
 
         @Override
-        public STGroupFile caseObjectType(ObjectType object) {
-            return getSTFileFor("strTemplate/objectType.stg");
+        public STGroupFile caseObjectType(final ObjectType objectType) {
+            return getSTFileFor("objectType.stg");
         }
 
     }

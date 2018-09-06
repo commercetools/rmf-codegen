@@ -45,7 +45,7 @@ subtypeAnnotation(input) ::=<<
 >>
 
 properties(input) ::=<<
-<input.properties:{ property | <if(property.patternProperty)>private Map\<String, <property.type.typeName.simpleClassName>\> values = new HashMap();
+<input.properties:{ property | <if(property.patternProperty)>private Map\<String, <property.type.typeName.simpleClassName>\> values = new HashMap\<>();
 <else>private <property.type.typeName.simpleClassName> <property.name>;
 <endif>}; separator = "\n">
 >>

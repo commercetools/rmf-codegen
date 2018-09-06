@@ -51,25 +51,6 @@ public class GeneratorModule extends AbstractModule {
     }
 
     @Provides
-    @Named(GeneratorConfig.RAML_FILE_LOCATION)
-    public URI getRamlFileLocation() {
-        return getGeneratorConfig().getRamlFileLocation();
-    }
-
-
-    @Provides
-    @Named(GeneratorConfig.OUTPUT_FOLDER)
-    public Path getOutputFolder() {
-        return generatorConfig.getOutputFolder();
-    }
-
-    @Provides
-    @Named(GeneratorConfig.PACKAGE_PREFIX)
-    public String getPackagePrefix() {
-        return generatorConfig.getPackagePrefix();
-    }
-
-    @Provides
     public JavaDocProcessor getJavaDocProcessor() {
         return getGeneratorConfig().getJavaDocProcessor();
     }
@@ -81,8 +62,8 @@ public class GeneratorModule extends AbstractModule {
 
     @Provides
     @Singleton
-    public Api provideRamlModel(@Named(GeneratorConfig.RAML_FILE_LOCATION) final URI fileURI) {
-        final RamlModelResult<Api> modelResult = new RamlModelBuilder().buildApi(fileURI);
+    public Api provideRamlModel() {
+        final RamlModelResult<Api> modelResult = new RamlModelBuilder().buildApi(getGeneratorConfig().getRamlFileLocation());
         final List<RamlDiagnostic> validationResults = modelResult.getValidationResults();
         if (!validationResults.isEmpty()) {
             validationResults.stream().forEach(validationResult -> {
