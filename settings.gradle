@@ -1,2 +1,2 @@
-include 'common-codegen', 'codegen-gradle-plugin','annotations','cli'
+include 'common-codegen', 'codegen-gradle-plugin', 'annotations', 'cli', 'common-codegen-kt'
 
