@@ -50,7 +50,7 @@ class ObjectTypeRenderer @Inject constructor(val typeNameSwitch: TypeNameSwitch)
         return when(this){
             is VrapObjectType -> this.simpleClassName
             is VrapArrayType -> "List<${this.itemType.simpleName()}>"
-            else -> throw IllegalStateException()
+            else -> throw IllegalStateException("$this has no simple class name.")
         }
     }
 
