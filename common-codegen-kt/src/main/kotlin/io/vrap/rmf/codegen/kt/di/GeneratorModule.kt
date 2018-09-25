@@ -67,24 +67,7 @@ class GeneratorModule constructor(
     @Singleton
     fun allResources(ramlApi: Api): List<Resource> = ramlApi.allContainedResources.filter { filterSwitch.doSwitch(it) }
 
-    /**
 
-    Flowable.fromIterable(allResources)
-    .filter(filterSwitch::doSwitch)
-    .groupBy(typeNameSwitch::doSwitch)
-    .subscribe(resourceGroupedFlowable -> {
-    Flowable<Path> pathFlowable = resourceGroupedFlowable
-    .toList()
-    .map(resources -> new EObjectsCollection(resources, ((ClassName) resourceGroupedFlowable.getKey())))
-    .map(this::generateFile)
-    .toFlowable();
-    flowables.add(pathFlowable);
-    }
-
-    );
-
-    flowables.add(flowable1);
-     */
     @Provides
     @Singleton
     fun resourceCollection(resources: MutableList<Resource>, typeNameSwitch: TypeNameSwitch): List<ResourceCollection> = resources.groupBy { typeNameSwitch.doSwitch(it) }
