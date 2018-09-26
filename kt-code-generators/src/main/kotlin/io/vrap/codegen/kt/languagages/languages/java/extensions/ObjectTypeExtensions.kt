@@ -1,6 +1,6 @@
-package io.vrap.rmf.codegen.kt.languages.java.extensions
+package io.vrap.codegen.kt.languagages.languages.java.extensions
 
-import io.vrap.rmf.codegen.kt.languages.ExtensionsBase
+import io.vrap.codegen.kt.languagages.languages.ExtensionsBase
 import io.vrap.rmf.codegen.kt.types.*
 import io.vrap.rmf.raml.model.types.ObjectType
 
@@ -39,4 +39,4 @@ fun getImportsForType(vrapType: VrapType): String? {
     }
 }
 
-fun ObjectType.hasSubtypes(): Boolean = this.discriminator.isNotBlank() && (this.subTypes?.isNotEmpty() ?: false)
+fun ObjectType.hasSubtypes(): Boolean = this.discriminator?.isNotBlank()?:false && (this.subTypes?.isNotEmpty() ?: false)

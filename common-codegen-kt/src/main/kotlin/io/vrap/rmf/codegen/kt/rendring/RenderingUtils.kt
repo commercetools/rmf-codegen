@@ -88,6 +88,9 @@ fun generateTemplate(input: String, indStartToken: Char = '<', indStopToken: Cha
 
 fun String.fixIndentation() = generateTemplate(this)
 
+/**
+ * Escape all special caracters such as '<' '>' '/'
+ */
 fun String.escapeAll(escapeChar: Char = '/') = this.replace("$escapeChar", "$escapeChar$escapeChar")
         .replace("<", "$escapeChar<")
         .replace(">", "$escapeChar>")

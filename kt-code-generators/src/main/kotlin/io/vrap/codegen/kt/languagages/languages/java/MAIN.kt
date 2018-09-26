@@ -1,5 +1,7 @@
-package io.vrap.rmf.codegen.kt.languages.java
+package io.vrap.codegen.kt.languagages.languages.java
 
+import io.vrap.codegen.kt.languagages.languages.java.groovy.dsl.GroovyDslModule
+import io.vrap.codegen.kt.languagages.languages.java.model.JavaModelModule
 import io.vrap.rmf.codegen.kt.CodeGeneratorConfig
 import io.vrap.rmf.codegen.kt.di.GeneratorComponent
 import io.vrap.rmf.codegen.kt.di.GeneratorModule
@@ -14,7 +16,7 @@ fun main(args: Array<String>) {
     )
 
     val generatorModule = GeneratorModule(generatorConfig, JavaBaseTypes)
-    val generatorComponent = GeneratorComponent(generatorModule,JavaCodeGenModule())
+    val generatorComponent = GeneratorComponent(generatorModule, GroovyDslModule(),JavaModelModule())
 
     generatorComponent.generateFiles()
 

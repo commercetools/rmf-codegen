@@ -1,4 +1,4 @@
-package io.vrap.rmf.codegen.kt.languages.java
+package io.vrap.codegen.kt.languagages.languages.java
 
 import io.vrap.rmf.codegen.kt.types.LanguageBaseTypes
 import io.vrap.rmf.codegen.kt.types.VrapDefaultObjectType

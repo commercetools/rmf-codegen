@@ -15,6 +15,7 @@ import io.vrap.rmf.raml.model.modules.Api
 import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.resources.util.ResourcesSwitch
 import io.vrap.rmf.raml.model.types.AnyType
+import io.vrap.rmf.raml.model.types.ObjectType
 import io.vrap.rmf.raml.model.types.StringType
 import io.vrap.rmf.raml.model.types.util.TypesSwitch
 import org.eclipse.emf.ecore.EObject
@@ -62,6 +63,14 @@ class GeneratorModule constructor(
         ramlApi.uses?.flatMap { it.library.types }?.forEach { result.add(it) }
         return result.filter { filterSwitch.doSwitch(it) }
     }
+
+    @Provides
+    @Singleton
+    fun provideAllObjectTypes(anyTypeList: MutableList<AnyType>):List<ObjectType> = anyTypeList.filter { it is ObjectType }.map { it as ObjectType }
+
+    @Provides
+    @Singleton
+    fun provideAllStringTypes(anyTypeList: MutableList<AnyType>):List<StringType> = anyTypeList.filter { it is StringType }.map { it as StringType }
 
     @Provides
     @Singleton

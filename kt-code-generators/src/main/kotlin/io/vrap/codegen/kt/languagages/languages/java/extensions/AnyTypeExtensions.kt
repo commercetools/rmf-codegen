@@ -1,6 +1,6 @@
-package io.vrap.rmf.codegen.kt.languages.java.extensions
+package io.vrap.codegen.kt.languagages.languages.java.extensions
 
-import io.vrap.rmf.codegen.kt.languages.ExtensionsBase
+import io.vrap.codegen.kt.languagages.languages.ExtensionsBase
 import io.vrap.rmf.raml.model.types.AnyType
 
 interface AnyTypeExtensions : ExtensionsBase {

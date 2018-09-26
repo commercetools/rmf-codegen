@@ -1,13 +1,8 @@
 package io.vrap.rmf.codegen.kt
 
-import io.vrap.rmf.codegen.kt.di.GeneratorComponent
-import io.vrap.rmf.codegen.kt.di.GeneratorModule
-import io.vrap.rmf.codegen.kt.languages.java.JavaBaseTypes
-import io.vrap.rmf.codegen.kt.languages.java.JavaCodeGenerator
-import io.vrap.rmf.codegen.kt.types.VrapObjectType
+import io.vrap.codegen.kt.languagages.languages.java.JavaBaseTypes
+import io.vrap.codegen.kt.languagages.languages.java.JavaCodeGenerator
 import io.vrap.rmf.codegen.kt.types.TypeNameSwitch
-import org.eclipse.emf.common.util.URI
-import org.junit.Test
 
 
 class TestCodeGenerator {

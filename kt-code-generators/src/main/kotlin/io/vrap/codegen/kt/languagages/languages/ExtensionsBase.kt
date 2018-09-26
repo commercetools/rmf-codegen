@@ -1,4 +1,4 @@
-package io.vrap.rmf.codegen.kt.languages
+package io.vrap.codegen.kt.languagages.languages
 
 
 import io.vrap.rmf.codegen.kt.types.VrapTypeSwitch

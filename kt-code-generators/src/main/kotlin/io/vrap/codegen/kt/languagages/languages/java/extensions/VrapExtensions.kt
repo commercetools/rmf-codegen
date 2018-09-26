@@ -1,4 +1,4 @@
-package io.vrap.rmf.codegen.kt.languages.java.extensions
+package io.vrap.codegen.kt.languagages.languages.java.extensions
 
 import io.vrap.rmf.codegen.kt.types.VrapArrayType
 import io.vrap.rmf.codegen.kt.types.VrapObjectType

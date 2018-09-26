@@ -1,12 +1,10 @@
-package io.vrap.rmf.codegen.kt.languages.java;
+package io.vrap.codegen.kt.languagages.languages.java.model;
 
 import com.google.inject.Inject
+import io.vrap.codegen.kt.languagages.languages.java.extensions.AnyTypeExtensions
+import io.vrap.codegen.kt.languagages.languages.java.extensions.*
 import io.vrap.rmf.codegen.kt.core.ObjectTypeRenderer
 import io.vrap.rmf.codegen.kt.io.TemplateFile
-import io.vrap.rmf.codegen.kt.languages.java.extensions.AnyTypeExtensions
-import io.vrap.rmf.codegen.kt.languages.java.extensions.ObjectTypeExtensions
-import io.vrap.rmf.codegen.kt.languages.java.extensions.simpleName
-import io.vrap.rmf.codegen.kt.languages.java.extensions.toJavaComment
 import io.vrap.rmf.codegen.kt.rendring.escapeAll
 import io.vrap.rmf.codegen.kt.rendring.fixIndentation
 import io.vrap.rmf.codegen.kt.types.VrapObjectType
@@ -14,7 +12,7 @@ import io.vrap.rmf.codegen.kt.types.VrapTypeSwitch
 import io.vrap.rmf.raml.model.types.ObjectType
 import io.vrap.rmf.raml.model.types.Property
 
-class JavaObjectTypeRenderer @Inject constructor(override val vrapTypeSwitch:VrapTypeSwitch) : ObjectTypeExtensions, AnyTypeExtensions,ObjectTypeRenderer{
+class JavaObjectTypeRenderer @Inject constructor(override val vrapTypeSwitch: VrapTypeSwitch) : ObjectTypeExtensions, AnyTypeExtensions, ObjectTypeRenderer {
 
     override fun render(type: ObjectType): TemplateFile {
 
@@ -35,6 +33,7 @@ class JavaObjectTypeRenderer @Inject constructor(override val vrapTypeSwitch:Vra
                 |import org.apache.commons.lang3.builder.ToStringStyle;
                 |
                 |${type.toJavaComment().escapeAll()}
+                |${type.subTypesAnnotations()}
                 |public class ${vrapType.simpleClassName} {
                 |
                 |    <${type.toBeanFields().escapeAll()}>
@@ -58,8 +57,7 @@ class JavaObjectTypeRenderer @Inject constructor(override val vrapTypeSwitch:Vra
                 |        return HashCodeBuilder.reflectionHashCode(this);
                 |    }
                 |}
-        """.trimMargin()
-                .fixIndentation()
+        """.trimMargin().fixIndentation()
 
 
         return TemplateFile(
@@ -69,24 +67,44 @@ class JavaObjectTypeRenderer @Inject constructor(override val vrapTypeSwitch:Vra
     }
 
 
-
     fun ObjectType.imports() = this.getImports().map { "import $it;" }.joinToString(separator = "\n")
+
+    fun ObjectType.subTypesAnnotations(): String {
+        return if (this.hasSubtypes())
+            """
+            |@JsonSubTypes({
+            |   <${this.subTypes.map { "@JsonSubTypes.Type(value = ${it.toVrapType().simpleName()}.class, name = \"${(it as ObjectType).discriminatorValue}\")" }.joinToString  (separator = ",\n")}>
+            |})
+            |@JsonTypeInfo(
+            |   use = JsonTypeInfo.Id.NAME,
+            |   include = JsonTypeInfo.As.PROPERTY,
+            |   property = "${this.discriminator}"
+            |)
+            """.trimMargin()
+        else
+            ""
+    }
 
     fun Property.toJavaField() = "private ${this.type.toVrapType().simpleName()} ${this.name};"
 
     fun ObjectType.toBeanFields() = this.properties.map { it.toJavaField() }.joinToString(separator = "\n\n")
 
-    fun ObjectType.setters() = this.properties.map { """
+    fun ObjectType.setters() = this.properties.map {
+        """
         |public void set${it.name.capitalize()}(final ${it.type.toVrapType().simpleName()} ${it.name}){
         |   this.${it.name} = ${it.name};
         |}
-    """.trimMargin() }.joinToString(separator = "\n\n")
+    """.trimMargin()
+    }.joinToString(separator = "\n\n")
 
 
-    fun ObjectType.getters() = this.properties.map { """
+    fun ObjectType.getters() = this.properties.map {
+        """
         |${it.type.toJavaComment()}
+        |@JsonProperty("${it.name}")
         |public ${it.type.toVrapType().simpleName()} get${it.name.capitalize()}(){
         |   return this.${it.name};
         |}
-    """.trimMargin() }.joinToString(separator = "\n\n")
+    """.trimMargin()
+    }.joinToString(separator = "\n\n")
 }
