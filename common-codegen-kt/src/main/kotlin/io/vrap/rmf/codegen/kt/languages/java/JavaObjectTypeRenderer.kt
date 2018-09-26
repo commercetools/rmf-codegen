@@ -16,14 +16,14 @@ import io.vrap.rmf.raml.model.types.Property
 
 class JavaObjectTypeRenderer @Inject constructor(override val vrapTypeSwitch:VrapTypeSwitch) : ObjectTypeExtensions, AnyTypeExtensions,ObjectTypeRenderer{
 
-    override fun render(objectType: ObjectType): TemplateFile {
+    override fun render(type: ObjectType): TemplateFile {
 
-        val vrapType = vrapTypeSwitch.doSwitch(objectType) as VrapObjectType
+        val vrapType = vrapTypeSwitch.doSwitch(type) as VrapObjectType
 
         val content = """
                 |package ${vrapType.`package`};
                 |
-                |${objectType.imports()}
+                |${type.imports()}
                 |import com.fasterxml.jackson.annotation.*;
                 |import javax.annotation.Generated;
                 |import javax.validation.Valid;
@@ -34,15 +34,14 @@ class JavaObjectTypeRenderer @Inject constructor(override val vrapTypeSwitch:Vra
                 |import org.apache.commons.lang3.builder.ToStringBuilder;
                 |import org.apache.commons.lang3.builder.ToStringStyle;
                 |
-                |${objectType.toJavaComment().escapeAll()}
+                |${type.toJavaComment().escapeAll()}
                 |public class ${vrapType.simpleClassName} {
                 |
+                |    <${type.toBeanFields().escapeAll()}>
                 |
-                |    <${objectType.toBeanFields().escapeAll()}>
+                |    <${type.setters().escapeAll()}>
                 |
-                |    <${objectType.setters().escapeAll()}>
-                |
-                |    <${objectType.getters().escapeAll()}>
+                |    <${type.getters().escapeAll()}>
                 |
                 |    @Override
                 |    public String toString() {

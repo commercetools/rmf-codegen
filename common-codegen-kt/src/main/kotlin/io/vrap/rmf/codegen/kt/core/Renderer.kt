@@ -4,6 +4,6 @@ import io.vrap.rmf.codegen.kt.io.TemplateFile
 
 interface Renderer<T> {
 
-    fun render(t:T):TemplateFile
+    fun render(type:T):TemplateFile
 
 }
