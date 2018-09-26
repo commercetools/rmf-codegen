@@ -7,7 +7,7 @@ import com.google.inject.name.Named
 import io.vrap.rmf.codegen.common.generator.core.ResourceCollection
 import io.vrap.rmf.codegen.kt.CodeGeneratorConfig
 import io.vrap.rmf.codegen.kt.types.LanguageBaseTypes
-import io.vrap.rmf.codegen.kt.types.TypeNameSwitch
+import io.vrap.rmf.codegen.kt.types.VrapTypeSwitch
 import io.vrap.rmf.codegen.kt.types.VrapType
 import io.vrap.rmf.raml.model.RamlModelBuilder
 import io.vrap.rmf.raml.model.elements.NamedElement
@@ -70,7 +70,7 @@ class GeneratorModule constructor(
 
     @Provides
     @Singleton
-    fun resourceCollection(resources: MutableList<Resource>, typeNameSwitch: TypeNameSwitch): List<ResourceCollection> = resources.groupBy { typeNameSwitch.doSwitch(it) }
+    fun resourceCollection(resources: MutableList<Resource>, vrapTypeSwitch: VrapTypeSwitch): List<ResourceCollection> = resources.groupBy { vrapTypeSwitch.doSwitch(it) }
                                                                                                                             .map { entry: Map.Entry<VrapType, List<Resource>> -> ResourceCollection(entry.key, entry.value) }
                                                                                                                             .toList()
 

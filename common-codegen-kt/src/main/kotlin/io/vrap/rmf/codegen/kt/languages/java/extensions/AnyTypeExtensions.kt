@@ -1,6 +1,9 @@
 package io.vrap.rmf.codegen.kt.languages.java.extensions
 
-import io.vrap.rmf.codegen.kt.types.TypeNameSwitch
+import io.vrap.rmf.codegen.kt.languages.ExtensionsBase
 import io.vrap.rmf.raml.model.types.AnyType
 
-fun AnyType.toVrapObject(typeNameSwitch: TypeNameSwitch) = typeNameSwitch.doSwitch(this)
+interface AnyTypeExtensions : ExtensionsBase {
+    fun AnyType.toVrapType() = vrapTypeSwitch.doSwitch(this)
+
+}

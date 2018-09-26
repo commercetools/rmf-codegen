@@ -6,7 +6,7 @@ import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.util.ComposedSwitch
 import org.slf4j.LoggerFactory
 
-class TypeNameSwitch @Inject constructor(packageSwitch: PackageSwitch,
+class VrapTypeSwitch @Inject constructor(packageSwitch: PackageSwitch,
                                          val languageBaseTypes: LanguageBaseTypes,
                                          val customTypeMapping: MutableMap<String, VrapType>
 ) : ComposedSwitch<VrapType>() {
@@ -35,6 +35,6 @@ class TypeNameSwitch @Inject constructor(packageSwitch: PackageSwitch,
     }
 
     companion object {
-        private val LOGGER = LoggerFactory.getLogger(TypeNameSwitch::class.java)
+        private val LOGGER = LoggerFactory.getLogger(VrapTypeSwitch::class.java)
     }
 }

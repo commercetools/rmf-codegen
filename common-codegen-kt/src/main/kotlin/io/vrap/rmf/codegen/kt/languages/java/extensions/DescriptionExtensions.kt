@@ -4,4 +4,4 @@ import io.vrap.rmf.codegen.kt.doc.toHtml
 import io.vrap.rmf.codegen.kt.rendring.escapeAll
 import io.vrap.rmf.raml.model.types.DescriptionFacet
 
-fun DescriptionFacet.toIndentedComment() = this.toHtml()?.escapeAll()?.let {"<//**\n\t<$it>\n*//>"}?:""
+fun DescriptionFacet.toJavaComment() = this.toHtml()?.let {"/**\n\t$it\n*/"}?:""

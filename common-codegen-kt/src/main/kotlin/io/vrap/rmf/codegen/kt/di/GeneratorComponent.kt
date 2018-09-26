@@ -1,10 +1,17 @@
 package io.vrap.rmf.codegen.kt.di
 
 import com.google.inject.Guice
+import com.google.inject.Module
+import io.vrap.rmf.codegen.kt.core.CoreCodeGenerator
+import scala.annotation.varargs
 
 
-class GeneratorComponent(generatorModule: GeneratorModule) {
+class GeneratorComponent(generatorModule: GeneratorModule, vararg modules:  Module) {
 
-    val injector = Guice.createInjector(generatorModule)
+    private val injector = Guice.createInjector(listOf(generatorModule).plus(modules))
+
+    private val coreCodeGenerator = injector.getInstance(CoreCodeGenerator::class.java)
+
+    fun generateFiles() = coreCodeGenerator.generate()
 
 }
