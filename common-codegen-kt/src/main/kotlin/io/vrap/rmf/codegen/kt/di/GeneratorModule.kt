@@ -6,6 +6,8 @@ import com.google.inject.Singleton
 import com.google.inject.name.Named
 import io.vrap.rmf.codegen.common.generator.core.ResourceCollection
 import io.vrap.rmf.codegen.kt.CodeGeneratorConfig
+import io.vrap.rmf.codegen.kt.io.DataSink
+import io.vrap.rmf.codegen.kt.io.FileDataSink
 import io.vrap.rmf.codegen.kt.types.LanguageBaseTypes
 import io.vrap.rmf.codegen.kt.types.VrapTypeSwitch
 import io.vrap.rmf.codegen.kt.types.VrapType
@@ -21,8 +23,9 @@ import io.vrap.rmf.raml.model.types.util.TypesSwitch
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.util.ComposedSwitch
 import org.slf4j.LoggerFactory
+import java.nio.file.Path
 
-
+@SuppressWarnings("unused")
 class GeneratorModule constructor(
         @get:Provides val generatorConfig: CodeGeneratorConfig,
         @get:Provides val languageBaseTypes: LanguageBaseTypes) : AbstractModule() {
@@ -32,6 +35,16 @@ class GeneratorModule constructor(
     }
 
     private val filterSwitch = FilterSwitch()
+
+
+    @Provides
+    @Singleton
+    @Named(VrapConstants.OUTPUT_FOLDER)
+    fun outpuFolder():Path = generatorConfig.outputFolder
+
+    @Provides
+    @Singleton
+    fun dataSink(@Named(VrapConstants.OUTPUT_FOLDER) path: Path):DataSink = FileDataSink(path)
 
     @Provides
     @Singleton
@@ -90,7 +103,6 @@ class GeneratorModule constructor(
             addSwitch(FilterTypeSwitch())
             addSwitch(FilterResourcesSwitch())
         }
-
         /**
          * This filter is used to filter files that are explicitly provided by the sdk developer
          */

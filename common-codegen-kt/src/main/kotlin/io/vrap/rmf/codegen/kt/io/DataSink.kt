@@ -1,22 +1,9 @@
 package io.vrap.rmf.codegen.kt.io
 
-import io.vrap.rmf.codegen.kt.rendring.fixIndentation
+interface DataSink {
 
-object DataSink {
+    fun save(templateFile: TemplateFile)
 
-
-    fun save(data: TemplateFile) {
-        val result = """
-            |____________________________________________________________________________________________________________________________
-            |file : ${data.relativePath}
-            |content :
-            |____________________________________________________________________________________________________________________________
-            |
-            |${data.content}
-            |
-        """.trimMargin()
-
-        println(result)
-    }
+    fun clean(){}
 
 }

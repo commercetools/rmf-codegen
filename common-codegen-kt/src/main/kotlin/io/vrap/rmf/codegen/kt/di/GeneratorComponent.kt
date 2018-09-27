@@ -2,8 +2,7 @@ package io.vrap.rmf.codegen.kt.di
 
 import com.google.inject.Guice
 import com.google.inject.Module
-import io.vrap.rmf.codegen.kt.core.CoreCodeGenerator
-import scala.annotation.varargs
+import io.vrap.rmf.codegen.kt.rendring.CoreCodeGenerator
 
 
 class GeneratorComponent(generatorModule: GeneratorModule, vararg modules:  Module) {

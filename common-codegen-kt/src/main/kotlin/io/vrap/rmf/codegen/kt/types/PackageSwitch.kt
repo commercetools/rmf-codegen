@@ -30,15 +30,15 @@ class PackageSwitch @Inject constructor(@Named(VrapConstants.PACKAGE_NAME) val b
         }
 
         override fun caseAnyType(type: AnyType): String {
-            var type = type
+            var currentType = type
             val modelsPackage = "$basePackage.models"
-            while (type.type != null) {
-                if (type.eContainer() is Library && (type.eContainer() as Library).getAnnotation("package") != null) {
+            while (currentType.type != null) {
+                if (currentType.eContainer() is Library && (currentType.eContainer() as Library).getAnnotation("package") != null) {
                     break
                 }
-                type = type.type
+                currentType = currentType.type
             }
-            var eContainer: EObject? = type.eContainer()
+            var eContainer: EObject? = currentType.eContainer()
             while (eContainer != null) {
                 if (eContainer is AnnotationsFacet) {
 
