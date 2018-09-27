@@ -7,11 +7,14 @@ import io.vrap.rmf.codegen.kt.io.DataSink
 import io.vrap.rmf.codegen.kt.io.FileDataSink
 import io.vrap.rmf.raml.model.types.ObjectType
 import io.vrap.rmf.raml.model.types.StringType
+import org.slf4j.LoggerFactory
 
 class CoreCodeGenerator @Inject constructor(val dataSink: DataSink
                                             ,private val allObjectTypes: MutableList<ObjectType>
                                             ,private val allStringTypes : MutableList<StringType>
                                             ,private val allResourceCollections: MutableList<ResourceCollection>) {
+
+    private val LOGGER = LoggerFactory.getLogger(CoreCodeGenerator::class.java)
 
     @Inject(optional = true)
     lateinit var objectTypeGenerators: MutableSet<ObjectTypeRenderer>
@@ -24,23 +27,32 @@ class CoreCodeGenerator @Inject constructor(val dataSink: DataSink
 
     fun generate() {
 
-        dataSink.clean()
+        if(dataSink.clean()){
+            LOGGER.info("data sink cleanup successful")
+        } else {
+            LOGGER.info("data sink cleanup unsuccessful")
+        }
 
         if (::objectTypeGenerators.isInitialized) {
+            LOGGER.info("generating types for object types generators")
             objectTypeGenerators.flatMap { objectTypeRenderer ->
                 allObjectTypes.map { objectTypeRenderer.render(it) }
             }.map { dataSink.save(it) }
         }
 
         if (::stringTypeGenerators.isInitialized) {
+            LOGGER.info("generating types for object types generators")
             stringTypeGenerators.flatMap { stringTypeRenderer ->
                 allStringTypes.map { stringTypeRenderer.render(it) }
             }.map { dataSink.save(it) }
         }
 
         if(::fileProducers.isInitialized){
+            LOGGER.info("generating types for file producers")
             fileProducers.flatMap { it.produceFiles() }.map { dataSink.save(it) }
         }
+
+        LOGGER.info("files generation ended")
     }
 
 }

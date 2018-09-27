@@ -4,6 +4,6 @@ interface DataSink {
 
     fun save(templateFile: TemplateFile)
 
-    fun clean(){}
+    fun clean():Boolean = true
 
 }

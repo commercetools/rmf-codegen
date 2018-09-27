@@ -35,7 +35,7 @@ class JavaObjectTypeRenderer @Inject constructor(override val vrapTypeSwitch: Vr
                 |${type.toJavaComment().escapeAll()}
                 |${type.subTypesAnnotations()}
                 |${JavaSubTemplates.generatedAnnotation}
-                |public class ${vrapType.simpleClassName} {
+                |public class ${vrapType.simpleClassName} ${type.type?.toVrapType()?.simpleName()?.let { "extends $it" }?:""}{
                 |
                 |    <${type.toBeanFields().escapeAll()}>
                 |
@@ -74,7 +74,7 @@ class JavaObjectTypeRenderer @Inject constructor(override val vrapTypeSwitch: Vr
         return if (this.hasSubtypes())
             """
             |@JsonSubTypes({
-            |   <${this.subTypes.map { "@JsonSubTypes.Type(value = ${it.toVrapType().simpleName()}.class, name = \"${(it as ObjectType).discriminatorValue}\")" }.joinToString  (separator = ",\n")}>
+            |   <${this.subTypes.map { "@JsonSubTypes.Type(value = ${it.toVrapType().simpleName()}.class, name = \"${(it as ObjectType).discriminatorValue}\")" }.joinToString(separator = ",\n")}>
             |})
             |@JsonTypeInfo(
             |   use = JsonTypeInfo.Id.NAME,
@@ -88,9 +88,9 @@ class JavaObjectTypeRenderer @Inject constructor(override val vrapTypeSwitch: Vr
 
     fun Property.toJavaField() = "private ${this.type.toVrapType().simpleName()} ${this.name};"
 
-    fun ObjectType.toBeanFields() = this.properties.map { it.toJavaField() }.joinToString(separator = "\n\n")
+    fun ObjectType.toBeanFields() = this.properties.filter { it.name != this.discriminator }.map { it.toJavaField() }.joinToString(separator = "\n\n")
 
-    fun ObjectType.setters() = this.properties.map {
+    fun ObjectType.setters() = this.properties.filter { it.name != this.discriminator }.map {
         """
         |public void set${it.name.capitalize()}(final ${it.type.toVrapType().simpleName()} ${it.name}){
         |   this.${it.name} = ${it.name};
@@ -99,7 +99,7 @@ class JavaObjectTypeRenderer @Inject constructor(override val vrapTypeSwitch: Vr
     }.joinToString(separator = "\n\n")
 
 
-    fun ObjectType.getters() = this.properties.map {
+    fun ObjectType.getters() = this.properties.filter { it.name != this.discriminator }.map {
         """
         |${it.type.toJavaComment()}
         |@JsonProperty("${it.name}")
