@@ -45,7 +45,7 @@ class GroovyDslRenderer @Inject constructor(override val vrapTypeSwitch: VrapTyp
 
 
         return TemplateFile(
-                relativePath = "${vrapType.`package`}.${vrapType.simpleClassName}".replace(".", "/") + ".java",
+                relativePath = "${vrapType.`package`}.${vrapType.simpleClassName}".replace(".", "/") + "Dsl.java",
                 content = content
         )
     }
