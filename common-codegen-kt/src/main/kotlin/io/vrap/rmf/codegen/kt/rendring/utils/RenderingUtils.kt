@@ -64,7 +64,7 @@ fun indentString(input: String, result: StringBuilder = StringBuilder(), initial
 }
 
 
-fun generateTemplate(input: String, indStartToken: Char = '<', indStopToken: Char = '>', escapeChar: Char = '/'): String {
+fun generateTemplate(input: String, indStartToken: Char = '<', indStopToken: Char = '>', escapeChar: Char = '\\'): String {
 
 
     if (indStartToken == indStopToken) throw Exception("the indentation start and stop token should be different")
@@ -85,8 +85,8 @@ fun generateTemplate(input: String, indStartToken: Char = '<', indStopToken: Cha
 fun String.keepIndentation() = generateTemplate(this)
 
 /**
- * Escape all special caracters such as '<' '>' '/'
+ * Escape all special characters such as '<' '>' '\'
  */
-fun String.escapeAll(escapeChar: Char = '/') = this.replace("$escapeChar", "$escapeChar$escapeChar")
+fun String.escapeAll(escapeChar: Char = '\\') = this.replace("$escapeChar", "$escapeChar$escapeChar")
         .replace("<", "$escapeChar<")
         .replace(">", "$escapeChar>")

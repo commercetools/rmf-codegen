@@ -7,6 +7,7 @@ import io.vrap.rmf.raml.model.modules.Library
 import io.vrap.rmf.raml.model.resources.util.ResourcesSwitch
 import io.vrap.rmf.raml.model.types.AnnotationsFacet
 import io.vrap.rmf.raml.model.types.AnyType
+import io.vrap.rmf.raml.model.types.StringInstance
 import io.vrap.rmf.raml.model.types.util.TypesSwitch
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.util.ComposedSwitch
@@ -33,6 +34,13 @@ class PackageSwitch @Inject constructor(@Named(VrapConstants.PACKAGE_NAME) val b
             var currentType = type
             val modelsPackage = "$basePackage.models"
             while (currentType.type != null) {
+                if (currentType.getAnnotation("package") != null) {
+                    return currentType.let { it.getAnnotation("package") }
+                            ?.let { it.value }
+                            ?.let { it.value }
+                            ?.let { "$modelsPackage.$it" }
+                            ?: modelsPackage
+                }
                 if (currentType.eContainer() is Library && (currentType.eContainer() as Library).getAnnotation("package") != null) {
                     break
                 }

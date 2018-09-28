@@ -31,21 +31,24 @@ class ModelTypeSwitch @Inject constructor(val packageSwitch: PackageSwitch, val 
 
     override fun caseDateOnlyType(`object`: DateOnlyType) = languageBaseTypes.dateOnlyType
 
-    override fun caseArrayType(arrayType: ArrayType) = VrapArrayType(doSwitch(arrayType.items) ?: languageBaseTypes.objectType)
+    override fun caseArrayType(arrayType: ArrayType) = VrapArrayType(arrayType.items?.let {doSwitch(arrayType.items) } ?: languageBaseTypes.objectType)
 
     override fun caseObjectType(objectType: ObjectType) = VrapObjectType(`package` = packageSwitch.doSwitch(objectType), simpleClassName = objectType.name)
 
     override fun caseNilType(`object`: NilType) = VrapNilType()
 
     override fun caseStringType(stringType: StringType): VrapType {
-        return if (stringType.isInlineType) {
+        if (stringType.isInlineType) {
+            if (stringType.type == null) {
+                return languageBaseTypes.stringType
+            }
             // for inline types we have to check their itemType and they always have a non null itemType
-            doSwitch(stringType.type)
+            return doSwitch(stringType.type)
         } else if (stringType.name == "string" || stringType.enum == null || stringType.enum.isEmpty()) {
-            languageBaseTypes.stringType
+            return languageBaseTypes.stringType
         } else {
             //This case happens for enumerations
-            VrapObjectType(`package` = packageSwitch.doSwitch(stringType), simpleClassName = stringType.name)
+            return VrapObjectType(`package` = packageSwitch.doSwitch(stringType), simpleClassName = stringType.name)
         }
     }
 }

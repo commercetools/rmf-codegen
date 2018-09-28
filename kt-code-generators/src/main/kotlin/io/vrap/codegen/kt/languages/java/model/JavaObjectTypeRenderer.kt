@@ -35,7 +35,7 @@ class JavaObjectTypeRenderer @Inject constructor(override val vrapTypeSwitch: Vr
                 |${type.toJavaComment().escapeAll()}
                 |${type.subTypesAnnotations()}
                 |${JavaSubTemplates.generatedAnnotation}
-                |public class ${vrapType.simpleClassName} ${type.type?.toVrapType()?.simpleName()?.let { "extends $it" }?:""}{
+                |public class ${vrapType.simpleClassName} ${type.type?.toVrapType()?.simpleName()?.let { "extends $it" } ?: ""}{
                 |
                 |    <${type.toBeanFields().escapeAll()}>
                 |
@@ -86,26 +86,64 @@ class JavaObjectTypeRenderer @Inject constructor(override val vrapTypeSwitch: Vr
             ""
     }
 
-    fun Property.toJavaField() = "private ${this.type.toVrapType().simpleName()} ${this.name};"
+    fun Property.toJavaField() = "private ${this.type.toVrapType().simpleName()} ${if(this.isPatternProperty()) "value" else this.name};"
 
     fun ObjectType.toBeanFields() = this.properties.filter { it.name != this.discriminator }.map { it.toJavaField() }.joinToString(separator = "\n\n")
 
-    fun ObjectType.setters() = this.properties.filter { it.name != this.discriminator }.map {
-        """
-        |public void set${it.name.capitalize()}(final ${it.type.toVrapType().simpleName()} ${it.name}){
-        |   this.${it.name} = ${it.name};
-        |}
-    """.trimMargin()
-    }.joinToString(separator = "\n\n")
+    fun ObjectType.setters() = this.properties
+            //Filter the discriminators because they don't make much sense the generated bean
+            .filter { it.name != this.discriminator }
+            .map { it.setter() }
+            .joinToString(separator = "\n\n")
 
 
-    fun ObjectType.getters() = this.properties.filter { it.name != this.discriminator }.map {
-        """
-        |${it.type.toJavaComment()}
-        |@JsonProperty("${it.name}")
-        |public ${it.type.toVrapType().simpleName()} get${it.name.capitalize()}(){
-        |   return this.${it.name};
-        |}
-    """.trimMargin()
-    }.joinToString(separator = "\n\n")
+    fun ObjectType.getters() = this.properties
+            //Filter the discriminators because they don't make much sense the generated bean
+            .filter { it.name != this.discriminator }
+            .map { it.getter() }
+            .joinToString(separator = "\n\n")
+
+    fun Property.isPatternProperty() = this.name.startsWith("/") && this.name.endsWith("/")
+
+    fun Property.setter(): String {
+        return if (this.isPatternProperty()) {
+
+            """
+            |@JsonAnySetter
+            |public void setValue(String key, ${this.type.toVrapType().simpleName()} value) {
+            |    if (values == null) {
+            |        values = new HashMap<>();
+            |    }
+            |    values.put(key, value);
+            |}
+            """.trimMargin()
+        } else {
+            """
+            |public void set${this.name.capitalize()}(final ${this.type.toVrapType().simpleName()} ${this.name}){
+            |   this.${this.name} = ${this.name};
+            |}
+            """.trimMargin()
+        }
+    }
+
+    fun Property.getter(): String {
+        return if (this.isPatternProperty()) {
+
+            """
+            |@JsonAnyGetter
+            |public Map<String, ${this.type.toVrapType().simpleName()}> values() {
+            |    return values;
+            |}
+            """.trimMargin()
+        } else {
+            """
+            |${this.type.toJavaComment()}
+            |@JsonProperty("${this.name}")
+            |public ${this.type.toVrapType().simpleName()} get${this.name.capitalize()}(){
+            |   return this.${this.name};
+            |}
+        """.trimMargin()
+        }
+    }
+
 }
