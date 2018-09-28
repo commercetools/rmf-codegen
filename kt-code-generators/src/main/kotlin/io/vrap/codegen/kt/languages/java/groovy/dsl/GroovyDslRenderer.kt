@@ -22,6 +22,7 @@ class GroovyDslRenderer @Inject constructor(override val vrapTypeSwitch: VrapTyp
             |import ${vrapType.`package`}.${vrapType.simpleClassName};
             |import groovy.lang.Closure;
             |import groovy.lang.DelegatesTo;
+            |import javax.annotation.Generated;
             |
             |/**
             | * Provides a Groovy DSL to build instances of this type.

@@ -9,8 +9,12 @@ import io.vrap.rmf.codegen.kt.rendring.utils.escapeAll
 import io.vrap.rmf.codegen.kt.rendring.utils.keepIndentation
 import io.vrap.rmf.codegen.kt.types.VrapObjectType
 import io.vrap.rmf.codegen.kt.types.VrapTypeSwitch
+import io.vrap.rmf.raml.model.types.ArrayType
 import io.vrap.rmf.raml.model.types.ObjectType
 import io.vrap.rmf.raml.model.types.Property
+import io.vrap.rmf.raml.model.types.util.TypesSwitch
+import org.eclipse.emf.ecore.EObject
+import java.util.ArrayList
 
 class JavaObjectTypeRenderer @Inject constructor(override val vrapTypeSwitch: VrapTypeSwitch) : ObjectTypeExtensions, AnyTypeExtensions, ObjectTypeRenderer {
 
@@ -86,7 +90,7 @@ class JavaObjectTypeRenderer @Inject constructor(override val vrapTypeSwitch: Vr
             ""
     }
 
-    fun Property.toJavaField() = "private ${this.type.toVrapType().simpleName()} ${if(this.isPatternProperty()) "value" else this.name};"
+    fun Property.toJavaField() = "private ${this.type.toVrapType().simpleName()} ${if(this.isPatternProperty()) "values" else this.name};"
 
     fun ObjectType.toBeanFields() = this.properties.filter { it.name != this.discriminator }.map { it.toJavaField() }.joinToString(separator = "\n\n")
 
@@ -130,6 +134,8 @@ class JavaObjectTypeRenderer @Inject constructor(override val vrapTypeSwitch: Vr
         return if (this.isPatternProperty()) {
 
             """
+            |${this.validationAnnotations()}
+            |${this.type.toJavaComment()}
             |@JsonAnyGetter
             |public Map<String, ${this.type.toVrapType().simpleName()}> values() {
             |    return values;
@@ -138,6 +144,7 @@ class JavaObjectTypeRenderer @Inject constructor(override val vrapTypeSwitch: Vr
         } else {
             """
             |${this.type.toJavaComment()}
+            |${this.validationAnnotations()}
             |@JsonProperty("${this.name}")
             |public ${this.type.toVrapType().simpleName()} get${this.name.capitalize()}(){
             |   return this.${this.name};
@@ -146,4 +153,35 @@ class JavaObjectTypeRenderer @Inject constructor(override val vrapTypeSwitch: Vr
         }
     }
 
+    fun Property.validationAnnotations(): String {
+        val validationAnnotations = ArrayList<String>()
+        if (this.required != null && this.required!!) {
+            validationAnnotations.add("@NotNull")
+        }
+        if (CascadeValidationSwitch.doSwitch(this.type)) {
+            validationAnnotations.add("@Valid")
+        }
+        return validationAnnotations.joinToString(separator = "\n")
+    }
+
+
+
+
+    private object CascadeValidationSwitch : TypesSwitch<Boolean>() {
+        override fun defaultCase(`object`: EObject?): Boolean? {
+            return false
+        }
+
+        override fun caseObjectType(objectType: ObjectType?): Boolean? {
+            return true
+        }
+
+        override fun caseArrayType(arrayType: ArrayType): Boolean? {
+            return if (arrayType.items != null) {
+                doSwitch(arrayType.items)
+            } else {
+                false
+            }
+        }
+    }
 }
