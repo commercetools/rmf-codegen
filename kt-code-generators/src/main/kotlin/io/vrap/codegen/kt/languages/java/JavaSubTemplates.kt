@@ -7,7 +7,7 @@ object JavaSubTemplates {
         val generatedAnnotation = """
         |@Generated(
         |    value = "${CoreCodeGenerator::class.java.canonicalName}",
-        |    comments = "https:/github.comvrapiormf-codegen"
+        |    comments = "https:/github.com/vrapio/rmf-codegen"
         |)
     """.trimMargin()
 

@@ -11,3 +11,11 @@ fun VrapType.simpleName():String{
         else -> throw IllegalStateException("$this has no simple class name.")
     }
 }
+
+fun VrapType.fullClassName():String{
+    return when(this){
+        is VrapObjectType -> "${this.`package`}.${this.simpleClassName}"
+        is VrapArrayType -> "java.util.List<${this.itemType.fullClassName()}>"
+        else -> throw IllegalStateException("$this has no simple class name.")
+    }
+}

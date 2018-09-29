@@ -2,9 +2,7 @@ package io.vrap.rmf.codegen.kt.rendring
 
 import com.google.inject.Inject
 import io.vrap.rmf.codegen.common.generator.core.ResourceCollection
-import io.vrap.rmf.codegen.kt.io.ConsoleDataSink
 import io.vrap.rmf.codegen.kt.io.DataSink
-import io.vrap.rmf.codegen.kt.io.FileDataSink
 import io.vrap.rmf.raml.model.types.ObjectType
 import io.vrap.rmf.raml.model.types.StringType
 import org.slf4j.LoggerFactory
@@ -23,6 +21,9 @@ class CoreCodeGenerator @Inject constructor(val dataSink: DataSink
     lateinit var stringTypeGenerators: MutableSet<StringTypeRenderer>
 
     @Inject(optional = true)
+    lateinit var allResourcesGenerators: MutableSet<ResourceCollectionRenderer>
+
+    @Inject(optional = true)
     lateinit var fileProducers: MutableSet<FileProducer>
 
     fun generate() {
@@ -34,16 +35,23 @@ class CoreCodeGenerator @Inject constructor(val dataSink: DataSink
         }
 
         if (::objectTypeGenerators.isInitialized) {
-            LOGGER.info("generating types for object types generators")
+            LOGGER.info("generating files for object types")
             objectTypeGenerators.flatMap { objectTypeRenderer ->
                 allObjectTypes.map { objectTypeRenderer.render(it) }
             }.map { dataSink.save(it) }
         }
 
         if (::stringTypeGenerators.isInitialized) {
-            LOGGER.info("generating types for object types generators")
+            LOGGER.info("generating files for object types string types")
             stringTypeGenerators.flatMap { stringTypeRenderer ->
                 allStringTypes.map { stringTypeRenderer.render(it) }
+            }.map { dataSink.save(it) }
+        }
+
+        if (::allResourcesGenerators.isInitialized) {
+            LOGGER.info("generating files for object types resource collections")
+            allResourcesGenerators.flatMap { resCollectionRenderer ->
+                allResourceCollections.map { resCollectionRenderer.render(it) }
             }.map { dataSink.save(it) }
         }
 

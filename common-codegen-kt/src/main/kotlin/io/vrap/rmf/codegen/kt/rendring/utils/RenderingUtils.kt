@@ -39,17 +39,17 @@ fun indentString(input: String, result: StringBuilder = StringBuilder(), initial
     val padding = StringBuilder()
     while (index.get() < input.length) {
         when (input[index.get()]) {
-            indStartToken -> {
-                index.incrementAndGet()
-                indentString(input, result, initialPadding + padding, index, indStartToken, indStopToken, escapeChar)
-            }
-            indStopToken -> return
             escapeChar -> {
                 val nexIndex = index.incrementAndGet()
                 if (nexIndex < input.length) {
                     result.append(input[nexIndex])
                 }
             }
+            indStartToken -> {
+                index.incrementAndGet()
+                indentString(input, result, initialPadding + padding, index, indStartToken, indStopToken, escapeChar)
+            }
+            indStopToken -> return
             '\n' -> {
                 padding.setLength(0)
                 result.append("\n$initialPadding")
