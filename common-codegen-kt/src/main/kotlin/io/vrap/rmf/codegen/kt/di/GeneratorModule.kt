@@ -9,6 +9,7 @@ import io.vrap.rmf.codegen.kt.CodeGeneratorConfig
 import io.vrap.rmf.codegen.kt.io.DataSink
 import io.vrap.rmf.codegen.kt.io.FileDataSink
 import io.vrap.rmf.codegen.kt.types.LanguageBaseTypes
+import io.vrap.rmf.codegen.kt.types.VrapObjectType
 import io.vrap.rmf.codegen.kt.types.VrapTypeSwitch
 import io.vrap.rmf.codegen.kt.types.VrapType
 import io.vrap.rmf.raml.model.RamlModelBuilder
@@ -92,9 +93,13 @@ class GeneratorModule constructor(
 
     @Provides
     @Singleton
-    fun resourceCollection(resources: MutableList<Resource>, vrapTypeSwitch: VrapTypeSwitch): List<ResourceCollection> = resources.groupBy { vrapTypeSwitch.doSwitch(it) }
-                                                                                                                            .map { entry: Map.Entry<VrapType, List<Resource>> -> ResourceCollection(entry.key, entry.value) }
-                                                                                                                            .toList()
+    fun resourceCollection(resources: MutableList<Resource>, vrapTypeSwitch: VrapTypeSwitch): List<ResourceCollection> {
+        return resources.groupBy { (vrapTypeSwitch.doSwitch(it) as VrapObjectType).simpleClassName }
+                .map { entry: Map.Entry<String, List<Resource>> ->
+                    ResourceCollection(vrapTypeSwitch.doSwitch(entry.value[0]), entry.value)
+                }
+                .toList()
+    }
 
 
     private inner class FilterSwitch : ComposedSwitch<Boolean>() {

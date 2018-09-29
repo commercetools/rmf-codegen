@@ -88,6 +88,7 @@ class SpringClientRenderer @Inject constructor(val packageSwitch: PackageSwitch,
             |          maxAttemptsExpression = "#{${'$'}{retry.${method.method.name}.maxAttempts}}",
             |          backoff = @Backoff(delayExpression = "#{1}", maxDelayExpression = "#{5}", multiplierExpression = "#{2}"))
             |public ${methodReturnType.fullClassName()} ${method.method.name.toLowerCase()}(${methodParameters(resource, method)}) {
+            |
             |    final Map\<String, Object\> parameters = new HashMap\<\>();
             |
             |    <${resource.allUriParameters.map { "parameters.put(\"${it.name}\",${it.name});" }.joinToString(separator = "\n")}>
@@ -98,6 +99,7 @@ class SpringClientRenderer @Inject constructor(val packageSwitch: PackageSwitch,
             |    final String fullUri = baseUri + "${resource.fullUri.template}";
             |
             |    return restTemplate.exchange(fullUri, HttpMethod.${method.method.name.toUpperCase()}, entity, type, parameters).getBody();
+            |
             |}
                 """.trimMargin()
         return body
