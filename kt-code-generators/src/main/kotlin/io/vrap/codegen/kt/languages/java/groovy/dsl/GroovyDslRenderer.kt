@@ -4,6 +4,7 @@ import com.google.inject.Inject
 import io.vrap.codegen.kt.languages.java.JavaSubTemplates
 import io.vrap.codegen.kt.languages.java.extensions.AnyTypeExtensions
 import io.vrap.codegen.kt.languages.java.extensions.ObjectTypeExtensions
+import io.vrap.codegen.kt.languages.java.extensions.fullClassName
 import io.vrap.rmf.codegen.kt.rendring.ObjectTypeRenderer
 import io.vrap.rmf.codegen.kt.io.TemplateFile
 import io.vrap.rmf.codegen.kt.types.VrapObjectType
@@ -19,7 +20,7 @@ class GroovyDslRenderer @Inject constructor(override val vrapTypeSwitch: VrapTyp
         val content = """
             |package ${vrapType.`package`};
             |
-            |import ${vrapType.`package`}.${vrapType.simpleClassName};
+            |import ${vrapType.fullClassName()};
             |import groovy.lang.Closure;
             |import groovy.lang.DelegatesTo;
             |import javax.annotation.Generated;

@@ -36,9 +36,9 @@ class JavaObjectTypeRenderer @Inject constructor(override val vrapTypeSwitch: Vr
                 |import org.apache.commons.lang3.builder.ToStringBuilder;
                 |import org.apache.commons.lang3.builder.ToStringStyle;
                 |
-                |${type.toJavaComment().escapeAll()}
-                |${type.subTypesAnnotations()}
-                |${JavaSubTemplates.generatedAnnotation}
+                |<${type.toJavaComment().escapeAll()}>
+                |<${type.subTypesAnnotations()}>
+                |<${JavaSubTemplates.generatedAnnotation}>
                 |public class ${vrapType.simpleClassName} ${type.type?.toVrapType()?.simpleName()?.let { "extends $it" } ?: ""}{
                 |
                 |    <${type.toBeanFields().escapeAll()}>

@@ -134,8 +134,7 @@ class SpringClientRenderer @Inject constructor(val packageSwitch: PackageSwitch,
                 .filter { it.isSuccessfull() }
                 .filter { it.bodies?.isNotEmpty() ?: false }
                 .first()
-                .let { it.bodies[0] }
-                .let { it.type }
+                .let { it.bodies[0].type }
                 ?: TypesFactoryImpl.eINSTANCE.createNilType()
     }
 

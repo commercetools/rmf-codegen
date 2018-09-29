@@ -34,7 +34,14 @@ fun validateString(input: String, indStartToken: Char, indStopToken: Char, escap
 
 }
 
-fun indentString(input: String, result: StringBuilder = StringBuilder(), initialPadding: String = "", index: AtomicInteger = AtomicInteger(0), indStartToken: Char, indStopToken: Char, escapeChar: Char) {
+fun indentString(input: String, result: StringBuilder = StringBuilder(),
+                 initialPadding: String = "",
+                 index: AtomicInteger = AtomicInteger(0),
+                 heapDepth:Int = 0,
+                 candidateEmptyLinesIndexes : MutableList<Pair<Int,Int>> = mutableListOf(),
+                 indStartToken: Char,
+                 indStopToken: Char,
+                 escapeChar: Char) {
 
     val padding = StringBuilder()
     while (index.get() < input.length) {
@@ -46,8 +53,11 @@ fun indentString(input: String, result: StringBuilder = StringBuilder(), initial
                 }
             }
             indStartToken -> {
+                val starIndex = result.lastIndex
                 index.incrementAndGet()
-                indentString(input, result, initialPadding + padding, index, indStartToken, indStopToken, escapeChar)
+                indentString(input, result, initialPadding + padding, index,heapDepth+1, candidateEmptyLinesIndexes,indStartToken, indStopToken, escapeChar)
+                candidateEmptyLinesIndexes.add(Pair(starIndex,result.length))
+
             }
             indStopToken -> return
             '\n' -> {
@@ -61,7 +71,33 @@ fun indentString(input: String, result: StringBuilder = StringBuilder(), initial
         }
         index.incrementAndGet()
     }
+
+    if(heapDepth == 0 && candidateEmptyLinesIndexes.isNotEmpty()){
+        //remove empty lines
+        candidateEmptyLinesIndexes.reverse()
+        candidateEmptyLinesIndexes.forEach{removeIfLineIsEmpty(result,it.first,it.second)}
+    }
 }
+
+fun removeIfLineIsEmpty(stringBuilder: StringBuilder, start:Int,end:Int){
+
+    if(stringBuilder.substring(start,end).isNotBlank()){
+        return
+    }
+
+    var lineStart=start
+    var lineEnd =end
+    while(lineStart>0 && stringBuilder[lineStart] != '\n'){
+        lineStart--
+    }
+    while(lineEnd<stringBuilder.lastIndex && stringBuilder[lineEnd] != '\n'){
+        lineEnd++
+    }
+    if(stringBuilder.substring(lineStart,lineEnd).isBlank() && stringBuilder[lineStart] == '\n'){
+        stringBuilder.replace(lineStart,lineEnd,"")
+    }
+}
+
 
 
 fun generateTemplate(input: String, indStartToken: Char = '<', indStopToken: Char = '>', escapeChar: Char = '\\'): String {

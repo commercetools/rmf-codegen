@@ -42,14 +42,14 @@ class CoreCodeGenerator @Inject constructor(val dataSink: DataSink
         }
 
         if (::stringTypeGenerators.isInitialized) {
-            LOGGER.info("generating files for object types string types")
+            LOGGER.info("generating files for string types")
             stringTypeGenerators.flatMap { stringTypeRenderer ->
                 allStringTypes.map { stringTypeRenderer.render(it) }
             }.map { dataSink.save(it) }
         }
 
         if (::allResourcesGenerators.isInitialized) {
-            LOGGER.info("generating files for object types resource collections")
+            LOGGER.info("generating files for resource collections")
             allResourcesGenerators.flatMap { resCollectionRenderer ->
                 allResourceCollections.map { resCollectionRenderer.render(it) }
             }.map { dataSink.save(it) }
