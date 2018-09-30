@@ -14,7 +14,7 @@ import io.vrap.rmf.raml.model.types.ObjectType
 import io.vrap.rmf.raml.model.types.Property
 import io.vrap.rmf.raml.model.types.util.TypesSwitch
 import org.eclipse.emf.ecore.EObject
-import java.util.ArrayList
+import java.util.*
 
 class JavaObjectTypeRenderer @Inject constructor(override val vrapTypeSwitch: VrapTypeSwitch) : ObjectTypeExtensions, AnyTypeExtensions, ObjectTypeRenderer {
 
@@ -90,9 +90,19 @@ class JavaObjectTypeRenderer @Inject constructor(override val vrapTypeSwitch: Vr
             ""
     }
 
-    fun Property.toJavaField() = "private ${this.type.toVrapType().simpleName()} ${if(this.isPatternProperty()) "values" else this.name};"
+    fun Property.toJavaField(): String {
 
-    fun ObjectType.toBeanFields() = this.properties.filter { it.name != this.discriminator }.map { it.toJavaField() }.joinToString(separator = "\n\n")
+        return if (this.isPatternProperty()) {
+            "private Map<String,${this.type.toVrapType().simpleName()}> values;"
+        } else {
+            "private ${this.type.toVrapType().simpleName()} ${if (this.isPatternProperty()) "values" else this.name};"
+        }
+
+    }
+
+    fun ObjectType.toBeanFields() = this.properties
+            .filter { it.name != this.discriminator }
+            .map { it.toJavaField() }.joinToString(separator = "\n\n")
 
     fun ObjectType.setters() = this.properties
             //Filter the discriminators because they don't make much sense the generated bean
