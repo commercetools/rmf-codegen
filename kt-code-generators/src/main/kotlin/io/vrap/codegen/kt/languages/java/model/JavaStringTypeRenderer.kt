@@ -21,7 +21,7 @@ class JavaStringTypeRenderer @Inject constructor(override val vrapTypeSwitch: Vr
         val vrapType = vrapTypeSwitch.doSwitch(type) as VrapObjectType
 
         val content = """
-                |package ${vrapType.`package`}.${vrapType.simpleClassName};
+                |package ${vrapType.`package`};
                 |
                 |import com.fasterxml.jackson.annotation.JsonProperty;
                 |import java.lang.String;

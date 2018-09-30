@@ -30,13 +30,14 @@ class PackageSwitch @Inject constructor(@Named(VrapConstants.PACKAGE_NAME) val b
             return "$basePackage.models"
         }
 
-        override fun caseAnyType(type: AnyType): String {
+        override fun caseAnyType(type: AnyType?): String {
             var currentType = type
             val modelsPackage = "$basePackage.models"
-            while (currentType.type != null) {
-                if (currentType.getAnnotation("package") != null) {
-                    return currentType.let { it.getAnnotation("package") }
-                            ?.let { it.value }
+            while (currentType != null) {
+
+                val annotation=currentType.getAnnotation("package")?:currentType.type?.getAnnotation("package")
+                if (annotation!= null) {
+                    return annotation.let { it.value }
                             ?.let { it.value }
                             ?.let { "$modelsPackage.$it" }
                             ?: modelsPackage
@@ -46,17 +47,19 @@ class PackageSwitch @Inject constructor(@Named(VrapConstants.PACKAGE_NAME) val b
                 }
                 currentType = currentType.type
             }
-            var eContainer: EObject? = currentType.eContainer()
-            while (eContainer != null) {
-                if (eContainer is AnnotationsFacet) {
+            if(currentType?.eContainer()!=null){
+                var eContainer: EObject? = currentType.eContainer()
+                while (eContainer != null) {
+                    if (eContainer is AnnotationsFacet) {
 
-                    return eContainer.let { it.getAnnotation("package") }
-                            ?.let { it.value }
-                            ?.let { it.value }
-                            ?.let { "$modelsPackage.$it" }
-                            ?: modelsPackage
+                        return eContainer.let { it.getAnnotation("package") }
+                                ?.let { it.value }
+                                ?.let { it.value }
+                                ?.let { "$modelsPackage.$it" }
+                                ?: modelsPackage
+                    }
+                    eContainer = eContainer.eContainer()
                 }
-                eContainer = eContainer.eContainer()
             }
             return modelsPackage
         }

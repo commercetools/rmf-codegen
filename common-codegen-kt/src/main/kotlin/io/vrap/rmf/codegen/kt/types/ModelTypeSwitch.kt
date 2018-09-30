@@ -33,7 +33,12 @@ class ModelTypeSwitch @Inject constructor(val packageSwitch: PackageSwitch, val 
 
     override fun caseArrayType(arrayType: ArrayType) = VrapArrayType(arrayType.items?.let {doSwitch(arrayType.items) } ?: languageBaseTypes.objectType)
 
-    override fun caseObjectType(objectType: ObjectType) = VrapObjectType(`package` = packageSwitch.doSwitch(objectType), simpleClassName = objectType.name)
+    override fun caseObjectType(objectType: ObjectType) : VrapType {
+        if(objectType.name == "object"){
+            return languageBaseTypes.objectType;
+        }
+        return VrapObjectType(`package` = packageSwitch.doSwitch(objectType), simpleClassName = objectType.name)
+    }
 
     override fun caseNilType(`object`: NilType) = VrapNilType()
 

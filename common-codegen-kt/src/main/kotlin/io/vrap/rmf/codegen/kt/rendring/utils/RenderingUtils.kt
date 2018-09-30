@@ -17,7 +17,8 @@ fun validateString(input: String, indStartToken: Char, indStopToken: Char, escap
                         indStartToken -> stack.push(Pair(index, i))
                         indStopToken -> {
                             if (stack.isEmpty()) {
-                                throw Exception("can't find opening token '$indStartToken' for closing token '$indStopToken' at line $index column $i \n$input")
+                                val numerizedLinez = input.lines().mapIndexed { index, s -> "$index - $s" }.joinToString(separator = "\n")
+                                throw Exception("can't find opening token '$indStartToken' for closing token '$indStopToken' at line $index column $i \n$numerizedLinez")
                             } else {
                                 stack.pop()
                             }
@@ -29,7 +30,8 @@ fun validateString(input: String, indStartToken: Char, indStopToken: Char, escap
 
     if (stack.isNotEmpty()) {
         val lastOpenedIndentation = stack.pop()
-        throw Exception("can't find closing token '$indStopToken' for open token '$indStartToken' at line ${lastOpenedIndentation.first} column ${lastOpenedIndentation.second} \n$input ")
+        val numerizedLinez = input.lines().mapIndexed { index, s -> "$index - $s" }.joinToString(separator = "\n")
+        throw Exception("can't find closing token '$indStopToken' for open token '$indStartToken' at line ${lastOpenedIndentation.first} column ${lastOpenedIndentation.second} \n$numerizedLinez ")
     }
 
 }
@@ -41,7 +43,7 @@ fun indentString(input: String, result: StringBuilder = StringBuilder(),
                  candidateEmptyLinesIndexes : MutableList<Pair<Int,Int>> = mutableListOf(),
                  indStartToken: Char,
                  indStopToken: Char,
-                 escapeChar: Char) {
+                 escapeChar: Char) : StringBuilder{
 
     val padding = StringBuilder()
     while (index.get() < input.length) {
@@ -59,7 +61,7 @@ fun indentString(input: String, result: StringBuilder = StringBuilder(),
                 candidateEmptyLinesIndexes.add(Pair(starIndex,result.length))
 
             }
-            indStopToken -> return
+            indStopToken -> return result
             '\n' -> {
                 padding.setLength(0)
                 result.append("\n$initialPadding")
@@ -77,6 +79,7 @@ fun indentString(input: String, result: StringBuilder = StringBuilder(),
         candidateEmptyLinesIndexes.reverse()
         candidateEmptyLinesIndexes.forEach{removeIfLineIsEmpty(result,it.first,it.second)}
     }
+    return result
 }
 
 fun removeIfLineIsEmpty(stringBuilder: StringBuilder, start:Int,end:Int){
@@ -112,12 +115,38 @@ fun generateTemplate(input: String, indStartToken: Char = '<', indStopToken: Cha
     val changedInput = input.replace(System.lineSeparator(), "\n")
 
     //Now you can indent properly
-    val result = StringBuilder()
-    indentString(changedInput, result, indStartToken = indStartToken, indStopToken = indStopToken, escapeChar = escapeChar)
+    val result = indentString(changedInput, indStartToken = indStartToken, indStopToken = indStopToken, escapeChar = escapeChar)
 
     return result.toString()
 }
 
+/**
+ * This method allow you to keep the correct indentation of your template,lets take the following example
+ *
+ * `
+ * """
+ * |Here are the benefits of eating one apple a day: <${benefits(FruitType.APPLE)}>
+ * |
+ * """`
+ *
+ * if we process this string with `keepIndentation`, and ${benefits(FruitType.APPLE) return
+ * a multiline string then each new line would be indented to start from same index where the
+ * first line started which would result of something like this after evaluation
+ *`
+ * """
+ * |Here are the benefits of eating one apple a day: - keeps the doctor away
+ * |                                                 - it's good
+ * |                                                 - just eat it already.
+ * """
+ *`
+ * this is particularly useful for code generation since the new block included in the template would keep the indentation from where it was specified,
+ * this give the code a nice formatting and for some languages such as `python`, this is not only a convenience but a necessity since the indentation is used there
+ * to identify code blocks
+ *
+ * if your template contains `'<'` or `'>'`, `'\'` that weren't meant for indentation semantics, then they would have to be skipped via the skipping char '\'
+ * (this is the default skipping character but can be changed),in that they would be ignored by the parser or you can escape all the special chars you can
+ * use `escapeAll` which would escape every special character in that string.
+ */
 fun String.keepIndentation() = generateTemplate(this)
 
 /**
