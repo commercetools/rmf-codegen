@@ -1,7 +1,6 @@
 package io.vrap.codegen.kt.languages.java
 
 import io.vrap.rmf.codegen.kt.types.LanguageBaseTypes
-import io.vrap.rmf.codegen.kt.types.VrapDefaultObjectType
 import io.vrap.rmf.codegen.kt.types.VrapObjectType
 import java.time.LocalDate
 import java.time.LocalTime
@@ -25,6 +24,4 @@ object JavaBaseTypes : LanguageBaseTypes(
 fun  fromJavaType(kClass: KClass<out Any>):VrapObjectType{
    return VrapObjectType(kClass.java.`package`.name,kClass.java.simpleName)
 }
-fun  fromDefaultJavaType(kClass: KClass<out Any>):VrapObjectType{
-   return VrapDefaultObjectType(kClass.java.`package`.name,kClass.java.simpleName)
-}
+fun  fromDefaultJavaType(kClass: KClass<out Any>):VrapObjectType = fromJavaType(kClass).let { VrapObjectType(it.`package`,it.simpleClassName) }
