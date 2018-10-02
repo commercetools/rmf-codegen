@@ -33,7 +33,7 @@ class PackageSwitch @Inject constructor(@Named(VrapConstants.PACKAGE_NAME) val b
             val modelsPackage = "$basePackage.models"
             while (currentType != null) {
 
-                val annotation = currentType.getAnnotation("package") ?: currentType.type?.getAnnotation("package")
+                val annotation = currentType.getAnnotation("package")
                 if (annotation != null) {
                     return annotation.let { it.value }
                             ?.let { it.value }
