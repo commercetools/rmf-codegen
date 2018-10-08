@@ -15,7 +15,7 @@ class TestCodeGenerator {
 
 
     val generatorConfig = CodeGeneratorConfig(
-            ramlFileLocation = URI.createFileURI("/Users/abeniasaad/IdeaProjects/rmf-codegen/common-codegen/src/test/resources/api-spec/api.raml")
+            ramlFileLocation = URI.createFileURI("../api-spec/api.raml")
     )
 
     @Test

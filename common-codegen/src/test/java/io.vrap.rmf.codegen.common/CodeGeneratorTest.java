@@ -36,7 +36,7 @@ public class CodeGeneratorTest {
             customTypeMapping.put("CurrencyCode", CurrencyCode.class.getCanonicalName());
         }
 
-        final URI ramlFileLocation = URI.createURI("/Users/abeniasaad/IdeaProjects/commercetools-importer/api-spec/import-storage-api.raml");
+        final URI ramlFileLocation = URI.createURI("../api-spec/import-storage-api.raml");
         final String gensrc = System.getProperty("GENSRC");
         final String current = System.getProperty("user.dir");
         final Path outputPath = gensrc == null ?
