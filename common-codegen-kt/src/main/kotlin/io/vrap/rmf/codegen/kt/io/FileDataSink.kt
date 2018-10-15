@@ -8,7 +8,7 @@ class FileDataSink @Inject constructor(val outputFolder:Path): DataSink {
 
 
 
-    override fun save(templateFile: TemplateFile) {
+    override fun write(templateFile: TemplateFile) {
         val outputFile = File("$outputFolder/${templateFile.relativePath}")
         outputFile.parentFile.mkdirs()
         outputFile.createNewFile()

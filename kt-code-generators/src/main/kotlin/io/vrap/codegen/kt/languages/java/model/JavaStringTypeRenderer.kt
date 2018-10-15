@@ -2,7 +2,7 @@ package io.vrap.codegen.kt.languages.java.model
 
 import com.google.inject.Inject
 import io.vrap.codegen.kt.languages.java.JavaSubTemplates
-import io.vrap.codegen.kt.languages.java.extensions.AnyTypeExtensions
+import io.vrap.codegen.kt.languages.java.extensions.EObjectTypeExtensions
 import io.vrap.codegen.kt.languages.java.extensions.ObjectTypeExtensions
 import io.vrap.codegen.kt.languages.java.extensions.toJavaComment
 import io.vrap.rmf.codegen.kt.io.TemplateFile
@@ -10,15 +10,15 @@ import io.vrap.rmf.codegen.kt.rendring.StringTypeRenderer
 import io.vrap.rmf.codegen.kt.rendring.utils.escapeAll
 import io.vrap.rmf.codegen.kt.rendring.utils.keepIndentation
 import io.vrap.rmf.codegen.kt.types.VrapObjectType
-import io.vrap.rmf.codegen.kt.types.VrapTypeSwitch
+import io.vrap.rmf.codegen.kt.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.types.StringInstance
 import io.vrap.rmf.raml.model.types.StringType
 import io.vrap.rmf.raml.model.util.StringCaseFormat
 
-class JavaStringTypeRenderer @Inject constructor(override val vrapTypeSwitch: VrapTypeSwitch) : ObjectTypeExtensions, AnyTypeExtensions, StringTypeRenderer {
+class JavaStringTypeRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : ObjectTypeExtensions, EObjectTypeExtensions, StringTypeRenderer {
 
     override fun render(type: StringType): TemplateFile {
-        val vrapType = vrapTypeSwitch.doSwitch(type) as VrapObjectType
+        val vrapType = vrapTypeProvider.doSwitch(type) as VrapObjectType
 
         val content = """
                 |package ${vrapType.`package`};

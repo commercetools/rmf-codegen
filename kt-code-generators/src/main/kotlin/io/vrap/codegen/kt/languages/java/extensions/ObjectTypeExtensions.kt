@@ -10,11 +10,11 @@ interface  ObjectTypeExtensions : ExtensionsBase {
 
         val result =  this.properties
                 .map { it.type }
+                //If the subtipes are in the same package they should be imported
                 .plus(this.subTypes)
                 .plus(this.type)
                 .filterNotNull()
-                .map { vrapTypeSwitch.doSwitch(it) }
-                .filter { it !is VrapDefaultObjectType }
+                .map { vrapTypeProvider.doSwitch(it) }
                 .map { getImportsForType(it) }
                 .filterNotNull()
                 .sortedBy { it }

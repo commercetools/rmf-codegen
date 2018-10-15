@@ -5,12 +5,12 @@ import com.google.inject.Inject
 import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.resources.util.ResourcesSwitch
 
-class ResourcesTypeSwitch @Inject constructor( val packageSwitch: PackageSwitch) : ResourcesSwitch<VrapType>() {
+class ResourcesTypeProvider @Inject constructor(val packageProvider: PackageProvider) : ResourcesSwitch<VrapType>() {
 
     private val classNameMapper = CaseFormat.LOWER_HYPHEN.converterTo(CaseFormat.UPPER_CAMEL)
 
     override fun caseResource(resource: Resource): VrapType {
-        return VrapObjectType(packageSwitch.doSwitch(resource), "${classNameMapper.convert(resource.resourcePathName)}Requests")
+        return VrapObjectType(packageProvider.doSwitch(resource), "${classNameMapper.convert(resource.resourcePathName)}Requests")
     }
 
 }

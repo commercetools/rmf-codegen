@@ -6,15 +6,15 @@ import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.util.ComposedSwitch
 import org.slf4j.LoggerFactory
 
-class VrapTypeSwitch @Inject constructor(packageSwitch: PackageSwitch,
-                                         val languageBaseTypes: LanguageBaseTypes,
-                                         val customTypeMapping: MutableMap<String, VrapType>
+class VrapTypeProvider @Inject constructor(packageProvider: PackageProvider,
+                                           val languageBaseTypes: LanguageBaseTypes,
+                                           val customTypeMapping: MutableMap<String, VrapType>
 ) : ComposedSwitch<VrapType>() {
 
 
     init {
-        addSwitch(ModelTypeSwitch(packageSwitch, languageBaseTypes))
-        addSwitch(ResourcesTypeSwitch(packageSwitch))
+        addSwitch(AnyTypeProvider(packageProvider, languageBaseTypes))
+        addSwitch(ResourcesTypeProvider(packageProvider))
     }
 
     override fun doSwitch(eObject: EObject): VrapType {
@@ -35,6 +35,6 @@ class VrapTypeSwitch @Inject constructor(packageSwitch: PackageSwitch,
     }
 
     companion object {
-        private val LOGGER = LoggerFactory.getLogger(VrapTypeSwitch::class.java)
+        private val LOGGER = LoggerFactory.getLogger(VrapTypeProvider::class.java)
     }
 }

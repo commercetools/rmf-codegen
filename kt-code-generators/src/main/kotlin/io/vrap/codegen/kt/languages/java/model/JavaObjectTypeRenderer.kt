@@ -8,7 +8,7 @@ import io.vrap.rmf.codegen.kt.rendring.ObjectTypeRenderer
 import io.vrap.rmf.codegen.kt.rendring.utils.escapeAll
 import io.vrap.rmf.codegen.kt.rendring.utils.keepIndentation
 import io.vrap.rmf.codegen.kt.types.VrapObjectType
-import io.vrap.rmf.codegen.kt.types.VrapTypeSwitch
+import io.vrap.rmf.codegen.kt.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.types.ArrayType
 import io.vrap.rmf.raml.model.types.ObjectType
 import io.vrap.rmf.raml.model.types.Property
@@ -16,11 +16,11 @@ import io.vrap.rmf.raml.model.types.util.TypesSwitch
 import org.eclipse.emf.ecore.EObject
 import java.util.*
 
-class JavaObjectTypeRenderer @Inject constructor(override val vrapTypeSwitch: VrapTypeSwitch) : ObjectTypeExtensions, AnyTypeExtensions, ObjectTypeRenderer {
+class JavaObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : ObjectTypeExtensions, EObjectTypeExtensions, ObjectTypeRenderer {
 
     override fun render(type: ObjectType): TemplateFile {
 
-        val vrapType = vrapTypeSwitch.doSwitch(type) as VrapObjectType
+        val vrapType = vrapTypeProvider.doSwitch(type) as VrapObjectType
 
         val content = """
                 |package ${vrapType.`package`};
@@ -168,7 +168,7 @@ class JavaObjectTypeRenderer @Inject constructor(override val vrapTypeSwitch: Vr
         if (this.required != null && this.required!!) {
             validationAnnotations.add("@NotNull")
         }
-        if (CascadeValidationSwitch.doSwitch(this.type)) {
+        if (CascadeValidationCheck.doSwitch(this.type)) {
             validationAnnotations.add("@Valid")
         }
         return validationAnnotations.joinToString(separator = "\n")
@@ -177,7 +177,7 @@ class JavaObjectTypeRenderer @Inject constructor(override val vrapTypeSwitch: Vr
 
 
 
-    private object CascadeValidationSwitch : TypesSwitch<Boolean>() {
+    private object CascadeValidationCheck : TypesSwitch<Boolean>() {
         override fun defaultCase(`object`: EObject?): Boolean? {
             return false
         }

@@ -38,26 +38,26 @@ class CoreCodeGenerator @Inject constructor(val dataSink: DataSink
             LOGGER.info("generating files for object types")
             objectTypeGenerators.flatMap { objectTypeRenderer ->
                 allObjectTypes.map { objectTypeRenderer.render(it) }
-            }.map { dataSink.save(it) }
+            }.map { dataSink.write(it) }
         }
 
         if (::stringTypeGenerators.isInitialized) {
             LOGGER.info("generating files for string types")
             stringTypeGenerators.flatMap { stringTypeRenderer ->
                 allStringTypes.map { stringTypeRenderer.render(it) }
-            }.map { dataSink.save(it) }
+            }.map { dataSink.write(it) }
         }
 
         if (::allResourcesGenerators.isInitialized) {
             LOGGER.info("generating files for resource collections")
             allResourcesGenerators.flatMap { resCollectionRenderer ->
                 allResourceCollections.map { resCollectionRenderer.render(it) }
-            }.map { dataSink.save(it) }
+            }.map { dataSink.write(it) }
         }
 
         if(::fileProducers.isInitialized){
             LOGGER.info("generating types for file producers")
-            fileProducers.flatMap { it.produceFiles() }.map { dataSink.save(it) }
+            fileProducers.flatMap { it.produceFiles() }.map { dataSink.write(it) }
         }
 
         LOGGER.info("files generation ended")

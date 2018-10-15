@@ -2,7 +2,7 @@ package io.vrap.codegen.kt.languages.java.client
 
 import com.google.inject.Inject
 import io.vrap.codegen.kt.languages.java.JavaSubTemplates
-import io.vrap.codegen.kt.languages.java.extensions.AnyTypeExtensions
+import io.vrap.codegen.kt.languages.java.extensions.EObjectTypeExtensions
 import io.vrap.codegen.kt.languages.java.extensions.fullClassName
 import io.vrap.codegen.kt.languages.java.extensions.simpleName
 import io.vrap.codegen.kt.languages.java.extensions.toJavaComment
@@ -11,24 +11,24 @@ import io.vrap.rmf.codegen.kt.io.TemplateFile
 import io.vrap.rmf.codegen.kt.rendring.ResourceCollectionRenderer
 import io.vrap.rmf.codegen.kt.rendring.utils.escapeAll
 import io.vrap.rmf.codegen.kt.rendring.utils.keepIndentation
-import io.vrap.rmf.codegen.kt.types.PackageSwitch
+import io.vrap.rmf.codegen.kt.types.PackageProvider
 import io.vrap.rmf.codegen.kt.types.VrapObjectType
-import io.vrap.rmf.codegen.kt.types.VrapTypeSwitch
+import io.vrap.rmf.codegen.kt.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.responses.Response
 import io.vrap.rmf.raml.model.types.AnyType
 import io.vrap.rmf.raml.model.types.impl.TypesFactoryImpl
 
-class SpringClientRenderer @Inject constructor(val packageSwitch: PackageSwitch, override val vrapTypeSwitch: VrapTypeSwitch) : ResourceCollectionRenderer, AnyTypeExtensions {
+class SpringClientRenderer @Inject constructor(val packageProvider: PackageProvider, override val vrapTypeProvider: VrapTypeProvider) : ResourceCollectionRenderer, EObjectTypeExtensions {
 
 
     override fun render(type: ResourceCollection): TemplateFile {
 
-        val vrapType = vrapTypeSwitch.doSwitch(type.sample) as VrapObjectType
+        val vrapType = vrapTypeProvider.doSwitch(type.sample) as VrapObjectType
 
         val content = """
-            |package ${packageSwitch.doSwitch(type.sample)};
+            |package ${vrapType.`package`};
             |
             |import java.util.HashMap;
             |import java.util.List;
@@ -80,7 +80,7 @@ class SpringClientRenderer @Inject constructor(val packageSwitch: PackageSwitch,
 
 
     fun javaBody(resource: Resource, method: Method): String {
-        val methodReturnType = vrapTypeSwitch.doSwitch(method.retyurnType())
+        val methodReturnType = vrapTypeProvider.doSwitch(method.retyurnType())
         val body = """
             |${method.toJavaComment().escapeAll()}
             |@Retryable(
@@ -141,6 +141,6 @@ class SpringClientRenderer @Inject constructor(val packageSwitch: PackageSwitch,
     }
 
 
-    fun Response.isSuccessfull(): Boolean = this.statusCode.toInt() in (200..300)
+    fun Response.isSuccessfull(): Boolean = this.statusCode.toInt() in (200..299)
 
 }

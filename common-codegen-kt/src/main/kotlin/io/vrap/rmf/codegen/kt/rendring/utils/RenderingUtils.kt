@@ -4,7 +4,10 @@ package io.vrap.rmf.codegen.kt.rendring.utils
 import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
 
-
+/**
+ * This method allows you to validate a string that for each open indStartToken char there is a corresponding indStopToken, if its not the case
+ * this method throws an exception showing the line number of the non closed token
+ */
 fun validateString(input: String, indStartToken: Char, indStopToken: Char, escapeChar: Char) {
     val stack = Stack<Pair<Int, Int>>()
 
@@ -33,10 +36,25 @@ fun validateString(input: String, indStartToken: Char, indStopToken: Char, escap
         val numerizedLinez = input.lines().mapIndexed { index, s -> "$index - $s" }.joinToString(separator = "\n")
         throw Exception("can't find closing token '$indStopToken' for open token '$indStartToken' at line ${lastOpenedIndentation.first} column ${lastOpenedIndentation.second} \n$numerizedLinez ")
     }
-
 }
 
-fun indentString(input: String, result: StringBuilder = StringBuilder(),
+
+/**
+ * This method allow you to indent the input string accordingly, meaning once countering an indStartToken all following lines are indented by the same amount of indents as the first line
+ *
+ *
+ * @param input The sttring to be indented
+ * @param result a StringBuilder to accumulate the result string
+ * @param initialPadding The initial padding that will be applied to all the lines in the string
+ * @param index The index of the input string processed so far
+ * @param heapDepth shows how deep in the recursion heap now
+ * @param candidateEmptyLinesIndexes this keep the line index where the indentation is applied, this is good because this empty lines might be empty and then should be removed later
+ * @param indStartToken the token used to mark a new indented substring
+ * @param indStopToken the token used to mark the end of the new indented substring
+ * @param escapeChar if the indStartToken would be escaped, it should be proceeded by this escape character
+ */
+fun indentString(input: String,
+                 result: StringBuilder = StringBuilder(),
                  initialPadding: String = "",
                  index: AtomicInteger = AtomicInteger(0),
                  heapDepth:Int = 0,

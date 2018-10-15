@@ -10,7 +10,7 @@ import io.vrap.rmf.codegen.kt.io.DataSink
 import io.vrap.rmf.codegen.kt.io.FileDataSink
 import io.vrap.rmf.codegen.kt.types.LanguageBaseTypes
 import io.vrap.rmf.codegen.kt.types.VrapObjectType
-import io.vrap.rmf.codegen.kt.types.VrapTypeSwitch
+import io.vrap.rmf.codegen.kt.types.VrapTypeProvider
 import io.vrap.rmf.codegen.kt.types.VrapType
 import io.vrap.rmf.raml.model.RamlModelBuilder
 import io.vrap.rmf.raml.model.elements.NamedElement
@@ -35,7 +35,7 @@ class GeneratorModule constructor(
         private val LOGGER = LoggerFactory.getLogger(GeneratorModule::class.java)
     }
 
-    private val filterSwitch = FilterSwitch()
+    private val filterSwitch = UserProvidedResourcesFilterSwitch()
 
 
     @Provides
@@ -71,7 +71,7 @@ class GeneratorModule constructor(
 
     @Provides
     @Singleton
-    fun provideRamlEntitiesObjects(ramlApi: Api): List<AnyType> {
+    fun allAnyTypes(ramlApi: Api): List<AnyType> {
         val result = mutableListOf<AnyType>()
         ramlApi.types?.forEach { result.add(it) }
         ramlApi.uses?.flatMap { it.library.types }?.forEach { result.add(it) }
@@ -80,11 +80,11 @@ class GeneratorModule constructor(
 
     @Provides
     @Singleton
-    fun provideAllObjectTypes(anyTypeList: MutableList<AnyType>):List<ObjectType> = anyTypeList.filter { it is ObjectType }.map { it as ObjectType }
+    fun allObjectTypes(anyTypeList: MutableList<AnyType>):List<ObjectType> = anyTypeList.filter { it is ObjectType }.map { it as ObjectType }
 
     @Provides
     @Singleton
-    fun provideAllStringTypes(anyTypeList: MutableList<AnyType>):List<StringType> = anyTypeList.filter { it is StringType }.map { it as StringType }
+    fun allStringTypes(anyTypeList: MutableList<AnyType>):List<StringType> = anyTypeList.filter { it is StringType }.map { it as StringType }
 
     @Provides
     @Singleton
@@ -93,24 +93,25 @@ class GeneratorModule constructor(
 
     @Provides
     @Singleton
-    fun resourceCollection(resources: MutableList<Resource>, vrapTypeSwitch: VrapTypeSwitch): List<ResourceCollection> {
-        return resources.groupBy { (vrapTypeSwitch.doSwitch(it) as VrapObjectType).simpleClassName }
+    fun resourceCollection(resources: MutableList<Resource>, vrapTypeProvider: VrapTypeProvider): List<ResourceCollection> {
+        return resources.groupBy { (vrapTypeProvider.doSwitch(it) as VrapObjectType).simpleClassName }
                 .map { entry: Map.Entry<String, List<Resource>> ->
-                    ResourceCollection(vrapTypeSwitch.doSwitch(entry.value[0]), entry.value)
+                    ResourceCollection(vrapTypeProvider.doSwitch(entry.value[0]), entry.value)
                 }
                 .toList()
     }
 
 
-    private inner class FilterSwitch : ComposedSwitch<Boolean>() {
+    /**
+     * This filter is used to filter files that are explicitly provided by the sdk developer
+     */
+    private inner class UserProvidedResourcesFilterSwitch : ComposedSwitch<Boolean>() {
 
         init {
             addSwitch(FilterTypeSwitch())
             addSwitch(FilterResourcesSwitch())
         }
-        /**
-         * This filter is used to filter files that are explicitly provided by the sdk developer
-         */
+
         private inner class FilterTypeSwitch : TypesSwitch<Boolean>() {
             override fun caseNamedElement(`object`: NamedElement): Boolean = generatorConfig.customTypeMapping[`object`.name]?.let { false }
                     ?: true

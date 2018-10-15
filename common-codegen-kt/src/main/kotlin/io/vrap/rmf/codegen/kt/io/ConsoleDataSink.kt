@@ -7,7 +7,7 @@ object ConsoleDataSink : DataSink{
 
     private val LOGGER = LoggerFactory.getLogger(ConsoleDataSink::class.java)
 
-    override fun save(templateFile: TemplateFile) {
+    override fun write(templateFile: TemplateFile) {
         val result = """
             |____________________________________________________________________________________________________________________________
             |file : ${templateFile.relativePath}

@@ -12,7 +12,7 @@ import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.util.ComposedSwitch
 
 
-class PackageSwitch @Inject constructor(@Named(VrapConstants.PACKAGE_NAME) val basePackage: String) : ComposedSwitch<String>() {
+class PackageProvider @Inject constructor(@Named(VrapConstants.PACKAGE_NAME) val basePackage: String) : ComposedSwitch<String>() {
 
     init {
         addSwitch(TypePackageSwitch())

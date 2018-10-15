@@ -2,25 +2,24 @@ package io.vrap.codegen.kt.languages.java.groovy.dsl;
 
 import com.google.inject.Inject
 import io.vrap.codegen.kt.languages.java.JavaSubTemplates
-import io.vrap.codegen.kt.languages.java.extensions.AnyTypeExtensions
+import io.vrap.codegen.kt.languages.java.extensions.EObjectTypeExtensions
 import io.vrap.codegen.kt.languages.java.extensions.ObjectTypeExtensions
 import io.vrap.codegen.kt.languages.java.extensions.fullClassName
 import io.vrap.rmf.codegen.kt.rendring.ObjectTypeRenderer
 import io.vrap.rmf.codegen.kt.io.TemplateFile
 import io.vrap.rmf.codegen.kt.types.VrapObjectType
-import io.vrap.rmf.codegen.kt.types.VrapTypeSwitch
+import io.vrap.rmf.codegen.kt.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.types.ObjectType
 
-class GroovyDslRenderer @Inject constructor(override val vrapTypeSwitch: VrapTypeSwitch) : ObjectTypeExtensions, AnyTypeExtensions, ObjectTypeRenderer {
+class GroovyDslRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : ObjectTypeExtensions, EObjectTypeExtensions, ObjectTypeRenderer {
 
     override fun render(type: ObjectType): TemplateFile {
 
-        val vrapType = vrapTypeSwitch.doSwitch(type) as VrapObjectType
+        val vrapType = vrapTypeProvider.doSwitch(type) as VrapObjectType
 
         val content = """
             |package ${vrapType.`package`};
             |
-            |import ${vrapType.fullClassName()};
             |import groovy.lang.Closure;
             |import groovy.lang.DelegatesTo;
             |import javax.annotation.Generated;

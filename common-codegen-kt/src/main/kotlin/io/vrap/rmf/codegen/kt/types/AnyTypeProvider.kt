@@ -4,7 +4,7 @@ import com.google.inject.Inject
 import io.vrap.rmf.raml.model.types.*
 import io.vrap.rmf.raml.model.types.util.TypesSwitch
 
-class ModelTypeSwitch @Inject constructor(val packageSwitch: PackageSwitch, val languageBaseTypes: LanguageBaseTypes) : TypesSwitch<VrapType>() {
+class AnyTypeProvider @Inject constructor(val packageProvider: PackageProvider, val languageBaseTypes: LanguageBaseTypes) : TypesSwitch<VrapType>() {
 
     override fun caseUnionType(unionType: UnionType): VrapType {
         val oneOfWithoutNilType = unionType.oneOf
@@ -37,7 +37,7 @@ class ModelTypeSwitch @Inject constructor(val packageSwitch: PackageSwitch, val 
         if(objectType.name == "object"){
             return languageBaseTypes.objectType;
         }
-        return VrapObjectType(`package` = packageSwitch.doSwitch(objectType), simpleClassName = objectType.name)
+        return VrapObjectType(`package` = packageProvider.doSwitch(objectType), simpleClassName = objectType.name)
     }
 
     override fun caseNilType(`object`: NilType) = VrapNilType()
@@ -53,7 +53,7 @@ class ModelTypeSwitch @Inject constructor(val packageSwitch: PackageSwitch, val 
             return languageBaseTypes.stringType
         } else {
             //This case happens for enumerations
-            return VrapObjectType(`package` = packageSwitch.doSwitch(stringType), simpleClassName = stringType.name)
+            return VrapObjectType(`package` = packageProvider.doSwitch(stringType), simpleClassName = stringType.name)
         }
     }
 }

@@ -1,10 +1,9 @@
 package io.vrap.codegen.kt.languages
 
 
-import io.vrap.rmf.codegen.kt.types.VrapTypeSwitch
-import javax.inject.Inject
+import io.vrap.rmf.codegen.kt.types.VrapTypeProvider
 
 interface ExtensionsBase {
 
-    val vrapTypeSwitch:VrapTypeSwitch
+    val vrapTypeProvider:VrapTypeProvider
 }
