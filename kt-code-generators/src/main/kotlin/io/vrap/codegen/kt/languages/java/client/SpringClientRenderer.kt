@@ -87,7 +87,7 @@ class SpringClientRenderer @Inject constructor(val packageProvider: PackageProvi
             |          value = { ConnectException.class },
             |          maxAttemptsExpression = "#{${'$'}{retry.${method.method.name}.maxAttempts}}",
             |          backoff = @Backoff(delayExpression = "#{1}", maxDelayExpression = "#{5}", multiplierExpression = "#{2}"))
-            |public ${methodReturnType.fullClassName()} ${method.method.name.toLowerCase()}(${methodParameters(resource, method)}) {
+            |public ${methodReturnType.fullClassName().escapeAll()} ${method.method.name.toLowerCase()}(${methodParameters(resource, method)}) {
             |
             |    final Map\<String, Object\> parameters = new HashMap\<\>();
             |
