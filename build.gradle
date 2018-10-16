@@ -26,16 +26,14 @@ plugins {
     id 'com.github.johnrengelman.shadow' version '2.0.4' apply false
     id 'com.gradle.plugin-publish' version '0.9.1'
     id 'org.inferred.processors' version '1.2.16'
-
 }
 
 ext {
     versions = [
             spock: "1.1-groovy-2.4",
-            rmf: "0.2.0-20180608162209"
+            rmf: "0.2.0-20180918110411"
     ]
 }
-
 
 import java.text.SimpleDateFormat
 
