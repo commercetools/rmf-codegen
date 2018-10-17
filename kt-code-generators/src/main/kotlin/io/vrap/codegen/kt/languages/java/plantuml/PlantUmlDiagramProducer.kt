@@ -10,10 +10,7 @@ import io.vrap.rmf.codegen.kt.rendring.utils.escapeAll
 import io.vrap.rmf.codegen.kt.rendring.utils.keepIndentation
 import io.vrap.rmf.codegen.kt.types.VrapObjectType
 import io.vrap.rmf.codegen.kt.types.VrapTypeProvider
-import io.vrap.rmf.raml.model.types.ObjectType
-import io.vrap.rmf.raml.model.types.Property
-import io.vrap.rmf.raml.model.types.StringInstance
-import io.vrap.rmf.raml.model.types.StringType
+import io.vrap.rmf.raml.model.types.*
 import io.vrap.rmf.raml.model.util.StringCaseFormat
 
 class PlantUmlDiagramProducer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : ObjectTypeExtensions, EObjectTypeExtensions, FileProducer {
@@ -34,9 +31,10 @@ class PlantUmlDiagramProducer @Inject constructor(override val vrapTypeProvider:
                     |
                     |${allObjectTypes.map { it.plantUmlClassDef() }.joinToString(separator = "\n")}
                     |
-                    |${allObjectTypes.map { it.modelInheritenceRelation() }.joinToString(separator = "\n")}
+                    |${allObjectTypes.map { it.modelInheritenceRelation() }.filter { it.isNotBlank() }.joinToString(separator = "\n\n")}
                     |
-                    |${allObjectTypes.map { it.modelCompositionRelations() }.joinToString(separator = "\n")}
+                    |${allObjectTypes.map { it.modelCompositionRelations() }.filter { it.isNotBlank() }.joinToString(separator = "\n\n")}
+                    |
                     |@enduml
                     """.trimMargin()
             ))
@@ -46,9 +44,14 @@ class PlantUmlDiagramProducer @Inject constructor(override val vrapTypeProvider:
 
         val vrapType = this.toVrapType()
         return this.properties
-                .filter { it.type is ObjectType }
                 .map {
-                    "${vrapType.simpleName()} \"1\"${PlantUmlRelations.COMPOSITION} \"${it.name}\" ${it.type.toVrapType().simpleName()}"
+                    if(it.type is ObjectType){
+                        "${vrapType.simpleName()} \"1\" ${PlantUmlRelations.COMPOSITION} \"${it.name}\" ${it.type.toVrapType().simpleName()}"
+                    }else if( (it.type is ArrayType) && ((it.type as ArrayType).items is ObjectType) ){
+                        "${vrapType.simpleName()} \"n\" ${PlantUmlRelations.COMPOSITION} \"${it.name}\" ${(it.type as ArrayType).items.toVrapType().simpleName()}"
+                    }else{
+                        ""
+                    }
                 }
                 .filter { it.isNotBlank() }
                 .joinToString(separator = "\n\n")
@@ -56,11 +59,13 @@ class PlantUmlDiagramProducer @Inject constructor(override val vrapTypeProvider:
 
     fun ObjectType.modelInheritenceRelation(): String {
 
-        return this.subTypes.map {
+        return this.subTypes
+                .filter { it.name != this.name }
+                .map {
             """|
                 |${this.toVrapType().simpleName()} ${PlantUmlRelations.INHERITS} ${it.toVrapType().simpleName()}
             """.trimMargin()
-        }.joinToString(separator = "\n")
+        }.joinToString(separator = "\n\n")
 
     }
 
@@ -80,7 +85,7 @@ class PlantUmlDiagramProducer @Inject constructor(override val vrapTypeProvider:
 
     fun ObjectType.plantUmlProperties(): String {
         return this.properties
-                .filter { it.type !is ObjectType }
+                .filter { (it.type !is ObjectType) && !((it.type is ArrayType) && ((it.type as ArrayType).items is ObjectType )) }
                 .map { it.plantUmlAttribute() }
                 .joinToString(separator = "\n")
     }
