@@ -19,9 +19,21 @@ class AnyTypeProvider @Inject constructor(val packageProvider: PackageProvider, 
 
     override fun caseAnyType(`object`: AnyType) = languageBaseTypes.objectType
 
-    override fun caseNumberType(`object`: NumberType) = languageBaseTypes.integerType
+    override fun caseNumberType(type: NumberType) : VrapType {
+        return when (type.format) {
+            NumberFormat.LONG ->  languageBaseTypes.longType
+            NumberFormat.INT64 ->  languageBaseTypes.longType
+            else -> languageBaseTypes.integerType
+        }
+    }
 
-    override fun caseIntegerType(`object`: IntegerType) = languageBaseTypes.integerType
+    override fun caseIntegerType(type : IntegerType) : VrapType {
+        return when (type.format) {
+            NumberFormat.LONG ->  languageBaseTypes.longType
+            NumberFormat.INT64 ->  languageBaseTypes.longType
+            else -> languageBaseTypes.integerType
+        }
+    }
 
     override fun caseBooleanType(`object`: BooleanType) = languageBaseTypes.booleanType
 
