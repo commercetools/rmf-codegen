@@ -5,6 +5,7 @@ import io.vrap.codegen.kt.languages.java.client.SpringClientModule
 import io.vrap.codegen.kt.languages.java.groovy.dsl.GroovyDslModule
 import io.vrap.codegen.kt.languages.java.model.JavaModelModule
 import io.vrap.codegen.kt.languages.java.plantuml.PlantUmlModule
+import io.vrap.codegen.kt.languages.php.model.PhpModelModule
 import io.vrap.rmf.codegen.kt.CodeGeneratorConfig
 import io.vrap.rmf.codegen.kt.di.GeneratorComponent
 import io.vrap.rmf.codegen.kt.di.GeneratorModule
@@ -45,6 +46,18 @@ class TestCodeGenerator {
     fun generatePlantUmlDiagram(){
         val generatorModule = GeneratorModule(generatorConfig, JavaBaseTypes)
         val generatorComponent = GeneratorComponent(generatorModule, PlantUmlModule())
+        generatorComponent.generateFiles()
+    }
+
+    @Test
+    fun generatePHPModels() {
+        val config = CodeGeneratorConfig(
+                packagePrefix = "commercetools",
+                ramlFileLocation = URI.createFileURI("../api-spec/api.raml")
+
+        )
+        val generatorModule = GeneratorModule(config, JavaBaseTypes)
+        val generatorComponent = GeneratorComponent(generatorModule, PhpModelModule())
         generatorComponent.generateFiles()
     }
 }
