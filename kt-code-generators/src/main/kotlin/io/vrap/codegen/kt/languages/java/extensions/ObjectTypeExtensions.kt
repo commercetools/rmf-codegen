@@ -1,6 +1,7 @@
 package io.vrap.codegen.kt.languages.java.extensions
 
 import io.vrap.codegen.kt.languages.ExtensionsBase
+import io.vrap.codegen.kt.languages.extensions.namedSubTypes
 import io.vrap.rmf.codegen.kt.types.*
 import io.vrap.rmf.raml.model.types.ObjectType
 
@@ -11,7 +12,7 @@ interface  ObjectTypeExtensions : ExtensionsBase {
         val result =  this.properties
                 .map { it.type }
                 //If the subtipes are in the same package they should be imported
-                .plus(this.subTypes.filter { !it.isInlineType })
+                .plus(this.namedSubTypes())
                 .plus(this.type)
                 .filterNotNull()
                 .map { vrapTypeProvider.doSwitch(it) }
@@ -38,5 +39,3 @@ fun getImportsForType(vrapType: VrapType): String? {
 
     }
 }
-
-fun ObjectType.hasSubtypes(): Boolean = this.discriminator?.isNotBlank()?:false && (this.subTypes?.isNotEmpty() ?: false)

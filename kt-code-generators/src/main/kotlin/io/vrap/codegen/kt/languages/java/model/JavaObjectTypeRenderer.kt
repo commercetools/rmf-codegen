@@ -1,6 +1,7 @@
 package io.vrap.codegen.kt.languages.java.model;
 
 import com.google.inject.Inject
+import io.vrap.codegen.kt.languages.extensions.hasSubtypes
 import io.vrap.codegen.kt.languages.java.JavaSubTemplates
 import io.vrap.codegen.kt.languages.java.extensions.*
 import io.vrap.rmf.codegen.kt.io.TemplateFile
