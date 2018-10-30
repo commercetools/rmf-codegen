@@ -11,7 +11,7 @@ interface  ObjectTypeExtensions : ExtensionsBase {
         val result =  this.properties
                 .map { it.type }
                 //If the subtipes are in the same package they should be imported
-                .plus(this.subTypes)
+                .plus(this.subTypes.filter { !it.isInlineType })
                 .plus(this.type)
                 .filterNotNull()
                 .map { vrapTypeProvider.doSwitch(it) }
