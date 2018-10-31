@@ -29,10 +29,12 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
             |${type.imports()}
             |
             |class ${vrapType.simpleClassName} ${type.type?.toVrapType()?.simpleName()?.let { "extends $it" } ?: ""}{
+            |    <${type.constructor()}>
+            |
             |    <${type.toBeanFields().escapeAll()}>
             |
             |    <${type.getters().escapeAll()}>
-             |}
+            |}
         """.trimMargin().keepIndentation()
 
 
@@ -42,6 +44,21 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
         )
     }
 
+
+    fun ObjectType.constructor(): String {
+        return if (this.discriminator != null)
+            """
+            |/**
+            | * @param array ${'$'}data
+            | */
+            |public function __construct(array ${'$'}data = []) {
+            |    parent::__construct(${'$'}data);
+            |    ${'$'}this-\>set${this.discriminator.capitalize()}(static::DISCRIMINATOR_VALUE);
+            |}
+            """.trimMargin()
+        else
+            ""
+    }
 
     fun ObjectType.imports() = this.getImports().map { "use $it;" }.joinToString(separator = "\n")
 
