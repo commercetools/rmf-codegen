@@ -24,6 +24,7 @@ import io.vrap.rmf.raml.model.types.util.TypesSwitch
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.util.ComposedSwitch
 import org.slf4j.LoggerFactory
+import java.net.URI
 import java.nio.file.Path
 
 @SuppressWarnings("unused")
@@ -54,8 +55,13 @@ class GeneratorModule constructor(
     @Provides
     @Singleton
     @Named(VrapConstants.PACKAGE_NAME)
-    fun providePackageName(): String = generatorConfig.packagePrefix
-
+    fun providePackageName(api: Api): String {
+        if (generatorConfig.packagePrefix == null && api.baseUri == null) {
+            LOGGER.warn("Could not find proper package name configuration. Using default ${VrapConstants.PACKAGE_DEFAULT}")
+            return VrapConstants.PACKAGE_DEFAULT
+        }
+        return generatorConfig.packagePrefix?: URI(api.baseUri.expand()).host.split(".").reversed().joinToString(".")
+    }
 
     @Provides
     @Singleton

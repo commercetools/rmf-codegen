@@ -3,7 +3,6 @@ package io.vrap.codegen.kt.languages.php.model;
 import com.google.inject.Inject
 import com.google.inject.name.Named
 import io.vrap.codegen.kt.languages.php.extensions.*
-import io.vrap.rmf.codegen.kt.di.GeneratorComponent
 import io.vrap.rmf.codegen.kt.di.VrapConstants
 import io.vrap.rmf.codegen.kt.io.TemplateFile
 import io.vrap.rmf.codegen.kt.rendring.ObjectTypeRenderer
@@ -32,7 +31,7 @@ class PhpCollectionRenderer @Inject constructor(override val vrapTypeProvider: V
             |declare(strict_types=1);
             |namespace ${vrapType.namespaceName()};
             |
-            |use ${packagePrefix.capitalize()}\\Collection;
+            |use ${packagePrefix.toNameSpaceName()}\\Collection;
             |
             |class ${vrapType.simpleClassName}Collection extends Collection {
             |   private static ${'$'}type = ${vrapType.simpleClassName}::class;
@@ -41,7 +40,7 @@ class PhpCollectionRenderer @Inject constructor(override val vrapTypeProvider: V
 
 
         return TemplateFile(
-                relativePath = "${vrapType.`package`}.${vrapType.simpleClassName}".replace(".", "/") + "Collection.php",
+                relativePath = vrapType.fullClassName().replace("\\", "/") + "Collection.php",
                 content = content
         )
     }

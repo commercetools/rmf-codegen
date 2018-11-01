@@ -12,6 +12,7 @@ import io.vrap.rmf.raml.model.types.ArrayType
 import io.vrap.rmf.raml.model.types.ObjectType
 import io.vrap.rmf.raml.model.types.Property
 import io.vrap.rmf.raml.model.types.util.TypesSwitch
+import io.vrap.rmf.raml.model.util.StringCaseFormat
 import org.eclipse.emf.ecore.EObject
 import java.util.*
 
@@ -28,8 +29,11 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
             |
             |${type.imports()}
             |
-            |class ${vrapType.simpleClassName} ${type.type?.toVrapType()?.simpleName()?.let { "extends $it" } ?: ""}{
-            |    <${type.constructor()}>
+            |class ${vrapType.simpleClassName} ${type.type?.toVrapType()?.simpleName()?.let { "extends $it" } ?: ""}
+            |{
+            |    ${if (type.discriminator != null || type.discriminatorValue != null) {"const DISCRIMINATOR_VALUE = '${type.discriminatorValue ?: ""}';"} else ""}
+            |    <${type.toBeanConstant().escapeAll()}>
+            |    <${type.constructor().escapeAll()}>
             |
             |    <${type.toBeanFields().escapeAll()}>
             |
@@ -39,7 +43,7 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
 
 
         return TemplateFile(
-                relativePath = "${vrapType.`package`}.${vrapType.simpleClassName}".replace(".", "/") + ".php",
+                relativePath = vrapType.fullClassName().replace("\\", "/") + ".php",
                 content = content
         )
     }
@@ -53,7 +57,7 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
             | */
             |public function __construct(array ${'$'}data = []) {
             |    parent::__construct(${'$'}data);
-            |    ${'$'}this-\>set${this.discriminator.capitalize()}(static::DISCRIMINATOR_VALUE);
+            |    ${'$'}this->set${this.discriminator.capitalize()}(static::DISCRIMINATOR_VALUE);
             |}
             """.trimMargin()
         else
@@ -68,9 +72,20 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
             |/**
             | * @var ${this.type.toVrapType().simpleName()}
             | */
-            |private $${if (this.isPatternProperty()) "values" else this.name};
+            |protected $${if (this.isPatternProperty()) "values" else this.name};
         """.trimMargin();
     }
+
+    fun Property.toPhpConstant(): String {
+
+        return """
+            |const FIELD_${if (this.isPatternProperty()) "VALUES" else StringCaseFormat.UPPER_UNDERSCORE_CASE.apply(this.name)} = '${if (this.isPatternProperty()) "values" else this.name}';
+        """.trimMargin();
+    }
+
+    fun ObjectType.toBeanConstant() = this.properties
+            .filter { it.name != this.discriminator }
+            .map { it.toPhpConstant() }.joinToString(separator = "\n")
 
     fun ObjectType.toBeanFields() = this.properties
             .filter { it.name != this.discriminator }
