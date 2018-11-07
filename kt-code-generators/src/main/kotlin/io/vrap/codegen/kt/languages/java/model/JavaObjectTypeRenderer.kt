@@ -36,7 +36,7 @@ class JavaObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: 
                 |import org.apache.commons.lang3.builder.ToStringBuilder;
                 |import org.apache.commons.lang3.builder.ToStringStyle;
                 |
-                |<${type.toJavaComment().escapeAll()}>
+                |<${type.toComment().escapeAll()}>
                 |<${type.subTypesAnnotations()}>
                 |<${JavaSubTemplates.generatedAnnotation}>
                 |public class ${vrapType.simpleClassName} ${type.type?.toVrapType()?.simpleName()?.let { "extends $it" } ?: ""}{
@@ -145,7 +145,7 @@ class JavaObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: 
 
             """
             |${this.validationAnnotations()}
-            |${this.type.toJavaComment()}
+            |${this.type.toComment()}
             |@JsonAnyGetter
             |public Map<String, ${this.type.toVrapType().simpleName()}> values() {
             |    return values;
@@ -153,7 +153,7 @@ class JavaObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: 
             """.trimMargin()
         } else {
             """
-            |${this.type.toJavaComment()}
+            |${this.type.toComment()}
             |${this.validationAnnotations()}
             |@JsonProperty("${this.name}")
             |public ${this.type.toVrapType().simpleName()} get${this.name.capitalize()}(){
