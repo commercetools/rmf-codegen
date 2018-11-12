@@ -1,6 +1,7 @@
 package io.vrap.codegen.kt.languages.php.model;
 
 import com.google.inject.Inject
+import io.vrap.codegen.kt.languages.php.PhpSubTemplates
 import io.vrap.codegen.kt.languages.php.extensions.*
 import io.vrap.rmf.codegen.kt.io.TemplateFile
 import io.vrap.rmf.codegen.kt.rendring.ObjectTypeRenderer
@@ -24,7 +25,7 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
 
         val content = """
             |\<?php
-            |declare(strict_types=1);
+            |${PhpSubTemplates.generatorInfo}
             |namespace ${vrapType.namespaceName()};
             |
             |${type.imports()}

@@ -5,14 +5,19 @@ import io.vrap.rmf.codegen.kt.types.VrapNilType
 import io.vrap.rmf.codegen.kt.types.VrapObjectType
 import io.vrap.rmf.codegen.kt.types.VrapType
 
-fun String.toNameSpaceName():String{
+fun String.toNamespaceName():String{
     val `package` = this.split(".")
     return `package`.takeLast(maxOf(`package`.size - 1, 1)).map { s -> s.capitalize() }.joinToString("\\\\")
 }
 
+fun String.toNamespaceDir():String{
+    val `package` = this.split(".")
+    return `package`.takeLast(maxOf(`package`.size - 1, 1)).map { s -> s.capitalize() }.joinToString("/")
+}
+
 fun VrapType.namespaceName():String{
     return when(this){
-        is VrapObjectType -> this.`package`.toNameSpaceName()
+        is VrapObjectType -> this.`package`.toNamespaceName()
         is VrapArrayType -> this.itemType.namespaceName()
         else -> throw IllegalStateException("$this has no simple class name.")
     }

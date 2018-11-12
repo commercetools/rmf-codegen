@@ -2,6 +2,7 @@ package io.vrap.codegen.kt.languages.php.model;
 
 import com.google.inject.Inject
 import com.google.inject.name.Named
+import io.vrap.codegen.kt.languages.php.PhpSubTemplates
 import io.vrap.codegen.kt.languages.php.extensions.*
 import io.vrap.rmf.codegen.kt.di.VrapConstants
 import io.vrap.rmf.codegen.kt.io.TemplateFile
@@ -28,10 +29,10 @@ class PhpCollectionRenderer @Inject constructor(override val vrapTypeProvider: V
 
         val content = """
             |\<?php
-            |declare(strict_types=1);
+            |${PhpSubTemplates.generatorInfo}
             |namespace ${vrapType.namespaceName()};
             |
-            |use ${packagePrefix.toNameSpaceName()}\\Collection;
+            |use ${packagePrefix.toNamespaceName()}\\Base\\Collection;
             |
             |class ${vrapType.simpleClassName}Collection extends Collection {
             |   private static ${'$'}type = ${vrapType.simpleClassName}::class;
