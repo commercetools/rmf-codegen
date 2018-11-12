@@ -8,7 +8,7 @@ import java.util.concurrent.atomic.AtomicInteger
  * This method allows you to validate a string that for each open indStartToken char there is a corresponding indStopToken, if its not the case
  * this method throws an exception showing the line number of the non closed token
  */
-fun validateString(input: String, indStartToken: Char, indStopToken: Char, escapeChar: Char) {
+fun validateString(input: String, indStartToken: String, indStopToken: String, escapeChar: Char) {
     val stack = Stack<Pair<Int, Int>>()
 
     input.lines()
@@ -17,13 +17,19 @@ fun validateString(input: String, indStartToken: Char, indStopToken: Char, escap
                 while (i < s.length) {
                     when (s[i]) {
                         escapeChar -> i++
-                        indStartToken -> stack.push(Pair(index, i))
-                        indStopToken -> {
-                            if (stack.isEmpty()) {
-                                val numerizedLinez = input.lines().mapIndexed { index, s -> "$index - $s" }.joinToString(separator = "\n")
-                                throw Exception("can't find opening token '$indStartToken' for closing token '$indStopToken' at line $index column $i \n$numerizedLinez")
-                            } else {
-                                stack.pop()
+                        indStartToken[0] ->
+                            when (s.substring(i, Math.min(s.length, i + indStartToken.length))) {
+                                indStartToken -> stack.push(Pair(index, i))
+                            }
+                        indStopToken[0] -> {
+                            when (s.substring(i, Math.min(s.length, i + indStopToken.length))) {
+                                indStopToken ->
+                                    if (stack.isEmpty()) {
+                                        val numerizedLinez = input.lines().mapIndexed { index, s -> "$index - $s" }.joinToString(separator = "\n")
+                                        throw Exception("can't find opening token '$indStartToken' for closing token '$indStopToken' at line $index column $i \n$numerizedLinez")
+                                    } else {
+                                        stack.pop()
+                                    }
                             }
                         }
                     }
@@ -59,8 +65,8 @@ fun indentString(input: String,
                  index: AtomicInteger = AtomicInteger(0),
                  heapDepth:Int = 0,
                  candidateEmptyLinesIndexes : MutableList<Pair<Int,Int>> = mutableListOf(),
-                 indStartToken: Char,
-                 indStopToken: Char,
+                 indStartToken: String,
+                 indStopToken: String,
                  escapeChar: Char) : StringBuilder{
 
     val padding = StringBuilder()
@@ -72,14 +78,21 @@ fun indentString(input: String,
                     result.append(input[nexIndex])
                 }
             }
-            indStartToken -> {
-                val starIndex = result.lastIndex
-                index.incrementAndGet()
-                indentString(input, result, initialPadding + padding, index,heapDepth+1, candidateEmptyLinesIndexes,indStartToken, indStopToken, escapeChar)
-                candidateEmptyLinesIndexes.add(Pair(starIndex,result.length))
-
+            indStartToken[0] -> {
+                when (input.substring(index.get(), Math.min(input.length, index.get() + indStartToken.length))) {
+                    indStartToken -> {
+                        val starIndex = result.lastIndex
+                        index.incrementAndGet()
+                        indentString(input, result, initialPadding + padding, index,heapDepth+1, candidateEmptyLinesIndexes,indStartToken, indStopToken, escapeChar)
+                        candidateEmptyLinesIndexes.add(Pair(starIndex,result.length))
+                    }
+                }
             }
-            indStopToken -> return result
+            indStopToken[0] -> {
+                when (input.substring(index.get(), Math.min(input.length, index.get() + indStopToken.length))) {
+                    indStopToken -> return result
+                }
+            }
             '\n' -> {
                 padding.setLength(0)
                 result.append("\n$initialPadding")
@@ -121,7 +134,7 @@ fun removeIfLineIsEmpty(stringBuilder: StringBuilder, start:Int,end:Int){
 
 
 
-fun generateTemplate(input: String, indStartToken: Char = '<', indStopToken: Char = '>', escapeChar: Char = '\\'): String {
+fun generateTemplate(input: String, indStartToken: String = "<", indStopToken: String = ">", escapeChar: Char = '\\'): String {
 
 
     if (indStartToken == indStopToken) throw Exception("the indentation start and stop token should be different")
@@ -166,6 +179,7 @@ fun generateTemplate(input: String, indStartToken: Char = '<', indStopToken: Cha
  * use `escapeAll` which would escape every special character in that string.
  */
 fun String.keepIndentation() = generateTemplate(this)
+fun String.keepIndentation(indStartToken: String, indStopToken: String) = generateTemplate(this, indStartToken, indStopToken)
 
 /**
  * Escape all special characters such as '<' '>' '\'
