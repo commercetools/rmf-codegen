@@ -86,11 +86,19 @@ fun indentString(input: String,
                         indentString(input, result, initialPadding + padding, index,heapDepth+1, candidateEmptyLinesIndexes,indStartToken, indStopToken, escapeChar)
                         candidateEmptyLinesIndexes.add(Pair(starIndex,result.length))
                     }
+                    else -> {
+                        result.append(input[index.get()])
+                        padding.append(' ')
+                    }
                 }
             }
             indStopToken[0] -> {
                 when (input.substring(index.get(), Math.min(input.length, index.get() + indStopToken.length))) {
                     indStopToken -> return result
+                    else -> {
+                        result.append(input[index.get()])
+                        padding.append(' ')
+                    }
                 }
             }
             '\n' -> {
