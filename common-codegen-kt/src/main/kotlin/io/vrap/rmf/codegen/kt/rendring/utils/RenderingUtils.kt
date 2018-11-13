@@ -82,7 +82,7 @@ fun indentString(input: String,
                 when (input.substring(index.get(), Math.min(input.length, index.get() + indStartToken.length))) {
                     indStartToken -> {
                         val starIndex = result.lastIndex
-                        index.incrementAndGet()
+                        index.addAndGet(indStartToken.length)
                         indentString(input, result, initialPadding + padding, index,heapDepth+1, candidateEmptyLinesIndexes,indStartToken, indStopToken, escapeChar)
                         candidateEmptyLinesIndexes.add(Pair(starIndex,result.length))
                     }
@@ -94,7 +94,10 @@ fun indentString(input: String,
             }
             indStopToken[0] -> {
                 when (input.substring(index.get(), Math.min(input.length, index.get() + indStopToken.length))) {
-                    indStopToken -> return result
+                    indStopToken -> {
+                        index.addAndGet(indStopToken.length - 1)
+                        return result
+                    }
                     else -> {
                         result.append(input[index.get()])
                         padding.append(' ')
