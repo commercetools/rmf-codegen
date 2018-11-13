@@ -2,11 +2,13 @@ package io.vrap.codegen.kt.languages.php.model;
 
 import com.google.inject.Inject
 import com.google.inject.name.Named
+import io.vrap.codegen.kt.languages.java.extensions.forcedLiteralEscape
 import io.vrap.codegen.kt.languages.php.PhpSubTemplates
 import io.vrap.codegen.kt.languages.php.extensions.*
 import io.vrap.rmf.codegen.kt.di.VrapConstants
 import io.vrap.rmf.codegen.kt.io.TemplateFile
 import io.vrap.rmf.codegen.kt.rendring.ObjectTypeRenderer
+import io.vrap.rmf.codegen.kt.rendring.utils.escapeAll
 import io.vrap.rmf.codegen.kt.rendring.utils.keepIndentation
 import io.vrap.rmf.codegen.kt.types.VrapObjectType
 import io.vrap.rmf.codegen.kt.types.VrapTypeProvider
@@ -32,12 +34,12 @@ class PhpCollectionRenderer @Inject constructor(override val vrapTypeProvider: V
             |${PhpSubTemplates.generatorInfo}
             |namespace ${vrapType.namespaceName()};
             |
-            |use ${packagePrefix.toNamespaceName()}\\Base\\Collection;
+            |use ${packagePrefix.toNamespaceName().escapeAll()}\\Base\\Collection;
             |
             |class ${vrapType.simpleClassName}Collection extends Collection {
-            |   private static ${'$'}type = ${vrapType.simpleClassName}::class;
+            |   private static $!type = ${vrapType.simpleClassName}::class;
             |}
-        """.trimMargin().keepIndentation()
+        """.trimMargin().keepIndentation().forcedLiteralEscape()
 
 
         return TemplateFile(
@@ -105,7 +107,7 @@ class PhpCollectionRenderer @Inject constructor(override val vrapTypeProvider: V
             """
             |${this.type.toPhpComment()}
             |public function values() {
-            |    return ${'$'}values;
+            |    return $!values;
             |}
             """.trimMargin()
         } else {
@@ -115,7 +117,7 @@ class PhpCollectionRenderer @Inject constructor(override val vrapTypeProvider: V
             | * @return ${this.type.toVrapType().simpleName()}
             | */
             |public function get${this.name.capitalize()}(){
-            |   return ${'$'}this->${this.name};
+            |   return $!this->${this.name};
             |}
         """.trimMargin()
         }

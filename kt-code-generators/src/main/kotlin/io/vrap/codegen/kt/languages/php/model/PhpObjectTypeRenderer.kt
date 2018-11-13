@@ -54,11 +54,11 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
         return if (this.discriminator != null)
             """
             |/**
-            | * @param array ${'$'}data
+            | * @param array $!data
             | */
-            |public function __construct(array ${'$'}data = []) {
-            |    parent::__construct(${'$'}data);
-            |    ${'$'}this->set${this.discriminator.capitalize()}(static::DISCRIMINATOR_VALUE);
+            |public function __construct(array $!data = []) {
+            |    parent::__construct($!data);
+            |    $!this->set${this.discriminator.capitalize()}(static::DISCRIMINATOR_VALUE);
             |}
             """.trimMargin()
         else
@@ -134,7 +134,7 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
             """
             |${this.type.toPhpComment()}
             |public function values() {
-            |    return ${'$'}values;
+            |    return $!values;
             |}
             """.trimMargin()
         } else {
@@ -144,7 +144,7 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
             | * @return ${this.type.toVrapType().simpleName()}
             | */
             |public function get${this.name.capitalize()}(){
-            |   return ${'$'}this->${this.name};
+            |   return $!this->${this.name};
             |}
         """.trimMargin()
         }

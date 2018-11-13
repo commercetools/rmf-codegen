@@ -7,7 +7,7 @@ import io.vrap.rmf.codegen.kt.types.VrapType
 
 fun String.toNamespaceName():String{
     val `package` = this.split(".")
-    return `package`.takeLast(maxOf(`package`.size - 1, 1)).map { s -> s.capitalize() }.joinToString("\\\\")
+    return `package`.takeLast(maxOf(`package`.size - 1, 1)).map { s -> s.capitalize() }.joinToString("\\")
 }
 
 fun String.toNamespaceDir():String{
