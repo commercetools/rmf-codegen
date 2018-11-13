@@ -4,7 +4,7 @@ import com.google.inject.Inject
 import io.vrap.codegen.kt.languages.java.JavaSubTemplates
 import io.vrap.codegen.kt.languages.java.extensions.EObjectTypeExtensions
 import io.vrap.codegen.kt.languages.java.extensions.ObjectTypeExtensions
-import io.vrap.codegen.kt.languages.java.extensions.toJavaComment
+import io.vrap.codegen.kt.languages.java.extensions.toComment
 import io.vrap.rmf.codegen.kt.io.TemplateFile
 import io.vrap.rmf.codegen.kt.rendring.StringTypeRenderer
 import io.vrap.rmf.codegen.kt.rendring.utils.escapeAll
@@ -29,7 +29,7 @@ class JavaStringTypeRenderer @Inject constructor(override val vrapTypeProvider: 
                 |import java.util.Optional;
                 |import javax.annotation.Generated;
                 |
-                |${type.toJavaComment().escapeAll()}
+                |${type.toComment().escapeAll()}
                 |${JavaSubTemplates.generatedAnnotation}
                 |public enum ${vrapType.simpleClassName} {
                 |

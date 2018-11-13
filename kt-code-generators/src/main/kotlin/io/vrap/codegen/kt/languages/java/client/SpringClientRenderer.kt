@@ -5,7 +5,7 @@ import io.vrap.codegen.kt.languages.java.JavaSubTemplates
 import io.vrap.codegen.kt.languages.java.extensions.EObjectTypeExtensions
 import io.vrap.codegen.kt.languages.java.extensions.fullClassName
 import io.vrap.codegen.kt.languages.java.extensions.simpleName
-import io.vrap.codegen.kt.languages.java.extensions.toJavaComment
+import io.vrap.codegen.kt.languages.java.extensions.toComment
 import io.vrap.rmf.codegen.common.generator.core.ResourceCollection
 import io.vrap.rmf.codegen.kt.io.TemplateFile
 import io.vrap.rmf.codegen.kt.rendring.ResourceCollectionRenderer
@@ -47,7 +47,7 @@ class SpringClientRenderer @Inject constructor(val packageProvider: PackageProvi
             |import org.springframework.stereotype.Component;
             |import org.springframework.web.client.RestTemplate;
             |
-            |${type.sample.toJavaComment().escapeAll()}
+            |${type.sample.toComment().escapeAll()}
             |${JavaSubTemplates.generatedAnnotation.escapeAll()}
             |@Component
             |public class ${vrapType.simpleClassName} {
@@ -82,7 +82,7 @@ class SpringClientRenderer @Inject constructor(val packageProvider: PackageProvi
     fun javaBody(resource: Resource, method: Method): String {
         val methodReturnType = vrapTypeProvider.doSwitch(method.retyurnType())
         val body = """
-            |${method.toJavaComment().escapeAll()}
+            |${method.toComment().escapeAll()}
             |@Retryable(
             |          value = { ConnectException.class },
             |          maxAttemptsExpression = "#{${'$'}{retry.${method.method.name}.maxAttempts}}",
