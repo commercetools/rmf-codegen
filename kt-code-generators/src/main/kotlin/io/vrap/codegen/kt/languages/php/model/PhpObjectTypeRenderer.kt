@@ -1,6 +1,7 @@
 package io.vrap.codegen.kt.languages.php.model;
 
 import com.google.inject.Inject
+import io.vrap.codegen.kt.languages.java.extensions.forcedLiteralEscape
 import io.vrap.codegen.kt.languages.php.PhpSubTemplates
 import io.vrap.codegen.kt.languages.php.extensions.*
 import io.vrap.rmf.codegen.kt.io.TemplateFile
@@ -24,7 +25,7 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
         val vrapType = vrapTypeProvider.doSwitch(type) as VrapObjectType
 
         val content = """
-            |\<?php
+            |<?php
             |${PhpSubTemplates.generatorInfo}
             |namespace ${vrapType.namespaceName()};
             |
@@ -33,14 +34,14 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
             |class ${vrapType.simpleClassName} ${type.type?.toVrapType()?.simpleName()?.let { "extends $it" } ?: ""}
             |{
             |    ${if (type.discriminator != null || type.discriminatorValue != null) {"const DISCRIMINATOR_VALUE = '${type.discriminatorValue ?: ""}';"} else ""}
-            |    <${type.toBeanConstant().escapeAll()}>
-            |    <${type.constructor().escapeAll()}>
+            |    <<${type.toBeanConstant()}>>
+            |    <<${type.constructor()}>>
             |
-            |    <${type.toBeanFields().escapeAll()}>
+            |    <<${type.toBeanFields()}>>
             |
-            |    <${type.getters().escapeAll()}>
+            |    <<${type.getters()}>>
             |}
-        """.trimMargin().keepIndentation()
+        """.trimMargin().keepIndentation("<<", ">>").forcedLiteralEscape()
 
 
         return TemplateFile(

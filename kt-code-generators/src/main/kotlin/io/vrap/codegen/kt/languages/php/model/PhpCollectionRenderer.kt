@@ -30,16 +30,16 @@ class PhpCollectionRenderer @Inject constructor(override val vrapTypeProvider: V
         val vrapType = vrapTypeProvider.doSwitch(type) as VrapObjectType
 
         val content = """
-            |\<?php
+            |<?php
             |${PhpSubTemplates.generatorInfo}
             |namespace ${vrapType.namespaceName()};
             |
-            |use ${packagePrefix.toNamespaceName().escapeAll()}\\Base\\Collection;
+            |use ${packagePrefix.toNamespaceName()}\Base\Collection;
             |
             |class ${vrapType.simpleClassName}Collection extends Collection {
             |   private static $!type = ${vrapType.simpleClassName}::class;
             |}
-        """.trimMargin().keepIndentation().forcedLiteralEscape()
+        """.trimMargin().forcedLiteralEscape()
 
 
         return TemplateFile(
