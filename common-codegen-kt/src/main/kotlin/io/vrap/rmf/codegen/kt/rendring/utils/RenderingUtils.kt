@@ -137,7 +137,7 @@ fun removeIfLineIsEmpty(stringBuilder: StringBuilder, start:Int,end:Int){
 fun generateTemplate(input: String, indStartToken: String = "<", indStopToken: String = ">", escapeChar: Char = '\\'): String {
 
 
-    if (indStartToken == indStopToken) throw Exception("the indentation start and stop token should be different")
+    if (indStartToken[0] == indStopToken[0] || indStartToken == indStopToken) throw Exception("the indentation start and stop token should be different")
 
     // First you need to validate the string
     validateString(input, indStartToken, indStopToken, escapeChar)
