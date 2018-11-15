@@ -1,9 +1,11 @@
 package io.vrap.codegen.kt.languages.php.model;
 
 import com.google.inject.Inject
+import com.google.inject.name.Named
 import io.vrap.codegen.kt.languages.java.extensions.forcedLiteralEscape
 import io.vrap.codegen.kt.languages.php.PhpSubTemplates
 import io.vrap.codegen.kt.languages.php.extensions.*
+import io.vrap.rmf.codegen.kt.di.VrapConstants
 import io.vrap.rmf.codegen.kt.io.TemplateFile
 import io.vrap.rmf.codegen.kt.rendring.ObjectTypeRenderer
 import io.vrap.rmf.codegen.kt.rendring.utils.escapeAll
@@ -20,6 +22,10 @@ import java.util.*
 
 class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : ObjectTypeExtensions, EObjectTypeExtensions, ObjectTypeRenderer {
 
+    @Inject
+    @Named(VrapConstants.PACKAGE_NAME)
+    lateinit var packagePrefix:String
+
     override fun render(type: ObjectType): TemplateFile {
 
         val vrapType = vrapTypeProvider.doSwitch(type) as VrapObjectType
@@ -27,9 +33,9 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
         val content = """
             |<?php
             |${PhpSubTemplates.generatorInfo}
-            |namespace ${vrapType.namespaceName()};
+            |namespace ${vrapType.namespaceName().escapeAll()};
             |
-            |${type.imports()}
+            |<<${type.imports()}>>
             |
             |class ${vrapType.simpleClassName} ${type.type?.toVrapType()?.simpleName()?.let { "extends $it" } ?: ""}
             |{
@@ -45,7 +51,7 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
 
 
         return TemplateFile(
-                relativePath = vrapType.fullClassName().replace("\\", "/") + ".php",
+                relativePath = "src/" + vrapType.fullClassName().replace(packagePrefix.toNamespaceName(), "").replace("\\", "/") + ".php",
                 content = content
         )
     }
@@ -66,7 +72,7 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
             ""
     }
 
-    fun ObjectType.imports() = this.getImports().map { "use $it;" }.joinToString(separator = "\n")
+    fun ObjectType.imports() = this.getImports().map { "use ${it.escapeAll()};" }.joinToString(separator = "\n")
 
     fun Property.toPhpField(): String {
 

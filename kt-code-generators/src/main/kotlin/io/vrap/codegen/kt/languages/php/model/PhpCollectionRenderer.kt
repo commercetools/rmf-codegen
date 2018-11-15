@@ -43,7 +43,7 @@ class PhpCollectionRenderer @Inject constructor(override val vrapTypeProvider: V
 
 
         return TemplateFile(
-                relativePath = vrapType.fullClassName().replace("\\", "/") + "Collection.php",
+                relativePath = "src/" + vrapType.fullClassName().replace(packagePrefix.toNamespaceName(), "").replace("\\", "/") + "Collection.php",
                 content = content
         )
     }
