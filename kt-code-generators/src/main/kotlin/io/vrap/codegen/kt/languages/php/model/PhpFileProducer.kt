@@ -14,7 +14,6 @@ import io.vrap.rmf.codegen.kt.rendring.FileProducer
 import io.vrap.rmf.codegen.kt.rendring.utils.escapeAll
 import io.vrap.rmf.codegen.kt.rendring.utils.keepIndentation
 import io.vrap.rmf.raml.model.modules.Api
-import io.vrap.rmf.raml.model.types.ObjectType
 import io.vrap.rmf.raml.model.util.StringCaseFormat
 
 class PhpFileProducer @Inject constructor() : FileProducer {
@@ -35,6 +34,8 @@ class PhpFileProducer @Inject constructor() : FileProducer {
             composerJson(),
             config(),
             credentialTokenProvider(),
+            cachedProvider(),
+            rawTokenProvider(),
             oauth2Handler(),
             middlewareFactory(),
             authConfig(),
@@ -140,7 +141,7 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |        );
                     |        foreach ($!middlewares as $!key => $!middleware) {
                     |            if(!is_callable($!middleware)) {
-                    |                throw new InvalidArgumentException('Middleware isn't callable'));
+                    |                throw new InvalidArgumentException('Middleware isn\'t callable');
                     |            }
                     |            $!name = is_numeric($!key) ? '' : $!key;
                     |            $!stack->push($!middleware, $!name);
@@ -187,7 +188,7 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |{
                     |    public function getValue(): string;
                     |
-                    |    public function getExpiresIn(): int;
+                    |    public function getExpiresIn(): ?int;
                     |}
                 """.trimMargin()
         )
@@ -320,7 +321,6 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |    const OPT_AUTH_URI = 'auth_uri';
                     |    const OPT_CLIENT_OPTIONS = 'options';
                     |    const GRANT_TYPE = '';
-                    |    const AUTH_FLOW = '';
                     |    const OPT_CACHE_DIR = 'cacheDir';
                     |
                     |    /**
@@ -349,11 +349,6 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |    public function getGrantType(): string
                     |    {
                     |        return static::GRANT_TYPE;
-                    |    }
-                    |
-                    |    public function getAuthFlow(): string
-                    |    {
-                    |        return static::AUTH_FLOW;
                     |    }
                     |
                     |    public function getAuthUri(): string
@@ -399,7 +394,56 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |}
                 """.trimMargin().forcedLiteralEscape())
     }
-    
+
+    private fun cachedProvider(): TemplateFile {
+        return TemplateFile(relativePath = "src/Client/CachedTokenProvider.php",
+                content = """
+                    |<?php
+                    |${PhpSubTemplates.generatorInfo}
+                    |
+                    |namespace ${packagePrefix.toNamespaceName()}\Client;
+                    |
+                    |use GuzzleHttp\Client;
+                    |use Psr\Cache\CacheItemPoolInterface;
+                    |
+                    |class CachedTokenProvider implements TokenProvider
+                    |{
+                    |    private $!tokenProvider;
+                    |    private $!cache;
+                    |
+                    |    public function __construct(TokenProvider $!provider, CacheItemPoolInterface $!cache)
+                    |    {
+                    |       $!this->cache = $!cache;
+                    |       $!this->provider = $!provider;
+                    |    }
+                    |
+                    |    public function getToken(): Token
+                    |    {
+                    |        $!item = $!this->cache->getItem(sha1('access_token'));
+                    |        if ($!item->isHit()) {
+                    |            return new TokenModel((string)$!item->get());
+                    |        }
+                    |
+                    |        $!token = $!this->provider->getToken();
+                    |        // ensure token to be invalidated in cache before TTL
+                    |        $!ttl = max(1, floor($!token->getExpiresIn()/2));
+                    |        $!this->saveToken($!token->getValue(), $!item, (int)$!ttl);
+                    |
+                    |        return $!token;
+                    |    }
+                    |
+                    |    private function saveToken(string $!token, CacheItemInterface $!item, int $!ttl): void
+                    |    {
+                    |        if (!is_null($!this->cache)) {
+                    |            $!item->set($!token);
+                    |            $!item->expiresAfter($!ttl);
+                    |            $!this->cache->save($!item);
+                    |        }
+                    |    }
+                    |}
+                """.trimMargin().forcedLiteralEscape())
+    }
+
     private fun credentialTokenProvider() : TemplateFile {
         return TemplateFile(relativePath = "src/Client/ClientCredentialTokenProvider.php",
                 content = """
@@ -488,12 +532,10 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |    /**
                     |     * OAuth2Handler constructor.
                     |     * @param TokenProvider $!provider
-                    |     * @param CacheItemPoolInterface $!cache
                     |     */
-                    |    public function __construct(TokenProvider $!provider, CacheItemPoolInterface $!cache)
+                    |    public function __construct(TokenProvider $!provider)
                     |    {
                     |        $!this->provider = $!provider;
-                    |        $!this->cache = $!cache;
                     |    }
                     |
                     |    public function __invoke(RequestInterface $!request, array $!options = []): RequestInterface
@@ -503,34 +545,7 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |
                     |    public function getAuthorizationHeader(): string
                     |    {
-                    |        return 'Bearer ' . $!this->getBearerToken();
-                    |    }
-                    |
-                    |    private function getBearerToken(): string
-                    |    {
-                    |        $!item = null;
-                    |        if (!is_null($!this->cache)) {
-                    |            $!item = $!this->cache->getItem(sha1('access_token'));
-                    |            if ($!item->isHit()) {
-                    |                return (string)$!item->get();
-                    |            }
-                    |        }
-                    |
-                    |        $!token = $!this->provider->getToken();
-                    |        // ensure token to be invalidated in cache before TTL
-                    |        $!ttl = max(1, floor($!token->getExpiresIn()/2));
-                    |        $!this->saveToken($!token->getValue(), $!item, (int)$!ttl);
-                    |
-                    |        return $!token->getValue();
-                    |    }
-                    |
-                    |    private function saveToken(string $!token, CacheItemInterface $!item, int $!ttl): void
-                    |    {
-                    |        if (!is_null($!this->cache)) {
-                    |            $!item->set($!token);
-                    |            $!item->expiresAfter($!ttl);
-                    |            $!this->cache->save($!item);
-                    |        }
+                    |        return 'Bearer ' . $!this->provider->getToken()->getValue();
                     |    }
                     |}
                 """.trimMargin().forcedLiteralEscape())
@@ -554,6 +569,12 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |    public static function createOAuthMiddleware(AuthConfig $!authConfig, CacheItemPoolInterface $!cache = null)
                     |    {
                     |        $!handler = OAuthHandlerFactory::ofAuthConfig($!authConfig, $!cache);
+                    |        return Middleware::mapRequest($!handler);
+                    |    }
+                    |
+                    |    public static function createOAuthMiddlewareForProvider(TokenProvider $!provider)
+                    |    {
+                    |        $!handler = OAuthHandlerFactory::ofProvider($!provider);
                     |        return Middleware::mapRequest($!handler);
                     |    }
                     |
@@ -582,7 +603,6 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |    const CLIENT_SECRET = 'clientSecret';
                     |    const SCOPE = 'scope';
                     |    const GRANT_TYPE = 'client_credentials';
-                    |    const AUTH_FLOW = 'client_credentials';
                     |
                     |    /**
                     |     * @var string
@@ -644,6 +664,37 @@ class PhpFileProducer @Inject constructor() : FileProducer {
         )
     }
 
+    private fun rawTokenProvider(): TemplateFile {
+        return TemplateFile(relativePath = "src/Client/RawTokenProvider.php",
+                content = """
+                    |<?php
+                    |${PhpSubTemplates.generatorInfo}
+                    |
+                    |namespace ${packagePrefix.toNamespaceName()}\Client;
+                    |
+                    |class RawTokenProvider implements TokenProvider
+                    |{
+                    |    const TOKEN = 'token';
+                    |
+                    |    /**
+                    |     * @var Token
+                    |     */
+                    |    private $!token;
+                    |
+                    |    public function __construct(Token $!token)
+                    |    {
+                    |        $!this->token = $!token;
+                    |    }
+                    |
+                    |    public function getToken(): Token
+                    |    {
+                    |        return $!this->token;
+                    |    }
+                    |}
+                """.trimMargin().forcedLiteralEscape()
+        )
+    }
+
     private fun tokenModel(): TemplateFile {
         return TemplateFile(relativePath = "src/Client/TokenModel.php",
                 content = """
@@ -664,7 +715,7 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |     */
                     |    private $!expiresIn;
                     |
-                    |    public function __construct(string $!value, int $!expiresIn)
+                    |    public function __construct(string $!value, int $!expiresIn = null)
                     |    {
                     |        $!this->value = $!value;
                     |        $!this->expiresIn = $!expiresIn;
@@ -675,7 +726,7 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |        return $!this->value;
                     |    }
                     |
-                    |    public function getExpiresIn(): int
+                    |    public function getExpiresIn(): ?int
                     |    {
                     |        return $!this->expiresIn;
                     |    }
@@ -708,18 +759,26 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |            $!filesystem        = new Filesystem($!filesystemAdapter);
                     |            $!cache = new FilesystemCachePool($!filesystem);
                     |        }
-                    |        switch($!authConfig->getAuthFlow()) {
-                    |           case ClientCredentialsConfig::AUTH_FLOW:
-                    |               $!provider = new ClientCredentialTokenProvider(
-                    |                   new Client($!authConfig->getClientOptions()),
-                    |                   $!authConfig
+                    |        switch(true) {
+                    |           case $!authConfig instanceof ClientCredentialsConfig:
+                    |               $!provider = new CachedTokenProvider(
+                    |                   new ClientCredentialTokenProvider(
+                    |                       new Client($!authConfig->getClientOptions()),
+                    |                       $!authConfig
+                    |                   ),
+                    |                   $!cache
                     |               );
                     |               break;
                     |           default:
-                    |               throw new InvalidArgumentException('Unknown authorization flow');
+                    |               throw new InvalidArgumentException('Unknown authorization configuration');
                     |
                     |        }
-                    |        return new OAuth2Handler($!provider, $!cache);
+                    |        return self::ofProvider($!provider);
+                    |    }
+                    |
+                    |    public static function ofProvider(TokenProvider $!provider): OAuth2Handler
+                    |    {
+                    |        return new OAuth2Handler($!provider);
                     |    }
                     |}
                 """.trimMargin().forcedLiteralEscape()
