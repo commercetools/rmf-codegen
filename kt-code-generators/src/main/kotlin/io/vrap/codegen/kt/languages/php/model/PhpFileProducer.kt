@@ -198,7 +198,7 @@ class PhpFileProducer @Inject constructor() : FileProducer {
         return TemplateFile(relativePath = "composer.json",
                 content = """
                     |{
-                    |  "name": "commercetools/raml-php-sdk",
+                    |  "name": "commercetools/raml-sdk",
                     |  "license": "MIT",
                     |  "type": "library",
                     |  "description": "",
@@ -245,14 +245,10 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |    const OPT_CLIENT_OPTIONS = 'options';
                     |    <<${if (api.baseUri.value.variables.isNotEmpty()) { api.baseUri.value.constVariables()} else ""}>>
                     |
-                    |    /**
-                    |     * @var string
-                    |     */
+                    |    /** @var string */
                     |    private $!apiUri;
                     |
-                    |    /**
-                    |     * @var array
-                    |     */
+                    |    /** @var array */
                     |    private $!clientOptions;
                     |
                     |    public function __construct(array $!config = [])
@@ -323,19 +319,13 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |    const GRANT_TYPE = '';
                     |    const OPT_CACHE_DIR = 'cacheDir';
                     |
-                    |    /**
-                    |     * @var string
-                    |     */
+                    |    /** @var string */
                     |    private $!authUri;
                     |
-                    |    /**
-                    |     * @var array
-                    |     */
+                    |    /** @var array */
                     |    private $!clientOptions;
                     |
-                    |    /**
-                    |     * @var string
-                    |     */
+                    |    /** @var string */
                     |    private $!cacheDir;
                     |
                     |    public function __construct(array $!config = [])
@@ -405,10 +395,14 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |
                     |use GuzzleHttp\Client;
                     |use Psr\Cache\CacheItemPoolInterface;
+                    |use Psr\Cache\CacheItemInterface;
                     |
                     |class CachedTokenProvider implements TokenProvider
                     |{
-                    |    private $!tokenProvider;
+                    |    /** @var TokenProvider */
+                    |    private $!provider;
+                    |
+                    |    /** @var CacheItemPoolInterface */
                     |    private $!cache;
                     |
                     |    public function __construct(TokenProvider $!provider, CacheItemPoolInterface $!cache)
@@ -463,19 +457,13 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |    const ACCESS_TOKEN = 'access_token';
                     |    const EXPIRES_IN = 'expires_in';
                     |
-                    |    /**
-                    |     * @var Client
-                    |     */
+                    |    /** @var Client */
                     |    private $!client;
                     |
-                    |    /**
-                    |     * @var ClientCredentials
-                    |     */
+                    |    /** @var ClientCredentials */
                     |    private $!credentials;
                     |
-                    |    /**
-                    |     * @var ClientCredentialsConfig
-                    |     */
+                    |    /** @var ClientCredentialsConfig */
                     |    private $!authConfig;
                     |
                     |    public function __construct(Client $!client, ClientCredentialsConfig $!authConfig)
@@ -520,13 +508,10 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |
                     |class OAuth2Handler
                     |{
-                    |    /**
-                    |     * @var TokenProvider
-                    |     */
+                    |    /** @var TokenProvider */
                     |    private $!provider;
-                    |    /**
-                    |     * @var CacheItemPoolInterface
-                    |     */
+                    |
+                    |    /** @var CacheItemPoolInterface */
                     |    private $!cache;
                     |
                     |    /**
@@ -604,19 +589,13 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |    const SCOPE = 'scope';
                     |    const GRANT_TYPE = 'client_credentials';
                     |
-                    |    /**
-                    |     * @var string
-                    |     */
+                    |    /** @var string */
                     |    private $!clientId;
                     |
-                    |    /**
-                    |     * @var string
-                    |     */
+                    |    /** @var string */
                     |    private $!clientSecret;
                     |
-                    |    /**
-                    |     * @var string
-                    |     */
+                    |    /** @var string */
                     |    private $!scope;
                     |
                     |    public function __construct(array $!authConfig = [])
@@ -676,9 +655,7 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |{
                     |    const TOKEN = 'token';
                     |
-                    |    /**
-                    |     * @var Token
-                    |     */
+                    |    /** @var Token */
                     |    private $!token;
                     |
                     |    public function __construct(Token $!token)
@@ -705,14 +682,10 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |
                     |class TokenModel implements Token
                     |{
-                    |    /**
-                    |     * @return string
-                    |     */
+                    |    /** @return string */
                     |    private $!value;
                     |
-                    |    /**
-                    |     * @return int
-                    |     */
+                    |    /** @return int */
                     |    private $!expiresIn;
                     |
                     |    public function __construct(string $!value, int $!expiresIn = null)

@@ -12,6 +12,7 @@ import io.vrap.rmf.codegen.kt.di.GeneratorComponent
 import io.vrap.rmf.codegen.kt.di.GeneratorModule
 import org.eclipse.emf.common.util.URI
 import org.junit.Test
+import java.nio.file.Paths
 
 
 class TestCodeGenerator {
@@ -53,6 +54,11 @@ class TestCodeGenerator {
 
     @Test
     fun generatePHPModels() {
+        val generatorConfig = CodeGeneratorConfig(
+                packagePrefix = "com.commercetools.importer",
+                ramlFileLocation = URI.createFileURI("../api-spec/api.raml"),
+                outputFolder = Paths.get("build/gensrc/commercetools-raml-sdk")
+        )
         val generatorModule = GeneratorModule(generatorConfig, PhpBaseTypes)
         val generatorComponent = GeneratorComponent(generatorModule, PhpModelModule())
         generatorComponent.generateFiles()
