@@ -20,8 +20,8 @@ $client = ClientFactory::of()->createGuzzleClient(
         'oauth' => MiddlewareFactory::createOAuthMiddleware(
             new ClientCredentialsConfig(
                 [
-                    'clientId' => '42Q_fnD0bs705qMwlL6PpSkO',
-                    'clientSecret' => 'ZGN05ioItsw_wvu1EX4zUcTNmxVweqT4'
+                    'clientId' => '',
+                    'clientSecret' => ''
                 ]
             )
         ),
