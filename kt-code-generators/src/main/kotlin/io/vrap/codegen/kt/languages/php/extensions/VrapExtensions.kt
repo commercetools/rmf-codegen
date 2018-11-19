@@ -4,6 +4,8 @@ import io.vrap.rmf.codegen.kt.types.VrapArrayType
 import io.vrap.rmf.codegen.kt.types.VrapNilType
 import io.vrap.rmf.codegen.kt.types.VrapObjectType
 import io.vrap.rmf.codegen.kt.types.VrapType
+import io.vrap.rmf.raml.model.modules.Api
+import io.vrap.rmf.raml.model.security.OAuth20Settings
 
 fun String.toNamespaceName():String{
     val `package` = this.split(".")
@@ -53,4 +55,12 @@ fun VrapType.isScalar(): Boolean {
         }
         else -> false
     }
+}
+
+
+fun Api.authUri(): String {
+    return this.getSecuritySchemes().stream()
+            .filter { securityScheme -> securityScheme.getSettings() is OAuth20Settings }
+            .map { securityScheme -> (securityScheme.getSettings() as OAuth20Settings).accessTokenUri }
+            .findFirst().orElse("")
 }
