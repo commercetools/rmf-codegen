@@ -40,7 +40,9 @@ class PhpFileProducer @Inject constructor() : FileProducer {
             authConfig(),
             clientCredentialsConfig(),
             tokenModel(),
-            oauthHandlerFactory()
+            oauthHandlerFactory(),
+            baseException(),
+            invalidArgumentException()
     )
 
     private fun baseCollection(): TemplateFile {
@@ -81,7 +83,7 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |
                     |namespace ${packagePrefix.toNamespaceName()}\Client;
                     |
-                    |use Commercetools\Exception\InvalidArgumentException;
+                    |use ${packagePrefix.toNamespaceName()}\Exception\InvalidArgumentException;
                     |use GuzzleHttp\Client as HttpClient;
                     |use GuzzleHttp\HandlerStack;
                     |use Psr\Cache\CacheItemPoolInterface;
@@ -111,7 +113,7 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |        if (is_array($!config)) {
                     |            return new Config($!config);
                     |        }
-                    |        throw new InvalidArgumentException();
+                    |        throw new InvalidArgumentException('Provide either a configuration array or a Config instance.');
                     |    }
                     |
                     |    /**
@@ -138,7 +140,7 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |        );
                     |        foreach ($!middlewares as $!key => $!middleware) {
                     |            if(!is_callable($!middleware)) {
-                    |                throw new InvalidArgumentException();
+                    |                throw new InvalidArgumentException('Middleware isn't callable'));
                     |            }
                     |            $!name = is_numeric($!key) ? '' : $!key;
                     |            $!stack->push($!middleware, $!name);
@@ -240,7 +242,7 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |
                     |    const OPT_BASE_URI = 'base_uri';
                     |    const OPT_CLIENT_OPTIONS = 'options';
-                    |    <<${if (api.baseUri.value.variables.size > 0) { api.baseUri.value.constVariables()} else ""}>>
+                    |    <<${if (api.baseUri.value.variables.isNotEmpty()) { api.baseUri.value.constVariables()} else ""}>>
                     |
                     |    /**
                     |     * @var string
@@ -255,7 +257,7 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |    public function __construct(array $!config = [])
                     |    {
                     |        $!apiUri = isset($!config[self::OPT_BASE_URI]) ? $!config[self::OPT_BASE_URI] : static::API_URI;
-                    |        <<${if (api.baseUri.value.variables.size > 0) { api.baseUri.value.replaceValues()} else ""}>>
+                    |        <<${if (api.baseUri.value.variables.isNotEmpty()) { api.baseUri.value.replaceValues()} else ""}>>
                     |        $!this->apiUri = $!apiUri;
                     |        $!this->clientOptions = isset($!config[self::OPT_CLIENT_OPTIONS]) && is_array($!config[self::OPT_CLIENT_OPTIONS]) ?
                     |            $!config[self::OPT_CLIENT_OPTIONS] : [];
@@ -291,7 +293,6 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |        );
                     |    }
                     |}
-                    |
                 """.trimMargin().keepIndentation("<<", ">>").forcedLiteralEscape())
     }
 
@@ -315,9 +316,11 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |{
                     |    const AUTH_URI = '${api.authUri()}';
                     |
+                    |    const OPT_BASE_URI = 'base_uri';
                     |    const OPT_AUTH_URI = 'auth_uri';
                     |    const OPT_CLIENT_OPTIONS = 'options';
                     |    const GRANT_TYPE = '';
+                    |    const AUTH_FLOW = '';
                     |    const OPT_CACHE_DIR = 'cacheDir';
                     |
                     |    /**
@@ -346,6 +349,11 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |    public function getGrantType(): string
                     |    {
                     |        return static::GRANT_TYPE;
+                    |    }
+                    |
+                    |    public function getAuthFlow(): string
+                    |    {
+                    |        return static::AUTH_FLOW;
                     |    }
                     |
                     |    public function getAuthUri(): string
@@ -574,6 +582,7 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |    const CLIENT_SECRET = 'clientSecret';
                     |    const SCOPE = 'scope';
                     |    const GRANT_TYPE = 'client_credentials';
+                    |    const AUTH_FLOW = 'client_credentials';
                     |
                     |    /**
                     |     * @var string
@@ -683,6 +692,7 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |
                     |namespace ${packagePrefix.toNamespaceName()}\Client;
                     |
+                    |use ${packagePrefix.toNamespaceName()}\Exception\InvalidArgumentException;
                     |use Cache\Adapter\Filesystem\FilesystemCachePool;
                     |use GuzzleHttp\Client;
                     |use League\Flysystem\Adapter\Local;
@@ -698,15 +708,15 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |            $!filesystem        = new Filesystem($!filesystemAdapter);
                     |            $!cache = new FilesystemCachePool($!filesystem);
                     |        }
-                    |        switch($!authConfig->getGrantType()) {
-                    |           case 'client_credentials':
+                    |        switch($!authConfig->getAuthFlow()) {
+                    |           case ClientCredentialsConfig::AUTH_FLOW:
                     |               $!provider = new ClientCredentialTokenProvider(
                     |                   new Client($!authConfig->getClientOptions()),
                     |                   $!authConfig
                     |               );
                     |               break;
                     |           default:
-                    |               throw new InvalidArgumentException();
+                    |               throw new InvalidArgumentException('Unknown authorization flow');
                     |
                     |        }
                     |        return new OAuth2Handler($!provider, $!cache);
@@ -714,5 +724,37 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |}
                 """.trimMargin().forcedLiteralEscape()
         )
+    }
+
+    private fun baseException(): TemplateFile {
+        return TemplateFile(relativePath = "src/Exception/BaseException.php",
+                content = """
+                    |<?php
+                    |${PhpSubTemplates.generatorInfo}
+                    |
+                    |namespace ${packagePrefix.toNamespaceName()}\Exception;
+                    |
+                    |use Exception;
+                    |
+                    |abstract class BaseException extends Exception
+                    |{
+                    |}
+                """.trimMargin())
+    }
+
+    private fun invalidArgumentException(): TemplateFile {
+        return TemplateFile(relativePath = "src/Exception/InvalidArgumentException.php",
+                content = """
+                    |<?php
+                    |${PhpSubTemplates.generatorInfo}
+                    |
+                    |namespace ${packagePrefix.toNamespaceName()}\Exception;
+                    |
+                    |use Exception;
+                    |
+                    |class InvalidArgumentException extends BaseException
+                    |{
+                    |}
+                """.trimMargin())
     }
 }
