@@ -8,7 +8,7 @@ import java.nio.file.Path
 import java.nio.file.Paths
 
 data class CodeGeneratorConfig (
-        val packagePrefix: String = "io.vrap.rmf",
+        val packagePrefix: String? = null,
         val outputFolder: Path = Paths.get("build/gensrc"),
         val customTypeMapping: Map<String, VrapType> = mapOf(),
         val ramlFileLocation: URI,

@@ -1,0 +1,26 @@
+{
+  "name": "commercetools/raml-php-sdk-test",
+  "license": "MIT",
+  "type": "project",
+  "description": "fgf",
+  "autoload": {
+    "psr-4": {
+      "Commercetools\\": [
+        "src/"
+      ],
+      "Commercetools\\Test\\": [
+        "test/"
+      ]
+    }
+  },
+  "require": {
+    "commercetools/raml-sdk": "@dev",
+    "monolog/monolog": "^1.3"
+  },
+  "repositories": [
+    {
+      "type": "path",
+      "url": "../../../build/gensrc/commercetools-raml-sdk"
+    }
+  ]
+}

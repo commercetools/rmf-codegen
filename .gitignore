@@ -20,3 +20,5 @@ bin
 .idea
 raml-model/buildresources/AnnotationProcessorTests/raml-tck-1.1
 cache/
+requests.log
+composer.lock
