@@ -2,7 +2,6 @@ package io.vrap.codegen.kt.languages.php.model;
 
 import com.google.inject.Inject
 import com.google.inject.name.Named
-import io.vrap.codegen.kt.languages.java.extensions.forcedLiteralEscape
 import io.vrap.codegen.kt.languages.php.PhpSubTemplates
 import io.vrap.codegen.kt.languages.php.extensions.*
 import io.vrap.rmf.codegen.kt.di.VrapConstants

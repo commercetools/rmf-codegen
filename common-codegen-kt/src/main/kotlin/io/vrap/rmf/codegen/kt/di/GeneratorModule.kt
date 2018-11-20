@@ -15,6 +15,7 @@ import io.vrap.rmf.codegen.kt.types.VrapType
 import io.vrap.rmf.raml.model.RamlModelBuilder
 import io.vrap.rmf.raml.model.elements.NamedElement
 import io.vrap.rmf.raml.model.modules.Api
+import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.resources.util.ResourcesSwitch
 import io.vrap.rmf.raml.model.types.AnyType
@@ -96,6 +97,9 @@ class GeneratorModule constructor(
     @Singleton
     fun allResources(ramlApi: Api): List<Resource> = ramlApi.allContainedResources.filter { filterSwitch.doSwitch(it) }
 
+    @Provides
+    @Singleton
+    fun allResourceMethods(ramlApi: Api): List<Method> = ramlApi.allContainedResources.flatMap { it.methods }
 
     @Provides
     @Singleton

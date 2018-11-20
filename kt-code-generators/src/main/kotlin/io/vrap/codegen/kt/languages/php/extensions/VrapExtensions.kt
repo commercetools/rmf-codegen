@@ -1,11 +1,18 @@
 package io.vrap.codegen.kt.languages.php.extensions
 
+import com.damnhandy.uri.template.Expression
+import com.damnhandy.uri.template.UriTemplate
 import io.vrap.rmf.codegen.kt.types.VrapArrayType
 import io.vrap.rmf.codegen.kt.types.VrapNilType
 import io.vrap.rmf.codegen.kt.types.VrapObjectType
 import io.vrap.rmf.codegen.kt.types.VrapType
 import io.vrap.rmf.raml.model.modules.Api
+import io.vrap.rmf.raml.model.resources.Method
+import io.vrap.rmf.raml.model.resources.Resource
+import io.vrap.rmf.raml.model.responses.Body
 import io.vrap.rmf.raml.model.security.OAuth20Settings
+import io.vrap.rmf.raml.model.util.StringCaseFormat
+import java.util.stream.Collectors
 
 fun String.toNamespaceName():String{
     val `package` = this.split(".")
@@ -64,3 +71,32 @@ fun Api.authUri(): String {
             .map { securityScheme -> (securityScheme.getSettings() as OAuth20Settings).accessTokenUri }
             .findFirst().orElse("")
 }
+
+fun Method.resource(): Resource = this.eContainer() as Resource
+
+fun Method.toRequestName(): String {
+    return this.resource().fullUri.toParamName("By") + this.method.toString().capitalize()
+}
+
+fun UriTemplate.toParamName(delimiter: String): String {
+    return this.toParamName(delimiter, "")
+}
+
+fun UriTemplate.toParamName(delimiter: String, suffix: String): String {
+    return this.components.stream().map { uriTemplatePart ->
+        if (uriTemplatePart is Expression) {
+            return@map uriTemplatePart.varSpecs.stream()
+                    .map { s -> delimiter + s.variableName.capitalize() + suffix }.collect(Collectors.joining())
+        }
+        StringCaseFormat.UPPER_CAMEL_CASE.apply(uriTemplatePart.toString().replace("/", "-"))
+    }.collect(Collectors.joining()).replace("[^\\p{L}\\p{Nd}]+".toRegex(), "").capitalize()
+}
+
+fun Method.allParams(): List<String>? {
+    return this.resource().fullUri.components.stream()
+            .filter { uriTemplatePart -> uriTemplatePart is Expression }
+            .flatMap { uriTemplatePart -> (uriTemplatePart as Expression).varSpecs.stream().map { it.variableName } }
+            .collect(Collectors.toList())
+}
+
+fun Method.firstBody(): Body? = this.bodies.stream().findFirst().orElse(null)

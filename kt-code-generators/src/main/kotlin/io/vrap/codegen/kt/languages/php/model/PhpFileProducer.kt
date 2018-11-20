@@ -3,11 +3,8 @@ package io.vrap.codegen.kt.languages.php.model
 import com.damnhandy.uri.template.UriTemplate
 import com.google.inject.Inject
 import com.google.inject.name.Named
-import io.vrap.codegen.kt.languages.java.extensions.forcedLiteralEscape
 import io.vrap.codegen.kt.languages.php.PhpSubTemplates
-import io.vrap.codegen.kt.languages.php.extensions.authUri
-import io.vrap.codegen.kt.languages.php.extensions.toNamespaceDir
-import io.vrap.codegen.kt.languages.php.extensions.toNamespaceName
+import io.vrap.codegen.kt.languages.php.extensions.*
 import io.vrap.rmf.codegen.kt.di.VrapConstants
 import io.vrap.rmf.codegen.kt.io.TemplateFile
 import io.vrap.rmf.codegen.kt.rendring.FileProducer
@@ -43,7 +40,8 @@ class PhpFileProducer @Inject constructor() : FileProducer {
             tokenModel(),
             oauthHandlerFactory(),
             baseException(),
-            invalidArgumentException()
+            invalidArgumentException(),
+            apiRequest()
     )
 
     private fun baseCollection(): TemplateFile {
@@ -788,5 +786,91 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |{
                     |}
                 """.trimMargin())
+    }
+
+    private fun apiRequest(): TemplateFile {
+        return TemplateFile(relativePath = "src/Client/ApiRequest.php",
+                content = """
+                    |<?php
+                    |${PhpSubTemplates.generatorInfo}
+                    |
+                    |namespace ${packagePrefix.toNamespaceName()}\Client;
+                    |
+                    |use ${packagePrefix.toNamespaceName()}\Base\JsonObject;
+                    |use ${packagePrefix.toNamespaceName()}\Base\ResultMapper;
+                    |use GuzzleHttp\Psr7\Request;
+                    |use Psr\Http\Message\ResponseInterface;
+                    |use GuzzleHttp\Psr7;
+                    |
+                    |class ApiRequest extends Request
+                    |{
+                    |    const RESULT_TYPE = JsonObject::class;
+                    |
+                    |    private $!queryParts;
+                    |    private $!query;
+                    |
+                    |    /**
+                    |     * @inheritDoc
+                    |     */
+                    |    public function __construct(string $!method, string $!uri, array $!headers = [], $!body = null, string $!version = '1.1')
+                    |    {
+                    |        $!headers = $!this->ensureHeader($!headers, 'Content-Type', 'application/json');
+                    |
+                    |        parent::__construct($!method, $!uri, $!headers, $!body, $!version);
+                    |    }
+                    |
+                    |    /**
+                    |     * @param array $!headers
+                    |     * @param string $!header
+                    |     * @param mixed $!defaultValue
+                    |     * @return array
+                    |     */
+                    |    protected function ensureHeader(array $!headers, string $!header, $!defaultValue): array
+                    |    {
+                    |        $!normalizedHeader = strtolower($!header);
+                    |        foreach ($!headers as $!headerName => $!value) {
+                    |            $!normalized = strtolower($!headerName);
+                    |            if ($!normalized !== $!normalizedHeader) {
+                    |                continue;
+                    |            }
+                    |            return $!headers;
+                    |        }
+                    |        $!headers[$!header] = $!defaultValue;
+                    |
+                    |        return $!headers;
+                    |    }
+                    |
+                    |    /**
+                    |     * @param ResponseInterface $!response
+                    |     * @param ResultMapper $!mapper
+                    |     * @return mixed
+                    |     */
+                    |    public function map(ResponseInterface $!response, ResultMapper $!mapper)
+                    |    {
+                    |        return $!mapper->map($!this, $!response);
+                    |    }
+                    |
+                    |    /**
+                    |     * @param string $!parameterName
+                    |     * @param mixed $!value
+                    |     * @return ApiRequest
+                    |     */
+                    |    public function withQueryParam(string $!parameterName, $!value): ApiRequest
+                    |    {
+                    |        $!query = $!this->getUri()->getQuery();
+                    |        if ($!this->query !== $!query) {
+                    |            $!this->queryParts = Psr7\parse_query($!query);
+                    |        }
+                    |        if (isset($!this->queryParts[$!parameterName]) && !is_array($!this->queryParts[$!parameterName])) {
+                    |            $!this->queryParts[$!parameterName] = [$!this->queryParts[$!parameterName]];
+                    |        }
+                    |        $!this->queryParts[$!parameterName][] = $!value;
+                    |        ksort($!this->queryParts);
+                    |        $!this->query = Psr7\build_query($!this->queryParts);
+                    |
+                    |        return $!this->withUri($!this->getUri()->withQuery($!this->query));
+                    |    }
+                    |}
+                """.trimMargin().forcedLiteralEscape())
     }
 }

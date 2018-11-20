@@ -2,14 +2,11 @@ package io.vrap.codegen.kt.languages.php.model;
 
 import com.google.inject.Inject
 import com.google.inject.name.Named
-import io.vrap.codegen.kt.languages.java.extensions.forcedLiteralEscape
 import io.vrap.codegen.kt.languages.php.PhpSubTemplates
 import io.vrap.codegen.kt.languages.php.extensions.*
 import io.vrap.rmf.codegen.kt.di.VrapConstants
 import io.vrap.rmf.codegen.kt.io.TemplateFile
 import io.vrap.rmf.codegen.kt.rendring.ObjectTypeRenderer
-import io.vrap.rmf.codegen.kt.rendring.utils.escapeAll
-import io.vrap.rmf.codegen.kt.rendring.utils.keepIndentation
 import io.vrap.rmf.codegen.kt.types.VrapObjectType
 import io.vrap.rmf.codegen.kt.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.types.ArrayType

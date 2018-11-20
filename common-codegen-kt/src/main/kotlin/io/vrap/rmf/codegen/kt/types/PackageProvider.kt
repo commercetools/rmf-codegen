@@ -4,6 +4,7 @@ import com.google.inject.Inject
 import com.google.inject.name.Named
 import io.vrap.rmf.codegen.kt.di.VrapConstants
 import io.vrap.rmf.raml.model.modules.Library
+import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.util.ResourcesSwitch
 import io.vrap.rmf.raml.model.types.AnnotationsFacet
 import io.vrap.rmf.raml.model.types.AnyType
@@ -63,10 +64,12 @@ class PackageProvider @Inject constructor(@Named(VrapConstants.PACKAGE_NAME) val
     }
 
     private inner class ResourcePackageSwitch : ResourcesSwitch<String>() {
+        override fun caseMethod(`object`: Method): String {
+            return "$basePackage.resource"
+        }
+
         override fun defaultCase(`object`: EObject): String {
             return "$basePackage.client"
         }
     }
-
-
 }
