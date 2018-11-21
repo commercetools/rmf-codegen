@@ -7,6 +7,8 @@ import io.vrap.codegen.kt.languages.java.model.JavaModelModule
 import io.vrap.codegen.kt.languages.java.plantuml.PlantUmlModule
 import io.vrap.codegen.kt.languages.php.PhpBaseTypes
 import io.vrap.codegen.kt.languages.php.model.PhpModelModule
+import io.vrap.codegen.kt.languages.typescript.TypeScriptBaseTypes
+import io.vrap.codegen.kt.languages.typescript.TypeScriptModule
 import io.vrap.rmf.codegen.kt.CodeGeneratorConfig
 import io.vrap.rmf.codegen.kt.di.GeneratorComponent
 import io.vrap.rmf.codegen.kt.di.GeneratorModule
@@ -22,6 +24,13 @@ class TestCodeGenerator {
             packagePrefix = "com.commercetools.importer",
             ramlFileLocation = URI.createFileURI("../api-spec/api.raml")
     )
+
+    @Test
+    fun generateTsModels(){
+        val generatorModule = GeneratorModule(generatorConfig, TypeScriptBaseTypes)
+        val generatorComponent = GeneratorComponent(generatorModule, TypeScriptModule())
+        generatorComponent.generateFiles()
+    }
 
     @Test
     fun generateJavaModels(){
