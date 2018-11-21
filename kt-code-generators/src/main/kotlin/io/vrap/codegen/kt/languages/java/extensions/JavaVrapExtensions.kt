@@ -17,6 +17,6 @@ fun VrapType.fullClassName():String{
     return when(this){
         is VrapObjectType -> "${this.`package`}.${this.simpleClassName}"
         is VrapArrayType -> "java.util.List<${this.itemType.fullClassName()}>"
-        is VrapNilType -> throw IllegalStateException("$this has no full class name.")
+        is VrapNilType -> "void"
     }
 }

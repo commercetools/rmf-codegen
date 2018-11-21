@@ -85,18 +85,19 @@ class SpringClientRenderer @Inject constructor(val packageProvider: PackageProvi
             |${method.toComment().escapeAll()}
             |@Retryable(
             |          value = { ConnectException.class },
-            |          maxAttemptsExpression = "#{${'$'}{retry.${method.method.name}.maxAttempts}}",
+            |          maxAttemptsExpression = "#{${'$'}{retry.${method.method.name.toLowerCase()}.maxAttempts}}",
             |          backoff = @Backoff(delayExpression = "#{1}", maxDelayExpression = "#{5}", multiplierExpression = "#{2}"))
             |public ${methodReturnType.fullClassName().escapeAll()} ${method.method.name.toLowerCase()}(${methodParameters(resource, method)}) {
             |
             |    final Map\<String, Object\> parameters = new HashMap\<\>();
             |
             |    <${resource.allUriParameters.map { "parameters.put(\"${it.name}\",${it.name});" }.joinToString(separator = "\n")}>
+            |    <${method.queryParameters.map { "parameters.put(\"${it.name}\",${it.name});" }.joinToString(separator = "\n")}>
             |
             |    <${method.mediaType().escapeAll()}>
             |
             |    final ParameterizedTypeReference\<${method.retyurnType().toVrapType().fullClassName().escapeAll()}\> type = new ParameterizedTypeReference\<${method.retyurnType().toVrapType().fullClassName().escapeAll()}\>() {};
-            |    final String fullUri = baseUri + "${resource.fullUri.template}";
+            |    final String fullUri = baseUri + "${relativeUrl(resource,method)}";
             |
             |    return restTemplate.exchange(fullUri, HttpMethod.${method.method.name.toUpperCase()}, entity, type, parameters).getBody();
             |
@@ -105,16 +106,41 @@ class SpringClientRenderer @Inject constructor(val packageProvider: PackageProvi
         return body
     }
 
+    fun relativeUrl(resource: Resource, method: Method) : String{
+        val urlBuilder = StringBuilder(resource.fullUri.template)
+        method.queryParameters
+                .map { it.name }
+                .map { "$it={$it}" }
+                .joinToString( separator = "&")
+                .let {
+                    if(!it.isNullOrEmpty()){
+                        urlBuilder.append("?$it")
+                    }
+                }
+
+        return urlBuilder.toString()
+    }
+
+
+
     fun methodParameters(resource: Resource, method: Method): String {
 
-        val paramList = resource.allUriParameters
+        val parameters : MutableList<String> = resource.allUriParameters
                 .map { "final ${it.type.toVrapType().simpleName()} ${it.name}" }
                 .toMutableList()
 
+        val queryParameters : MutableList<String>  = method.queryParameters
+                .map { "final ${it.type.toVrapType().simpleName()} ${it.name}" }
+                .toMutableList()
+
+        val paramsList = mutableListOf<String>()
+        paramsList.addAll(parameters)
+        paramsList.addAll(queryParameters)
+
         if (method.bodies?.isNotEmpty() ?: false) {
-            paramList.add(method.bodies[0].type.toVrapType().fullClassName())
+            paramsList.add("${method.bodies[0].type.toVrapType().fullClassName()} body")
         }
-        return paramList.joinToString(separator = ", ")
+        return paramsList.joinToString(separator = ", ")
     }
 
     fun Method.mediaType(): String {
@@ -135,8 +161,8 @@ class SpringClientRenderer @Inject constructor(val packageProvider: PackageProvi
         return this.responses
                 .filter { it.isSuccessfull() }
                 .filter { it.bodies?.isNotEmpty() ?: false }
-                .first()
-                .let { it.bodies[0].type }
+                .firstOrNull()
+                ?.let { it.bodies[0].type }
                 ?: TypesFactoryImpl.eINSTANCE.createNilType()
     }
 
