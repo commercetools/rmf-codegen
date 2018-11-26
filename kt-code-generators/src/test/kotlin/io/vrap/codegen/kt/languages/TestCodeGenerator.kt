@@ -21,8 +21,8 @@ class TestCodeGenerator {
 
 
     val generatorConfig = CodeGeneratorConfig(
-            packagePrefix = "com.commercetools.importstorage",
-            ramlFileLocation = URI.createFileURI("/Users/abeniasaad/IdeaProjects/commercetools-importer/api-spec/import-storage-api.raml")
+            packagePrefix = "com.commercetools.importer",
+            ramlFileLocation = URI.createFileURI("../api-spec/api.raml")
     )
 
     @Test
@@ -49,11 +49,6 @@ class TestCodeGenerator {
 
     @Test
     fun generateSpringClient(){
-        val generatorConfig = CodeGeneratorConfig(
-                modelPackage = "com.commercetools.importapi.models",
-                clientPackage = "com.commercetools.importstorage.client",
-                ramlFileLocation = URI.createFileURI("/Users/abeniasaad/IdeaProjects/commercetools-importer/api-spec/import-storage-api.raml")
-        )
         val generatorModule = GeneratorModule(generatorConfig, JavaBaseTypes)
         val generatorComponent = GeneratorComponent(generatorModule, SpringClientModule())
         generatorComponent.generateFiles()
