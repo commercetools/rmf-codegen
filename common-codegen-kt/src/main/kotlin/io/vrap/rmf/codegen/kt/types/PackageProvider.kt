@@ -13,7 +13,11 @@ import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.util.ComposedSwitch
 
 
-class PackageProvider @Inject constructor(@Named(VrapConstants.PACKAGE_NAME) val basePackage: String) : ComposedSwitch<String>() {
+class PackageProvider @Inject constructor(
+        @Named(VrapConstants.BASE_PACKAGE_NAME) val basePackage: String,
+        @Named(VrapConstants.MODEL_PACKAGE_NAME) val modelPackage: String,
+        @Named(VrapConstants.CLIENT_PACKAGE_NAME) val clientPackage: String
+) : ComposedSwitch<String>() {
 
     init {
         addSwitch(TypePackageSwitch())
@@ -25,21 +29,18 @@ class PackageProvider @Inject constructor(@Named(VrapConstants.PACKAGE_NAME) val
     }
 
     private inner class TypePackageSwitch : TypesSwitch<String>() {
-        override fun defaultCase(`object`: EObject?): String {
-            return "$basePackage.models"
-        }
+        override fun defaultCase(`object`: EObject?): String = modelPackage
 
         override fun caseAnyType(type: AnyType?): String {
             var currentType = type
-            val modelsPackage = "$basePackage.models"
             while (currentType != null) {
 
                 val annotation = currentType.getAnnotation("package")
                 if (annotation != null) {
                     return annotation.let { it.value }
                             ?.let { it.value }
-                            ?.let { "$modelsPackage.$it" }
-                            ?: modelsPackage
+                            ?.let { "$modelPackage.$it" }
+                            ?: modelPackage
                 }
                 if (currentType.eContainer() is Library && (currentType.eContainer() as Library).getAnnotation("package") != null) {
 
@@ -48,8 +49,8 @@ class PackageProvider @Inject constructor(@Named(VrapConstants.PACKAGE_NAME) val
                         if (eContainer is AnnotationsFacet) {
                             return eContainer.let { it.getAnnotation("package") }
                                     ?.let { it.value?.value }
-                                    ?.let { "$modelsPackage.$it" }
-                                    ?: modelsPackage
+                                    ?.let { "$modelPackage.$it" }
+                                    ?: modelPackage
                         }
                         eContainer = eContainer.eContainer()
 
@@ -58,18 +59,18 @@ class PackageProvider @Inject constructor(@Named(VrapConstants.PACKAGE_NAME) val
                 currentType = currentType.type
             }
 
-            return modelsPackage
+            return modelPackage
         }
 
     }
 
     private inner class ResourcePackageSwitch : ResourcesSwitch<String>() {
         override fun caseMethod(`object`: Method): String {
-            return "$basePackage.resource"
+            return "$clientPackage.resource"
         }
 
         override fun defaultCase(`object`: EObject): String {
-            return "$basePackage.client"
+            return clientPackage
         }
     }
 }

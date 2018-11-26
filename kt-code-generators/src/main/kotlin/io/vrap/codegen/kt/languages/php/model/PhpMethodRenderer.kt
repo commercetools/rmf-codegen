@@ -20,7 +20,7 @@ import org.eclipse.emf.ecore.EObject
 class PhpMethodRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : MethodRenderer, EObjectTypeExtensions {
 
     @Inject
-    @Named(VrapConstants.PACKAGE_NAME)
+    @Named(VrapConstants.BASE_PACKAGE_NAME)
     lateinit var packagePrefix:String
 
     override fun render(type: Method): TemplateFile {

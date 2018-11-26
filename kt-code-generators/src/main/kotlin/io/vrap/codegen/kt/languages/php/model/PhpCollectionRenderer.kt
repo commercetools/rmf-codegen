@@ -19,7 +19,7 @@ import java.util.*
 class PhpCollectionRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : ObjectTypeExtensions, EObjectTypeExtensions, ObjectTypeRenderer {
 
     @Inject
-    @Named(VrapConstants.PACKAGE_NAME)
+    @Named(VrapConstants.BASE_PACKAGE_NAME)
     lateinit var packagePrefix:String
 
     override fun render(type: ObjectType): TemplateFile {

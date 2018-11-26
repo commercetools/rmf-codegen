@@ -16,7 +16,7 @@ import io.vrap.rmf.raml.model.util.StringCaseFormat
 class PhpFileProducer @Inject constructor() : FileProducer {
 
     @Inject
-    @Named(VrapConstants.PACKAGE_NAME)
+    @Named(VrapConstants.BASE_PACKAGE_NAME)
     lateinit var packagePrefix:String
 
     @Inject

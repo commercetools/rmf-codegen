@@ -126,11 +126,11 @@ class SpringClientRenderer @Inject constructor(val packageProvider: PackageProvi
     fun methodParameters(resource: Resource, method: Method): String {
 
         val parameters : MutableList<String> = resource.allUriParameters
-                .map { "final ${it.type.toVrapType().simpleName()} ${it.name}" }
+                .map { "final ${it.type.toVrapType().fullClassName()} ${it.name}" }
                 .toMutableList()
 
         val queryParameters : MutableList<String>  = method.queryParameters
-                .map { "final ${it.type.toVrapType().simpleName()} ${it.name}" }
+                .map { "final ${it.type.toVrapType().fullClassName()} ${it.name}" }
                 .toMutableList()
 
         val paramsList = mutableListOf<String>()
