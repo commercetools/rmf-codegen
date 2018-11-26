@@ -14,6 +14,7 @@ import io.vrap.rmf.codegen.kt.di.GeneratorComponent
 import io.vrap.rmf.codegen.kt.di.GeneratorModule
 import org.eclipse.emf.common.util.URI
 import org.junit.Test
+import java.nio.file.Files
 import java.nio.file.Paths
 
 
@@ -22,7 +23,7 @@ class TestCodeGenerator {
 
     val generatorConfig = CodeGeneratorConfig(
             packagePrefix = "com.commercetools.importer",
-            ramlFileLocation = URI.createFileURI("../api-spec/api.raml")
+            ramlFileLocation = URI.createFileURI(Paths.get("").resolve("../api-spec/api.raml").toAbsolutePath().toString())
     )
 
     @Test
