@@ -55,7 +55,7 @@ class GeneratorModule constructor(
 
     @Provides
     @Singleton
-    @Named(VrapConstants.PACKAGE_NAME)
+    @Named(VrapConstants.BASE_PACKAGE_NAME)
     fun providePackageName(api: Api): String {
         if (generatorConfig.packagePrefix == null && api.baseUri == null) {
             LOGGER.warn("Could not find proper package name configuration. Using default ${VrapConstants.PACKAGE_DEFAULT}")
@@ -63,6 +63,16 @@ class GeneratorModule constructor(
         }
         return generatorConfig.packagePrefix?: URI(api.baseUri.expand()).host.split(".").reversed().joinToString(".")
     }
+
+    @Provides
+    @Singleton
+    @Named(VrapConstants.MODEL_PACKAGE_NAME)
+    fun provideModelPackageName(@Named(VrapConstants.BASE_PACKAGE_NAME) basePackageName:String): String = generatorConfig.modelPackage?: "$basePackageName.models"
+
+    @Provides
+    @Singleton
+    @Named(VrapConstants.CLIENT_PACKAGE_NAME)
+    fun provideClientPackageName(@Named(VrapConstants.BASE_PACKAGE_NAME) basePackageName:String): String = generatorConfig.clientPackage?: "$basePackageName.client"
 
     @Provides
     @Singleton
