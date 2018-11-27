@@ -16,7 +16,6 @@ import java.nio.file.Paths
 data class CodeGeneratorConfig (
         val packagePrefix: String? = null,
         val modelPackage: String? = null,
-        val resourcePackage: String? = null,
         val clientPackage: String? = null,
         val outputFolder: Path = Paths.get("build/gensrc"),
         val customTypeMapping: Map<String, VrapType> = mapOf(),
