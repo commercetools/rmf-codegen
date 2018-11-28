@@ -27,16 +27,16 @@ fun createCliParser(): Cli<Runnable> {
 @Command(name = "generate", description = "Generate source code from a RAML specification.")
 class GeneratorTask : Runnable {
 
-    @Option(name = arrayOf("-b", "--base-package"), description = "The base package to be used for the generated code.")
+    @Option(name = ["-b", "--base-package"], description = "The base package to be used for the generated code.")
     var basePackageName: String? = null
 
-    @Option(name = arrayOf("-m", "--model-package"), description = "The base package to be used for the generated model code.")
+    @Option(name = ["-m", "--model-package"], description = "The base package to be used for the generated model code.")
     var modelPackageName: String? = null
 
-    @Option(name = arrayOf("-c", "--client-package"), description = "The base package to be used for the generated client code.")
+    @Option(name = ["-c", "--client-package"], description = "The base package to be used for the generated client code.")
     var clientPackageName: String? = null
 
-    @Option(name = arrayOf("-o", "--output-folder"), description = "Output folder for generated files.", required = true)
+    @Option(name = ["-o", "--output-folder"], description = "Output folder for generated files.", required = true)
     lateinit var outputFolder: File
 
     @Arguments(description = "Api file location", required = true)

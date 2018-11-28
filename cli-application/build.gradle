@@ -14,7 +14,7 @@ compileTestKotlin {
 
 
 dependencies {
-    compile project(':kt-code-generators')
+    compile project(':codegen-renderers')
     
     compile 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
     compile 'com.google.guava:guava:27.0.1-jre'

@@ -1,5 +1,5 @@
 include 'common-codegen', 'codegen-gradle-plugin', 'annotations'
-include 'cli-application', 'common-codegen-kt'
-include 'common-codegen-generators'
-include 'kt-code-generators'
+include 'cli-application'
+include 'codegen-renderers'
+include 'codegen-core'
 
