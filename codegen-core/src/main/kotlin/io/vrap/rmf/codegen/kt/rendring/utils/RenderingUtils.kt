@@ -25,7 +25,7 @@ fun validateString(input: String, indStartToken: String, indStopToken: String, e
                             when (s.substring(i, Math.min(s.length, i + indStopToken.length))) {
                                 indStopToken ->
                                     if (stack.isEmpty()) {
-                                        val numerizedLinez = input.lines().mapIndexed { index, s -> "$index - $s" }.joinToString(separator = "\n")
+                                        val numerizedLinez = input.lines().mapIndexed { rowNumber, line -> "$rowNumber - $line" }.joinToString(separator = "\n")
                                         throw Exception("can't find opening token '$indStartToken' for closing token '$indStopToken' at line $index column $i \n$numerizedLinez")
                                     } else {
                                         stack.pop()

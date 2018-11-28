@@ -8,7 +8,6 @@ import io.vrap.rmf.codegen.kt.di.GeneratorComponent
 import io.vrap.rmf.codegen.kt.di.GeneratorModule
 import org.eclipse.emf.common.util.URI
 import java.io.File
-import java.nio.file.Paths
 
 fun main(args: Array<String>) {
     val commandParser = createCliParser()
@@ -19,7 +18,7 @@ fun createCliParser(): Cli<Runnable> {
     val builder = Cli.builder<Runnable>("rmf-codegen")
             .withDescription("code generator for raml")
             .withDefaultCommand(Help::class.java)
-            .withCommands(Help::class.java, GeneratorTask::class.java!!)
+            .withCommands(Help::class.java, GeneratorTask::class.java)
 
     return builder.build()
 }
