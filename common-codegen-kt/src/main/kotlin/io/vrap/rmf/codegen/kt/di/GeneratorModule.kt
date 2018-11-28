@@ -57,11 +57,11 @@ class GeneratorModule constructor(
     @Singleton
     @Named(VrapConstants.BASE_PACKAGE_NAME)
     fun providePackageName(api: Api): String {
-        if (generatorConfig.packagePrefix == null && api.baseUri == null) {
+        if (generatorConfig.basePackageName == null && api.baseUri == null) {
             LOGGER.warn("Could not find proper package name configuration. Using default ${VrapConstants.PACKAGE_DEFAULT}")
             return VrapConstants.PACKAGE_DEFAULT
         }
-        return generatorConfig.packagePrefix?: URI(api.baseUri.expand()).host.split(".").reversed().joinToString(".")
+        return generatorConfig.basePackageName?: URI(api.baseUri.expand()).host.split(".").reversed().joinToString(".")
     }
 
     @Provides

@@ -21,7 +21,7 @@ class TestCodeGenerator {
 
 
     val generatorConfig = CodeGeneratorConfig(
-            packagePrefix = "com.commercetools.importer",
+            basePackageName = "com.commercetools.importer",
             ramlFileLocation = URI.createFileURI("../api-spec/api.raml")
     )
 
@@ -64,7 +64,7 @@ class TestCodeGenerator {
     @Test
     fun generatePHPModels() {
         val generatorConfig = CodeGeneratorConfig(
-                packagePrefix = "com.commercetools.importer",
+                basePackageName = "com.commercetools.importer",
                 ramlFileLocation = URI.createFileURI("../api-spec/api.raml"),
                 outputFolder = Paths.get("build/gensrc/commercetools-raml-sdk")
         )
