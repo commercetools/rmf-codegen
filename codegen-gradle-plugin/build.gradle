@@ -1,19 +1,19 @@
-apply plugin: 'java'
+//apply plugin: 'java'
 //apply plugin: 'java-gradle-plugin'
 //apply plugin: 'com.gradle.plugin-publish'
 
 
-sourceCompatibility = 1.8
-
-dependencies {
-    compile project(':common-codegen')
-    compile gradleApi()
-
-    testCompile 'junit:junit:4.12'
-    testCompile gradleTestKit()
-    testCompile "org.spockframework:spock-core:${versions.spock}"
-    testCompile "org.assertj:assertj-core:3.10.0"
-}
+//sourceCompatibility = 1.8
+//
+//dependencies {
+//    compile project(':common-codegen')
+//    compile gradleApi()
+//
+//    testCompile 'junit:junit:4.12'
+//    testCompile gradleTestKit()
+//    testCompile "org.spockframework:spock-core:${versions.spock}"
+//    testCompile "org.assertj:assertj-core:3.10.0"
+//}
 
 //
 //gradlePlugin {
