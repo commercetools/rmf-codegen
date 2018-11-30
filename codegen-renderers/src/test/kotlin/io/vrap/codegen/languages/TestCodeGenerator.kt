@@ -8,7 +8,10 @@ import io.vrap.codegen.languages.java.plantuml.PlantUmlModule
 import io.vrap.codegen.languages.php.PhpBaseTypes
 import io.vrap.codegen.languages.php.model.PhpModelModule
 import io.vrap.codegen.languages.typescript.TypeScriptBaseTypes
-import io.vrap.codegen.languages.typescript.TypeScriptModule
+import io.vrap.codegen.languages.typescript.TypeScriptModelModule
+import io.vrap.rmf.codegen.di.GeneratorComponent
+import io.vrap.rmf.codegen.di.GeneratorModule
+
 import org.eclipse.emf.common.util.URI
 import org.junit.Test
 import java.nio.file.Paths
@@ -24,37 +27,37 @@ class TestCodeGenerator {
 
     @Test
     fun generateTsModels(){
-        val generatorModule = io.vrap.rmf.codegen.di.GeneratorModule(generatorConfig, TypeScriptBaseTypes)
-        val generatorComponent = io.vrap.rmf.codegen.di.GeneratorComponent(generatorModule, TypeScriptModule())
+        val generatorModule = GeneratorModule(generatorConfig, TypeScriptBaseTypes)
+        val generatorComponent = GeneratorComponent(generatorModule, TypeScriptModelModule())
         generatorComponent.generateFiles()
     }
 
     @Test
     fun generateJavaModels(){
 
-        val generatorModule = io.vrap.rmf.codegen.di.GeneratorModule(generatorConfig, JavaBaseTypes)
-        val generatorComponent = io.vrap.rmf.codegen.di.GeneratorComponent(generatorModule, JavaModelModule())
+        val generatorModule = GeneratorModule(generatorConfig, JavaBaseTypes)
+        val generatorComponent = GeneratorComponent(generatorModule, JavaModelModule())
         generatorComponent.generateFiles()
     }
 
     @Test
     fun generateGroovyDsl(){
-        val generatorModule = io.vrap.rmf.codegen.di.GeneratorModule(generatorConfig, JavaBaseTypes)
-        val generatorComponent = io.vrap.rmf.codegen.di.GeneratorComponent(generatorModule, GroovyDslModule())
+        val generatorModule = GeneratorModule(generatorConfig, JavaBaseTypes)
+        val generatorComponent = GeneratorComponent(generatorModule, GroovyDslModule())
         generatorComponent.generateFiles()
     }
 
     @Test
     fun generateSpringClient(){
-        val generatorModule = io.vrap.rmf.codegen.di.GeneratorModule(generatorConfig, JavaBaseTypes)
-        val generatorComponent = io.vrap.rmf.codegen.di.GeneratorComponent(generatorModule, SpringClientModule())
+        val generatorModule = GeneratorModule(generatorConfig, JavaBaseTypes)
+        val generatorComponent = GeneratorComponent(generatorModule, SpringClientModule())
         generatorComponent.generateFiles()
     }
 
     @Test
     fun generatePlantUmlDiagram(){
-        val generatorModule = io.vrap.rmf.codegen.di.GeneratorModule(generatorConfig, JavaBaseTypes)
-        val generatorComponent = io.vrap.rmf.codegen.di.GeneratorComponent(generatorModule, PlantUmlModule())
+        val generatorModule = GeneratorModule(generatorConfig, JavaBaseTypes)
+        val generatorComponent = GeneratorComponent(generatorModule, PlantUmlModule())
         generatorComponent.generateFiles()
     }
 
@@ -65,8 +68,8 @@ class TestCodeGenerator {
                 ramlFileLocation = URI.createFileURI("../api-spec/api.raml"),
                 outputFolder = Paths.get("build/gensrc/commercetools-raml-sdk")
         )
-        val generatorModule = io.vrap.rmf.codegen.di.GeneratorModule(generatorConfig, PhpBaseTypes)
-        val generatorComponent = io.vrap.rmf.codegen.di.GeneratorComponent(generatorModule, PhpModelModule())
+        val generatorModule = GeneratorModule(generatorConfig, PhpBaseTypes)
+        val generatorComponent = GeneratorComponent(generatorModule, PhpModelModule())
         generatorComponent.generateFiles()
     }
 }
