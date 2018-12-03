@@ -14,7 +14,6 @@ import io.vrap.rmf.codegen.di.GeneratorModule
 
 import org.eclipse.emf.common.util.URI
 import org.junit.Test
-import java.nio.file.Files
 import java.nio.file.Paths
 
 
