@@ -22,7 +22,7 @@ class TestCodeGenerator {
 
     val generatorConfig = io.vrap.rmf.codegen.CodeGeneratorConfig(
             basePackageName = "com.commercetools.importer",
-            ramlFileLocation = URI.createFileURI("../api-spec/api.raml")
+            ramlFileLocation = URI.createFileURI(Paths.get("").resolve("../api-spec/api.raml").toAbsolutePath().toString())
     )
 
     @Test
