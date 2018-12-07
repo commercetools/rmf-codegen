@@ -65,7 +65,7 @@ class AnyTypeProvider @Inject constructor(val packageProvider: PackageProvider, 
             return languageBaseTypes.stringType
         } else {
             //This case happens for enumerations
-            return VrapObjectType(`package` = packageProvider.doSwitch(stringType), simpleClassName = stringType.name)
+            return VrapEnumType(`package` = packageProvider.doSwitch(stringType), simpleClassName = stringType.name)
         }
     }
 }

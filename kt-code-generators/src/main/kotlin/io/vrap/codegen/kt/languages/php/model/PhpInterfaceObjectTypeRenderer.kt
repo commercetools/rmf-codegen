@@ -19,7 +19,7 @@ import io.vrap.rmf.raml.model.util.StringCaseFormat
 import org.eclipse.emf.ecore.EObject
 import java.util.*
 
-class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : ObjectTypeExtensions, EObjectTypeExtensions, ObjectTypeRenderer {
+class PhpInterfaceObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : ObjectTypeExtensions, EObjectTypeExtensions, ObjectTypeRenderer {
 
     @Inject
     @Named(VrapConstants.PACKAGE_NAME)
@@ -36,12 +36,10 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
             |
             |<<${type.imports()}>>
             |
-            |final class ${vrapType.simpleClassName}Model implements ${vrapType.simpleClassName}
+            |interface ${vrapType.simpleClassName} ${type.type?.toVrapType()?.simpleName()?.let { "extends $it" } ?: ""}
             |{
             |    ${if (type.discriminator != null || type.discriminatorValue != null) {"const DISCRIMINATOR_VALUE = '${type.discriminatorValue ?: ""}';"} else ""}
-            |    <<${type.constructor()}>>
-            |
-            |    <<${type.toBeanFields()}>>
+            |    <<${type.toBeanConstant()}>>
             |
             |    <<${type.getters()}>>
             |}
@@ -49,7 +47,7 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
 
 
         return TemplateFile(
-                relativePath = "src/" + vrapType.fullClassName().replace(packagePrefix.toNamespaceName(), "").replace("\\", "/") + "Model.php",
+                relativePath = "src/" + vrapType.fullClassName().replace(packagePrefix.toNamespaceName(), "").replace("\\", "/") + ".php",
                 content = content
         )
     }
@@ -70,7 +68,7 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
             ""
     }
 
-    fun ObjectType.imports() = this.getImports(this.allProperties).map { "use ${it.escapeAll()};" }.joinToString(separator = "\n")
+    fun ObjectType.imports() = this.getImports().map { "use ${it.escapeAll()};" }.joinToString(separator = "\n")
 
     fun Property.toPhpField(): String {
 
@@ -93,7 +91,7 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
             .filter { it.name != this.discriminator }
             .map { it.toPhpConstant() }.joinToString(separator = "\n")
 
-    fun ObjectType.toBeanFields() = this.allProperties
+    fun ObjectType.toBeanFields() = this.properties
             .filter { it.name != this.discriminator }
             .map { it.toPhpField() }.joinToString(separator = "\n\n")
 
@@ -104,7 +102,7 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
             .joinToString(separator = "\n\n")
 
 
-    fun ObjectType.getters() = this.allProperties
+    fun ObjectType.getters() = this.properties
             //Filter the discriminators because they don't make much sense the generated bean
             .filter { it.name != this.discriminator }
             .map { it.getter() }
@@ -140,9 +138,7 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
                 |/**
                 | ${this.type.toPhpComment()}
                 | */
-                |public function values() {
-                |    return $!values;
-                |}
+                |public function values();
             """.trimMargin()
         } else {
             """
@@ -150,9 +146,7 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
                 | ${this.type.toPhpComment()}
                 | * @return ${this.type.toVrapType().simpleName()}
                 | */
-                |public function get${this.name.capitalize()}(){
-                |   return $!this->${this.name};
-                |}
+                |public function get${this.name.capitalize()}();
         """.trimMargin()
         }
     }

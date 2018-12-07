@@ -11,6 +11,7 @@ class PhpModelModule: AbstractModule() {
 
     override fun configure() {
         val objectTypeBinder = Multibinder.newSetBinder(binder(), ObjectTypeRenderer::class.java)
+        objectTypeBinder.addBinding().to(PhpInterfaceObjectTypeRenderer::class.java)
         objectTypeBinder.addBinding().to(PhpObjectTypeRenderer::class.java)
         objectTypeBinder.addBinding().to(PhpCollectionRenderer::class.java)
 
