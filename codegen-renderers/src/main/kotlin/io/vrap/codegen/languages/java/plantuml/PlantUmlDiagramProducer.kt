@@ -8,7 +8,9 @@ import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.FileProducer
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
 import io.vrap.rmf.codegen.rendring.utils.keepIndentation
+import io.vrap.rmf.codegen.types.VrapEnumType
 import io.vrap.rmf.codegen.types.VrapObjectType
+import io.vrap.rmf.codegen.types.VrapScalarType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.types.*
 import io.vrap.rmf.raml.model.util.StringCaseFormat
@@ -104,7 +106,7 @@ class PlantUmlDiagramProducer @Inject constructor(override val vrapTypeProvider:
 
 
     fun StringType.plantUmlEnumDef(): String {
-        val vrapType = this.toVrapType() as VrapObjectType
+        val vrapType = this.toVrapType() as VrapEnumType
         return """
             |package ${vrapType.`package`} {
             |   enum ${vrapType.simpleClassName}{
