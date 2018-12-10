@@ -27,6 +27,56 @@ open class VrapObjectType(val `package` :String, val simpleClassName:String) : V
         return result
     }
 }
+
+class VrapEnumType(val `package` :String, val simpleClassName:String) : VrapType() {
+
+
+    override fun toString(): String {
+        return "VrapEnumType(`package`='$`package`', simpleClassName='$simpleClassName')"
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as VrapEnumType
+
+        if (`package` != other.`package`) return false
+        if (simpleClassName != other.simpleClassName) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = `package`.hashCode()
+        result = 31 * result + simpleClassName.hashCode()
+        return result
+    }
+}
+
+class VrapScalarType(val scalarType:String) : VrapType() {
+
+
+    override fun toString(): String {
+        return "VrapScalarType(scalarType='$scalarType')"
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as VrapScalarType
+
+        if (scalarType != other.scalarType) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        return scalarType.hashCode()
+    }
+}
+
 /**
  * Represent a tpe that comes from the default package
  */

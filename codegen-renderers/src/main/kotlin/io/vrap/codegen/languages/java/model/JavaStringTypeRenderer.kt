@@ -9,7 +9,7 @@ import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.StringTypeRenderer
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
 import io.vrap.rmf.codegen.rendring.utils.keepIndentation
-import io.vrap.rmf.codegen.types.VrapObjectType
+import io.vrap.rmf.codegen.types.VrapEnumType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.types.StringInstance
 import io.vrap.rmf.raml.model.types.StringType
@@ -18,7 +18,7 @@ import io.vrap.rmf.raml.model.util.StringCaseFormat
 class JavaStringTypeRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : ObjectTypeExtensions, EObjectTypeExtensions, StringTypeRenderer {
 
     override fun render(type: StringType): TemplateFile {
-        val vrapType = vrapTypeProvider.doSwitch(type) as VrapObjectType
+        val vrapType = vrapTypeProvider.doSwitch(type) as VrapEnumType
 
         val content = """
                 |package ${vrapType.`package`};

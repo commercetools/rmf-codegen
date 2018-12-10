@@ -8,6 +8,7 @@ import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.FileProducer
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
 import io.vrap.rmf.codegen.rendring.utils.keepIndentation
+import io.vrap.rmf.codegen.types.VrapEnumType
 import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.types.*
@@ -20,9 +21,18 @@ class TypeScriptModuleRenderer @Inject constructor(override val vrapTypeProvider
 
 
     override fun produceFiles(): List<TemplateFile> {
-        return allAnyTypes.groupBy { (it.toVrapType() as VrapObjectType).`package` }
+        return allAnyTypes.groupBy { s(it) }
                 .map { entry: Map.Entry<String, List<AnyType>> -> buildModule(entry.key, entry.value) }
                 .toList()
+    }
+
+    private fun s(it: AnyType): String {
+        val t = it.toVrapType()
+        return when (t) {
+            is VrapObjectType -> t.`package`
+            is VrapEnumType -> t.`package`
+            else -> ""
+        }
     }
 
 
@@ -113,7 +123,7 @@ class TypeScriptModuleRenderer @Inject constructor(override val vrapTypeProvider
     }
 
     fun StringType.renderStringType(): String {
-        val vrapType = this.toVrapType() as VrapObjectType
+        val vrapType = this.toVrapType() as VrapEnumType
 
         return """
         |${this.toComment().escapeAll()}

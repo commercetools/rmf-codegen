@@ -1,10 +1,6 @@
 package io.vrap.codegen.languages.typescript
 
-import io.vrap.codegen.languages.ExtensionsBase
-import io.vrap.rmf.codegen.types.VrapArrayType
-import io.vrap.rmf.codegen.types.VrapDefaultObjectType
-import io.vrap.rmf.codegen.types.VrapObjectType
-import io.vrap.rmf.codegen.types.VrapType
+import io.vrap.rmf.codegen.types.*
 import io.vrap.rmf.raml.model.types.AnyType
 import io.vrap.rmf.raml.model.types.ObjectType
 import java.nio.file.Path
@@ -45,7 +41,7 @@ interface TsObjectTypeExtensions : io.vrap.codegen.languages.ExtensionsBase {
                 .map { vrapTypeProvider.doSwitch(it) }
                 .map { toVrapType(it) }
                 .filterNotNull()
-                .filter { it !is VrapDefaultObjectType }
+                .filter { it !is VrapScalarType }
 
         return result
     }

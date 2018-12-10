@@ -2,15 +2,13 @@ package io.vrap.codegen.languages.php.extensions
 
 import com.damnhandy.uri.template.Expression
 import com.damnhandy.uri.template.UriTemplate
-import io.vrap.rmf.codegen.types.VrapArrayType
-import io.vrap.rmf.codegen.types.VrapNilType
-import io.vrap.rmf.codegen.types.VrapObjectType
-import io.vrap.rmf.codegen.types.VrapType
+import io.vrap.rmf.codegen.types.*
 import io.vrap.rmf.raml.model.modules.Api
 import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.responses.Body
 import io.vrap.rmf.raml.model.security.OAuth20Settings
+import io.vrap.rmf.raml.model.types.*
 import io.vrap.rmf.raml.model.util.StringCaseFormat
 import java.util.stream.Collectors
 
@@ -34,6 +32,8 @@ fun VrapType.namespaceName():String{
 
 fun VrapType.simpleName():String{
     return when(this){
+        is VrapScalarType -> this.scalarType
+        is VrapEnumType -> "string"
         is VrapObjectType -> this.simpleClassName
         is VrapArrayType -> "${this.itemType.simpleName()}${if (!this.itemType.isScalar()) "Collection" else "[]"}"
         is VrapNilType -> throw IllegalStateException("$this has no simple class name.")
@@ -42,6 +42,8 @@ fun VrapType.simpleName():String{
 
 fun VrapType.fullClassName():String{
     return when(this){
+        is VrapScalarType -> this.scalarType
+        is VrapEnumType -> "string"
         is VrapObjectType -> "${this.namespaceName()}\\\\${this.simpleClassName}"
         is VrapArrayType -> "${this.itemType.fullClassName()}${if (!this.itemType.isScalar()) "Collection" else "[]"}"
         is VrapNilType -> throw IllegalStateException("$this has no full class name.")
@@ -49,6 +51,17 @@ fun VrapType.fullClassName():String{
 }
 
 fun scalarTypes():Array<String> { return arrayOf("string", "int", "float", "bool", "array") }
+
+fun AnyType.isScalar(): Boolean {
+    return when(this) {
+        is StringType -> true
+        is IntegerType -> true
+        is NumberType -> true
+        is BooleanType -> true
+        is ArrayType -> this.items.isScalar()
+        else -> false
+    }
+}
 
 fun VrapType.isScalar(): Boolean {
     return when(this){
