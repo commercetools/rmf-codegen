@@ -28,7 +28,7 @@ open class VrapObjectType(val `package` :String, val simpleClassName:String) : V
     }
 }
 
-open class VrapEnumType(val `package` :String, val simpleClassName:String) : VrapType() {
+class VrapEnumType(val `package` :String, val simpleClassName:String) : VrapType() {
 
 
     override fun toString(): String {
@@ -54,7 +54,7 @@ open class VrapEnumType(val `package` :String, val simpleClassName:String) : Vra
     }
 }
 
-open class VrapScalarType(val scalarType:String) : VrapType() {
+class VrapScalarType(val scalarType:String) : VrapType() {
 
 
     override fun toString(): String {
