@@ -19,8 +19,8 @@ interface  ObjectTypeExtensions : io.vrap.codegen.languages.ExtensionsBase {
                 .plus(this.namedSubTypes())
                 .plus(this.type)
                 .filterNotNull()
-                .map { vrapTypeProvider.doSwitch(it) }
                 .filter { !it.isScalar() }
+                .map { vrapTypeProvider.doSwitch(it) }
                 .map { getImportsForType(it) }
                 .filterNotNull()
                 .filter { !it.equals("\\\\") }

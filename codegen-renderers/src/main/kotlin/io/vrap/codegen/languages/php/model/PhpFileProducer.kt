@@ -41,7 +41,9 @@ class PhpFileProducer @Inject constructor() : FileProducer {
             oauthHandlerFactory(),
             baseException(),
             invalidArgumentException(),
-            apiRequest()
+            apiRequest(),
+            mapperFactory(),
+            jsonObject()
     )
 
     private fun baseCollection(): TemplateFile {
@@ -56,6 +58,102 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                         |{
                         |}
                     """.trimMargin()
+        )
+    }
+
+    private fun mapperFactory(): TemplateFile {
+        return TemplateFile(relativePath = "src/Base/MapperFactory.php",
+                content = """
+                        |<?php
+                        |${PhpSubTemplates.generatorInfo}
+                        |
+                        |namespace ${packagePrefix.toNamespaceName()}\Base;
+                        |
+                        |use DateTime;
+                        |use DateTimeImmutable;
+                        |
+                        |class MapperFactory
+                        |{
+                        |    const DATETIME_FORMAT = "Y-m-d?H:i:s.uT";
+                        |
+                        |    public static function stringMapper() {
+                        |       return function ($!data) {
+                        |           if (is_null($!data)) {
+                        |               return null;
+                        |           }
+                        |           return (string)$!data;
+                        |       };
+                        |    }
+                        |
+                        |    public static function numberMapper() {
+                        |       return function ($!data) {
+                        |           if (is_null($!data)) {
+                        |               return null;
+                        |           }
+                        |           return (float)$!data;
+                        |       };
+                        |    }
+                        |
+                        |    public static function integerMapper() {
+                        |       return function ($!data) {
+                        |           if (is_null($!data)) {
+                        |               return null;
+                        |           }
+                        |           return (int)$!data;
+                        |       };
+                        |    }
+                        |
+                        |    public static function dateTimeMapper($!format = self::DATETIME_FORMAT) {
+                        |       return function ($!data) use ($!format) {
+                        |           if (is_null($!data)) {
+                        |               return null;
+                        |           }
+                        |           return DateTimeImmutable::createFromFormat($!format, $!data);
+                        |       };
+                        |    }
+                        |
+                        |    public static function classMapper($!className) {
+                        |       return function ($!data) use ($!className) {
+                        |           if (is_null($!data)) {
+                        |               return null;
+                        |           }
+                        |           return new $!className($!data);
+                        |       };
+                        |    }
+                        |}
+                    """.trimMargin().forcedLiteralEscape()
+        )
+    }
+
+    private fun jsonObject(): TemplateFile {
+        return TemplateFile(relativePath = "src/Base/JsonObject.php",
+                content = """
+                        |<?php
+                        |${PhpSubTemplates.generatorInfo}
+                        |
+                        |namespace ${packagePrefix.toNamespaceName()}\Base;
+                        |
+                        |class JsonObject
+                        |{
+                        |    private $!rawData;
+                        |
+                        |    public function __construct(array $!data = [])
+                        |    {
+                        |        $!this->rawData = $!data;
+                        |    }
+                        |
+                        |    public function get(string $!field, callable $!mapper = null)
+                        |    {
+                        |        if (isset($!this->rawData[$!field])) {
+                        |            if (is_null($!mapper)) {
+                        |                return $!this->rawData[$!field];
+                        |            }
+                        |            return call_user_func($!mapper, $!this->rawData[$!field]);
+                        |        }
+                        |        return null;
+                        |    }
+                        |}
+                    """.trimMargin().forcedLiteralEscape()
         )
     }
 

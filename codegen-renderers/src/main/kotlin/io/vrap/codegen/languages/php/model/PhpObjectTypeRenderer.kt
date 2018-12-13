@@ -2,6 +2,7 @@ package io.vrap.codegen.languages.php.model;
 
 import com.google.inject.Inject
 import com.google.inject.name.Named
+import io.vrap.codegen.languages.php.PhpBaseTypes
 import io.vrap.codegen.languages.php.PhpSubTemplates
 import io.vrap.codegen.languages.php.extensions.*
 import io.vrap.rmf.codegen.di.VrapConstants
@@ -9,8 +10,8 @@ import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.ObjectTypeRenderer
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
 import io.vrap.rmf.codegen.rendring.utils.keepIndentation
-import io.vrap.rmf.codegen.types.VrapObjectType
-import io.vrap.rmf.codegen.types.VrapTypeProvider
+import io.vrap.rmf.codegen.types.*
+import io.vrap.rmf.raml.model.types.AnyType
 import io.vrap.rmf.raml.model.types.ArrayType
 import io.vrap.rmf.raml.model.types.ObjectType
 import io.vrap.rmf.raml.model.types.Property
@@ -34,9 +35,11 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
             |${PhpSubTemplates.generatorInfo}
             |namespace ${vrapType.namespaceName().escapeAll()};
             |
+            |use ${packagePrefix.toNamespaceName().escapeAll()}\\Base\\JsonObject;
+            |use ${packagePrefix.toNamespaceName().escapeAll()}\\Base\\MapperFactory;
             |<<${type.imports()}>>
             |
-            |final class ${vrapType.simpleClassName}Model implements ${vrapType.simpleClassName}
+            |final class ${vrapType.simpleClassName}Model extends JsonObject implements ${vrapType.simpleClassName}
             |{
             |    ${if (type.discriminator != null || type.discriminatorValue != null) {"const DISCRIMINATOR_VALUE = '${type.discriminatorValue ?: ""}';"} else ""}
             |    <<${type.constructor()}>>
@@ -61,16 +64,17 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
             |/**
             | * @param array $!data
             | */
-            |public function __construct(array $!data = []) {
+            |public function __construct(array $!data = [])
+            |{
             |    parent::__construct($!data);
-            |    $!this->set${this.discriminator.capitalize()}(static::DISCRIMINATOR_VALUE);
+            |    $!this->${this.discriminator} = static::DISCRIMINATOR_VALUE;
             |}
             """.trimMargin()
         else
             ""
     }
 
-    fun ObjectType.imports() = this.getImports(this.allProperties).map { "use ${it.escapeAll()};" }.joinToString(separator = "\n")
+    fun ObjectType.imports() = this.getImports(this.allProperties).map { "use ${it.escapeAll()};\nuse ${it.escapeAll()}Model;" }.joinToString(separator = "\n")
 
     fun Property.toPhpField(): String {
 
@@ -82,19 +86,23 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
         """.trimMargin();
     }
 
+    fun Property.toPhpConstantName(): String {
+        return "FIELD_${if (this.isPatternProperty()) "VALUES" else StringCaseFormat.UPPER_UNDERSCORE_CASE.apply(this.name)}"
+    }
+
     fun Property.toPhpConstant(): String {
 
         return """
-            |const FIELD_${if (this.isPatternProperty()) "VALUES" else StringCaseFormat.UPPER_UNDERSCORE_CASE.apply(this.name)} = '${if (this.isPatternProperty()) "values" else this.name}';
-        """.trimMargin();
+            |const ${this.toPhpConstantName()} = '${if (this.isPatternProperty()) "values" else this.name}';
+        """.trimMargin()
     }
 
     fun ObjectType.toBeanConstant() = this.properties
-            .filter { it.name != this.discriminator }
+//            .filter { it.name != this.discriminator }
             .map { it.toPhpConstant() }.joinToString(separator = "\n")
 
     fun ObjectType.toBeanFields() = this.allProperties
-            .filter { it.name != this.discriminator }
+//            .filter { it.name != this.discriminator }
             .map { it.toPhpField() }.joinToString(separator = "\n\n")
 
     fun ObjectType.setters() = this.properties
@@ -106,7 +114,7 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
 
     fun ObjectType.getters() = this.allProperties
             //Filter the discriminators because they don't make much sense the generated bean
-            .filter { it.name != this.discriminator }
+//            .filter { it.name != this.discriminator }
             .map { it.getter() }
             .joinToString(separator = "\n\n")
 
@@ -117,7 +125,8 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
 
             """
             |@JsonAnySetter
-            |public void setValue(String key, ${this.type.toVrapType().simpleName()} value) {
+            |public void setValue(String key, ${this.type.toVrapType().simpleName()} value)
+            |{
             |    if (values == null) {
             |        values = new HashMap<>();
             |    }
@@ -126,7 +135,8 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
             """.trimMargin()
         } else {
             """
-            |public void set${this.name.capitalize()}(final ${this.type.toVrapType().simpleName()} ${this.name}){
+            |public void set${this.name.capitalize()}(final ${this.type.toVrapType().simpleName()} ${this.name})
+            |{
             |   this.${this.name} = ${this.name};
             |}
             """.trimMargin()
@@ -140,7 +150,8 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
                 |/**
                 | ${this.type.toPhpComment()}
                 | */
-                |public function values() {
+                |public function values()
+                |{
                 |    return $!values;
                 |}
             """.trimMargin()
@@ -150,12 +161,17 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
                 | ${this.type.toPhpComment()}
                 | * @return ${this.type.toVrapType().simpleName()}
                 | */
-                |public function get${this.name.capitalize()}(){
+                |public function get${this.name.capitalize()}()
+                |{
+                |   if (is_null($!this->${this.name})) {
+                |       $!this->${this.name} = $!this->get(self::${this.toPhpConstantName()}, ${mapper(this.type)});
+                |   }
                 |   return $!this->${this.name};
                 |}
         """.trimMargin()
         }
     }
+
 
     fun Property.validationAnnotations(): String {
         val validationAnnotations = ArrayList<String>()
@@ -169,7 +185,22 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
     }
 
 
-
+    fun mapper(type: AnyType):String {
+        return when(type){
+            is ObjectType -> "MapperFactory::classMapper(${type.toVrapType().simpleName()}Model::class)"
+            is ArrayType -> if(type.items?.isScalar() != true) "MapperFactory::classMapper(${type.toVrapType().simpleName()}::class)" else "null"
+            else ->
+                when (type.toVrapType()) {
+                    is VrapEnumType -> "MapperFactory::stringMapper()"
+                    PhpBaseTypes.integerType -> "MapperFactory::integerMapper()"
+                    PhpBaseTypes.stringType -> "MapperFactory::stringMapper()"
+                    PhpBaseTypes.doubleType -> "MapperFactory::numberMapper()"
+                    PhpBaseTypes.booleanType -> "MapperFactory::booleanMapper()"
+                    PhpBaseTypes.dateTimeType -> "MapperFactory::dateTimeMapper()"
+                    else -> "null"
+                }
+        }
+    }
 
     private object CascadeValidationCheck : TypesSwitch<Boolean>() {
         override fun defaultCase(`object`: EObject?): Boolean? {

@@ -50,29 +50,23 @@ fun VrapType.fullClassName():String{
     }
 }
 
-fun scalarTypes():Array<String> { return arrayOf("string", "int", "float", "bool", "array") }
-
 fun AnyType.isScalar(): Boolean {
     return when(this) {
         is StringType -> true
         is IntegerType -> true
         is NumberType -> true
         is BooleanType -> true
-        is ArrayType -> this.items.isScalar()
+        is ArrayType -> {
+            this.items == null || this.items.isScalar()
+        }
         else -> false
     }
 }
 
 fun VrapType.isScalar(): Boolean {
     return when(this){
-        is VrapObjectType -> when(this.simpleClassName) {
-            in scalarTypes() -> true
-            else -> false
-        }
-        is VrapArrayType -> when(this.itemType.simpleName()) {
-            in scalarTypes() -> true
-            else -> false
-        }
+        is VrapScalarType -> true
+        is VrapEnumType -> true
         else -> false
     }
 }

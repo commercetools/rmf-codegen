@@ -88,11 +88,11 @@ class PhpInterfaceObjectTypeRenderer @Inject constructor(override val vrapTypePr
     }
 
     fun ObjectType.toBeanConstant() = this.properties
-            .filter { it.name != this.discriminator }
+//            .filter { it.name != this.discriminator }
             .map { it.toPhpConstant() }.joinToString(separator = "\n")
 
     fun ObjectType.toBeanFields() = this.properties
-            .filter { it.name != this.discriminator }
+//            .filter { it.name != this.discriminator }
             .map { it.toPhpField() }.joinToString(separator = "\n\n")
 
     fun ObjectType.setters() = this.properties
@@ -104,7 +104,7 @@ class PhpInterfaceObjectTypeRenderer @Inject constructor(override val vrapTypePr
 
     fun ObjectType.getters() = this.properties
             //Filter the discriminators because they don't make much sense the generated bean
-            .filter { it.name != this.discriminator }
+//            .filter { it.name != this.discriminator }
             .map { it.getter() }
             .joinToString(separator = "\n\n")
 
