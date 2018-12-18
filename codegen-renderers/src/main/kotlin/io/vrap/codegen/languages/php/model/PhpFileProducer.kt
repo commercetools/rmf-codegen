@@ -133,24 +133,48 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                         |
                         |namespace ${packagePrefix.toNamespaceName()}\Base;
                         |
-                        |class JsonObject
+                        |class JsonObject implements \JsonSerializable
                         |{
                         |    private $!rawData;
                         |
-                        |    public function __construct(array $!data = [])
+                        |    public function __construct(object $!data = null)
                         |    {
                         |        $!this->rawData = $!data;
                         |    }
                         |
-                        |    public function get(string $!field, callable $!mapper = null)
+                        |    public function map(string $!field, callable $!mapper)
                         |    {
-                        |        if (isset($!this->rawData[$!field])) {
-                        |            if (is_null($!mapper)) {
-                        |                return $!this->rawData[$!field];
-                        |            }
-                        |            return call_user_func($!mapper, $!this->rawData[$!field]);
+                        |        return call_user_func($!mapper, $!this->get($!field));
+                        |    }
+                        |
+                        |    public function get(string $!field)
+                        |    {
+                        |        if (isset($!this->rawData->$!field)) {
+                        |            return $!this->rawData->$!field;
                         |        }
                         |        return null;
+                        |    }
+                        |
+                        |    public function jsonSerialize()
+                        |    {
+                        |        return $!this->toArray();
+                        |    }
+                        |
+                        |    protected function toArray(): array
+                        |    {
+                        |        $!rawData = is_null($!this->rawData) ? [] : get_object_vars($!this->rawData);
+                        |        $!data = array_filter(
+                        |            get_object_vars($!this),
+                        |            function($!value, $!key) {
+                        |                if ($!key == 'rawData') {
+                        |                    return false;
+                        |                }
+                        |                return !is_null($!value);
+                        |            },
+                        |            ARRAY_FILTER_USE_BOTH
+                        |        );
+                        |        $!data = array_merge($!rawData, $!data);
+                        |        return $!data;
                         |    }
                         |}
                     """.trimMargin().forcedLiteralEscape()
@@ -309,7 +333,7 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |    }
                     |  },
                     |  "require": {
-                    |    "php": ">=7.1",
+                    |    "php": ">=7.2",
                     |    "guzzlehttp/psr7": "^1.1",
                     |    "guzzlehttp/guzzle": "^6.0",
                     |    "psr/cache": "^1.0",

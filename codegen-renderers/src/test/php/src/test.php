@@ -69,9 +69,15 @@ var_dump((string)$response->getBody());
 
 $response = $client->get('/phpsphere-90');
 
-$project = new ProjectModel(json_decode((string)$response->getBody(), true));
+$project = new ProjectModel(json_decode((string)$response->getBody()));
 
 var_dump($project->getKey());
 var_dump($project->getCreatedAt());
 var_dump($project->getMessages());
+var_dump($project->getShippingRateInputType());
 var_dump($project);
+var_dump(json_encode($project));
+
+//$project = new ProjectModel();
+//var_dump($project);
+//var_dump($project->getKey());

@@ -34,6 +34,38 @@ interface  ObjectTypeExtensions : io.vrap.codegen.languages.ExtensionsBase {
 
         return result
     }
+
+    fun ObjectType.getObjectImports(properties: List<Property>): List<String> {
+        val result =  properties
+                .map { it.type }
+                //If the subtipes are in the same package they should be imported
+                .plus(this.namedSubTypes())
+                .plus(this.type)
+                .filterNotNull()
+                .filter { !it.isScalar() }
+                .map { vrapTypeProvider.doSwitch(it) }
+                .filter { s -> when(s) {
+                        is VrapObjectType -> true
+                        is VrapArrayType -> when (s.itemType) {
+                            is ObjectType -> true
+                            else -> false
+                        }
+                        else -> false
+                    }
+                }
+                .map { getImportsForType(it) }
+                .filterNotNull()
+                .filter { !it.equals("\\\\") }
+                .sortedBy { it }
+                .distinct()
+                .toList()
+
+        if(result.contains("")){
+            println()
+        }
+
+        return result
+    }
 }
 
 fun getImportsForType(vrapType: VrapType): String? {
