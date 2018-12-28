@@ -1,5 +1,7 @@
 {
+  "version": 2,
   "state": "ACCEPTED",
+  "importSinkKey": "category-import-sink",
   "resourceKey": "root-category",
   "resourceType": "category",
   "createdAt": "2018-02-05T09:47:16.648Z",

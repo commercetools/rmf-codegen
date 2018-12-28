@@ -9,10 +9,59 @@ uses:
   error: types/error.raml
   common: types/common.raml
   import-item: types/import-item.raml
+  import-sink: types/import-sink.raml
   unresolved-import-resource: types/unresolved-import-resource.raml
   price-mapping: types/price-mapping.raml
 
 /{projectKey}:
+  /import-sinks:
+    post:
+      description: Creates a new import sink.
+      body:
+        type: import-sink.ImportSinkDraft
+      responses:
+        201:
+          body:
+            type: import-sink.ImportSink
+        400:
+          description: The request was invalid.
+          body:
+            type: error.ErrorResponse
+    /{importSinkKey}:
+      uriParameters:
+        importSinkKey:
+          description: The key of the import sink.
+          type: string
+      put:
+        description: Updates the import sink given by the key.
+        body:
+          type: import-sink.ImportSinkDraft
+        responses:
+          200:
+            description: The import sink was successfully updated.
+            body:
+              type: import-sink.ImportSink
+          409:
+            description: A concurrent modification was detected. The client should retry and resolve the conflict.
+            body:
+              type: error.ErrorResponse
+      get:
+        description: Retrieves the import sink given by the key.
+        responses:
+          200:
+            description: The requested import sink was found.
+            body:
+              type: import-sink.ImportSink
+          404:
+            description: The requested import sink wasn't found.
+            body:
+              type: error.ErrorResponse
+      delete:
+        description: Deletes the import sink given by the key.
+        responses:
+          200:
+            body:
+              type: import-sink.ImportSink
   /import-item:
     post:
       description: |
@@ -23,15 +72,27 @@ uses:
         200:
           body:
             type: import-item.ImportItem
-    /{resourceType}:
+    /{importSinkKey}:
       uriParameters:
-        resourceType:
+        importSinkKey:
           description: |
-              The resource type.
+              The key of the import sink.
           type: string
-      /{key}:
+      get:
+        description: |
+          Retrieves all import items for the given import sink.
+        queryParameters:
+          limit?:
+            type: number
+          offset?:
+            type: number
+        responses:
+          200:
+            body:
+              type: import-item.ImportItemPagedResponse
+      /{resourceKey}:
         uriParameters:
-          key:
+          resourceKey:
             description: |
               The key of the import item to retrieve.
             type: string
@@ -118,7 +179,7 @@ uses:
               type: string
           get:
             description: |
-              Retrieves all unresolved import eObjects that reference the given resource.
+              Retrieves all unresolved import resources that reference the given resource.
             responses:
               200:
                 body:
@@ -158,3 +219,20 @@ uses:
             404:
               body:
                 type: error.ErrorResponse
+      /query:
+        /{id}:
+          uriParameters:
+            id:
+              description: |
+                 The id of the price to retrieve.
+              type: string
+          get:
+            description: |
+              Retrieves the price mapping with the given id.
+            responses:
+              200:
+                body:
+                  type: price-mapping.PriceMapping
+              404:
+                body:
+                  type: error.ErrorResponse

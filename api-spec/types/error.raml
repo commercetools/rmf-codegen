@@ -6,7 +6,7 @@ uses:
   generator: ../annotationTypes/generator.raml
   product-variant-import: product-variant-import.raml
   price-import: price-import.raml
-
+  common: common.raml
 types:
   ErrorResponse:
     properties:
@@ -86,10 +86,50 @@ types:
   ResourceNotFoundError:
     type: ErrorObject
     discriminatorValue: ResourceNotFound
+    properties:
+      resource?:
+        type: any
+  ResourceCreationError:
+    type: ErrorObject
+    discriminatorValue: ResourceCreation
+    properties:
+      resource?:
+        type: any
+  ResourceUpdateError:
+    type: ErrorObject
+    discriminatorValue: ResourceCreation
+    properties:
+      resource?:
+        type: any
+  ResourceDeletionError:
+    type: ErrorObject
+    discriminatorValue: ResourceDeletion
+    properties:
+      resource?:
+        type: any
   RequiredFieldError:
     type: ErrorObject
     discriminatorValue: RequiredField
     properties:
       field:
         type: string
-
+  InvalidStateTransitionError:
+    type: ErrorObject
+    discriminatorValue: InvalidTransition
+    properties:
+      currentState:
+        type: common.ProcessingState
+      newState:
+        type: common.ProcessingState
+  ConcurrentModificationError:
+    type: ErrorObject
+    discriminatorValue: ConcurrentModification
+    properties:
+      specifiedVersion:
+        type: integer
+        format: long
+      currentVersion:
+        type: integer
+        format: long
+      conflictedResource:
+        type: any

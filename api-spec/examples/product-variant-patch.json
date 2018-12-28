@@ -1,0 +1,15 @@
+[
+  {
+    "productVariant": {
+      "typeId": "product-variant",
+      "key": "red-t-shirt"
+    },
+    "attributes": {
+      "new": {
+        "type": "boolean",
+        "value": false
+      },
+      "weight": null
+    }
+  }
+]
