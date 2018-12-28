@@ -5,7 +5,7 @@ import com.google.inject.Module
 import io.vrap.rmf.codegen.rendring.CoreCodeGenerator
 
 
-class GeneratorComponent(generatorModule: io.vrap.rmf.codegen.di.GeneratorModule, vararg modules:  Module) {
+class GeneratorComponent(generatorModule: GeneratorModule, vararg modules:  Module) {
 
     private val injector = Guice.createInjector(listOf(generatorModule).plus(modules))
 

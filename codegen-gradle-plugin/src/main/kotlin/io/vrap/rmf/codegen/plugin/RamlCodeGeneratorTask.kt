@@ -1,0 +1,70 @@
+package io.vrap.rmf.codegen.plugin
+
+import io.vrap.codegen.languages.java.JavaBaseTypes
+import io.vrap.codegen.languages.java.client.SpringClientModule
+import io.vrap.codegen.languages.java.model.JavaModelModule
+import io.vrap.codegen.languages.php.PhpBaseTypes
+import io.vrap.codegen.languages.php.model.PhpModelModule
+import io.vrap.codegen.languages.typescript.TypeScriptBaseTypes
+import io.vrap.codegen.languages.typescript.TypeScriptModelModule
+import io.vrap.rmf.codegen.CodeGeneratorConfig
+import io.vrap.rmf.codegen.di.ApiProvider
+import io.vrap.rmf.codegen.di.GeneratorComponent
+import io.vrap.rmf.codegen.di.GeneratorModule
+import org.gradle.api.DefaultTask
+import org.gradle.api.NamedDomainObjectContainer
+import org.gradle.api.tasks.TaskAction
+import java.nio.file.Paths
+
+open class RamlCodeGeneratorTask : DefaultTask() {
+
+
+    @TaskAction
+    internal fun generateClasses() {
+
+        val targets = project.extensions.getByType(NamedDomainObjectContainer::class.java) as NamedDomainObjectContainer<Generator>
+
+        targets.forEach { generator: Generator -> run {
+                val file = generator.uri
+                if( file == null){
+                    logger.error("uri in $generator must be non null")
+                    return
+                }
+                val apiProvider = ApiProvider(file.toPath())
+                generator.targets?.all { target: Target -> generateFiles(apiProvider,target)}
+            }
+        }
+    }
+
+    fun generateFiles(apiProvider: ApiProvider,target:Target): Unit{
+
+
+        val generatorConfig = CodeGeneratorConfig(
+            basePackageName = target.base_package,
+            modelPackage = target.models_package,
+            clientPackage = target.client_package,
+            outputFolder = target.path?.toPath()?: Paths.get("gensrc/${target.name}")
+        )
+
+        val generatorComponent: GeneratorComponent = when (target.target) {
+
+            TargetType.JAVA_MODEL -> {
+                val generatorModule = GeneratorModule(apiProvider, generatorConfig, JavaBaseTypes)
+                GeneratorComponent(generatorModule, JavaModelModule())
+            }
+            TargetType.JAVA_SPRING_CLIENT -> {
+                val generatorModule = GeneratorModule(apiProvider, generatorConfig, JavaBaseTypes)
+                GeneratorComponent(generatorModule, SpringClientModule())
+            }
+            TargetType.TYPESCRIPT_MODEL -> {
+                val generatorModule = GeneratorModule(apiProvider, generatorConfig, TypeScriptBaseTypes)
+                GeneratorComponent(generatorModule, TypeScriptModelModule())
+            }
+            else -> throw IllegalArgumentException("unsupported target value '${target.target}', allowed values is one of ${TargetType.values().toList()}")
+        }
+        logger.warn("generating files for target $target, ${generatorConfig.outputFolder}")
+        generatorComponent.generateFiles()
+
+    }
+
+}

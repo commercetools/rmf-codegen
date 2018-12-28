@@ -10,7 +10,6 @@ interface TsObjectTypeExtensions : io.vrap.codegen.languages.ExtensionsBase {
 
     fun getImportsForModule(moduleName: String, types: List<AnyType>): String {
 
-
         return types
                 .filter { it is ObjectType }
                 .map { it as ObjectType }
