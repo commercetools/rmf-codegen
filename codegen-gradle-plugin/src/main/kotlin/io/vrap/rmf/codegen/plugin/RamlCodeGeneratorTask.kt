@@ -3,8 +3,6 @@ package io.vrap.rmf.codegen.plugin
 import io.vrap.codegen.languages.java.JavaBaseTypes
 import io.vrap.codegen.languages.java.client.SpringClientModule
 import io.vrap.codegen.languages.java.model.JavaModelModule
-import io.vrap.codegen.languages.php.PhpBaseTypes
-import io.vrap.codegen.languages.php.model.PhpModelModule
 import io.vrap.codegen.languages.typescript.TypeScriptBaseTypes
 import io.vrap.codegen.languages.typescript.TypeScriptModelModule
 import io.vrap.rmf.codegen.CodeGeneratorConfig
@@ -22,28 +20,29 @@ open class RamlCodeGeneratorTask : DefaultTask() {
     @TaskAction
     internal fun generateClasses() {
 
-        val targets = project.extensions.getByType(NamedDomainObjectContainer::class.java) as NamedDomainObjectContainer<Generator>
+        val targets = project.extensions.getByName("RamlGenerator") as NamedDomainObjectContainer<RamlGenerator>
 
-        targets.forEach { generator: Generator -> run {
+        targets.forEach { generator ->
+            run {
                 val file = generator.uri
-                if( file == null){
+                if (file == null) {
                     logger.error("uri in $generator must be non null")
                     return
                 }
                 val apiProvider = ApiProvider(file.toPath())
-                generator.targets?.all { target: Target -> generateFiles(apiProvider,target)}
+                generator.targets?.all { target: Target -> generateFiles(apiProvider, target) }
             }
         }
     }
 
-    fun generateFiles(apiProvider: ApiProvider,target:Target): Unit{
+    fun generateFiles(apiProvider: ApiProvider, target: Target): Unit {
 
 
         val generatorConfig = CodeGeneratorConfig(
             basePackageName = target.base_package,
             modelPackage = target.models_package,
             clientPackage = target.client_package,
-            outputFolder = target.path?.toPath()?: Paths.get("gensrc/${target.name}")
+            outputFolder = target.path?.toPath() ?: Paths.get("gensrc/${target.name}")
         )
 
         val generatorComponent: GeneratorComponent = when (target.target) {

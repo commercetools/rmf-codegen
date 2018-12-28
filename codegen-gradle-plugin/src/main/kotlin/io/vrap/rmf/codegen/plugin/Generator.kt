@@ -5,7 +5,7 @@ import org.gradle.api.NamedDomainObjectContainer
 import java.io.File
 
 
-open class Generator constructor(val name:String){
+open class RamlGenerator constructor(val name:String){
 
     var uri: File? = null
     var targets : NamedDomainObjectContainer<Target>? = null
@@ -17,7 +17,7 @@ open class Generator constructor(val name:String){
     }
 
     override fun toString(): String {
-        return "Generator(name='$name', uri=$uri, targets=${targets?.map { target -> target.toString() }})"
+        return "RamlGenerator(name='$name', uri=$uri, targets=${targets?.map { target -> target.toString() }})"
     }
 }
 

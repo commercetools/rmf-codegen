@@ -14,9 +14,9 @@ open class RamlCodegenPlugin : Plugin<Project> {
     }
 
     fun setupProject(project: Project){
-        val generators : NamedDomainObjectContainer<Generator>  =  project.container(Generator::class.java)
-        generators.all { generator: Generator?->   generator?.targets = project.container(Target::class.java)}
-        project.extensions.add("generateRamlStub", generators)
+        val generators : NamedDomainObjectContainer<RamlGenerator>  =  project.container(RamlGenerator::class.java)
+        generators.all { generator: RamlGenerator?->   generator?.targets = project.container(Target::class.java)}
+        project.extensions.add("RamlGenerator", generators)
     }
 
     fun createTasks(project: Project){

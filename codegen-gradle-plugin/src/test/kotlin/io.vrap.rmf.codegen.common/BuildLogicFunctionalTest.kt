@@ -41,7 +41,7 @@ class BuildLogicFunctionalTest {
         |    id 'io.vrap.rmf.codegen-plugin'
         |}
         |
-        |generateRamlStub {
+        |RamlGenerator {
         |    apiSpec {
         |      uri = file('$apiFile')
         |      targets {
