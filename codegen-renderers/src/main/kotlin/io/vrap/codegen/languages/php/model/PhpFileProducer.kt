@@ -5,7 +5,6 @@ import com.google.inject.Inject
 import com.google.inject.name.Named
 import io.vrap.codegen.languages.php.PhpSubTemplates
 import io.vrap.codegen.languages.php.extensions.*
-import io.vrap.rmf.codegen.di.VrapConstants
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.FileProducer
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
@@ -23,7 +22,7 @@ class PhpFileProducer @Inject constructor() : FileProducer {
     lateinit var api:Api
 
     override fun produceFiles(): List<TemplateFile> = listOf(
-            baseCollection(),
+            collection(),
             baseNullable(),
             clientFactory(),
             tokenProvider(),
@@ -43,10 +42,12 @@ class PhpFileProducer @Inject constructor() : FileProducer {
             invalidArgumentException(),
             apiRequest(),
             mapperFactory(),
-            jsonObject()
+            jsonObject(),
+            mapperIterator(),
+            mapCollection()
     )
 
-    private fun baseCollection(): TemplateFile {
+    private fun collection(): TemplateFile {
         return TemplateFile(relativePath = "src/Base/Collection.php",
                 content = """
                         |<?php
@@ -54,7 +55,7 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                         |
                         |namespace ${packagePrefix.toNamespaceName()}\Base;
                         |
-                        |class Collection
+                        |interface Collection
                         |{
                         |}
                     """.trimMargin()
@@ -991,6 +992,219 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |        $!this->query = Psr7\build_query($!this->queryParts);
                     |
                     |        return $!this->withUri($!this->getUri()->withQuery($!this->query));
+                    |    }
+                    |}
+                """.trimMargin().forcedLiteralEscape())
+    }
+
+    private fun mapperIterator(): TemplateFile {
+        return TemplateFile(relativePath = "src/Base/MapperIterator.php",
+                content = """
+                    |<?php
+                    |${PhpSubTemplates.generatorInfo}
+                    |
+                    |namespace ${packagePrefix.toNamespaceName()}\Base;
+                    |
+                    |class MapperIterator extends \IteratorIterator
+                    |{
+                    |    /**
+                    |     * @var callable
+                    |     */
+                    |    private $!mapper;
+                    |
+                    |    public function __construct(\Traversable $!iterator, callable $!mapper)
+                    |    {
+                    |        parent::__construct($!iterator);
+                    |        $!this->mapper = $!mapper;
+                    |    }
+                    |
+                    |    public function current()
+                    |    {
+                    |        return call_user_func($!this->mapper, parent::current(), parent::key());
+                    |    }
+                    |}
+                """.trimMargin().forcedLiteralEscape())
+    }
+
+    private fun mapCollection(): TemplateFile {
+        return TemplateFile(relativePath = "src/Base/MapCollection.php",
+                content = """
+                    |<?php
+                    |${PhpSubTemplates.generatorInfo}
+                    |
+                    |namespace ${packagePrefix.toNamespaceName()}\Base;
+                    |
+                    |class MapCollection implements Collection, \JsonSerializable
+                    |{
+                    |    private $!data;
+                    |    private $!indexes = [];
+                    |    private $!iterator;
+                    |    private $!resultMapper;
+                    |
+                    |    /**
+                    |     * @param array $!data
+                    |     */
+                    |    public function __construct(array $!data = null)
+                    |    {
+                    |        if (!is_null($!data)) {
+                    |            $!this->index($!data);
+                    |        }
+                    |        $!this->data = $!data;
+                    |        $!this->iterator = $!this->getIterator();
+                    |    }
+                    |
+                    |    public function jsonSerialize()
+                    |    {
+                    |        return $!this->data;
+                    |    }
+                    |
+                    |    public function isPresent(): bool
+                    |    {
+                    |        return !is_null($!this->data);
+                    |    }
+                    |
+                    |    /**
+                    |     * @inheritdoc
+                    |     */
+                    |    public static function fromArray(array $!data)
+                    |    {
+                    |        return new static($!data);
+                    |    }
+                    |
+                    |    protected function index($!data)
+                    |    {
+                    |    }
+                    |
+                    |    final protected function get($!index)
+                    |    {
+                    |        if (isset($!this->data[$!index])) {
+                    |            return $!this->data[$!index];
+                    |        }
+                    |        return null;
+                    |    }
+                    |
+                    |    final protected function set($!data, $!index)
+                    |    {
+                    |        if (is_null($!index)) {
+                    |            $!this->data[] = $!data;
+                    |        } else {
+                    |            $!this->data[$!index] = $!data;
+                    |        }
+                    |    }
+                    |
+                    |    /**
+                    |     * @param $!value
+                    |     * @return Collection
+                    |     */
+                    |    public function add($!value) {
+                    |        $!this->set($!value, null);
+                    |        $!this->iterator = $!this->getIterator();
+                    |
+                    |        return $!this;
+                    |    }
+                    |
+                    |    public function at($!index)
+                    |    {
+                    |        return $!this->map($!index);
+                    |    }
+                    |
+                    |    public function map($!index)
+                    |    {
+                    |        return $!this->get($!index);
+                    |    }
+                    |
+                    |    final protected function addToIndex($!index, $!key, $!value)
+                    |    {
+                    |        $!this->indexes[$!index][$!key] = $!value;
+                    |    }
+                    |
+                    |    final protected function valueByKey($!index, $!key)
+                    |    {
+                    |        return isset($!this->indexes[$!index][$!key]) ? $!this->at($!this->indexes[$!index][$!key]) : null;
+                    |    }
+                    |
+                    |    public function getIterator(): MapperIterator
+                    |    {
+                    |        $!keys = array_keys($!this->data);
+                    |        $!keyIterator = new \ArrayIterator(array_combine($!keys, $!keys));
+                    |        $!iterator = new MapperIterator($!keyIterator, [$!this, 'map']);
+                    |        $!iterator->rewind();
+                    |
+                    |        return $!iterator;
+                    |    }
+                    |
+                    |    /**
+                    |     * @inheritDoc
+                    |     */
+                    |    public function current()
+                    |    {
+                    |        return $!this->iterator->current();
+                    |    }
+                    |
+                    |    /**
+                    |     * @inheritDoc
+                    |     */
+                    |    public function next()
+                    |    {
+                    |        $!this->iterator->next();
+                    |    }
+                    |
+                    |    /**
+                    |     * @inheritDoc
+                    |     */
+                    |    public function key()
+                    |    {
+                    |        $!this->iterator->key();
+                    |    }
+                    |
+                    |    /**
+                    |     * @inheritDoc
+                    |     */
+                    |    public function valid()
+                    |    {
+                    |        $!this->iterator->valid();
+                    |    }
+                    |
+                    |    /**
+                    |     * @inheritDoc
+                    |     */
+                    |    public function rewind()
+                    |    {
+                    |        $!this->iterator->rewind();
+                    |    }
+                    |
+                    |    /**
+                    |     * @inheritdoc
+                    |     */
+                    |    public function offsetExists($!offset)
+                    |    {
+                    |        return !is_null($!this->data) && array_key_exists($!offset, $!this->data);
+                    |    }
+                    |
+                    |    /**
+                    |     * @inheritdoc
+                    |     */
+                    |    public function offsetGet($!offset)
+                    |    {
+                    |        return $!this->at($!offset);
+                    |    }
+                    |
+                    |    /**
+                    |     * @inheritdoc
+                    |     */
+                    |    public function offsetSet($!offset, $!value)
+                    |    {
+                    |        $!this->set($!value, $!offset);
+                    |        $!this->iterator = $!this->getIterator();
+                    |    }
+                    |
+                    |    /**
+                    |     * @inheritdoc
+                    |     */
+                    |    public function offsetUnset($!offset)
+                    |    {
+                    |        unset($!this->data[$!offset]);
+                    |        $!this->iterator = $!this->getIterator();
                     |    }
                     |}
                 """.trimMargin().forcedLiteralEscape())

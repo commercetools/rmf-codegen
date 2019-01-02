@@ -87,9 +87,16 @@ class PhpInterfaceObjectTypeRenderer @Inject constructor(override val vrapTypePr
         """.trimMargin();
     }
 
-    fun ObjectType.toBeanConstant() = this.properties
-//            .filter { it.name != this.discriminator }
-            .map { it.toPhpConstant() }.joinToString(separator = "\n")
+    fun ObjectType.toBeanConstant(): String {
+        val superTypeAllProperties = when(this.type) {
+            is ObjectType -> (this.type as ObjectType).allProperties
+            else -> emptyList<Property>()
+        };
+        return this.properties
+                .asSequence()
+                .filter { it -> superTypeAllProperties.none { property -> it.name == property.name } }
+                .map { it.toPhpConstant() }.joinToString(separator = "\n")
+    }
 
     fun ObjectType.toBeanFields() = this.properties
 //            .filter { it.name != this.discriminator }
@@ -114,20 +121,20 @@ class PhpInterfaceObjectTypeRenderer @Inject constructor(override val vrapTypePr
         return if (this.isPatternProperty()) {
 
             """
-            |@JsonAnySetter
-            |public void setValue(String key, ${this.type.toVrapType().simpleName()} value) {
-            |    if (values == null) {
-            |        values = new HashMap<>();
-            |    }
-            |    values.put(key, value);
-            |}
-            """.trimMargin()
+        |@JsonAnySetter
+        |public void setValue(String key, ${this.type.toVrapType().simpleName()} value) {
+        |    if (values == null) {
+        |        values = new HashMap<>();
+        |    }
+        |    values.put(key, value);
+        |}
+        """.trimMargin()
         } else {
             """
-            |public void set${this.name.capitalize()}(final ${this.type.toVrapType().simpleName()} ${this.name}){
-            |   this.${this.name} = ${this.name};
-            |}
-            """.trimMargin()
+        |public void set${this.name.capitalize()}(final ${this.type.toVrapType().simpleName()} ${this.name}){
+        |   this.${this.name} = ${this.name};
+        |}
+        """.trimMargin()
         }
     }
 
@@ -135,19 +142,19 @@ class PhpInterfaceObjectTypeRenderer @Inject constructor(override val vrapTypePr
         return if (this.isPatternProperty()) {
 
             """
-                |/**
-                | ${this.type.toPhpComment()}
-                | */
-                |public function values();
-            """.trimMargin()
+            |/**
+            | ${this.type.toPhpComment()}
+            | */
+            |public function values();
+        """.trimMargin()
         } else {
             """
-                |/**
-                | ${this.type.toPhpComment()}
-                | * @return ${this.type.toVrapType().simpleName()}
-                | */
-                |public function get${this.name.capitalize()}();
-        """.trimMargin()
+            |/**
+            | ${this.type.toPhpComment()}
+            | * @return ${this.type.toVrapType().simpleName()}
+            | */
+            |public function get${this.name.capitalize()}();
+    """.trimMargin()
         }
     }
 
@@ -161,9 +168,6 @@ class PhpInterfaceObjectTypeRenderer @Inject constructor(override val vrapTypePr
         }
         return validationAnnotations.joinToString(separator = "\n")
     }
-
-
-
 
     private object CascadeValidationCheck : TypesSwitch<Boolean>() {
         override fun defaultCase(`object`: EObject?): Boolean? {
