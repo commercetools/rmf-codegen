@@ -21,7 +21,7 @@ import java.nio.file.Paths
 class TestCodeGenerator {
 
     companion object {
-        val apiProvider: ApiProvider = ApiProvider(Paths.get("../api-spec/api.raml"))
+        val apiProvider: ApiProvider = ApiProvider(Paths.get("../api-spec/import-storage-api.raml"))
         val generatorConfig = CodeGeneratorConfig(basePackageName = "com.commercetools.importer")
     }
 
