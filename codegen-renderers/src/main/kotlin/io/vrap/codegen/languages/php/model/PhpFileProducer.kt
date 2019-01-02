@@ -1034,12 +1034,11 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |
                     |namespace ${packagePrefix.toNamespaceName()}\Base;
                     |
-                    |class MapCollection implements Collection, \JsonSerializable
+                    |class MapCollection implements Collection, \ArrayAccess, \JsonSerializable
                     |{
                     |    private $!data;
                     |    private $!indexes = [];
                     |    private $!iterator;
-                    |    private $!resultMapper;
                     |
                     |    /**
                     |     * @param array $!data
@@ -1096,7 +1095,8 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |     * @param $!value
                     |     * @return Collection
                     |     */
-                    |    public function add($!value) {
+                    |    public function add($!value)
+                    |    {
                     |        $!this->set($!value, null);
                     |        $!this->iterator = $!this->getIterator();
                     |
@@ -1105,12 +1105,14 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |
                     |    public function at($!index)
                     |    {
-                    |        return $!this->map($!index);
+                    |        return $!this->mapper()($!index);
                     |    }
                     |
-                    |    public function map($!index)
+                    |    protected function mapper()
                     |    {
-                    |        return $!this->get($!index);
+                    |        return function ($!index) {
+                    |            return $!this->get($!index);
+                    |        };
                     |    }
                     |
                     |    final protected function addToIndex($!index, $!key, $!value)
@@ -1127,7 +1129,10 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |    {
                     |        $!keys = array_keys($!this->data);
                     |        $!keyIterator = new \ArrayIterator(array_combine($!keys, $!keys));
-                    |        $!iterator = new MapperIterator($!keyIterator, [$!this, 'map']);
+                    |        $!iterator = new MapperIterator(
+                    |            $!keyIterator,
+                    |            $!this->mapper()
+                    |        );
                     |        $!iterator->rewind();
                     |
                     |        return $!iterator;

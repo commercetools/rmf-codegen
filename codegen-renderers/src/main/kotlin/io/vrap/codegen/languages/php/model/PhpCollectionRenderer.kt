@@ -57,17 +57,16 @@ class PhpCollectionRenderer @Inject constructor(override val vrapTypeProvider: V
             |        return $!this;
             |    }
             |
-            |    /**
-            |     * @return ${vrapType.simpleClassName}
-            |     */
-            |    public function map($!index)
+            |    protected function mapper()
             |    {
-            |        $!data = $!this->get($!index);
-            |        if (!is_null($!data) && !$!data instanceof ${vrapType.simpleClassName}) {
-            |            $!data = new ${vrapType.simpleName()}Model($!data);
-            |            $!this->set($!data, $!index);
-            |        }
-            |        return $!data;
+            |        return function($!index) {
+            |            $!data = $!this->get($!index);
+            |            if (!is_null($!data) && !$!data instanceof ${vrapType.simpleClassName}) {
+            |                $!data = new ${vrapType.simpleName()}Model($!data);
+            |                $!this->set($!data, $!index);
+            |            }
+            |            return $!data;
+            |        };
             |    }
             |}
         """.trimMargin().forcedLiteralEscape()

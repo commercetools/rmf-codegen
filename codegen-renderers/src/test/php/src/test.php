@@ -3,12 +3,14 @@ declare(strict_types = 1);
 namespace Commercetools;
 
 use Cache\Adapter\Filesystem\FilesystemCachePool;
+use Commercetools\Importer\Base\MapperFactory;
 use Commercetools\Importer\Client\CachedTokenProvider;
 use Commercetools\Importer\Client\ClientCredentialsConfig;
 use Commercetools\Importer\Client\ClientCredentialTokenProvider;
 use Commercetools\Importer\Client\ClientFactory;
 use Commercetools\Importer\Client\Config;
 use Commercetools\Importer\Client\MiddlewareFactory;
+use Commercetools\Importer\Models\Category\CategoryPagedQueryResponseModel;
 use Commercetools\Importer\Models\Project\ProjectModel;
 use GuzzleHttp\Client;
 use GuzzleHttp\HandlerStack;
@@ -81,3 +83,24 @@ var_dump(json_encode($project));
 //$project = new ProjectModel();
 //var_dump($project);
 //var_dump($project->getKey());
+
+$response = $client->get('/phpsphere-90/categories');
+
+
+$catResponse = new CategoryPagedQueryResponseModel(json_decode((string)$response->getBody()));
+$categories = $catResponse->getResults();
+
+var_dump($categories->current());
+var_dump($categories->current());
+$categories->next();
+var_dump($categories->current());
+var_dump($categories);
+$d = $categories->offsetGet(1);
+$t = $categories->getIterator();
+$t->next();
+$t->next();
+var_dump($t);
+var_dump($t->current());
+$t->next();
+var_dump($t->current());
+var_dump($categories);
