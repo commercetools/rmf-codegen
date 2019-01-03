@@ -34,7 +34,6 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
             |use ${packagePrefix.toNamespaceName().escapeAll()}\\Base\\JsonObject;
             |use ${packagePrefix.toNamespaceName().escapeAll()}\\Base\\MapperFactory;
             |<<${type.imports()}>>
-            |<<${type.importModels()}>>
             |
             |final class ${vrapType.simpleClassName}Model extends JsonObject implements ${vrapType.simpleClassName}
             |{
@@ -72,8 +71,12 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
             ""
     }
 
-    fun ObjectType.imports() = this.getImports(this.allProperties).map { "use ${it.escapeAll()};" }.joinToString(separator = "\n")
-    fun ObjectType.importModels() = this.getObjectImports(this.allProperties).map { "use ${it.escapeAll()}Model;" }.joinToString(separator = "\n")
+    fun ObjectType.imports() = this.getImports(this.allProperties).map { "use ${it.escapeAll()};" }
+            .plus(this.getPropertyImports(this.allProperties).map { "use ${it.escapeAll()};" })
+            .plus(this.getObjectImports(this.allProperties).map { "use ${it.escapeAll()}Model;" })
+            .distinct()
+            .sorted()
+            .joinToString(separator = "\n")
 
     fun Property.toPhpField(): String {
 

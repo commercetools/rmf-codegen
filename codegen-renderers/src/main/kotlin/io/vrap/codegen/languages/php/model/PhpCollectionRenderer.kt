@@ -40,18 +40,10 @@ class PhpCollectionRenderer @Inject constructor(override val vrapTypeProvider: V
             | * @method ${vrapType.simpleClassName} current()
             | * @method ${vrapType.simpleClassName} at($!offset)
             | */
-            |class ${vrapType.simpleClassName}Collection extends MapCollection
+            |final class ${vrapType.simpleClassName}Collection extends MapCollection
             |{
-            |    /**
-            |     * @param ${vrapType.simpleClassName} $!value
-            |     * @return ${vrapType.simpleClassName}Collection
-            |     * @throws InvalidArgumentException
-            |     */
-            |    public function add($!value)
+            |    public function add(${vrapType.simpleClassName} $!value): ${vrapType.simpleClassName}Collection
             |    {
-            |        if (!$!value instanceof ${vrapType.simpleClassName}) {
-            |            throw new InvalidArgumentException();
-            |        }
             |        parent::add($!value);
             |
             |        return $!this;
