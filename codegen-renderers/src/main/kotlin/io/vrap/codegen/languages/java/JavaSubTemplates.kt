@@ -4,14 +4,11 @@ import io.vrap.rmf.codegen.rendring.CoreCodeGenerator
 
 object JavaSubTemplates {
 
-        val generatedAnnotation = """
+    val generatedAnnotation = """
         |@Generated(
         |    value = "${CoreCodeGenerator::class.java.canonicalName}",
         |    comments = "https://github.com/vrapio/rmf-codegen"
         |)
     """.trimMargin()
-
-
-
-
+    
 }

@@ -5,14 +5,12 @@ import com.google.inject.Provides
 import com.google.inject.Singleton
 import com.google.inject.name.Named
 import io.vrap.rmf.codegen.common.generator.core.ResourceCollection
-import io.vrap.rmf.codegen.CodeGeneratorConfig
 import io.vrap.rmf.codegen.io.DataSink
 import io.vrap.rmf.codegen.io.FileDataSink
 import io.vrap.rmf.codegen.types.LanguageBaseTypes
 import io.vrap.rmf.codegen.types.VrapObjectType
-import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.codegen.types.VrapType
-import io.vrap.rmf.raml.model.RamlModelBuilder
+import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.elements.NamedElement
 import io.vrap.rmf.raml.model.modules.Api
 import io.vrap.rmf.raml.model.resources.Method
@@ -30,6 +28,7 @@ import java.nio.file.Path
 
 @SuppressWarnings("unused")
 class GeneratorModule constructor(
+        private val apiProvider: ApiProvider,
         @get:Provides val generatorConfig: io.vrap.rmf.codegen.CodeGeneratorConfig,
         @get:Provides val languageBaseTypes: LanguageBaseTypes) : AbstractModule() {
 
@@ -39,11 +38,10 @@ class GeneratorModule constructor(
 
     private val filterSwitch = UserProvidedResourcesFilterSwitch()
 
-
     @Provides
     @Singleton
     @Named(io.vrap.rmf.codegen.di.VrapConstants.OUTPUT_FOLDER)
-    fun outpuFolder():Path = generatorConfig.outputFolder
+    fun outpuFolder(): Path = generatorConfig.outputFolder
 
     @Provides
     @Singleton
@@ -76,15 +74,7 @@ class GeneratorModule constructor(
 
     @Provides
     @Singleton
-    fun provideRamlModel(): Api {
-        val modelResult = RamlModelBuilder().buildApi(generatorConfig.ramlFileLocation)
-        val validationResults = modelResult.validationResults
-        if (!validationResults.isEmpty()) {
-            validationResults.stream().forEach { validationResult -> io.vrap.rmf.codegen.di.GeneratorModule.Companion.LOGGER.warn("Error encountered while checking Raml API " + validationResult.toString()) }
-            throw RuntimeException("Error while paring raml input")
-        }
-        return modelResult.rootObject
-    }
+    fun provideRamlModel(): Api = apiProvider.api
 
     @Provides
     @Singleton

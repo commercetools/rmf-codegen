@@ -12,6 +12,7 @@ import io.vrap.rmf.codegen.rendring.ResourceCollectionRenderer
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
 import io.vrap.rmf.codegen.rendring.utils.keepIndentation
 import io.vrap.rmf.codegen.types.PackageProvider
+import io.vrap.rmf.codegen.types.VrapNilType
 import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.resources.Method
@@ -38,10 +39,7 @@ class SpringClientRenderer @Inject constructor(val packageProvider: PackageProvi
             |
             |import org.springframework.beans.factory.annotation.Value;
             |import org.springframework.core.ParameterizedTypeReference;
-            |import org.springframework.http.HttpEntity;
-            |import org.springframework.http.HttpHeaders;
-            |import org.springframework.http.HttpMethod;
-            |import org.springframework.http.MediaType;
+            |import org.springframework.http.*;
             |import org.springframework.retry.annotation.Backoff;
             |import org.springframework.retry.annotation.Retryable;
             |import org.springframework.stereotype.Component;
@@ -80,14 +78,17 @@ class SpringClientRenderer @Inject constructor(val packageProvider: PackageProvi
 
 
     fun javaBody(resource: Resource, method: Method): String {
+
         val methodReturnType = vrapTypeProvider.doSwitch(method.retyurnType())
+        val returnIsEmpty = methodReturnType is VrapNilType
+
         val body = """
             |${method.toComment().escapeAll()}
             |@Retryable(
             |          value = { ConnectException.class },
             |          maxAttemptsExpression = "#{${'$'}{retry.${method.method.name.toLowerCase()}.maxAttempts}}",
             |          backoff = @Backoff(delayExpression = "#{1}", maxDelayExpression = "#{5}", multiplierExpression = "#{2}"))
-            |public ${methodReturnType.fullClassName().escapeAll()} ${method.method.name.toLowerCase()}(${methodParameters(resource, method).escapeAll()}) {
+            |public ${if(returnIsEmpty) "ResponseEntity" else methodReturnType.fullClassName().escapeAll()} ${method.method.name.toLowerCase()}(${methodParameters(resource, method).escapeAll()}) {
             |
             |    final Map\<String, Object\> parameters = new HashMap\<\>();
             |
@@ -96,10 +97,10 @@ class SpringClientRenderer @Inject constructor(val packageProvider: PackageProvi
             |
             |    <${method.mediaType().escapeAll()}>
             |
-            |    final ParameterizedTypeReference\<${method.retyurnType().toVrapType().fullClassName().escapeAll()}\> type = new ParameterizedTypeReference\<${method.retyurnType().toVrapType().fullClassName().escapeAll()}\>() {};
+            |    ${if(returnIsEmpty) "final ParameterizedTypeReference type = new ParameterizedTypeReference() {};" else "final ParameterizedTypeReference\\<${method.retyurnType().toVrapType().fullClassName().escapeAll()}\\> type = new ParameterizedTypeReference\\<${method.retyurnType().toVrapType().fullClassName().escapeAll()}\\>() {};"}
             |    final String fullUri = baseUri + "${relativeUrl(resource,method)}";
             |
-            |    return restTemplate.exchange(fullUri, HttpMethod.${method.method.name.toUpperCase()}, entity, type, parameters).getBody();
+            |    ${if(returnIsEmpty) "return restTemplate.exchange(fullUri, HttpMethod.${method.method.name.toUpperCase()}, entity, type, parameters);" else "return restTemplate.exchange(fullUri, HttpMethod.${method.method.name.toUpperCase()}, entity, type, parameters).getBody();"}
             |
             |}
                 """.trimMargin()

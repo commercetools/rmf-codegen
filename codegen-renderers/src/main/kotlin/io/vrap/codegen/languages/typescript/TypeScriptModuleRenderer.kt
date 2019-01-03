@@ -39,6 +39,7 @@ class TypeScriptModuleRenderer @Inject constructor(override val vrapTypeProvider
     fun buildModule(moduleName: String, types: List<AnyType>): TemplateFile {
 
         val content = """
+           |/* tslint:disable */
            |//Generated file, please do not change
            |
            |${getImportsForModule(moduleName, types)}

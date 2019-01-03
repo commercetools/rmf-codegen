@@ -15,7 +15,10 @@ types:
       The value can have different types, but must match the type of the matching attribute defintion.
     discriminator: type
     properties:
-        name:
+        name?:
+          description: |
+            For now we reuse this type in two different context. And that's why the name is required when used in the full import.
+            And why the name isn't required when used in patch.
           type: string
         type:
           type: string
@@ -90,6 +93,8 @@ types:
   ProductVariantImport:
     type: common.ImportResource
     properties:
+        sku?:
+          type: string
         isMasterVariant:
           type: boolean
         attributes?:
@@ -103,3 +108,20 @@ types:
             The product in which this product variant is contained.
           (common.ReferenceType): product
           type: common.ImportReference
+  ProductVariantPatch:
+    description: |
+      This type allows partial updates of already existing product variants.
+    properties:
+        productVariant:
+          description: The product variant to which this patch is applied.
+          type: common.ImportReference
+        attributes?:
+          type: Attributes
+  Attributes:
+    properties:
+      //:
+        description: |
+          The name of the attribute is given by the key and shouldn't be set on the attribute itself.
+          And since this property will be represented as a map, we can set individual attributes to null
+          to delete them (following JSON Merge Patch semantic).
+        type: Attribute | nil

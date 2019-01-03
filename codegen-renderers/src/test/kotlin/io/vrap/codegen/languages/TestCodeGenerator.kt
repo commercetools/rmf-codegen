@@ -9,66 +9,70 @@ import io.vrap.codegen.languages.php.PhpBaseTypes
 import io.vrap.codegen.languages.php.model.PhpModelModule
 import io.vrap.codegen.languages.typescript.TypeScriptBaseTypes
 import io.vrap.codegen.languages.typescript.TypeScriptModelModule
+import io.vrap.rmf.codegen.CodeGeneratorConfig
+import io.vrap.rmf.codegen.di.ApiProvider
 import io.vrap.rmf.codegen.di.GeneratorComponent
 import io.vrap.rmf.codegen.di.GeneratorModule
-
-import org.eclipse.emf.common.util.URI
 import org.junit.Test
+import java.io.File
 import java.nio.file.Paths
 
 
 class TestCodeGenerator {
 
-
-    val generatorConfig = io.vrap.rmf.codegen.CodeGeneratorConfig(
-            basePackageName = "com.commercetools.importer",
-            ramlFileLocation = URI.createFileURI(Paths.get("").resolve("../api-spec/api.raml").toAbsolutePath().toString())
-    )
+    companion object {
+        val apiProvider: ApiProvider = ApiProvider(Paths.get("../api-spec/import-storage-api.raml"))
+        val generatorConfig = CodeGeneratorConfig(basePackageName = "com.commercetools.importer")
+    }
 
     @Test
-    fun generateTsModels(){
-        val generatorModule = GeneratorModule(generatorConfig, TypeScriptBaseTypes)
+    fun generateTsModels() {
+
+        val generatorModule = GeneratorModule(apiProvider, generatorConfig, TypeScriptBaseTypes)
         val generatorComponent = GeneratorComponent(generatorModule, TypeScriptModelModule())
         generatorComponent.generateFiles()
     }
 
     @Test
-    fun generateJavaModels(){
-
-        val generatorModule = GeneratorModule(generatorConfig, JavaBaseTypes)
+    fun generateJavaModels() {
+        val generatorConfig = CodeGeneratorConfig(basePackageName = "com.commercetools.importer")
+        val generatorModule = GeneratorModule(apiProvider, generatorConfig, JavaBaseTypes)
         val generatorComponent = GeneratorComponent(generatorModule, JavaModelModule())
         generatorComponent.generateFiles()
     }
 
     @Test
-    fun generateGroovyDsl(){
-        val generatorModule = GeneratorModule(generatorConfig, JavaBaseTypes)
+    fun generateGroovyDsl() {
+        val generatorConfig = CodeGeneratorConfig(basePackageName = "com.commercetools.importer")
+        val generatorModule = GeneratorModule(apiProvider, generatorConfig, JavaBaseTypes)
         val generatorComponent = GeneratorComponent(generatorModule, GroovyDslModule())
         generatorComponent.generateFiles()
     }
 
     @Test
-    fun generateSpringClient(){
-        val generatorModule = GeneratorModule(generatorConfig, JavaBaseTypes)
+    fun generateSpringClient() {
+        val generatorConfig = CodeGeneratorConfig(basePackageName = "com.commercetools.importer")
+        val generatorModule = GeneratorModule(apiProvider, generatorConfig, JavaBaseTypes)
         val generatorComponent = GeneratorComponent(generatorModule, SpringClientModule())
         generatorComponent.generateFiles()
     }
 
     @Test
-    fun generatePlantUmlDiagram(){
-        val generatorModule = GeneratorModule(generatorConfig, JavaBaseTypes)
+    fun generatePlantUmlDiagram() {
+        val generatorConfig = CodeGeneratorConfig(basePackageName = "com.commercetools.importer")
+        val generatorModule = GeneratorModule(apiProvider, generatorConfig, JavaBaseTypes)
         val generatorComponent = GeneratorComponent(generatorModule, PlantUmlModule())
         generatorComponent.generateFiles()
     }
 
     @Test
     fun generatePHPModels() {
-        val generatorConfig = io.vrap.rmf.codegen.CodeGeneratorConfig(
-                basePackageName = "com.commercetools.importer",
-                ramlFileLocation = URI.createFileURI("../api-spec/api.raml"),
-                outputFolder = Paths.get("build/gensrc/commercetools-raml-sdk")
+        val generatorConfig = CodeGeneratorConfig(
+            basePackageName = "com.commercetools.importer",
+            outputFolder = Paths.get("build/gensrc/commercetools-raml-sdk")
         )
-        val generatorModule = GeneratorModule(generatorConfig, PhpBaseTypes)
+
+        val generatorModule = GeneratorModule(apiProvider, generatorConfig, PhpBaseTypes)
         val generatorComponent = GeneratorComponent(generatorModule, PhpModelModule())
         generatorComponent.generateFiles()
     }

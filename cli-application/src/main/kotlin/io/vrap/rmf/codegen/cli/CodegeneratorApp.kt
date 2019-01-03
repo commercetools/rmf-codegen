@@ -11,9 +11,9 @@ import io.vrap.codegen.languages.php.model.PhpModelModule
 import io.vrap.codegen.languages.typescript.TypeScriptBaseTypes
 import io.vrap.codegen.languages.typescript.TypeScriptModelModule
 import io.vrap.rmf.codegen.CodeGeneratorConfig
+import io.vrap.rmf.codegen.di.ApiProvider
 import io.vrap.rmf.codegen.di.GeneratorComponent
 import io.vrap.rmf.codegen.di.GeneratorModule
-import org.eclipse.emf.common.util.URI
 import java.io.File
 
 
@@ -53,7 +53,7 @@ class GeneratorTask : Runnable {
     @Option(name = ["-o", "--output-folder"], description = "Output folder for generated files.", required = true)
     lateinit var outputFolder: File
 
-    @Option(name = ["-t", "--target"], allowedValues = [javaModel, springClient, typescriptModel, php], description = "the generation target can be one of the following: $javaModel, $springClient, $typescriptModel,$php")
+    @Option(name = ["-t", "--target"], allowedValues = [javaModel, springClient, typescriptModel, php], description = "the generation target can be one of the following: $javaModel, $springClient, $typescriptModel,$php", required = true)
     lateinit var target: String
 
 
@@ -76,30 +76,28 @@ class GeneratorTask : Runnable {
                 basePackageName = basePackageName,
                 modelPackage = modelPackageName,
                 clientPackage = clientPackageName,
-                outputFolder = outputFolder.toPath(),
-
-                ramlFileLocation = URI.createURI(ramlFileLocation.toURI().toString())
+                outputFolder = outputFolder.toPath()
         )
+        val apiProvider = ApiProvider(ramlFileLocation.toPath())
 
         val generatorComponent: GeneratorComponent = when (target) {
 
             javaModel -> {
-                val generatorModule = GeneratorModule(generatorConfig, JavaBaseTypes)
+                val generatorModule = GeneratorModule(apiProvider, generatorConfig, JavaBaseTypes)
                 GeneratorComponent(generatorModule, JavaModelModule())
             }
             springClient -> {
-                val generatorModule = GeneratorModule(generatorConfig, JavaBaseTypes)
+                val generatorModule = GeneratorModule(apiProvider, generatorConfig, JavaBaseTypes)
                 GeneratorComponent(generatorModule, SpringClientModule())
             }
             typescriptModel -> {
-                val generatorModule = GeneratorModule(generatorConfig, TypeScriptBaseTypes)
+                val generatorModule = GeneratorModule(apiProvider, generatorConfig, TypeScriptBaseTypes)
                 GeneratorComponent(generatorModule, TypeScriptModelModule())
             }
             php -> {
-                val generatorModule = GeneratorModule(generatorConfig, PhpBaseTypes)
+                val generatorModule = GeneratorModule(apiProvider, generatorConfig, PhpBaseTypes)
                 GeneratorComponent(generatorModule, PhpModelModule())
             }
-
             else -> throw IllegalArgumentException("unsupported target '$target', allowed values are $javaModel, $springClient, $typescriptModel and $php")
         }
 

@@ -3,6 +3,7 @@ package io.vrap.codegen.languages.typescript
 import io.vrap.rmf.codegen.types.*
 import io.vrap.rmf.raml.model.types.AnyType
 import io.vrap.rmf.raml.model.types.ObjectType
+import java.lang.IllegalStateException
 import java.nio.file.Path
 import java.nio.file.Paths
 
@@ -10,15 +11,25 @@ interface TsObjectTypeExtensions : io.vrap.codegen.languages.ExtensionsBase {
 
     fun getImportsForModule(moduleName: String, types: List<AnyType>): String {
 
-
         return types
                 .filter { it is ObjectType }
                 .map { it as ObjectType }
                 .flatMap { it.getDependencies() }
                 .distinct()
-                .map { it as VrapObjectType }
-                .filter { it.`package` != moduleName }
-                .map {  "import { ${it.simpleClassName} } from '${relativisePaths(moduleName,it.`package`)}'" }
+                .filter {
+                    when (it) {
+                        is VrapObjectType -> it.`package` != moduleName
+                        is VrapEnumType -> it.`package` != moduleName
+                        else -> false
+                    }
+                }
+                .map {
+                    when (it) {
+                        is VrapObjectType -> "import { ${it.simpleClassName} } from '${relativisePaths(moduleName,it.`package`)}'"
+                        is VrapEnumType -> "import { ${it.simpleClassName} } from '${relativisePaths(moduleName,it.`package`)}'"
+                        else -> throw IllegalStateException("Unhandled case $it")
+                    }
+                }
                 .joinToString(separator = "\n")
     }
 
@@ -51,6 +62,7 @@ interface TsObjectTypeExtensions : io.vrap.codegen.languages.ExtensionsBase {
 private fun toVrapType(vrapType: VrapType): VrapType? {
     return when (vrapType) {
         is VrapObjectType -> vrapType
+        is VrapEnumType -> vrapType
         is VrapArrayType -> {
             toVrapType(vrapType.itemType)
         }
