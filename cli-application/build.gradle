@@ -25,6 +25,7 @@ shadowJar {
     manifest {
         attributes 'Main-Class': 'io.vrap.rmf.codegen.cli.MainKt'
     }
+    append "plugin.properties"
 }
 
 build.finalizedBy shadowJar
