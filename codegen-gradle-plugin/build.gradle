@@ -57,5 +57,8 @@ dependencies {
     testRuntime files(createClasspathManifest)
 }
 
+shadowJar{
+    append "plugin.properties"
+}
 
 compileJava.finalizedBy(createClasspathManifest)
