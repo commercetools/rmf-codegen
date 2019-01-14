@@ -86,8 +86,8 @@ class SpringClientRenderer @Inject constructor(val packageProvider: PackageProvi
             |${method.toComment().escapeAll()}
             |@Retryable(
             |          value = { ConnectException.class },
-            |          maxAttemptsExpression = "#{${'$'}{retry.${method.method.name.toLowerCase()}.maxAttempts}}",
-            |          backoff = @Backoff(delayExpression = "#{1}", maxDelayExpression = "#{5}", multiplierExpression = "#{2}"))
+            |          maxAttemptsExpression = "#{${'$'}{retry.maxAttempts}}",
+            |          backoff = @Backoff(delayExpression = "#{${'$'}{retry.delay}}", maxDelayExpression = "#{${'$'}{retry.maxDelay}}", multiplierExpression = "#{${'$'}{retry.delayMultiplier}}"))
             |public ${if(returnIsEmpty) "ResponseEntity" else methodReturnType.fullClassName().escapeAll()} ${method.method.name.toLowerCase()}(${methodParameters(resource, method).escapeAll()}) {
             |
             |    final Map\<String, Object\> parameters = new HashMap\<\>();
