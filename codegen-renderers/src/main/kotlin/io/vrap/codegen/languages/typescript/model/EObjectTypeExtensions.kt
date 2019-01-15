@@ -1,4 +1,4 @@
-package io.vrap.codegen.languages.typescript
+package io.vrap.codegen.languages.typescript.model
 
 import org.eclipse.emf.ecore.EObject
 

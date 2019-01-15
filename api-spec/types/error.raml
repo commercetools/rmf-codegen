@@ -83,6 +83,9 @@ types:
           type: any
       allowedValues?:
           type: any[]
+  InvalidInput:
+    type: ErrorObject
+    discriminatorValue: InvalidInput
   ResourceNotFoundError:
     type: ErrorObject
     discriminatorValue: ResourceNotFound

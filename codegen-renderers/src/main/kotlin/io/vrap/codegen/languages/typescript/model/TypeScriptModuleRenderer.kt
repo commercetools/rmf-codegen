@@ -1,4 +1,4 @@
-package io.vrap.codegen.languages.typescript
+package io.vrap.codegen.languages.typescript.model
 
 import com.google.inject.Inject
 import io.vrap.codegen.languages.java.extensions.EObjectTypeExtensions

@@ -1,4 +1,4 @@
-package io.vrap.codegen.languages.typescript
+package io.vrap.codegen.languages.typescript.model
 
 import io.vrap.codegen.languages.java.extensions.simpleName
 import io.vrap.rmf.codegen.types.*
