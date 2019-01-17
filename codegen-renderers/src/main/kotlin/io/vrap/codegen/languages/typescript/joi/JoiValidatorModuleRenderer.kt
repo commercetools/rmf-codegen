@@ -65,23 +65,17 @@ class JoiValidatorModuleRenderer @Inject constructor(override val vrapTypeProvid
                 .filterIsInstance(ObjectType::class.java)
                 .filter { !it.discriminatorValue.isNullOrEmpty() }
                 .map {
-                    """
-                    |.when('${this.discriminator}',{
-                    |    is: '${it.discriminatorValue}',
-                    |    then: ${it.toVrapType().simpleJoiName()}()
-                    |})
-                    """.trimMargin()
-                }.joinToString(separator = "\n")
+                    "${it.toVrapType().simpleJoiName()}()"
+                }.joinToString(separator = ", ")
 
             return """
-            |export function ${vrapType.simpleJoiName()}(){
-            |   return Joi.alternatives()
-            |               <$allSubsCases>
+            |export function ${vrapType.simpleJoiName()}(): Joi.AnySchema {
+            |   return Joi.alternatives([$allSubsCases])
             |}
             """.trimMargin()
         } else
             return """
-            |export function ${vrapType.simpleJoiName()}(){
+            |export function ${vrapType.simpleJoiName()}(): Joi.AnySchema {
             |   return <${this.objectFields()}>
             |}
             """.trimMargin()
@@ -100,7 +94,7 @@ class JoiValidatorModuleRenderer @Inject constructor(override val vrapTypeProvid
             .joinToString(separator = ",\n")
         val patternProperties = this.allProperties
             .filter { it.isPatternProperty() }
-            .map { ".pattern('${it.name}', ${it.type.toVrapType().simpleJoiName()}())" }
+            .map { ".pattern(new RegExp('${it.name}'), ${it.type.toVrapType().simpleJoiName()}())" }
             .joinToString(separator = "\n")
 
         return if (patternProperties.isNullOrEmpty())
@@ -147,7 +141,7 @@ class JoiValidatorModuleRenderer @Inject constructor(override val vrapTypeProvid
         |
         |]
         |
-        |export function ${vrapType.simpleJoiName()}() {
+        |export function ${vrapType.simpleJoiName()}(): Joi.AnySchema {
         |   return Joi.string().only(${vrapType.simpleJoiName()}Values)
         |}
         """.trimMargin()
