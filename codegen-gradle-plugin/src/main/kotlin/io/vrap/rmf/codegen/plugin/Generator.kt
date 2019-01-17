@@ -37,5 +37,6 @@ open class Target constructor(val name: String){
 enum class TargetType {
     JAVA_MODEL,
     JAVA_SPRING_CLIENT,
-    TYPESCRIPT_MODEL
+    TYPESCRIPT_MODEL,
+    JOI_VALIDATOR
 }

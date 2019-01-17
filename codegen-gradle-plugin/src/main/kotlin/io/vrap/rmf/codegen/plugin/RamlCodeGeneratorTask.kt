@@ -3,8 +3,10 @@ package io.vrap.rmf.codegen.plugin
 import io.vrap.codegen.languages.java.JavaBaseTypes
 import io.vrap.codegen.languages.java.client.SpringClientModule
 import io.vrap.codegen.languages.java.model.JavaModelModule
-import io.vrap.codegen.languages.typescript.TypeScriptBaseTypes
-import io.vrap.codegen.languages.typescript.TypeScriptModelModule
+import io.vrap.codegen.languages.typescript.joi.JoiBaseTypes
+import io.vrap.codegen.languages.typescript.joi.JoiModule
+import io.vrap.codegen.languages.typescript.model.TypeScriptBaseTypes
+import io.vrap.codegen.languages.typescript.model.TypeScriptModelModule
 import io.vrap.rmf.codegen.CodeGeneratorConfig
 import io.vrap.rmf.codegen.di.ApiProvider
 import io.vrap.rmf.codegen.di.GeneratorComponent
@@ -58,6 +60,10 @@ open class RamlCodeGeneratorTask : DefaultTask() {
             TargetType.TYPESCRIPT_MODEL -> {
                 val generatorModule = GeneratorModule(apiProvider, generatorConfig, TypeScriptBaseTypes)
                 GeneratorComponent(generatorModule, TypeScriptModelModule())
+            }
+            TargetType.JOI_VALIDATOR -> {
+                val generatorModule = GeneratorModule(apiProvider, generatorConfig, JoiBaseTypes)
+                GeneratorComponent(generatorModule, JoiModule())
             }
             else -> throw IllegalArgumentException("unsupported target value '${target.target}', allowed values is one of ${TargetType.values().toList()}")
         }

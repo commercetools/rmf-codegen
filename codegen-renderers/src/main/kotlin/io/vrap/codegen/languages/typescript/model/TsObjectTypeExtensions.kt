@@ -1,4 +1,4 @@
-package io.vrap.codegen.languages.typescript
+package io.vrap.codegen.languages.typescript.model
 
 import io.vrap.rmf.codegen.types.*
 import io.vrap.rmf.raml.model.types.AnyType

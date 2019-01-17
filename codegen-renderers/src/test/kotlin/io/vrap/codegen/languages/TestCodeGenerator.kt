@@ -7,21 +7,22 @@ import io.vrap.codegen.languages.java.model.JavaModelModule
 import io.vrap.codegen.languages.java.plantuml.PlantUmlModule
 import io.vrap.codegen.languages.php.PhpBaseTypes
 import io.vrap.codegen.languages.php.model.PhpModelModule
-import io.vrap.codegen.languages.typescript.TypeScriptBaseTypes
-import io.vrap.codegen.languages.typescript.TypeScriptModelModule
+import io.vrap.codegen.languages.typescript.joi.JoiBaseTypes
+import io.vrap.codegen.languages.typescript.joi.JoiModule
+import io.vrap.codegen.languages.typescript.model.TypeScriptBaseTypes
+import io.vrap.codegen.languages.typescript.model.TypeScriptModelModule
 import io.vrap.rmf.codegen.CodeGeneratorConfig
 import io.vrap.rmf.codegen.di.ApiProvider
 import io.vrap.rmf.codegen.di.GeneratorComponent
 import io.vrap.rmf.codegen.di.GeneratorModule
 import org.junit.Test
-import java.io.File
 import java.nio.file.Paths
 
 
 class TestCodeGenerator {
 
     companion object {
-        val apiProvider: ApiProvider = ApiProvider(Paths.get("../api-spec/import-storage-api.raml"))
+        val apiProvider: ApiProvider = ApiProvider(Paths.get("../api-spec/api.raml"))
         val generatorConfig = CodeGeneratorConfig(basePackageName = "com.commercetools.importer")
     }
 
@@ -62,6 +63,14 @@ class TestCodeGenerator {
         val generatorConfig = CodeGeneratorConfig(basePackageName = "com.commercetools.importer")
         val generatorModule = GeneratorModule(apiProvider, generatorConfig, JavaBaseTypes)
         val generatorComponent = GeneratorComponent(generatorModule, PlantUmlModule())
+        generatorComponent.generateFiles()
+    }
+
+    @Test
+    fun generateJoiValidators() {
+        val generatorConfig = CodeGeneratorConfig(basePackageName = "joi" )
+        val generatorModule = GeneratorModule(apiProvider, generatorConfig, JoiBaseTypes)
+        val generatorComponent = GeneratorComponent(generatorModule, JoiModule())
         generatorComponent.generateFiles()
     }
 

@@ -1,12 +1,12 @@
-package io.vrap.codegen.languages.typescript
+package io.vrap.codegen.languages.typescript.joi
 
 import com.google.inject.AbstractModule
 import com.google.inject.multibindings.Multibinder
 import io.vrap.rmf.codegen.rendring.FileProducer
 
-class TypeScriptModelModule : AbstractModule() {
+class JoiModule : AbstractModule() {
     override fun configure() {
         val objectTypeBinder = Multibinder.newSetBinder(binder(), FileProducer::class.java)
-        objectTypeBinder.addBinding().to(TypeScriptModuleRenderer::class.java)
+        objectTypeBinder.addBinding().to(JoiValidatorModuleRenderer::class.java)
     }
 }
