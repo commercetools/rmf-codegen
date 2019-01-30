@@ -88,7 +88,7 @@ class SpringClientRenderer @Inject constructor(val packageProvider: PackageProvi
             |          value = { ConnectException.class },
             |          maxAttemptsExpression = "#{${'$'}{retry.maxAttempts}}",
             |          backoff = @Backoff(delayExpression = "#{${'$'}{retry.delay}}", maxDelayExpression = "#{${'$'}{retry.maxDelay}}", multiplierExpression = "#{${'$'}{retry.delayMultiplier}}"))
-            |public ${if(returnIsEmpty) "ResponseEntity" else methodReturnType.fullClassName().escapeAll()} ${method.method.name.toLowerCase()}(${methodParameters(resource, method).escapeAll()}) {
+            |public ${if(returnIsEmpty) "ResponseEntity\\<Void\\>" else methodReturnType.fullClassName().escapeAll()} ${method.method.name.toLowerCase()}(${methodParameters(resource, method).escapeAll()}) {
             |
             |    final Map\<String, Object\> parameters = new HashMap\<\>();
             |
@@ -97,7 +97,7 @@ class SpringClientRenderer @Inject constructor(val packageProvider: PackageProvi
             |
             |    <${method.mediaType().escapeAll()}>
             |
-            |    ${if(returnIsEmpty) "final ParameterizedTypeReference type = new ParameterizedTypeReference() {};" else "final ParameterizedTypeReference\\<${method.retyurnType().toVrapType().fullClassName().escapeAll()}\\> type = new ParameterizedTypeReference\\<${method.retyurnType().toVrapType().fullClassName().escapeAll()}\\>() {};"}
+            |    ${if(returnIsEmpty) "final ParameterizedTypeReference\\<Void\\> type = new ParameterizedTypeReference\\<Void\\>() {};" else "final ParameterizedTypeReference\\<${method.retyurnType().toVrapType().fullClassName().escapeAll()}\\> type = new ParameterizedTypeReference\\<${method.retyurnType().toVrapType().fullClassName().escapeAll()}\\>() {};"}
             |    final String fullUri = baseUri + "${relativeUrl(resource,method)}";
             |
             |    ${if(returnIsEmpty) "return restTemplate.exchange(fullUri, HttpMethod.${method.method.name.toUpperCase()}, entity, type, parameters);" else "return restTemplate.exchange(fullUri, HttpMethod.${method.method.name.toUpperCase()}, entity, type, parameters).getBody();"}
