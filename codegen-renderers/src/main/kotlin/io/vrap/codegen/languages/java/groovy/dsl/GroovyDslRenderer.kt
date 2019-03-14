@@ -35,9 +35,10 @@ class GroovyDslRenderer @Inject constructor(override val vrapTypeProvider: VrapT
             |   * @param closure the closure to initialize the fields of the new instance
             |   * @return new instance intialized via the given closure
             |   */
-            |  default ${vrapType.simpleClassName} ${type.name.decapitalize()}(@DelegatesTo(${vrapType.simpleClassName}.class) final Closure<${vrapType.simpleClassName}> closure) {
+            |  default ${vrapType.simpleClassName} ${type.name.decapitalize()}(@DelegatesTo(value = ${vrapType.simpleClassName}.class, strategy = Closure.DELEGATE_FIRST) final Closure<${vrapType.simpleClassName}> closure) {
             |    final ${vrapType.simpleClassName} ${type.name.decapitalize()} = new ${vrapType.simpleClassName}();
             |    closure.setDelegate(${type.name.decapitalize()});
+            |    closure.setResolveStrategy(Closure.DELEGATE_FIRST);
             |    closure.call();
             |    return ${type.name.decapitalize()};
             |  }
