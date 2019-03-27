@@ -1,6 +1,7 @@
 package io.vrap.codegen.languages.java.model.second
 
 import com.google.inject.Inject
+import io.vrap.codegen.languages.extensions.isPatternProperty
 import io.vrap.codegen.languages.java.JavaSubTemplates
 import io.vrap.codegen.languages.java.extensions.simpleName
 import io.vrap.codegen.languages.java.extensions.toComment
