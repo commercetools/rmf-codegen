@@ -4,6 +4,7 @@ import io.vrap.codegen.languages.java.JavaBaseTypes
 import io.vrap.codegen.languages.java.client.SpringClientModule
 import io.vrap.codegen.languages.java.groovy.dsl.GroovyDslModule
 import io.vrap.codegen.languages.java.model.JavaModelModule
+import io.vrap.codegen.languages.java.model.second.JavaModelModuleSecond
 import io.vrap.codegen.languages.java.plantuml.PlantUmlModule
 import io.vrap.codegen.languages.php.PhpBaseTypes
 import io.vrap.codegen.languages.php.model.PhpModelModule
@@ -39,6 +40,14 @@ class TestCodeGenerator {
         val generatorConfig = CodeGeneratorConfig(basePackageName = "com.commercetools.importer")
         val generatorModule = GeneratorModule(apiProvider, generatorConfig, JavaBaseTypes)
         val generatorComponent = GeneratorComponent(generatorModule, JavaModelModule())
+        generatorComponent.generateFiles()
+    }
+
+    @Test
+    fun generateJavaModelsSecond() {
+        val generatorConfig = CodeGeneratorConfig(basePackageName = "com.commercetools.importer")
+        val generatorModule = GeneratorModule(apiProvider, generatorConfig, JavaBaseTypes)
+        val generatorComponent = GeneratorComponent(generatorModule, JavaModelModuleSecond())
         generatorComponent.generateFiles()
     }
 
