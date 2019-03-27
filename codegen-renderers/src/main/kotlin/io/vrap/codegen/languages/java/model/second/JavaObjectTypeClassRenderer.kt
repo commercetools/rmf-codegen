@@ -19,10 +19,18 @@ class JavaObjectTypeClassRenderer @Inject constructor(override val vrapTypeProvi
 
         val vrapType = vrapTypeProvider.doSwitch(type) as VrapObjectType
 
+        val parentTypeImport = if(type.type != null && type.type is ObjectType) {
+            val parentType = vrapTypeProvider.doSwitch(type.type) as VrapObjectType
+            "${parentType.`package`}.${parentType.simpleClassName}"
+        }else{
+            null
+        }
+
         val content = """
                 |package ${vrapType.`package`};
                 |
                 |${type.imports()}
+                |${parentTypeImport?.let { "import ${it}Impl;"} ?: ""}
                 |import com.fasterxml.jackson.annotation.*;
                 |import javax.annotation.Generated;
                 |import javax.validation.Valid;
@@ -32,12 +40,12 @@ class JavaObjectTypeClassRenderer @Inject constructor(override val vrapTypeProvi
                 |import org.apache.commons.lang3.builder.HashCodeBuilder;
                 |import org.apache.commons.lang3.builder.ToStringBuilder;
                 |import org.apache.commons.lang3.builder.ToStringStyle;
-                |
+                |import java.util.List;
                 |
                 |<${type.toComment().escapeAll()}>
                 |<${type.subTypesAnnotations()}>
                 |<${JavaSubTemplates.generatedAnnotation}>
-                |public class ${vrapType.simpleClassName}Impl ${type.type?.toVrapType()?.simpleName()?.let { "extends $it" } ?: ""} {
+                |public class ${vrapType.simpleClassName}Impl ${type.type?.toVrapType()?.simpleName()?.let { "extends ${it}Impl" } ?: ""} implements ${vrapType.simpleClassName} {
                 |
                 |    <${type.toBeanFields().escapeAll()}>
                 |
@@ -67,9 +75,6 @@ class JavaObjectTypeClassRenderer @Inject constructor(override val vrapTypeProvi
             content = content
         )
     }
-
-
-    fun ObjectType.imports() = this.getImports().map { "import $it;" }.joinToString(separator = "\n")
 
     fun Property.toJavaField(): String {
 

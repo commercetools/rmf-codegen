@@ -29,6 +29,8 @@ abstract class JavaObjectTypeRenderer : ObjectTypeExtensions, EObjectTypeExtensi
             ""
     }
 
+    fun ObjectType.imports() = this.getImports().map { "import $it;" }.joinToString(separator = "\n")
+
     fun Property.validationAnnotations(): String {
         val validationAnnotations = ArrayList<String>()
         if (this.required != null && this.required!!) {

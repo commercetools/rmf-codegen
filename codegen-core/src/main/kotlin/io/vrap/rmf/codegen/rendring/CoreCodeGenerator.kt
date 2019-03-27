@@ -1,11 +1,9 @@
 package io.vrap.rmf.codegen.rendring
 
 import com.google.inject.Inject
-import com.google.inject.name.Named
 import io.vrap.rmf.codegen.common.generator.core.ResourceCollection
 import io.vrap.rmf.codegen.io.DataSink
 import io.vrap.rmf.raml.model.resources.Method
-import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.types.ObjectType
 import io.vrap.rmf.raml.model.types.StringType
 import org.slf4j.LoggerFactory

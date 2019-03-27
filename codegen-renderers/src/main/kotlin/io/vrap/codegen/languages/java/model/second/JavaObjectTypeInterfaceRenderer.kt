@@ -21,7 +21,16 @@ class JavaObjectTypeInterfaceRenderer @Inject constructor(override val vrapTypeP
         val content= """
             |package ${vrapType.`package`};
             |
+            |${type.imports()}
             |import ${vrapType.`package`}.${vrapType.simpleClassName}Impl;
+            |
+            |import com.fasterxml.jackson.annotation.*;
+            |import com.fasterxml.jackson.databind.annotation.*;
+            |import javax.annotation.Generated;
+            |import javax.validation.constraints.NotNull;
+            |import javax.validation.Valid;
+            |import javax.validation.constraints.NotNull;
+            |import java.util.List;
             |
             |<${type.toComment().escapeAll()}>
             |<${type.subTypesAnnotations()}>

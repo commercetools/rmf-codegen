@@ -45,7 +45,7 @@ class TestCodeGenerator {
 
     @Test
     fun generateJavaModelsSecond() {
-        val generatorConfig = CodeGeneratorConfig(basePackageName = "com.commercetools.importer")
+        val generatorConfig = CodeGeneratorConfig(basePackageName = "com.commercetools.importer", outputFolder = Paths.get("../example/build/generated/source/apt/main"))
         val generatorModule = GeneratorModule(apiProvider, generatorConfig, JavaBaseTypes)
         val generatorComponent = GeneratorComponent(generatorModule, JavaModelModuleSecond())
         generatorComponent.generateFiles()
