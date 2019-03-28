@@ -1,0 +1,60 @@
+#%RAML 1.0 Library
+usage: Simple type test.
+(generator.package): simpleTypes
+
+uses:
+    generator: ../annotationTypes/test-generator.raml
+    common: common.raml
+
+types:
+    SimpleType:
+        type: common.Asset
+        description: This is a test description.
+        properties:
+            createdAt:
+                type: datetime
+            createdAtNullable?:
+                type: datetime
+            number:
+                description: Test number description.
+                type: integer
+                format: long
+            text:
+                type: string
+            textNullable?:
+                type: string
+            money:
+                type: common.Money
+            moneyNullable?:
+                type: common.Money
+            categoryReference:
+                (common.ReferenceType): category
+                type: common.ImportReference
+            asset:
+                type: common.Asset
+            assets:
+                type: common.Asset[]
+            assetDimension:
+                type: common.AssetDimensions
+            assetSource:
+                type: common.AssetSource
+            countryCode:
+                type: common.CountryCode
+            currencyCode:
+                type: common.CurrencyCode
+            image:
+                type: common.Image
+            enumValue:
+                type: common.EnumValue
+            localizedEnumValue:
+                type: common.LocalizedEnumValue
+            localizedString:
+                type: common.LocalizedString
+            importResource:
+                type: common.ImportResource
+            importReference:
+                type: common.ImportReference
+            resourceType:
+                type: common.ResourceType
+            processingState:
+                type: common.ProcessingState
