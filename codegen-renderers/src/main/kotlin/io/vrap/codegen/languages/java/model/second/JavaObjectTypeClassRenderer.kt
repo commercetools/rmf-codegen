@@ -41,6 +41,7 @@ class JavaObjectTypeClassRenderer @Inject constructor(override val vrapTypeProvi
                 |import org.apache.commons.lang3.builder.ToStringBuilder;
                 |import org.apache.commons.lang3.builder.ToStringStyle;
                 |import java.util.List;
+                |import java.util.Map;
                 |
                 |<${type.toComment().escapeAll()}>
                 |<${JavaSubTemplates.generatedAnnotation}>

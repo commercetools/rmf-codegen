@@ -31,6 +31,7 @@ class JavaObjectTypeInterfaceRenderer @Inject constructor(override val vrapTypeP
             |import javax.validation.Valid;
             |import javax.validation.constraints.NotNull;
             |import java.util.List;
+            |import java.util.Map;
             |
             |<${type.toComment().escapeAll()}>
             |<${type.subTypesAnnotations()}>
