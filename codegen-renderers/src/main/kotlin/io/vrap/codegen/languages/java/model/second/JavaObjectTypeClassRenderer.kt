@@ -31,7 +31,6 @@ class JavaObjectTypeClassRenderer @Inject constructor(override val vrapTypeProvi
                 |
                 |${type.imports()}
                 |${parentTypeImport?.let { "import ${it}Impl;"} ?: ""}
-                |import com.fasterxml.jackson.annotation.*;
                 |import javax.annotation.Generated;
                 |import javax.validation.Valid;
                 |import javax.validation.constraints.NotNull;
@@ -107,9 +106,7 @@ class JavaObjectTypeClassRenderer @Inject constructor(override val vrapTypeProvi
 
     fun Property.setter(): String {
         return if (this.isPatternProperty()) {
-
             """
-            |@JsonAnySetter
             |public void setValue(String key, ${this.type.toVrapType().simpleName()} value) {
             |    if (values == null) {
             |        values = new HashMap<>();
@@ -128,11 +125,9 @@ class JavaObjectTypeClassRenderer @Inject constructor(override val vrapTypeProvi
 
     fun Property.getter(): String {
         return if (this.isPatternProperty()) {
-
             """
             |${this.validationAnnotations()}
             |${this.type.toComment()}
-            |@JsonAnyGetter
             |public Map<String, ${this.type.toVrapType().simpleName()}> values() {
             |    return values;
             |}
@@ -141,7 +136,6 @@ class JavaObjectTypeClassRenderer @Inject constructor(override val vrapTypeProvi
             """
             |${this.type.toComment()}
             |${this.validationAnnotations()}
-            |@JsonProperty("${this.name}")
             |public ${this.type.toVrapType().simpleName()} get${this.name.capitalize()}(){
             |   return this.${this.name};
             |}
