@@ -39,6 +39,9 @@ class JavaObjectTypeInterfaceRenderer @Inject constructor(override val vrapTypeP
             |public interface ${vrapType.simpleClassName} ${type.type?.toVrapType()?.simpleName()?.let { "extends $it" } ?: ""} {
             |
             |   <${type.getters().escapeAll()}>
+            |
+            |   <${type.setters().escapeAll()}>
+            |
             |}
             |
         """.trimMargin().keepIndentation()
@@ -64,6 +67,22 @@ class JavaObjectTypeInterfaceRenderer @Inject constructor(override val vrapTypeP
             |@JsonProperty("${this.name}")
             |public ${this.type.toVrapType().simpleName()} get${this.name.capitalize()}();
         """.trimMargin()
+        }
+    }
+
+    fun ObjectType.setters() = this.properties
+        .filter { it.name != this.discriminator }
+        .map { it.setter() }
+        .joinToString(separator = "\n\n")
+
+    fun Property.setter(): String {
+        return if (this.isPatternProperty()) {
+            """
+            |@JsonAnySetter
+            |public void setValue(String key, ${this.type.toVrapType().simpleName()} value);
+            """.trimMargin()
+        } else {
+            "public void set${this.name.capitalize()}(final ${this.type.toVrapType().simpleName()} ${this.name});"
         }
     }
 }

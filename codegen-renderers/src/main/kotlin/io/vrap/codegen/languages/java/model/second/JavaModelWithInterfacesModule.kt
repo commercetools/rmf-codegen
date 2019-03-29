@@ -6,7 +6,7 @@ import io.vrap.codegen.languages.java.model.JavaStringTypeRenderer
 import io.vrap.rmf.codegen.rendring.ObjectTypeRenderer
 import io.vrap.rmf.codegen.rendring.StringTypeRenderer
 
-class JavaModelModuleSecond: AbstractModule() {
+class JavaModelWithInterfacesModule: AbstractModule() {
     override fun configure() {
         val objectTypeBinder = Multibinder.newSetBinder(binder(), ObjectTypeRenderer::class.java)
         objectTypeBinder.addBinding().to(JavaObjectTypeClassRenderer::class.java)

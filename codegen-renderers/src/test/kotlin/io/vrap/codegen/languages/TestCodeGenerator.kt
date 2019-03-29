@@ -4,7 +4,7 @@ import io.vrap.codegen.languages.java.JavaBaseTypes
 import io.vrap.codegen.languages.java.client.SpringClientModule
 import io.vrap.codegen.languages.java.groovy.dsl.GroovyDslModule
 import io.vrap.codegen.languages.java.model.JavaModelModule
-import io.vrap.codegen.languages.java.model.second.JavaModelModuleSecond
+import io.vrap.codegen.languages.java.model.second.JavaModelWithInterfacesModule
 import io.vrap.codegen.languages.java.plantuml.PlantUmlModule
 import io.vrap.codegen.languages.php.PhpBaseTypes
 import io.vrap.codegen.languages.php.model.PhpModelModule
@@ -46,10 +46,11 @@ class TestCodeGenerator {
     }
 
     @Test
-    fun generateJavaModelsSecond() {
+    fun generateJavaModelsWithInterfacesModule() {
+        cleanGenTestFolder()
         val generatorConfig = CodeGeneratorConfig(basePackageName = "com.commercetools.importer", outputFolder = Paths.get("build/gensrc/java"))
         val generatorModule = GeneratorModule(apiProvider, generatorConfig, JavaBaseTypes)
-        val generatorComponent = GeneratorComponent(generatorModule, JavaModelModuleSecond())
+        val generatorComponent = GeneratorComponent(generatorModule, JavaModelWithInterfacesModule())
         generatorComponent.generateFiles()
     }
 
@@ -63,7 +64,7 @@ class TestCodeGenerator {
         val testApiProvider = ApiProvider(Paths.get("src/test/resources/java/ramlTestFiles/test-api.raml"))
         val generatorConfig = CodeGeneratorConfig(basePackageName = "com.commercetools.test", outputFolder = Paths.get("build/gensrc/java"))
         val generatorModule = GeneratorModule(testApiProvider, generatorConfig, JavaBaseTypes)
-        val generatorComponent = GeneratorComponent(generatorModule, JavaModelModuleSecond())
+        val generatorComponent = GeneratorComponent(generatorModule, JavaModelWithInterfacesModule())
         generatorComponent.generateFiles()
         val generatedSimpleTypeInterface = String(Files.readAllBytes(Paths.get("build/gensrc/java/com/commercetools/test/models/simpleTypes/SimpleType.java")))
         val generatedSimleTypeClass = String(Files.readAllBytes(Paths.get("build/gensrc/java/com/commercetools/test/models/simpleTypes/SimpleTypeImpl.java")))

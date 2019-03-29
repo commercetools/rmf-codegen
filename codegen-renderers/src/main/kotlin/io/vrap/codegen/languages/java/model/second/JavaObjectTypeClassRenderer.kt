@@ -43,15 +43,15 @@ class JavaObjectTypeClassRenderer @Inject constructor(override val vrapTypeProvi
                 |import java.util.List;
                 |
                 |<${type.toComment().escapeAll()}>
-                |<${type.subTypesAnnotations()}>
                 |<${JavaSubTemplates.generatedAnnotation}>
                 |public class ${vrapType.simpleClassName}Impl ${type.type?.toVrapType()?.simpleName()?.let { "extends ${it}Impl" } ?: ""} implements ${vrapType.simpleClassName} {
                 |
                 |    <${type.toBeanFields().escapeAll()}>
                 |
+                |    <${type.getters().escapeAll()}>
+                |
                 |    <${type.setters().escapeAll()}>
                 |
-                |    <${type.getters().escapeAll()}>
                 |
                 |    @Override
                 |    public String toString() {
