@@ -59,7 +59,12 @@ class JavaObjectTypeInterfaceRenderer @Inject constructor(override val vrapTypeP
 
     fun Property.geter(): String {
         return if(this.isPatternProperty()){
-            ""
+            """
+            |${this.validationAnnotations()}
+            |${this.type.toComment()}
+            |@JsonAnyGetter
+            |public Map<String, ${this.type.toVrapType().simpleName()}> values();
+            """.trimMargin()
         }else {
             """
             |${this.type.toComment()}
