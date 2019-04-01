@@ -17,8 +17,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
-	<p>This is a test description.</p>
-*/
+ <p>This is a test description.</p>
+ */
 @Generated(
     value = "io.vrap.rmf.codegen.rendring.CoreCodeGenerator",
     comments = "https://github.com/vrapio/rmf-codegen"
@@ -40,58 +40,58 @@ public class SimpleTypeImpl extends AssetImpl implements SimpleType {
 
 
     public ZonedDateTime getCreatedAt(){
-       return this.createdAt;
+        return this.createdAt;
     }
 
 
     public ZonedDateTime getCreatedAtNullable(){
-       return this.createdAtNullable;
+        return this.createdAtNullable;
     }
 
     /**
-    	<p>Test number description.</p>
-    */
+     <p>Test number description.</p>
+     */
     public Long getNumber(){
-       return this.number;
+        return this.number;
     }
 
 
     public String getText(){
-       return this.text;
+        return this.text;
     }
 
 
     public String getTextNullable(){
-       return this.textNullable;
+        return this.textNullable;
     }
 
 
     public Asset getAsset(){
-       return this.asset;
+        return this.asset;
     }
 
     public void setCreatedAt(final ZonedDateTime createdAt){
-       this.createdAt = createdAt;
+        this.createdAt = createdAt;
     }
 
     public void setCreatedAtNullable(final ZonedDateTime createdAtNullable){
-       this.createdAtNullable = createdAtNullable;
+        this.createdAtNullable = createdAtNullable;
     }
 
     public void setNumber(final Long number){
-       this.number = number;
+        this.number = number;
     }
 
     public void setText(final String text){
-       this.text = text;
+        this.text = text;
     }
 
     public void setTextNullable(final String textNullable){
-       this.textNullable = textNullable;
+        this.textNullable = textNullable;
     }
 
     public void setAsset(final Asset asset){
-       this.asset = asset;
+        this.asset = asset;
     }
 
 

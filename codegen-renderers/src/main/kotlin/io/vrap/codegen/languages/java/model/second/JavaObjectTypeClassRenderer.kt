@@ -19,18 +19,11 @@ class JavaObjectTypeClassRenderer @Inject constructor(override val vrapTypeProvi
 
         val vrapType = vrapTypeProvider.doSwitch(type) as VrapObjectType
 
-        val parentTypeImport = if(type.type != null && type.type is ObjectType) {
-            val parentType = vrapTypeProvider.doSwitch(type.type) as VrapObjectType
-            "${parentType.`package`}.${parentType.simpleClassName}"
-        }else{
-            null
-        }
-
         val content = """
                 |package ${vrapType.`package`};
                 |
                 |${type.imports()}
-                |${parentTypeImport?.let { "import ${it}Impl;"} ?: ""}
+                |${type.parentTypeImport()?.let { "import ${it}Impl;"} ?: ""}
                 |import javax.annotation.Generated;
                 |import javax.validation.Valid;
                 |import javax.validation.constraints.NotNull;
@@ -47,11 +40,11 @@ class JavaObjectTypeClassRenderer @Inject constructor(override val vrapTypeProvi
                 |public class ${vrapType.simpleClassName}Impl ${type.type?.toVrapType()?.simpleName()?.let { "extends ${it}Impl" } ?: ""} implements ${vrapType.simpleClassName} {
                 |
                 |
-                |    <${type.toBeanFields().escapeAll()}>
+                |   <${type.toBeanFields().escapeAll()}>
                 |
-                |    <${type.getters().escapeAll()}>
+                |   <${type.getters().escapeAll()}>
                 |
-                |    <${type.setters().escapeAll()}>
+                |   <${type.setters().escapeAll()}>
                 |
                 |
                 |    @Override
@@ -139,6 +132,15 @@ class JavaObjectTypeClassRenderer @Inject constructor(override val vrapTypeProvi
             |   return this.${this.name};
             |}
         """.trimMargin()
+        }
+    }
+
+    fun ObjectType.parentTypeImport() : String? {
+        return if(this.type != null && this.type is ObjectType) {
+            val parentType = vrapTypeProvider.doSwitch(this.type) as VrapObjectType
+            "${parentType.`package`}.${parentType.simpleClassName}"
+        }else{
+            null
         }
     }
 }
