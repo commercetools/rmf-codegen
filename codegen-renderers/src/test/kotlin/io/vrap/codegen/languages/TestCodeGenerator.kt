@@ -20,12 +20,15 @@ import org.junit.Assert
 import org.junit.Test
 import java.nio.file.Files
 import java.nio.file.Paths
+import javax.tools.ToolProvider
+
+
 
 
 class TestCodeGenerator {
 
     companion object {
-        val apiProvider: ApiProvider = ApiProvider(Paths.get("src/test/resources/java/ramlTestFiles/test-api.raml"))
+        val apiProvider: ApiProvider = ApiProvider(Paths.get("../api-spec/api.raml"))
         val generatorConfig = CodeGeneratorConfig(basePackageName = "com.commercetools.importer")
     }
 
@@ -52,6 +55,15 @@ class TestCodeGenerator {
         val generatorModule = GeneratorModule(apiProvider, generatorConfig, JavaBaseTypes)
         val generatorComponent = GeneratorComponent(generatorModule, JavaModelWithInterfacesModule())
         generatorComponent.generateFiles()
+
+        val compiler = ToolProvider.getSystemJavaCompiler()
+        Files.walk(Paths.get("build/gensrc/java/com/commercetools/importer"))
+            .filter { it.toFile().isFile }
+            .forEach{
+                //compiler.run() will return 0 if the compilation is successful
+                val compilationResult : Int = compiler.run(null, null, null, it.toFile().absolutePath)
+                Assert.assertEquals(compilationResult, 0)
+            }
     }
 
     /**
@@ -66,6 +78,7 @@ class TestCodeGenerator {
         val generatorModule = GeneratorModule(testApiProvider, generatorConfig, JavaBaseTypes)
         val generatorComponent = GeneratorComponent(generatorModule, JavaModelWithInterfacesModule())
         generatorComponent.generateFiles()
+
         val generatedSimpleTypeInterface = String(Files.readAllBytes(Paths.get("build/gensrc/java/com/commercetools/test/models/simpleTypes/SimpleType.java")))
         val generatedSimleTypeClass = String(Files.readAllBytes(Paths.get("build/gensrc/java/com/commercetools/test/models/simpleTypes/SimpleTypeImpl.java")))
 
