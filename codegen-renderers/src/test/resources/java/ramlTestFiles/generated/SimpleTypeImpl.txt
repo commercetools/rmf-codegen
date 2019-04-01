@@ -1,22 +1,10 @@
 package com.commercetools.test.models.simpleTypes;
 
 import com.commercetools.test.models.common.Asset;
-import com.commercetools.test.models.common.AssetDimensions;
-import com.commercetools.test.models.common.AssetSource;
-import com.commercetools.test.models.common.EnumValue;
-import com.commercetools.test.models.common.Image;
-import com.commercetools.test.models.common.ImportReference;
-import com.commercetools.test.models.common.ImportResource;
-import com.commercetools.test.models.common.LocalizedEnumValue;
-import com.commercetools.test.models.common.LocalizedString;
-import com.commercetools.test.models.common.Money;
-import com.commercetools.test.models.common.ProcessingState;
-import com.commercetools.test.models.common.ResourceType;
 import java.lang.Long;
 import java.lang.String;
 import java.time.ZonedDateTime;
 import com.commercetools.test.models.common.AssetImpl;
-import com.fasterxml.jackson.annotation.*;
 import javax.annotation.Generated;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -26,6 +14,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 import java.util.List;
+import java.util.Map;
 
 /**
 	<p>This is a test description.</p>
@@ -36,330 +25,75 @@ import java.util.List;
 )
 public class SimpleTypeImpl extends AssetImpl implements SimpleType {
 
+
     private ZonedDateTime createdAt;
-    
+
     private ZonedDateTime createdAtNullable;
-    
+
     private Long number;
-    
+
     private String text;
-    
+
     private String textNullable;
-    
-    private Money money;
-    
-    private Money moneyNullable;
-    
-    private ImportReference categoryReference;
-    
+
     private Asset asset;
-    
-    private List<Asset> assets;
-    
-    private AssetDimensions assetDimension;
-    
-    private AssetSource assetSource;
-    
-    private String countryCode;
-    
-    private String currencyCode;
-    
-    private Image image;
-    
-    private EnumValue enumValue;
-    
-    private LocalizedEnumValue localizedEnumValue;
-    
-    private LocalizedString localizedString;
-    
-    private ImportResource importResource;
-    
-    private ImportReference importReference;
-    
-    private ResourceType resourceType;
-    
-    private ProcessingState processingState;
+
+
+    public ZonedDateTime getCreatedAt(){
+       return this.createdAt;
+    }
+
+
+    public ZonedDateTime getCreatedAtNullable(){
+       return this.createdAtNullable;
+    }
+
+    /**
+    	<p>Test number description.</p>
+    */
+    public Long getNumber(){
+       return this.number;
+    }
+
+
+    public String getText(){
+       return this.text;
+    }
+
+
+    public String getTextNullable(){
+       return this.textNullable;
+    }
+
+
+    public Asset getAsset(){
+       return this.asset;
+    }
 
     public void setCreatedAt(final ZonedDateTime createdAt){
        this.createdAt = createdAt;
     }
-    
+
     public void setCreatedAtNullable(final ZonedDateTime createdAtNullable){
        this.createdAtNullable = createdAtNullable;
     }
-    
+
     public void setNumber(final Long number){
        this.number = number;
     }
-    
+
     public void setText(final String text){
        this.text = text;
     }
-    
+
     public void setTextNullable(final String textNullable){
        this.textNullable = textNullable;
     }
-    
-    public void setMoney(final Money money){
-       this.money = money;
-    }
-    
-    public void setMoneyNullable(final Money moneyNullable){
-       this.moneyNullable = moneyNullable;
-    }
-    
-    public void setCategoryReference(final ImportReference categoryReference){
-       this.categoryReference = categoryReference;
-    }
-    
+
     public void setAsset(final Asset asset){
        this.asset = asset;
     }
-    
-    public void setAssets(final List<Asset> assets){
-       this.assets = assets;
-    }
-    
-    public void setAssetDimension(final AssetDimensions assetDimension){
-       this.assetDimension = assetDimension;
-    }
-    
-    public void setAssetSource(final AssetSource assetSource){
-       this.assetSource = assetSource;
-    }
-    
-    public void setCountryCode(final String countryCode){
-       this.countryCode = countryCode;
-    }
-    
-    public void setCurrencyCode(final String currencyCode){
-       this.currencyCode = currencyCode;
-    }
-    
-    public void setImage(final Image image){
-       this.image = image;
-    }
-    
-    public void setEnumValue(final EnumValue enumValue){
-       this.enumValue = enumValue;
-    }
-    
-    public void setLocalizedEnumValue(final LocalizedEnumValue localizedEnumValue){
-       this.localizedEnumValue = localizedEnumValue;
-    }
-    
-    public void setLocalizedString(final LocalizedString localizedString){
-       this.localizedString = localizedString;
-    }
-    
-    public void setImportResource(final ImportResource importResource){
-       this.importResource = importResource;
-    }
-    
-    public void setImportReference(final ImportReference importReference){
-       this.importReference = importReference;
-    }
-    
-    public void setResourceType(final ResourceType resourceType){
-       this.resourceType = resourceType;
-    }
-    
-    public void setProcessingState(final ProcessingState processingState){
-       this.processingState = processingState;
-    }
 
-    
-    @NotNull
-    @JsonProperty("createdAt")
-    public ZonedDateTime getCreatedAt(){
-       return this.createdAt;
-    }
-    
-    
-    
-    @JsonProperty("createdAtNullable")
-    public ZonedDateTime getCreatedAtNullable(){
-       return this.createdAtNullable;
-    }
-    
-    /**
-    	<p>Test number description.</p>
-    */
-    @NotNull
-    @JsonProperty("number")
-    public Long getNumber(){
-       return this.number;
-    }
-    
-    
-    @NotNull
-    @JsonProperty("text")
-    public String getText(){
-       return this.text;
-    }
-    
-    
-    
-    @JsonProperty("textNullable")
-    public String getTextNullable(){
-       return this.textNullable;
-    }
-    
-    
-    @NotNull
-    @Valid
-    @JsonProperty("money")
-    public Money getMoney(){
-       return this.money;
-    }
-    
-    
-    @Valid
-    @JsonProperty("moneyNullable")
-    public Money getMoneyNullable(){
-       return this.moneyNullable;
-    }
-    
-    /**
-    	<p>An import reference references a resource by its key.</p>
-    */
-    @NotNull
-    @Valid
-    @JsonProperty("categoryReference")
-    public ImportReference getCategoryReference(){
-       return this.categoryReference;
-    }
-    
-    
-    @NotNull
-    @Valid
-    @JsonProperty("asset")
-    public Asset getAsset(){
-       return this.asset;
-    }
-    
-    
-    @NotNull
-    @Valid
-    @JsonProperty("assets")
-    public List<Asset> getAssets(){
-       return this.assets;
-    }
-    
-    
-    @NotNull
-    @Valid
-    @JsonProperty("assetDimension")
-    public AssetDimensions getAssetDimension(){
-       return this.assetDimension;
-    }
-    
-    
-    @NotNull
-    @Valid
-    @JsonProperty("assetSource")
-    public AssetSource getAssetSource(){
-       return this.assetSource;
-    }
-    
-    /**
-    	<p>A two-digit country code as per <a href="https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2">ISO 3166-1 alpha-2</a>.</p>
-    */
-    @NotNull
-    @JsonProperty("countryCode")
-    public String getCountryCode(){
-       return this.countryCode;
-    }
-    
-    /**
-    	<p>The currency code compliant to <a href="https://en.wikipedia.org/wiki/ISO_4217">ISO 4217</a>.</p>
-    */
-    @NotNull
-    @JsonProperty("currencyCode")
-    public String getCurrencyCode(){
-       return this.currencyCode;
-    }
-    
-    
-    @NotNull
-    @Valid
-    @JsonProperty("image")
-    public Image getImage(){
-       return this.image;
-    }
-    
-    
-    @NotNull
-    @Valid
-    @JsonProperty("enumValue")
-    public EnumValue getEnumValue(){
-       return this.enumValue;
-    }
-    
-    
-    @NotNull
-    @Valid
-    @JsonProperty("localizedEnumValue")
-    public LocalizedEnumValue getLocalizedEnumValue(){
-       return this.localizedEnumValue;
-    }
-    
-    
-    @NotNull
-    @Valid
-    @JsonProperty("localizedString")
-    public LocalizedString getLocalizedString(){
-       return this.localizedString;
-    }
-    
-    /**
-    	<p>An import resource is identified by a key. This type is the base type of all import resources.</p>
-    */
-    @NotNull
-    @Valid
-    @JsonProperty("importResource")
-    public ImportResource getImportResource(){
-       return this.importResource;
-    }
-    
-    /**
-    	<p>An import reference references a resource by its key.</p>
-    */
-    @NotNull
-    @Valid
-    @JsonProperty("importReference")
-    public ImportReference getImportReference(){
-       return this.importReference;
-    }
-    
-    
-    @NotNull
-    @JsonProperty("resourceType")
-    public ResourceType getResourceType(){
-       return this.resourceType;
-    }
-    
-    /**
-    	<p>This enumeration describes the processing state of an import item.</p>
-    	<ul>
-    	<li>ACCEPTED The import resource was succesfully validated.</li>
-    	<li>VALIDATION_FAILED The validation of the import resource failed.</li>
-    	<li>UNRESOLVED The import resource contains unresolved references and needs to be resolved further.</li>
-    	<li>RESOLVED The import resource is resolved and doesn't contain any unresolved references.</li>
-    	<li>DELETING The import resource is in the process of being deleted.</li>
-    	<li>IMPORTED The import resource was imported successfully.</li>
-    	<li>IMPORTING The import resource is in the process of being imported.</li>
-    	<li>DELETING The import resource is in the process of being deleted.</li>
-    	<li>DELETED The import resource was deleted successfully.</li>
-    	<li>REJECTED The import resource couldn't be imported or deleted after several retries.</li>
-    	<li>SKIPPED the import resource was skipped because the skip predicate was evaluated to true.</li>
-    	</ul>
-    */
-    @NotNull
-    @JsonProperty("processingState")
-    public ProcessingState getProcessingState(){
-       return this.processingState;
-    }
 
     @Override
     public String toString() {

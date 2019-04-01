@@ -1,6 +1,7 @@
 package io.vrap.codegen.languages.java.model.second
 
 import com.google.inject.Inject
+import io.vrap.codegen.languages.extensions.hasSubtypes
 import io.vrap.codegen.languages.extensions.isPatternProperty
 import io.vrap.codegen.languages.java.JavaSubTemplates
 import io.vrap.codegen.languages.java.extensions.simpleName
@@ -10,8 +11,11 @@ import io.vrap.rmf.codegen.rendring.utils.escapeAll
 import io.vrap.rmf.codegen.rendring.utils.keepIndentation
 import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
+import io.vrap.rmf.raml.model.types.ArrayType
 import io.vrap.rmf.raml.model.types.ObjectType
 import io.vrap.rmf.raml.model.types.Property
+import io.vrap.rmf.raml.model.types.util.TypesSwitch
+import org.eclipse.emf.ecore.EObject
 
 class JavaObjectTypeInterfaceRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : JavaObjectTypeRenderer() {
 
@@ -43,8 +47,11 @@ class JavaObjectTypeInterfaceRenderer @Inject constructor(override val vrapTypeP
             |
             |   <${type.setters().escapeAll()}>
             |
-            |}
+            |   public static ${vrapType.simpleClassName}Impl of(${type.requiredProperties().escapeAll()}){
+            |       <${type.staticOfMethodBody()}>
+            |   }
             |
+            |}
         """.trimMargin().keepIndentation()
 
         return TemplateFile(
@@ -53,10 +60,60 @@ class JavaObjectTypeInterfaceRenderer @Inject constructor(override val vrapTypeP
         )
     }
 
+    fun ObjectType.subTypesAnnotations(): String {
+        return if (this.hasSubtypes())
+            """
+            |@JsonSubTypes({
+            |   <${this.subTypes.map { "@JsonSubTypes.Type(value = ${it.toVrapType().simpleName()}.class, name = \"${(it as ObjectType).discriminatorValue}\")" }.joinToString(separator = ",\n")}>
+            |})
+            |@JsonTypeInfo(
+            |   use = JsonTypeInfo.Id.NAME,
+            |   include = JsonTypeInfo.As.PROPERTY,
+            |   property = "${this.discriminator}"
+            |)
+            """.trimMargin()
+        else
+            ""
+    }
+
+    fun ObjectType.requiredProperties() : String = allRequiredProperties(this)
+            .map { "final ${it.type.toVrapType().simpleName()} ${it.name}" }
+            .joinToString(separator = ", ")
+
+    fun ObjectType.staticOfMethodBody() : String {
+        val vrapType = vrapTypeProvider.doSwitch(this) as VrapObjectType
+        val setters : String = allRequiredProperties(this)
+            .map { "${vrapType.simpleClassName.decapitalize()}Impl.set${it.name.capitalize()}(${it.name});" }
+            .joinToString(separator = "\n")
+        return """
+            |final ${vrapType.simpleClassName}Impl ${vrapType.simpleClassName.decapitalize()}Impl = new ${vrapType.simpleClassName}Impl();
+            |<$setters>
+            |return ${vrapType.simpleClassName.decapitalize()}Impl;
+        """.trimMargin().keepIndentation()
+    }
+
+    /**
+     * This method returns a list of required properties for the specified {@param rootObjectType} and for it's parent types.
+     */
+    private fun allRequiredProperties(rootObjectType : ObjectType) : List<Property> {
+        var currentType: ObjectType? = rootObjectType
+        val properties : MutableList<Property> = mutableListOf()
+        while (currentType != null) {
+            val currentTypeDiscriminator : String = currentType.discriminator ?: ""
+            properties.addAll(currentType.properties.filter { it.name != currentTypeDiscriminator && it.required && !it.isPatternProperty()})
+            currentType = if(currentType.type is ObjectType) {
+                currentType.type as ObjectType
+            }else{
+                null
+            }
+        }
+        return properties
+    }
+
     fun ObjectType.getters() = this.properties
         .filter { it.name != this.discriminator }
         .map { it.geter() }
-        .joinToString(separator = "\n\n")
+        .joinToString(separator = "\n")
 
     fun Property.geter(): String {
         return if(this.isPatternProperty()){
@@ -89,6 +146,35 @@ class JavaObjectTypeInterfaceRenderer @Inject constructor(override val vrapTypeP
             """.trimMargin()
         } else {
             "public void set${this.name.capitalize()}(final ${this.type.toVrapType().simpleName()} ${this.name});"
+        }
+    }
+
+    fun Property.validationAnnotations(): String {
+        val validationAnnotations = ArrayList<String>()
+        if (this.required != null && this.required!!) {
+            validationAnnotations.add("@NotNull")
+        }
+        if (JavaObjectTypeInterfaceRenderer.CascadeValidationCheck.doSwitch(this.type)) {
+            validationAnnotations.add("@Valid")
+        }
+        return validationAnnotations.joinToString(separator = "\n")
+    }
+
+    private object CascadeValidationCheck : TypesSwitch<Boolean>() {
+        override fun defaultCase(`object`: EObject?): Boolean? {
+            return false
+        }
+
+        override fun caseObjectType(objectType: ObjectType?): Boolean? {
+            return true
+        }
+
+        override fun caseArrayType(arrayType: ArrayType): Boolean? {
+            return if (arrayType.items != null) {
+                JavaObjectTypeInterfaceRenderer.CascadeValidationCheck.doSwitch(arrayType.items)
+            } else {
+                false
+            }
         }
     }
 }

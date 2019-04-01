@@ -25,7 +25,7 @@ import java.nio.file.Paths
 class TestCodeGenerator {
 
     companion object {
-        val apiProvider: ApiProvider = ApiProvider(Paths.get("../api-spec/api.raml"))
+        val apiProvider: ApiProvider = ApiProvider(Paths.get("src/test/resources/java/ramlTestFiles/test-api.raml"))
         val generatorConfig = CodeGeneratorConfig(basePackageName = "com.commercetools.importer")
     }
 
@@ -59,7 +59,7 @@ class TestCodeGenerator {
      * folder. After the classes are generated, it checks if they are the same as the ones specified in SimpleType.txt and SimpleTypeImpl.txt.
      */
     @Test
-    fun compareGenerated() {
+    fun generateFromCustomRamlAndCompareToAlreadyGeneratedFiles() {
         cleanGenTestFolder()
         val testApiProvider = ApiProvider(Paths.get("src/test/resources/java/ramlTestFiles/test-api.raml"))
         val generatorConfig = CodeGeneratorConfig(basePackageName = "com.commercetools.test", outputFolder = Paths.get("build/gensrc/java"))
@@ -72,8 +72,8 @@ class TestCodeGenerator {
         val correctSimpleTypeInterface = String(Files.readAllBytes(Paths.get("src/test/resources/java/ramlTestFiles/generated/SimpleType.txt")))
         val correctSimpleTypeClass = String(Files.readAllBytes(Paths.get("src/test/resources/java/ramlTestFiles/generated/SimpleTypeImpl.txt")))
 
-        Assert.assertEquals(correctSimpleTypeClass.trim(), generatedSimleTypeClass.trim())
-        Assert.assertEquals(correctSimpleTypeInterface.trim(), generatedSimpleTypeInterface.trim())
+        Assert.assertEquals(correctSimpleTypeClass, generatedSimleTypeClass)
+        Assert.assertEquals(correctSimpleTypeInterface, generatedSimpleTypeInterface)
         cleanGenTestFolder()
     }
 

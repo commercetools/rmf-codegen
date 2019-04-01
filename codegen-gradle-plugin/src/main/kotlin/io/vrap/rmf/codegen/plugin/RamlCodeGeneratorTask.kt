@@ -4,6 +4,7 @@ import io.vrap.codegen.languages.java.JavaBaseTypes
 import io.vrap.codegen.languages.java.client.SpringClientModule
 import io.vrap.codegen.languages.java.groovy.dsl.GroovyDslModule
 import io.vrap.codegen.languages.java.model.JavaModelModule
+import io.vrap.codegen.languages.java.model.second.JavaModelWithInterfacesModule
 import io.vrap.codegen.languages.typescript.joi.JoiBaseTypes
 import io.vrap.codegen.languages.typescript.joi.JoiModule
 import io.vrap.codegen.languages.typescript.model.TypeScriptBaseTypes
@@ -53,6 +54,10 @@ open class RamlCodeGeneratorTask : DefaultTask() {
             TargetType.JAVA_MODEL -> {
                 val generatorModule = GeneratorModule(apiProvider, generatorConfig, JavaBaseTypes)
                 GeneratorComponent(generatorModule, JavaModelModule())
+            }
+            TargetType.JAVA_MODEL_WITH_INTERFACES -> {
+                val generatorModule = GeneratorModule(apiProvider, generatorConfig, JavaBaseTypes)
+                GeneratorComponent(generatorModule, JavaModelWithInterfacesModule())
             }
             TargetType.JAVA_SPRING_CLIENT -> {
                 val generatorModule = GeneratorModule(apiProvider, generatorConfig, JavaBaseTypes)

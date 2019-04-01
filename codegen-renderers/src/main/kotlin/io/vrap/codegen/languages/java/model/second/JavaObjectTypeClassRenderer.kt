@@ -46,6 +46,7 @@ class JavaObjectTypeClassRenderer @Inject constructor(override val vrapTypeProvi
                 |<${JavaSubTemplates.generatedAnnotation}>
                 |public class ${vrapType.simpleClassName}Impl ${type.type?.toVrapType()?.simpleName()?.let { "extends ${it}Impl" } ?: ""} implements ${vrapType.simpleClassName} {
                 |
+                |
                 |    <${type.toBeanFields().escapeAll()}>
                 |
                 |    <${type.getters().escapeAll()}>
@@ -126,7 +127,6 @@ class JavaObjectTypeClassRenderer @Inject constructor(override val vrapTypeProvi
     fun Property.getter(): String {
         return if (this.isPatternProperty()) {
             """
-            |${this.validationAnnotations()}
             |${this.type.toComment()}
             |public Map<String, ${this.type.toVrapType().simpleName()}> values() {
             |    return values;
@@ -135,7 +135,6 @@ class JavaObjectTypeClassRenderer @Inject constructor(override val vrapTypeProvi
         } else {
             """
             |${this.type.toComment()}
-            |${this.validationAnnotations()}
             |public ${this.type.toVrapType().simpleName()} get${this.name.capitalize()}(){
             |   return this.${this.name};
             |}
