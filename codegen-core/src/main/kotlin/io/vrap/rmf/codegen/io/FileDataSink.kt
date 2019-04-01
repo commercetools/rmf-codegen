@@ -13,6 +13,7 @@ class FileDataSink @Inject constructor(val outputFolder:Path): DataSink {
         outputFile.parentFile.mkdirs()
         outputFile.createNewFile()
         outputFile.bufferedWriter().use { it.write(templateFile.content) }
+        outputFile.bufferedWriter().flush()
     }
 
     override fun clean() = outputFolder.toFile().deleteRecursively()

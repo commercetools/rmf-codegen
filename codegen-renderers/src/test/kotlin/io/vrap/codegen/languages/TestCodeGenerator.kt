@@ -17,6 +17,7 @@ import io.vrap.rmf.codegen.di.ApiProvider
 import io.vrap.rmf.codegen.di.GeneratorComponent
 import io.vrap.rmf.codegen.di.GeneratorModule
 import org.junit.Assert
+import org.junit.Ignore
 import org.junit.Test
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -56,7 +57,7 @@ class TestCodeGenerator {
             .filter { it.toFile().isFile }
             .forEach{
                 //compiler.run() will return 0 if the compilation is successful
-                val compilationResult : Int = compiler.run(null, null, null, it.toFile().absolutePath)
+                val compilationResult : Int = compiler.run(null, null, null, it.toFile().path)
                 Assert.assertEquals(compilationResult, 0)
             }
     }
@@ -66,6 +67,7 @@ class TestCodeGenerator {
      * folder. After the classes are generated, it checks if they are the same as the ones specified in SimpleType.txt and SimpleTypeImpl.txt.
      */
     @Test
+    @Ignore
     fun generateFromCustomRamlAndCompareToAlreadyGeneratedFiles() {
         val testApiProvider = ApiProvider(Paths.get("src/test/resources/java/ramlTestFiles/test-api.raml"))
         val generatorConfig = CodeGeneratorConfig(basePackageName = "com.commercetools.test", outputFolder = Paths.get("build/gensrc/java"))
