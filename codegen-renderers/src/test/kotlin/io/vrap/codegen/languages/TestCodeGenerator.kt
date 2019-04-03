@@ -19,9 +19,13 @@ import io.vrap.rmf.codegen.di.GeneratorModule
 import org.junit.Assert
 import org.junit.Ignore
 import org.junit.Test
+import java.io.File
 import java.nio.file.Files
 import java.nio.file.Paths
+import java.util.*
+import javax.tools.StandardLocation
 import javax.tools.ToolProvider
+
 
 class TestCodeGenerator {
 
@@ -51,15 +55,27 @@ class TestCodeGenerator {
         val generatorModule = GeneratorModule(apiProvider, generatorConfig, JavaBaseTypes)
         val generatorComponent = GeneratorComponent(generatorModule, JavaCompleteModule())
         generatorComponent.generateFiles()
+        
+        File("build/compiled").deleteRecursively()
+        File("build/compiled").mkdirs()
+        
+        val filesList =  File("build/gensrc")
+            .walkTopDown()
+            .filter( File::isFile )
+            .filter { it.name.endsWith(".java") }
+            .toList()
 
         val compiler = ToolProvider.getSystemJavaCompiler()
-        Files.walk(Paths.get("build/gensrc/java/com/commercetools/importer"))
-            .filter { it.toFile().isFile }
-            .forEach{
-                //compiler.run() will return 0 if the compilation is successful
-                val compilationResult : Int = compiler.run(null, null, null, it.toFile().absolutePath)
-                Assert.assertEquals(compilationResult, 0)
-            }
+        val fileManager = compiler.getStandardFileManager(null, null, null)
+
+        fileManager.use {
+            it.setLocation(StandardLocation.CLASS_OUTPUT, Arrays.asList(File("build/compiled")))
+            val result = compiler.getTask(null,
+                    fileManager, null, null, null,
+                    fileManager.getJavaFileObjectsFromFiles(filesList)).call()
+
+            Assert.assertTrue(result)
+        }
     }
 
     @Test
@@ -84,10 +100,10 @@ class TestCodeGenerator {
         generatorComponent.generateFiles()
 
         val generatedSimpleTypeInterface = String(Files.readAllBytes(Paths.get("build/gensrc/java/com/commercetools/test/models/simpleTypes/SimpleType.java")))
-        val generatedSimleTypeClass = String(Files.readAllBytes(Paths.get("build/gensrc/java/com/commercetools/test/models/simpleTypes/SimpleTypeImpl.txt")))
+        val generatedSimleTypeClass = String(Files.readAllBytes(Paths.get("build/gensrc/java/com/commercetools/test/models/simpleTypes/SimpleTypeImpl.java")))
 
-        val correctSimpleTypeInterface = String(Files.readAllBytes(Paths.get("src/test/resources/java/ramlTestFiles/generated/SimpleType.txt")))
-        val correctSimpleTypeClass = String(Files.readAllBytes(Paths.get("src/test/resources/java/ramlTestFiles/generated/SimpleTypeImpl.txt")))
+        val correctSimpleTypeInterface = String(Files.readAllBytes(Paths.get("src/test/resources/java/ramlTestFiles/generated-files/SimpleType.txt")))
+        val correctSimpleTypeClass = String(Files.readAllBytes(Paths.get("src/test/resources/java/ramlTestFiles/generated-files/SimpleTypeImpl.txt")))
 
         Assert.assertEquals(correctSimpleTypeClass, generatedSimleTypeClass)
         Assert.assertEquals(correctSimpleTypeInterface, generatedSimpleTypeInterface)

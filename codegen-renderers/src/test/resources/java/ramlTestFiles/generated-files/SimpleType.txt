@@ -25,12 +25,12 @@ import java.util.Map;
 @JsonDeserialize(as = SimpleTypeImpl.class)
 public interface SimpleType extends Asset {
 
-
+   
    @NotNull
    @JsonProperty("createdAt")
    public ZonedDateTime getCreatedAt();
-
-
+   
+   
    @JsonProperty("createdAtNullable")
    public ZonedDateTime getCreatedAtNullable();
    /**
@@ -39,30 +39,30 @@ public interface SimpleType extends Asset {
    @NotNull
    @JsonProperty("number")
    public Long getNumber();
-
+   
    @NotNull
    @JsonProperty("text")
    public String getText();
-
-
+   
+   
    @JsonProperty("textNullable")
    public String getTextNullable();
-
+   
    @NotNull
    @Valid
    @JsonProperty("asset")
    public Asset getAsset();
 
    public void setCreatedAt(final ZonedDateTime createdAt);
-
+   
    public void setCreatedAtNullable(final ZonedDateTime createdAtNullable);
-
+   
    public void setNumber(final Long number);
-
+   
    public void setText(final String text);
-
+   
    public void setTextNullable(final String textNullable);
-
+   
    public void setAsset(final Asset asset);
 
    public static SimpleTypeImpl of(final ZonedDateTime createdAt, final Long number, final String text, final Asset asset, final String id){
