@@ -26,3 +26,4 @@ fun UriTemplate.toParamName(delimiter: String, suffix: String): String {
         StringCaseFormat.UPPER_CAMEL_CASE.apply(uriTemplatePart.toString().replace("/", "-"))
     }.collect(Collectors.joining()).replace("[^\\p{L}\\p{Nd}]+".toRegex(), "").capitalize()
 }
+

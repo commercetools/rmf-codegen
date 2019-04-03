@@ -17,6 +17,7 @@ import io.vrap.rmf.codegen.di.ApiProvider
 import io.vrap.rmf.codegen.di.GeneratorComponent
 import io.vrap.rmf.codegen.di.GeneratorModule
 import org.junit.Assert
+import org.junit.Ignore
 import org.junit.Test
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -73,6 +74,7 @@ class TestCodeGenerator {
      * This test method uses code generator to generate interface and a class for simple-type.raml which is a part of the test-api.raml located in the resources
      * folder. After the classes are generated, it checks if they are the same as the ones specified in SimpleType.txt and SimpleTypeImpl.txt.
      */
+    @Ignore
     @Test
     fun generateFromCustomRamlAndCompareToAlreadyGeneratedFiles() {
         val testApiProvider = ApiProvider(Paths.get("src/test/resources/java/ramlTestFiles/test-api.raml"))
