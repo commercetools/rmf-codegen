@@ -3,9 +3,11 @@ package io.vrap.codegen.languages.typescript.model
 import io.vrap.rmf.codegen.types.*
 import io.vrap.rmf.raml.model.types.AnyType
 import io.vrap.rmf.raml.model.types.ObjectType
+import io.vrap.rmf.raml.model.types.UnionType
 import java.lang.IllegalStateException
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.util.*
 
 interface TsObjectTypeExtensions : io.vrap.codegen.languages.ExtensionsBase {
 
@@ -44,7 +46,7 @@ interface TsObjectTypeExtensions : io.vrap.codegen.languages.ExtensionsBase {
 
 
         val result = this.properties
-                .map { it.type }
+                .map { it.type }.flatMap { if (it is UnionType) it.oneOf else Collections.singletonList(it) }
                 //If the subtipes are in the same package they should be imported
                 .plus(this.subTypes)
                 .plus(this.type)

@@ -44,7 +44,7 @@ class TypeScriptModuleRenderer @Inject constructor(override val vrapTypeProvider
            |
            |${getImportsForModule(moduleName, types)}
            |
-           |${types.map { it.renderAnyType() }.joinToString(separator = "\n")}
+           |${types.filter { it !is UnionType }.map { it.renderAnyType() }.joinToString(separator = "\n")}
        """.trimMargin().keepIndentation()
 
         return TemplateFile(content, moduleName.replace(".", "/") + ".ts")
@@ -55,7 +55,6 @@ class TypeScriptModuleRenderer @Inject constructor(override val vrapTypeProvider
         return when (this) {
             is ObjectType -> this.renderObjectType()
             is StringType -> this.renderStringType()
-            is UnionType -> ""
             else -> throw IllegalArgumentException("unhandled case ${this.javaClass}")
 
         }
@@ -119,9 +118,16 @@ class TypeScriptModuleRenderer @Inject constructor(override val vrapTypeProvider
                     """
                     |${if (commentNotEmpty) {
                         comment + "\n"
-                    } else ""}readonly ${it.name}${if (!it.required) "?" else ""} : ${it.type.toVrapType().simpleTSName()}""".trimMargin()
+                    } else ""}readonly ${it.name}${if (!it.required) "?" else ""} : ${it.type.TSType()}""".trimMargin()
                 }
                 .joinToString(separator = ", \n")
+    }
+
+    fun AnyType.TSType() : String {
+        return when(this) {
+            is UnionType -> this.oneOf.map { it.toVrapType().simpleTSName() }.joinToString("|")
+            else -> this.toVrapType().simpleTSName()
+        }
     }
 
     fun StringType.renderStringType(): String {
