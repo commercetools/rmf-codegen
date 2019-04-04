@@ -1,9 +1,6 @@
 package io.vrap.codegen.languages.java.commands
 
-import io.vrap.codegen.languages.java.extensions.EObjectTypeExtensions
-import io.vrap.codegen.languages.java.extensions.ObjectTypeExtensions
-import io.vrap.codegen.languages.java.extensions.resource
-import io.vrap.codegen.languages.java.extensions.toRequestName
+import io.vrap.codegen.languages.java.extensions.*
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.MethodRenderer
 import io.vrap.rmf.codegen.rendring.utils.keepIndentation
@@ -22,10 +19,12 @@ class JavaCommandsRenderer @Inject constructor(override val vrapTypeProvider: Vr
                 |package ${vrapType.`package`};
                 |
                 |import com.commercetools.importer.commands.SphereRequest;
+                |import com.fasterxml.jackson.databind.JavaType;
                 |import io.sphere.sdk.http.HttpResponse;
                 |import io.sphere.sdk.client.HttpRequestIntent;
                 |import io.sphere.sdk.http.HttpMethod;
                 |import io.sphere.sdk.json.SphereJsonUtils;
+                |import io.sphere.sdk.client.SphereRequestUtils;
                 |
                 |final class ${type.toRequestName()} implements SphereRequest {
                 |   
@@ -34,25 +33,22 @@ class JavaCommandsRenderer @Inject constructor(override val vrapTypeProvider: Vr
                 |   <${type.constructor()}>
                 |   
                 |   <${type.ofMethod()}>
-                |   
-                |   @Override
-                |   public Object deserialize(HttpResponse httpResponse) {
-                |      return null;
-                |   }
                 |
                 |   @Override
                 |   public HttpRequestIntent httpRequestIntent() {
                 |      ${type.httpRequestIntentBody()}
                 |   }
-                |
+                |   
                 |   @Override
-                |   public boolean canDeserialize(HttpResponse httpResponse) {
-                |      return false;
-                |   }
+                |   public Object deserialize(HttpResponse httpResponse) {
+                |       return SphereRequestUtils.deserialize(httpResponse, jacksonJavaType());
+                |   }   
+                |   
+                |   <${type.jacksonJavaTypeMethod()}>
                 |}
                 |
                 """.trimMargin().keepIndentation()
-
+        
         return TemplateFile(
             relativePath = "${vrapType.`package`}.${type.toRequestName()}".replace(".", "/") + ".java",
             content = content
@@ -139,7 +135,7 @@ class JavaCommandsRenderer @Inject constructor(override val vrapTypeProvider: Vr
             commandClassFields.add("private final ${methodBodyVrapType.`package`}.${methodBodyVrapType.simpleClassName} ${methodBodyVrapType.simpleClassName.decapitalize()};")
         }
         
-        return commandClassFields.joinToString(separator = "\n")
+        return commandClassFields.joinToString(separator = "\n\n")
     }
     
     private fun Method.pathArguments() : List<String> {
@@ -154,5 +150,15 @@ class JavaCommandsRenderer @Inject constructor(override val vrapTypeProvider: Vr
         }else{
             return null
         }
+    }
+    
+    private fun Method.jacksonJavaTypeMethod() : String {
+        val commandReturnType = vrapTypeProvider.doSwitch(this.returnType()) as VrapObjectType
+
+        return """
+            |private JavaType jacksonJavaType() {
+            |   return SphereJsonUtils.convertToJavaType(${commandReturnType.`package`}.${commandReturnType.simpleClassName}.typeReference());
+            |}
+        """.trimMargin()
     }
 }
