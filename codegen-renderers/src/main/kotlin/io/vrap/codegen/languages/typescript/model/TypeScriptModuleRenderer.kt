@@ -37,14 +37,14 @@ class TypeScriptModuleRenderer @Inject constructor(override val vrapTypeProvider
 
 
     fun buildModule(moduleName: String, types: List<AnyType>): TemplateFile {
-
+        val types = types.filter { it !is UnionType }.sortedWith(AnyTypeComparator)
         val content = """
            |/* tslint:disable */
            |//Generated file, please do not change
            |
            |${getImportsForModule(moduleName, types)}
            |
-           |${types.filter { it !is UnionType }.map { it.renderAnyType() }.joinToString(separator = "\n")}
+           |${types.map { it.renderAnyType() }.joinToString(separator = "\n")}
        """.trimMargin().keepIndentation()
 
         return TemplateFile(content, moduleName.replace(".", "/") + ".ts")
@@ -190,6 +190,18 @@ class TypeScriptModuleRenderer @Inject constructor(override val vrapTypeProvider
             else {
                 o1.name.compareTo(o2.name)
             }
+        }
+    }
+
+    object AnyTypeComparator : Comparator<AnyType> {
+        override fun compare(o1: AnyType?, o2: AnyType?): Int {
+            if (o1?.type === null) {
+                return -1
+            }
+            if (o2?.type === null) {
+                return 1
+            }
+            return 0
         }
     }
 }
