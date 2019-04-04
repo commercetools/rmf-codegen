@@ -118,9 +118,13 @@ class TypeScriptModuleRenderer @Inject constructor(override val vrapTypeProvider
                     """
                     |${if (commentNotEmpty) {
                         comment + "\n"
-                    } else ""}readonly ${it.name}${if (!it.required) "?" else ""} : ${it.type.TSType()}""".trimMargin()
+                    } else ""}readonly ${it.TSName()}${if (!it.required) "?" else ""} : ${it.type.TSType()}""".trimMargin()
                 }
                 .joinToString(separator = ", \n")
+    }
+
+    fun Property.TSName() : String {
+        return if (name == "function") "_function"  else name
     }
 
     fun AnyType.TSType() : String {
