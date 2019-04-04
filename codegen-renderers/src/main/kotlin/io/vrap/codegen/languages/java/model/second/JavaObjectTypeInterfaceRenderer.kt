@@ -30,6 +30,7 @@ class JavaObjectTypeInterfaceRenderer @Inject constructor(override val vrapTypeP
             |
             |import com.fasterxml.jackson.annotation.*;
             |import com.fasterxml.jackson.databind.annotation.*;
+            |import com.fasterxml.jackson.core.type.TypeReference;
             |import javax.annotation.Generated;
             |import javax.validation.constraints.NotNull;
             |import javax.validation.Valid;
@@ -50,7 +51,9 @@ class JavaObjectTypeInterfaceRenderer @Inject constructor(override val vrapTypeP
             |   public static ${vrapType.simpleClassName}Impl of(${type.requiredProperties().escapeAll()}){
             |       <${type.staticOfMethodBody()}>
             |   }
-            |
+            |   
+            |   <${type.typeReference().escapeAll()}>
+            |   
             |}
         """.trimMargin().keepIndentation()
 
@@ -159,7 +162,22 @@ class JavaObjectTypeInterfaceRenderer @Inject constructor(override val vrapTypeP
         }
         return validationAnnotations.joinToString(separator = "\n")
     }
-
+    
+    fun ObjectType.typeReference() : String {
+        val vrapType = vrapTypeProvider.doSwitch(this) as VrapObjectType
+        return """
+            |static TypeReference<${vrapType.simpleClassName}> typeReference() {
+            |   return new TypeReference<${vrapType.simpleClassName}>(){
+            |      @Override
+            |      public String toString() {
+            |         return "TypeReference<${vrapType.simpleClassName}>";
+            |      }
+            |   };
+            |}
+            |
+        """.trimMargin()
+    }
+    
     private object CascadeValidationCheck : TypesSwitch<Boolean>() {
         override fun defaultCase(`object`: EObject?): Boolean? {
             return false
