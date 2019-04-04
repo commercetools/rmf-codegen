@@ -3,6 +3,7 @@ package io.vrap.codegen.languages.java.commands
 import io.vrap.codegen.languages.java.extensions.*
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.MethodRenderer
+import io.vrap.rmf.codegen.rendring.utils.escapeAll
 import io.vrap.rmf.codegen.rendring.utils.keepIndentation
 import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
@@ -26,7 +27,7 @@ class JavaCommandsRenderer @Inject constructor(override val vrapTypeProvider: Vr
                 |import io.sphere.sdk.json.SphereJsonUtils;
                 |import io.sphere.sdk.client.SphereRequestUtils;
                 |
-                |final class ${type.toRequestName()} implements SphereRequest {
+                |final class ${type.toRequestName()} implements ${type.sphereRequestImplement()} {
                 |   
                 |   <${type.fields()}>
                 |   
@@ -40,7 +41,7 @@ class JavaCommandsRenderer @Inject constructor(override val vrapTypeProvider: Vr
                 |   }
                 |   
                 |   @Override
-                |   public Object deserialize(HttpResponse httpResponse) {
+                |   public ${type.javaReturnType()} deserialize(HttpResponse httpResponse) {
                 |       return SphereRequestUtils.deserialize(httpResponse, jacksonJavaType());
                 |   }   
                 |   
@@ -160,5 +161,14 @@ class JavaCommandsRenderer @Inject constructor(override val vrapTypeProvider: Vr
             |   return SphereJsonUtils.convertToJavaType(${commandReturnType.`package`}.${commandReturnType.simpleClassName}.typeReference());
             |}
         """.trimMargin()
+    }
+    
+    private fun Method.sphereRequestImplement() : String {
+        return "SphereRequest<${this.javaReturnType()}>".escapeAll()
+    }
+    
+    private fun Method.javaReturnType() : String {
+        val commandReturnType = vrapTypeProvider.doSwitch(this.returnType()) as VrapObjectType
+        return "${commandReturnType.`package`}.${commandReturnType.simpleClassName}"
     }
 }
