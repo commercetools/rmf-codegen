@@ -55,6 +55,7 @@ class TypeScriptModuleRenderer @Inject constructor(override val vrapTypeProvider
         return when (this) {
             is ObjectType -> this.renderObjectType()
             is StringType -> this.renderStringType()
+            is UnionType -> ""
             else -> throw IllegalArgumentException("unhandled case ${this.javaClass}")
 
         }
