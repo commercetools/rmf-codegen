@@ -4,7 +4,6 @@ import io.vrap.rmf.codegen.types.*
 import io.vrap.rmf.raml.model.types.AnyType
 import io.vrap.rmf.raml.model.types.ObjectType
 import io.vrap.rmf.raml.model.types.UnionType
-import java.lang.IllegalStateException
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.*
@@ -27,8 +26,8 @@ interface TsObjectTypeExtensions : io.vrap.codegen.languages.ExtensionsBase {
                 }
                 .map {
                     when (it) {
-                        is VrapObjectType -> "import { ${it.simpleClassName} } from '${relativisePaths(moduleName,it.`package`)}'"
-                        is VrapEnumType -> "import { ${it.simpleClassName} } from '${relativisePaths(moduleName,it.`package`)}'"
+                        is VrapObjectType -> "import { ${it.simpleClassName} } from '${relativizePaths(moduleName,it.`package`)}'"
+                        is VrapEnumType -> "import { ${it.simpleClassName} } from '${relativizePaths(moduleName,it.`package`)}'"
                         else -> throw IllegalStateException("Unhandled case $it")
                     }
                 }
@@ -36,7 +35,7 @@ interface TsObjectTypeExtensions : io.vrap.codegen.languages.ExtensionsBase {
     }
 
 
-    fun relativisePaths(currentModule:String, targetModule : String) : String {
+    fun relativizePaths(currentModule:String, targetModule : String) : String {
         val currentRelative :Path = Paths.get(currentModule.replace(".","/"))
         val targetRelative : Path = Paths.get(targetModule.replace(".","/"))
         return currentRelative.relativize(targetRelative).toString().replaceFirst("../","./")
@@ -45,12 +44,21 @@ interface TsObjectTypeExtensions : io.vrap.codegen.languages.ExtensionsBase {
     private fun ObjectType.getDependencies(): List<VrapType> {
 
 
-        val result = this.properties
-                .map { it.type }.flatMap { if (it is UnionType) it.oneOf else Collections.singletonList(it) }
-                //If the subtipes are in the same package they should be imported
-                .plus(this.subTypes)
-                .plus(this.type)
-                .filterNotNull()
+        var dependentTypes = this.properties
+            .map { it.type }
+            .flatMap { if (it is UnionType) it.oneOf else Collections.singletonList(it) }
+            //If the subtipes are in the same package they should be imported
+            .plus(this.subTypes)
+            .plus(this.type)
+            .filterNotNull()
+
+        if (this.discriminator() != null) {
+            val property = this.getProperty(this.discriminator())
+            if (property.type.enum.size > 0) {
+                dependentTypes = dependentTypes.plus(property.type)
+            }
+        }
+        val result = dependentTypes
                 .map { vrapTypeProvider.doSwitch(it) }
                 .map { toVrapType(it) }
                 .filterNotNull()

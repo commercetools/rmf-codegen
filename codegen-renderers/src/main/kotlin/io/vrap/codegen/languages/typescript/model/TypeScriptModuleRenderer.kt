@@ -13,6 +13,7 @@ import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.types.*
 import io.vrap.rmf.raml.model.util.StringCaseFormat
+import java.util.*
 
 class TypeScriptModuleRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : TsObjectTypeExtensions, EObjectTypeExtensions, FileProducer {
 
@@ -94,7 +95,7 @@ class TypeScriptModuleRenderer @Inject constructor(override val vrapTypeProvider
                     .map {
                         if (it.name != this.discriminator())
                             it.name
-                        else if ((it.type as StringType).enum.isNotEmpty())
+                        else if (!it.type.isInlineType && (it.type as StringType).enum.isNotEmpty())
                             "${it.type.toVrapType().simpleTSName()}.${this.discriminatorValueOrDefault().enumValueName()}"
                         else
                             "'${this.discriminatorValueOrDefault()}'"
@@ -123,8 +124,10 @@ class TypeScriptModuleRenderer @Inject constructor(override val vrapTypeProvider
                 .joinToString(separator = ", \n")
     }
 
+    val reservedTSNames = Arrays.asList("function", "interface")
+
     fun Property.TSName() : String {
-        return if (name == "function") "_function"  else name
+        return if (reservedTSNames.contains(name)) "_${name}"  else name
     }
 
     fun AnyType.TSType() : String {
@@ -195,10 +198,10 @@ class TypeScriptModuleRenderer @Inject constructor(override val vrapTypeProvider
 
     object AnyTypeComparator : Comparator<AnyType> {
         override fun compare(o1: AnyType?, o2: AnyType?): Int {
-            if (o1?.type === null) {
+            if (o1?.type === null || o1?.subTypes.contains(o2)) {
                 return -1
             }
-            if (o2?.type === null) {
+            if (o2?.type === null  || o2?.subTypes.contains(o1)) {
                 return 1
             }
             return 0
