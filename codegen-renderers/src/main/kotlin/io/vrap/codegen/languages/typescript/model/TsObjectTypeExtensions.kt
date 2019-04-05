@@ -44,7 +44,7 @@ interface TsObjectTypeExtensions : io.vrap.codegen.languages.ExtensionsBase {
     private fun ObjectType.getDependencies(): List<VrapType> {
 
 
-        var dependentTypes = this.properties
+        var dependentTypes = this.allProperties
             .map { it.type }
             .flatMap { if (it is UnionType) it.oneOf else Collections.singletonList(it) }
             //If the subtipes are in the same package they should be imported

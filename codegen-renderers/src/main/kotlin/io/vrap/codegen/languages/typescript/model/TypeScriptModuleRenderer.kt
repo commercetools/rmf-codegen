@@ -38,7 +38,15 @@ class TypeScriptModuleRenderer @Inject constructor(override val vrapTypeProvider
 
 
     fun buildModule(moduleName: String, types: List<AnyType>): TemplateFile {
-        val types = types.filter { it !is UnionType }.sortedWith(AnyTypeComparator)
+        var types = types.filter { it !is UnionType }.sortedWith(AnyTypeComparator)
+        val typedMoneyIndex = types.indexOfFirst { it.name == "TypedMoney" }
+        val moneyIndex = types.indexOfFirst { it.name == "Money" }
+        if (typedMoneyIndex >= 0 && moneyIndex >= 0) {
+            val withMoney = types.subList(0, moneyIndex + 1)
+            val middle = types.subList(moneyIndex + 1, typedMoneyIndex)
+            val rest = types.subList(typedMoneyIndex + 1, types.size)
+            types = withMoney.plus(types[typedMoneyIndex]).plus(middle).plus(rest)
+        }
         val content = """
            |/* tslint:disable */
            |//Generated file, please do not change
@@ -89,17 +97,10 @@ class TypeScriptModuleRenderer @Inject constructor(override val vrapTypeProvider
         return if (this.type != null)
             "\nsuper(${(
                     this.type as ObjectType)
-                    .properties
+                    .allProperties
                     .filter { !it.isPatternProperty() }
                     .sortedWith(PropertiesComparator)
-                    .map {
-                        if (it.name != this.discriminator())
-                            it.name
-                        else if (!it.type.isInlineType && (it.type as StringType).enum.isNotEmpty())
-                            "${it.type.toVrapType().simpleTSName()}.${this.discriminatorValueOrDefault().enumValueName()}"
-                        else
-                            "'${this.discriminatorValueOrDefault()}'"
-                    }
+                    .map { it.TSName() }
                     .joinToString(separator = ",")
             })\n"
         else ""
@@ -108,18 +109,23 @@ class TypeScriptModuleRenderer @Inject constructor(override val vrapTypeProvider
     fun ObjectType.objectFields(): String {
         return this.allProperties
                 .filter { !it.isPatternProperty() }
-                .filter {
-                    it.name != this.discriminator() || this.properties.map { it.name }.contains(it.name)
-
-                }
                 .sortedWith(PropertiesComparator)
                 .map {
+                    var defaultValue = ""
+                    if (discriminatorValue != null && it.required && it.name == discriminator()) {
+                        defaultValue = " = " +
+                            if (!it.type.isInlineType && (it.type as StringType).enum.isNotEmpty())
+                                "${it.type.toVrapType().simpleTSName()}.${this.discriminatorValue.enumValueName()}"
+                            else
+                                "'${this.discriminatorValue}'"
+                    }
+
                     val comment: String = it.type.toComment()
                     val commentNotEmpty: Boolean = comment.isNotBlank()
                     """
                     |${if (commentNotEmpty) {
                         comment + "\n"
-                    } else ""}readonly ${it.TSName()}${if (!it.required) "?" else ""} : ${it.type.TSType()}""".trimMargin()
+                    } else ""}readonly ${it.TSName()}${if (!it.required) "?" else ""} : ${it.type.TSType()}${defaultValue}""".trimMargin()
                 }
                 .joinToString(separator = ", \n")
     }
@@ -197,6 +203,7 @@ class TypeScriptModuleRenderer @Inject constructor(override val vrapTypeProvider
     }
 
     object AnyTypeComparator : Comparator<AnyType> {
+
         override fun compare(o1: AnyType?, o2: AnyType?): Int {
             if (o1?.type === null || o1?.subTypes.contains(o2)) {
                 return -1
