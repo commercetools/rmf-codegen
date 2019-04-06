@@ -1,6 +1,8 @@
 package io.vrap.codegen.languages.typescript.model
 
 import com.google.inject.Inject
+import io.vrap.codegen.languages.extensions.getSuperTypes
+import io.vrap.codegen.languages.extensions.sortedByTopology
 import io.vrap.codegen.languages.java.extensions.EObjectTypeExtensions
 import io.vrap.codegen.languages.java.extensions.simpleName
 import io.vrap.codegen.languages.java.extensions.toComment
@@ -38,15 +40,7 @@ class TypeScriptModuleRenderer @Inject constructor(override val vrapTypeProvider
 
 
     fun buildModule(moduleName: String, types: List<AnyType>): TemplateFile {
-        var types = types.filter { it !is UnionType }.sortedWith(AnyTypeComparator)
-        val typedMoneyIndex = types.indexOfFirst { it.name == "TypedMoney" }
-        val moneyIndex = types.indexOfFirst { it.name == "Money" }
-        if (typedMoneyIndex >= 0 && moneyIndex >= 0) {
-            val withMoney = types.subList(0, moneyIndex + 1)
-            val middle = types.subList(moneyIndex + 1, typedMoneyIndex)
-            val rest = types.subList(typedMoneyIndex + 1, types.size)
-            types = withMoney.plus(types[typedMoneyIndex]).plus(middle).plus(rest)
-        }
+        var types = types.filter { it !is UnionType }.sortedByTopology(AnyType::getSuperTypes, AnyType::getSubTypes)
         val content = """
            |/* tslint:disable */
            |//Generated file, please do not change
