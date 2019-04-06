@@ -40,7 +40,7 @@ class TypeScriptModuleRenderer @Inject constructor(override val vrapTypeProvider
 
 
     fun buildModule(moduleName: String, types: List<AnyType>): TemplateFile {
-        var types = types.filter { it !is UnionType }.sortedByTopology(AnyType::getSuperTypes, AnyType::getSubTypes)
+        var types = types.filter { it !is UnionType }.sortedByTopology(AnyType::getSuperTypes)
         val content = """
            |/* tslint:disable */
            |//Generated file, please do not change

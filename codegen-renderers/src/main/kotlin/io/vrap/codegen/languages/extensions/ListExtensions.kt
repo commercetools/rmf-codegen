@@ -1,30 +1,28 @@
 package io.vrap.codegen.languages.extensions
 
-private class TopologySortContext<T>(val succcessors: Map<T, List<T>>, val predecessors: Map<T, List<T>>) {
+private class TopologySortContext<T>(val predecessors: Map<T, List<T>>) {
 
     fun hasNoPredecessors(node: T) : Boolean {
-        return succcessors[node]?.size == 0
+        return predecessors[node]?.size == 0
     }
 
     fun remove(node : T) : TopologySortContext<T> {
-        return TopologySortContext(succcessors.mapValues { it.value.minus(node) }, predecessors.mapValues { it.value.minus(node) })
+        return TopologySortContext(predecessors.mapValues { it.value.minus(node) })
     }
 }
 
 /**
  * Sorts the list by topology defined by the given functions.
  *
- * @param successorsOf function that returns the successors of the given argument
  * @param predecessorsOf function that returns the predecessors of the given argument
  * @throws IllegalArgumentException thrown when the list contains cycles
  * @return the topologically sorted list
  */
-fun <T> List<T>.sortedByTopology(successorsOf: (T) -> List<T>, predecessorsOf: (T) -> List<T>) : List<T> {
+fun <T> List<T>.sortedByTopology(predecessorsOf: (T) -> List<T>) : List<T> {
     val nodes = ArrayList(this)
     val sorted = ArrayList<T>()
-    val succcessors = nodes.associateWith(successorsOf).mapValues { it.value.filter { nodes.contains(it) } }
     val predecessors = nodes.associateWith(predecessorsOf).mapValues { it.value.filter { nodes.contains(it) } }
-    var context = TopologySortContext(succcessors, predecessors)
+    var context = TopologySortContext(predecessors)
     var changes = true
     outer@ while(changes) {
         changes = false
