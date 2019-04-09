@@ -11,7 +11,6 @@ import java.util.*
 interface TsObjectTypeExtensions : io.vrap.codegen.languages.ExtensionsBase {
 
     fun getImportsForModule(moduleName: String, types: List<AnyType>): String {
-
         return types
                 .filter { it is ObjectType }
                 .map { it as ObjectType }
@@ -35,29 +34,20 @@ interface TsObjectTypeExtensions : io.vrap.codegen.languages.ExtensionsBase {
     }
 
 
-    fun relativizePaths(currentModule:String, targetModule : String) : String {
+    private fun relativizePaths(currentModule:String, targetModule : String) : String {
         val currentRelative :Path = Paths.get(currentModule.replace(".","/"))
         val targetRelative : Path = Paths.get(targetModule.replace(".","/"))
         return currentRelative.relativize(targetRelative).toString().replaceFirst("../","./")
     }
 
     private fun ObjectType.getDependencies(): List<VrapType> {
-
-
         var dependentTypes = this.allProperties
             .map { it.type }
+            .plus(subTypes)
+            .plus(type)
             .flatMap { if (it is UnionType) it.oneOf else Collections.singletonList(it) }
-            //If the subtipes are in the same package they should be imported
-            .plus(this.subTypes)
-            .plus(this.type)
             .filterNotNull()
 
-        if (this.discriminator() != null) {
-            val property = this.getProperty(this.discriminator())
-            if (property.type.enum.size > 0) {
-                dependentTypes = dependentTypes.plus(property.type)
-            }
-        }
         val result = dependentTypes
                 .map { vrapTypeProvider.doSwitch(it) }
                 .map { toVrapType(it) }

@@ -1,10 +1,10 @@
 package io.vrap.codegen.languages.java.model
 
 import com.google.inject.Inject
+import io.vrap.codegen.languages.extensions.EObjectExtensions
+import io.vrap.codegen.languages.extensions.toComment
 import io.vrap.codegen.languages.java.JavaSubTemplates
-import io.vrap.codegen.languages.java.extensions.EObjectTypeExtensions
-import io.vrap.codegen.languages.java.extensions.ObjectTypeExtensions
-import io.vrap.codegen.languages.java.extensions.toComment
+import io.vrap.codegen.languages.java.extensions.JavaObjectTypeExtensions
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.StringTypeRenderer
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
@@ -15,7 +15,7 @@ import io.vrap.rmf.raml.model.types.StringInstance
 import io.vrap.rmf.raml.model.types.StringType
 import io.vrap.rmf.raml.model.util.StringCaseFormat
 
-class JavaStringTypeRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : ObjectTypeExtensions, EObjectTypeExtensions, StringTypeRenderer {
+class JavaStringTypeRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : JavaObjectTypeExtensions, EObjectExtensions, StringTypeRenderer {
 
     override fun render(type: StringType): TemplateFile {
         val vrapType = vrapTypeProvider.doSwitch(type) as VrapEnumType
