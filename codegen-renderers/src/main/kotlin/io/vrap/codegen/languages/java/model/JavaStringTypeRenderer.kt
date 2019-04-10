@@ -38,7 +38,7 @@ class JavaStringTypeRenderer @Inject constructor(override val vrapTypeProvider: 
                 |  private final String jsonName;
                 |
                 |  private ${vrapType.simpleClassName}(final String jsonName) {
-                |    this.jsonName = jsonName;  ^
+                |    this.jsonName = jsonName;
                 |  }
                 |
                 |  public String getJsonName() {
