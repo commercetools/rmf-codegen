@@ -12,7 +12,8 @@ private class TopologySortContext<T>(val predecessors: Map<T, List<T>>) {
 }
 
 /**
- * Sorts the list by topology defined by the given functions.
+ * Sorts the list by topology defined by the given predecessor function.
+ * https://en.wikipedia.org/wiki/Topological_sorting
  *
  * @param predecessorsOf function that returns the predecessors of the given argument
  * @throws IllegalArgumentException thrown when the list contains cycles
