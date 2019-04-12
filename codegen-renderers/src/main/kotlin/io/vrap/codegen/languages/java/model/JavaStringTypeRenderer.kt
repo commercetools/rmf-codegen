@@ -58,23 +58,21 @@ class JavaStringTypeRenderer @Inject constructor(override val vrapTypeProvider: 
         )
     }
 
-    fun StringType.enumFields(): String = this.enumJsonNames()
-            .map {
+    fun StringType.enumFields() = enumValues()
+            ?.map {
                 """
-                |@JsonProperty("$it")
-                |${it.enumValueName()}("$it")
+                |${it.toComment()?.escapeAll()?:""}
+                |@JsonProperty("${it.value}")
+                |${it.value.enumValueName()}("${it.value}")
             """.trimMargin()
             }
-            .joinToString(separator = ",\n\n", postfix = ";")
+            ?.joinToString(separator = ",\n\n", postfix = ";")
 
-
-    fun StringType.enumJsonNames() = this.enum?.filter { it is StringInstance }
+    fun StringType.enumValues() =  enum?.filter { it is StringInstance }
             ?.map { it as StringInstance }
-            ?.map { it.value }
-            ?.filterNotNull() ?: listOf()
+            ?.filter { it.value != null }
 
     fun String.enumValueName(): String {
         return StringCaseFormat.UPPER_UNDERSCORE_CASE.apply(this)
     }
-
 }
