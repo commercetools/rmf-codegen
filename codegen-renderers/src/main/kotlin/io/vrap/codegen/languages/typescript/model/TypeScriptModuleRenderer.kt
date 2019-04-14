@@ -61,7 +61,7 @@ class TypeScriptModuleRenderer @Inject constructor(override val vrapTypeProvider
                 """
                 |${toComment().escapeAll()}
                 |export type ${name} =
-                |  <${subTypes.map { it.renderTypeExpr() }.joinToString(" |\n")}>
+                |  <${subTypes.filter { !it.isInlineType }.map { it.renderTypeExpr() }.joinToString(" |\n")}>
                 |;
                 """.trimMargin()
             } else {
@@ -125,7 +125,7 @@ class TypeScriptModuleRenderer @Inject constructor(override val vrapTypeProvider
         return when (this) {
             is UnionType -> oneOf.map { it.renderTypeExpr() }.joinToString(" | ")
             is IntersectionType -> allOf.map { it.renderTypeExpr() }.joinToString(" & ")
-            is NilType -> ""
+            is NilType -> "null"
             else -> toVrapType().simpleTSName()
         }
     }

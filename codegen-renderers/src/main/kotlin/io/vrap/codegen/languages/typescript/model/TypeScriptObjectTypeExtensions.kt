@@ -66,6 +66,7 @@ private fun toVrapType(vrapType: VrapType): VrapType? {
         is VrapArrayType -> {
             toVrapType(vrapType.itemType)
         }
+        is VrapNilType -> vrapType
         else -> null
 
     }

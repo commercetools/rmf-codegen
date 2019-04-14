@@ -83,7 +83,7 @@ class JavaObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: 
         return if (this.hasSubtypes())
             """
             |@JsonSubTypes({
-            |   <${this.subTypes.map { "@JsonSubTypes.Type(value = ${it.toVrapType().simpleName()}.class, name = \"${(it as ObjectType).discriminatorValue}\")" }.joinToString(separator = ",\n")}>
+            |   <${this.subTypes.filter { !it.isInlineType }.map { "@JsonSubTypes.Type(value = ${it.toVrapType().simpleName()}.class, name = \"${(it as ObjectType).discriminatorValue}\")" }.joinToString(separator = ",\n")}>
             |})
             |@JsonTypeInfo(
             |   use = JsonTypeInfo.Id.NAME,
