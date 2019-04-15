@@ -106,7 +106,7 @@ class TypeScriptModuleRenderer @Inject constructor(override val vrapTypeProvider
         return renderProperties
             .filter { !it.isPatternProperty() && it.name != discriminator() }
             .map {
-                val comment: String = it.type.toComment()
+                val comment: String = it.type.toComment().escapeAll()
                 val optional = if (it.required) "" else "?"
                 """
                     |${comment}
