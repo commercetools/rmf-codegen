@@ -1,20 +1,16 @@
 package io.vrap.rmf.codegen.common
 
 import org.assertj.core.api.Assertions
-import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.TaskOutcome
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
-import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-
 import java.io.BufferedWriter
 import java.io.File
 import java.io.FileWriter
-import java.io.IOException
 import java.nio.file.Paths
 
 class BuildLogicFunctionalTest {
@@ -91,9 +87,7 @@ class BuildLogicFunctionalTest {
 
         Assertions.assertThat(result.task(":generateRamlStub")!!.outcome).isEqualTo(TaskOutcome.SUCCESS)
 
-        Assertions.assertThat(testProjectDir.root.list { dir, name -> name == "import-api" }).isNotEmpty
-
-
+        Assertions.assertThat(testProjectDir.root.list { _, name -> name == "import-api" }).isNotEmpty
     }
 
     private fun writeFile(destination: File?, content: String) {

@@ -1,9 +1,13 @@
 package io.vrap.codegen.languages.java.model;
 
 import com.google.inject.Inject
+import io.vrap.codegen.languages.extensions.EObjectExtensions
 import io.vrap.codegen.languages.extensions.hasSubtypes
+import io.vrap.codegen.languages.extensions.isPatternProperty
+import io.vrap.codegen.languages.extensions.toComment
 import io.vrap.codegen.languages.java.JavaSubTemplates
-import io.vrap.codegen.languages.java.extensions.*
+import io.vrap.codegen.languages.java.extensions.JavaObjectTypeExtensions
+import io.vrap.codegen.languages.java.extensions.simpleName
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.ObjectTypeRenderer
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
@@ -17,7 +21,7 @@ import io.vrap.rmf.raml.model.types.util.TypesSwitch
 import org.eclipse.emf.ecore.EObject
 import java.util.*
 
-class JavaObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : ObjectTypeExtensions, EObjectTypeExtensions, ObjectTypeRenderer {
+class JavaObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : JavaObjectTypeExtensions, EObjectExtensions, ObjectTypeRenderer {
 
     override fun render(type: ObjectType): TemplateFile {
 
@@ -79,7 +83,7 @@ class JavaObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: 
         return if (this.hasSubtypes())
             """
             |@JsonSubTypes({
-            |   <${this.subTypes.map { "@JsonSubTypes.Type(value = ${it.toVrapType().simpleName()}.class, name = \"${(it as ObjectType).discriminatorValue}\")" }.joinToString(separator = ",\n")}>
+            |   <${this.subTypes.filter { !it.isInlineType }.map { "@JsonSubTypes.Type(value = ${it.toVrapType().simpleName()}.class, name = \"${(it as ObjectType).discriminatorValue}\")" }.joinToString(separator = ",\n")}>
             |})
             |@JsonTypeInfo(
             |   use = JsonTypeInfo.Id.NAME,
@@ -117,8 +121,6 @@ class JavaObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: 
             .filter { it.name != this.discriminator }
             .map { it.getter() }
             .joinToString(separator = "\n\n")
-
-    fun Property.isPatternProperty() = this.name.startsWith("/") && this.name.endsWith("/")
 
     fun Property.setter(): String {
         return if (this.isPatternProperty()) {

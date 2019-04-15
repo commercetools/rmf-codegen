@@ -1,11 +1,10 @@
 package io.vrap.codegen.languages.java.client
 
 import com.google.inject.Inject
+import io.vrap.codegen.languages.extensions.EObjectExtensions
+import io.vrap.codegen.languages.extensions.toComment
 import io.vrap.codegen.languages.java.JavaSubTemplates
-import io.vrap.codegen.languages.java.extensions.EObjectTypeExtensions
 import io.vrap.codegen.languages.java.extensions.fullClassName
-import io.vrap.codegen.languages.java.extensions.simpleName
-import io.vrap.codegen.languages.java.extensions.toComment
 import io.vrap.rmf.codegen.common.generator.core.ResourceCollection
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.ResourceCollectionRenderer
@@ -21,7 +20,7 @@ import io.vrap.rmf.raml.model.responses.Response
 import io.vrap.rmf.raml.model.types.AnyType
 import io.vrap.rmf.raml.model.types.impl.TypesFactoryImpl
 
-class SpringClientRenderer @Inject constructor(val packageProvider: PackageProvider, override val vrapTypeProvider: VrapTypeProvider) : ResourceCollectionRenderer, EObjectTypeExtensions {
+class SpringClientRenderer @Inject constructor(val packageProvider: PackageProvider, override val vrapTypeProvider: VrapTypeProvider) : ResourceCollectionRenderer, EObjectExtensions {
 
 
     override fun render(type: ResourceCollection): TemplateFile {
