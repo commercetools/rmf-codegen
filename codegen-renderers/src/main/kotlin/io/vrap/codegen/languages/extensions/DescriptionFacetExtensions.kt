@@ -1,7 +1,9 @@
 package io.vrap.codegen.languages.extensions
 
 import io.vrap.rmf.codegen.doc.toHtml
+import io.vrap.rmf.raml.model.types.AnnotationsFacet
 import io.vrap.rmf.raml.model.types.DescriptionFacet
+import io.vrap.rmf.raml.model.types.ObjectInstance
 import io.vrap.rmf.raml.model.types.StringInstance
 import org.commonmark.parser.Parser
 import org.commonmark.renderer.html.HtmlRenderer
@@ -21,14 +23,23 @@ fun DescriptionFacet.toComment() = this.toHtml()?.let {"/**\n${it.lines().map { 
  * is useful to extract doc for enum values:
  * <pre>
  * ResourceType:
+ *    (enumValues):
+ *       channel: The channel resource type.
  *    type: string
  *    enum:
- *     - value: channel
- *       (generator.doc): The channel resource type.
+ *     - channel
  *     - cart-discount
  * </pre>
  */
 fun StringInstance.toComment(): String? {
-    val doc = getAnnotation("doc")?.value?.value
-    return doc?.let { it as String }?.let(PARSER::parse)?.let(HTML_RENDERER::render)?.let { "/**\n${it.lines().map { '\t' + it }.joinToString(separator = "\n")}\n*/" }
+    val enumValues = (eContainer() as AnnotationsFacet).getAnnotation("enumValues")
+    if (enumValues?.value is ObjectInstance) {
+        val description = (enumValues?.value as ObjectInstance).getValue(value)
+        return if (description is StringInstance) {
+            description.value?.let(PARSER::parse)?.let(HTML_RENDERER::render)?.let { "/**\n${it.lines().map { '\t' + it }.joinToString(separator = "\n")}\n*/" }
+        } else {
+            null
+        }
+    }
+    return null
 }
