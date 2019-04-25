@@ -5,6 +5,7 @@ import io.vrap.codegen.languages.extensions.EObjectExtensions
 import io.vrap.codegen.languages.extensions.toComment
 import io.vrap.codegen.languages.java.JavaSubTemplates
 import io.vrap.codegen.languages.java.extensions.JavaObjectTypeExtensions
+import io.vrap.codegen.languages.java.extensions.enumValueName
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.StringTypeRenderer
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
@@ -13,7 +14,6 @@ import io.vrap.rmf.codegen.types.VrapEnumType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.types.StringInstance
 import io.vrap.rmf.raml.model.types.StringType
-import io.vrap.rmf.raml.model.util.StringCaseFormat
 
 class JavaStringTypeRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : JavaObjectTypeExtensions, EObjectExtensions, StringTypeRenderer {
 
@@ -71,8 +71,4 @@ class JavaStringTypeRenderer @Inject constructor(override val vrapTypeProvider: 
     fun StringType.enumValues() =  enum?.filter { it is StringInstance }
             ?.map { it as StringInstance }
             ?.filter { it.value != null }
-
-    fun String.enumValueName(): String {
-        return StringCaseFormat.UPPER_UNDERSCORE_CASE.apply(this)
-    }
 }
