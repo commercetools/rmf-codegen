@@ -1,6 +1,7 @@
 package io.vrap.codegen.languages.java.extensions
 
 import io.vrap.codegen.languages.ExtensionsBase
+import io.vrap.codegen.languages.extensions.discriminatorProperty
 import io.vrap.codegen.languages.extensions.namedSubTypes
 import io.vrap.rmf.codegen.types.VrapArrayType
 import io.vrap.rmf.codegen.types.VrapEnumType
@@ -15,6 +16,7 @@ interface JavaObjectTypeExtensions : ExtensionsBase {
         //If the subtipes are in the same package they should be imported
         .plus(this.namedSubTypes())
         .plus(this.type)
+        .plus( discriminatorProperty()?.type )
         .filterNotNull()
         .map { vrapTypeProvider.doSwitch(it) }
         .map { getImportsForType(it) }
