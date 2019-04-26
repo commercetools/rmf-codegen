@@ -19,11 +19,11 @@ private val PARSER = Parser.builder().build()
 fun DescriptionFacet.toComment() = this.toHtml()?.let {"/**\n${it.lines().map { '\t'+it }.joinToString(separator = "\n")}\n*/"}?:""
 
 /**
- * This method extracts the comment from the "doc" annotation - which value needs to be a {@link StringInstance} and
- * is useful to extract doc for enum values:
+ * This method extracts the javadoc comment from the "enumDescriptions" annotation - which is of object type.
+ * Each key corresponds to an enum value and the value contains the markdown description of the enum.
  * <pre>
  * ResourceType:
- *    (enumValues):
+ *    (enumDescriptions):
  *       channel: The channel resource type.
  *    type: string
  *    enum:
@@ -32,7 +32,7 @@ fun DescriptionFacet.toComment() = this.toHtml()?.let {"/**\n${it.lines().map { 
  * </pre>
  */
 fun StringInstance.toComment(): String? {
-    val enumValues = (eContainer() as AnnotationsFacet).getAnnotation("enumValues")
+    val enumValues = (eContainer() as AnnotationsFacet).getAnnotation("enumDescriptions")
     if (enumValues?.value is ObjectInstance) {
         val description = (enumValues?.value as ObjectInstance).getValue(value)
         return if (description is StringInstance) {
