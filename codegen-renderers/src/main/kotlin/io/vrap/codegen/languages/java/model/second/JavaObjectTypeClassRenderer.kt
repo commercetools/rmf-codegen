@@ -18,7 +18,15 @@ class JavaObjectTypeClassRenderer @Inject constructor(override val vrapTypeProvi
     override fun render(type: ObjectType): TemplateFile {
 
         val vrapType = vrapTypeProvider.doSwitch(type) as VrapObjectType
-
+        
+        //if type is abstract, implementation class should not be generated
+        if(type.isAbstract()){
+            return TemplateFile(
+                    relativePath = "${vrapType.`package`}.${vrapType.simpleClassName}Impl".replace(".", "/") + ".java",
+                    content = ""
+            )
+        }
+        
         val content = """
                 |package ${vrapType.`package`};
                 |
@@ -37,7 +45,7 @@ class JavaObjectTypeClassRenderer @Inject constructor(override val vrapTypeProvi
                 |
                 |<${type.toComment().escapeAll()}>
                 |<${JavaSubTemplates.generatedAnnotation}>
-                |public class ${vrapType.simpleClassName}Impl ${type.type?.toVrapType()?.simpleName()?.let { "extends ${it}Impl" } ?: ""} implements ${vrapType.simpleClassName} {
+                |public class ${vrapType.simpleClassName}Impl ${type.extendsStatement()} implements ${vrapType.simpleClassName} {
                 |
                 |
                 |   <${type.toBeanFields().escapeAll()}>
@@ -69,8 +77,8 @@ class JavaObjectTypeClassRenderer @Inject constructor(override val vrapTypeProvi
             content = content
         )
     }
-
-    fun Property.toJavaField(): String {
+    
+    private fun Property.toJavaField(): String {
 
         return if (this.isPatternProperty()) {
             "private Map<String,${this.type.toVrapType().simpleName()}> values;"
@@ -80,25 +88,36 @@ class JavaObjectTypeClassRenderer @Inject constructor(override val vrapTypeProvi
 
     }
 
-    fun ObjectType.toBeanFields() = this.properties
+    private fun ObjectType.extendsStatement() : String {
+        if(this.type is ObjectType){
+            val parentType = this.type as ObjectType
+            return when(parentType.isAbstract()) {
+                true -> ""
+                false -> type.type?.toVrapType()?.simpleName()?.let { "extends ${it}Impl" } ?: ""
+            }
+        }
+        return ""
+    }
+    
+    private fun ObjectType.toBeanFields() = this.properties
         .filter { it.name != this.discriminator }
         .map { it.toJavaField() }.joinToString(separator = "\n\n")
 
-    fun ObjectType.setters() = this.properties
+    private fun ObjectType.setters() = this.properties
         //Filter the discriminators because they don't make much sense the generated bean
         .filter { it.name != this.discriminator }
         .map { it.setter() }
         .joinToString(separator = "\n\n")
 
 
-    fun ObjectType.getters() = this.properties
+    private fun ObjectType.getters() = this.properties
         //Filter the discriminators because they don't make much sense the generated bean
         .filter { it.name != this.discriminator }
         .map { it.getter() }
         .joinToString(separator = "\n\n")
 
 
-    fun Property.setter(): String {
+    private fun Property.setter(): String {
         return if (this.isPatternProperty()) {
             """
             |public void setValue(String key, ${this.type.toVrapType().simpleName()} value) {
@@ -117,7 +136,7 @@ class JavaObjectTypeClassRenderer @Inject constructor(override val vrapTypeProvi
         }
     }
 
-    fun Property.getter(): String {
+    private fun Property.getter(): String {
         return if (this.isPatternProperty()) {
             """
             |${this.type.toComment()}
@@ -135,7 +154,7 @@ class JavaObjectTypeClassRenderer @Inject constructor(override val vrapTypeProvi
         }
     }
 
-    fun ObjectType.parentTypeImport() : String? {
+    private fun ObjectType.parentTypeImport() : String? {
         return if(this.type != null && this.type is ObjectType) {
             val parentType = vrapTypeProvider.doSwitch(this.type) as VrapObjectType
             "${parentType.`package`}.${parentType.simpleClassName}"

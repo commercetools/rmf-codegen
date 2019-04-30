@@ -44,7 +44,7 @@ class CoreCodeGenerator @Inject constructor(val dataSink: DataSink
             LOGGER.info("generating files for object types")
             objectTypeGenerators.flatMap { objectTypeRenderer ->
                 allObjectTypes.map { objectTypeRenderer.render(it) }
-            }.map { dataSink.write(it) }
+            }.filter{it.content.isNotEmpty()}. map { dataSink.write(it) } //filter because object type class renderer sometimes doesn't return anything
         }
 
         if (::stringTypeGenerators.isInitialized) {

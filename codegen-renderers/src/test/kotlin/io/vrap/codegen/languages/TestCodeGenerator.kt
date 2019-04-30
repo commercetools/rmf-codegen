@@ -21,6 +21,7 @@ import org.junit.Ignore
 import org.junit.Test
 import java.io.File
 import java.nio.file.Files
+import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.*
 import javax.tools.StandardLocation
@@ -30,7 +31,9 @@ import javax.tools.ToolProvider
 class TestCodeGenerator {
 
     companion object {
-        val apiProvider: ApiProvider = ApiProvider(Paths.get("../api-spec/api.raml"))
+        private val importApiPath : Path = Paths.get("/Users/apetrovic/Documents/ct/commercetools-api-reference/api.raml")
+        private val platformApiPath : Path = Paths.get("../api-spec/api.raml")
+        val apiProvider: ApiProvider = ApiProvider(importApiPath)
         val generatorConfig = CodeGeneratorConfig(basePackageName = "com.commercetools.importer")
     }
 

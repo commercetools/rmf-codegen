@@ -8,5 +8,4 @@ import io.vrap.rmf.raml.model.types.ObjectType
 abstract class JavaObjectTypeRenderer : ObjectTypeExtensions, EObjectTypeExtensions, ObjectTypeRenderer {
 
     fun ObjectType.imports() = this.getImports().map { "import $it;" }.joinToString(separator = "\n")
-
 }

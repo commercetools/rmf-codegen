@@ -26,7 +26,7 @@ class JavaObjectTypeInterfaceRenderer @Inject constructor(override val vrapTypeP
             |package ${vrapType.`package`};
             |
             |${type.imports()}
-            |import ${vrapType.`package`}.${vrapType.simpleClassName}Impl;
+            |${type.subclassImport()}
             |
             |import com.fasterxml.jackson.annotation.*;
             |import com.fasterxml.jackson.databind.annotation.*;
@@ -41,29 +41,32 @@ class JavaObjectTypeInterfaceRenderer @Inject constructor(override val vrapTypeP
             |<${type.toComment().escapeAll()}>
             |<${type.subTypesAnnotations()}>
             |<${JavaSubTemplates.generatedAnnotation}>
-            |@JsonDeserialize(as = ${vrapType.simpleClassName}Impl.class)
+            |<${type.jsonDeserialize()}>
             |public interface ${vrapType.simpleClassName} ${type.type?.toVrapType()?.simpleName()?.let { "extends $it" } ?: ""} {
             |
             |   <${type.getters().escapeAll()}>
             |
             |   <${type.setters().escapeAll()}>
             |
-            |   public static ${vrapType.simpleClassName}Impl of(${type.requiredProperties().escapeAll()}){
-            |       <${type.staticOfMethodBody()}>
-            |   }
+            |   <${type.staticOfMethod()}>
             |   
             |   <${type.typeReference().escapeAll()}>
             |   
             |}
         """.trimMargin().keepIndentation()
-
+        
         return TemplateFile(
             relativePath = "${vrapType.`package`}.${vrapType.simpleClassName}".replace(".", "/") + ".java",
             content = content
         )
     }
 
-    fun ObjectType.subTypesAnnotations(): String {
+    private fun ObjectType.subclassImport() : String {
+        val vrapType = vrapTypeProvider.doSwitch(this) as VrapObjectType
+        return "import ${vrapType.`package`}.${vrapType.simpleClassName}Impl;"
+    }
+    
+    private fun ObjectType.subTypesAnnotations(): String {
         return if (this.hasSubtypes())
             """
             |@JsonSubTypes({
@@ -79,11 +82,21 @@ class JavaObjectTypeInterfaceRenderer @Inject constructor(override val vrapTypeP
             ""
     }
 
-    fun ObjectType.requiredProperties() : String = allRequiredProperties(this)
+    private fun ObjectType.requiredProperties() : String = allRequiredProperties(this)
             .map { "final ${it.type.toVrapType().simpleName()} ${it.name}" }
             .joinToString(separator = ", ")
 
-    fun ObjectType.staticOfMethodBody() : String {
+    private fun ObjectType.staticOfMethod() : String {
+        val vrapType = vrapTypeProvider.doSwitch(this) as VrapObjectType
+        return """
+                |public static ${vrapType.simpleClassName}Impl of(${this.requiredProperties().escapeAll()}){
+                |   <${this.staticOfMethodBody()}>
+                |}
+                |
+             """.trimMargin()
+    }
+    
+    private fun ObjectType.staticOfMethodBody() : String {
         val vrapType = vrapTypeProvider.doSwitch(this) as VrapObjectType
         val setters : String = allRequiredProperties(this)
             .map { "${vrapType.simpleClassName.decapitalize()}Impl.set${it.name.capitalize()}(${it.name});" }
@@ -102,7 +115,7 @@ class JavaObjectTypeInterfaceRenderer @Inject constructor(override val vrapTypeP
         var currentType: ObjectType? = rootObjectType
         val properties : MutableList<Property> = mutableListOf()
         while (currentType != null) {
-            val currentTypeDiscriminator : String = currentType.discriminator ?: ""
+            val currentTypeDiscriminator : String = currentType.discriminator() ?: ""
             properties.addAll(currentType.properties.filter { it.name != currentTypeDiscriminator && it.required && !it.isPatternProperty()})
             currentType = if(currentType.type is ObjectType) {
                 currentType.type as ObjectType
@@ -112,13 +125,12 @@ class JavaObjectTypeInterfaceRenderer @Inject constructor(override val vrapTypeP
         }
         return properties
     }
-
-    fun ObjectType.getters() = this.properties
-        .filter { it.name != this.discriminator }
+    
+    private fun ObjectType.getters() = this.properties
         .map { it.geter() }
         .joinToString(separator = "\n")
 
-    fun Property.geter(): String {
+    private fun Property.geter(): String {
         return if(this.isPatternProperty()){
             """
             |${this.validationAnnotations()}
@@ -136,12 +148,12 @@ class JavaObjectTypeInterfaceRenderer @Inject constructor(override val vrapTypeP
         }
     }
 
-    fun ObjectType.setters() = this.properties
-        .filter { it.name != this.discriminator }
+    private fun ObjectType.setters() = this.properties
+        .filter { it.name != this.discriminator() }
         .map { it.setter() }
         .joinToString(separator = "\n\n")
 
-    fun Property.setter(): String {
+    private fun Property.setter(): String {
         return if (this.isPatternProperty()) {
             """
             |@JsonAnySetter
@@ -152,7 +164,7 @@ class JavaObjectTypeInterfaceRenderer @Inject constructor(override val vrapTypeP
         }
     }
 
-    fun Property.validationAnnotations(): String {
+    private fun Property.validationAnnotations(): String {
         val validationAnnotations = ArrayList<String>()
         if (this.required != null && this.required!!) {
             validationAnnotations.add("@NotNull")
@@ -163,7 +175,7 @@ class JavaObjectTypeInterfaceRenderer @Inject constructor(override val vrapTypeP
         return validationAnnotations.joinToString(separator = "\n")
     }
     
-    fun ObjectType.typeReference() : String {
+    private fun ObjectType.typeReference() : String {
         val vrapType = vrapTypeProvider.doSwitch(this) as VrapObjectType
         return """
             |static TypeReference<${vrapType.simpleClassName}> typeReference() {
@@ -176,6 +188,11 @@ class JavaObjectTypeInterfaceRenderer @Inject constructor(override val vrapTypeP
             |}
             |
         """.trimMargin()
+    }
+    
+    private fun ObjectType.jsonDeserialize() : String {
+        val vrapType = vrapTypeProvider.doSwitch(this) as VrapObjectType
+        return "@JsonDeserialize(as = ${vrapType.simpleClassName}Impl.class)"
     }
     
     private object CascadeValidationCheck : TypesSwitch<Boolean>() {
