@@ -164,7 +164,7 @@ class JavaModelClassRenderer @Inject constructor(override val vrapTypeProvider: 
         val vrapType = vrapTypeProvider.doSwitch(this) as VrapObjectType
         val constructorArguments = this.properties
                 .filter { it.name != this.discriminator() }
-                .map { "final ${it.type.toVrapType().simpleName()} ${it.name}" }
+                .map { if(it.isPatternProperty()) "final Map<String, ${it.type.toVrapType().simpleName()}> values" else "final ${it.type.toVrapType().simpleName()} ${it.name}" }
                 .joinToString(separator = ", ")
         
         val discriminatorAssignment : String = 
@@ -175,7 +175,7 @@ class JavaModelClassRenderer @Inject constructor(override val vrapTypeProvider: 
                 }
         
         val propertiesAssignment : String = this.properties
-                .map { "this.${it.name} = ${it.name};" }
+                .map { if(it.isPatternProperty()) "this.values = values;" else "this.${it.name} = ${it.name};" }
                 .joinToString(separator = "\n")
         
         return """

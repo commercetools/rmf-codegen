@@ -105,12 +105,12 @@ class JavaModelInterfaceRenderer @Inject constructor(override val vrapTypeProvid
 
         val constructorArguments : String = this.properties
                 .filter { it.name != this.discriminator() }
-                .map { "final ${it.type.toVrapType().simpleName()} ${it.name}" }
+                .map { if(it.isPatternProperty()) "final Map<String, ${it.type.toVrapType().simpleName()}> values" else "final ${it.type.toVrapType().simpleName()} ${it.name}" }
                 .joinToString(separator = ", ")
 
         val constructorValues : String = this.properties
                 .filter { it.name != this.discriminator() }
-                .map { it.name }
+                .map { if(it.isPatternProperty()) "values" else it.name }
                 .joinToString(separator = ", ")
         
         return if(this.isAbstract()) {
