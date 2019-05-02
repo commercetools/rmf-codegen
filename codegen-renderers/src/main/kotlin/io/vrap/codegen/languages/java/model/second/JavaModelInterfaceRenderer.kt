@@ -17,7 +17,7 @@ import io.vrap.rmf.raml.model.types.Property
 import io.vrap.rmf.raml.model.types.util.TypesSwitch
 import org.eclipse.emf.ecore.EObject
 
-class JavaObjectTypeInterfaceRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : JavaObjectTypeRenderer() {
+class JavaModelInterfaceRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : JavaObjectTypeRenderer() {
 
     override fun render(type: ObjectType): TemplateFile {
         val vrapType = vrapTypeProvider.doSwitch(type) as VrapObjectType
@@ -63,7 +63,11 @@ class JavaObjectTypeInterfaceRenderer @Inject constructor(override val vrapTypeP
 
     private fun ObjectType.subclassImport() : String {
         val vrapType = vrapTypeProvider.doSwitch(this) as VrapObjectType
-        return "import ${vrapType.`package`}.${vrapType.simpleClassName}Impl;"
+        return if(this.isAbstract()){
+            ""
+        }else {
+            "import ${vrapType.`package`}.${vrapType.simpleClassName}Impl;"    
+        }
     }
     
     private fun ObjectType.subTypesAnnotations(): String {
@@ -88,26 +92,39 @@ class JavaObjectTypeInterfaceRenderer @Inject constructor(override val vrapTypeP
 
     private fun ObjectType.staticOfMethod() : String {
         val vrapType = vrapTypeProvider.doSwitch(this) as VrapObjectType
-        return """
-                |public static ${vrapType.simpleClassName}Impl of(${this.requiredProperties().escapeAll()}){
-                |   <${this.staticOfMethodBody()}>
+//        return if(this.isAbstract()) {
+//            ""
+//        }else {
+//            """
+//                |public static ${vrapType.simpleClassName}Impl of(${this.requiredProperties().escapeAll()}){
+//                |   <${this.staticOfMethodBody()}>
+//                |}
+//                |
+//             """.trimMargin()
+//        }
+
+        val constructorArguments : String = this.properties
+                .filter { it.name != this.discriminator() }
+                .map { "final ${it.type.toVrapType().simpleName()} ${it.name}" }
+                .joinToString(separator = ", ")
+
+        val constructorValues : String = this.properties
+                .filter { it.name != this.discriminator() }
+                .map { it.name }
+                .joinToString(separator = ", ")
+        
+        return if(this.isAbstract()) {
+            ""
+        }else {
+            """
+                |public static ${vrapType.simpleClassName}Impl of(${constructorArguments.escapeAll()}){
+                |   return new ${vrapType.simpleClassName}Impl($constructorValues);
                 |}
                 |
              """.trimMargin()
+        }
     }
     
-    private fun ObjectType.staticOfMethodBody() : String {
-        val vrapType = vrapTypeProvider.doSwitch(this) as VrapObjectType
-        val setters : String = allRequiredProperties(this)
-            .map { "${vrapType.simpleClassName.decapitalize()}Impl.set${it.name.capitalize()}(${it.name});" }
-            .joinToString(separator = "\n")
-        return """
-            |final ${vrapType.simpleClassName}Impl ${vrapType.simpleClassName.decapitalize()}Impl = new ${vrapType.simpleClassName}Impl();
-            |<$setters>
-            |return ${vrapType.simpleClassName.decapitalize()}Impl;
-        """.trimMargin().keepIndentation()
-    }
-
     /**
      * This method returns a list of required properties for the specified {@param rootObjectType} and for it's parent types.
      */
@@ -169,7 +186,7 @@ class JavaObjectTypeInterfaceRenderer @Inject constructor(override val vrapTypeP
         if (this.required != null && this.required!!) {
             validationAnnotations.add("@NotNull")
         }
-        if (JavaObjectTypeInterfaceRenderer.CascadeValidationCheck.doSwitch(this.type)) {
+        if (CascadeValidationCheck.doSwitch(this.type)) {
             validationAnnotations.add("@Valid")
         }
         return validationAnnotations.joinToString(separator = "\n")
@@ -192,7 +209,11 @@ class JavaObjectTypeInterfaceRenderer @Inject constructor(override val vrapTypeP
     
     private fun ObjectType.jsonDeserialize() : String {
         val vrapType = vrapTypeProvider.doSwitch(this) as VrapObjectType
-        return "@JsonDeserialize(as = ${vrapType.simpleClassName}Impl.class)"
+        return if(this.isAbstract()){
+            ""
+        }else{
+            "@JsonDeserialize(as = ${vrapType.simpleClassName}Impl.class)"    
+        }
     }
     
     private object CascadeValidationCheck : TypesSwitch<Boolean>() {
@@ -206,7 +227,7 @@ class JavaObjectTypeInterfaceRenderer @Inject constructor(override val vrapTypeP
 
         override fun caseArrayType(arrayType: ArrayType): Boolean? {
             return if (arrayType.items != null) {
-                JavaObjectTypeInterfaceRenderer.CascadeValidationCheck.doSwitch(arrayType.items)
+                doSwitch(arrayType.items)
             } else {
                 false
             }

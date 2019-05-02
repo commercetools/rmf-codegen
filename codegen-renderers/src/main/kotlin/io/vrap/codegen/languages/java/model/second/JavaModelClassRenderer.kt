@@ -13,13 +13,12 @@ import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.types.ObjectType
 import io.vrap.rmf.raml.model.types.Property
 
-class JavaObjectTypeClassRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : JavaObjectTypeRenderer() {
+class JavaModelClassRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : JavaObjectTypeRenderer() {
 
     override fun render(type: ObjectType): TemplateFile {
 
         val vrapType = vrapTypeProvider.doSwitch(type) as VrapObjectType
         
-        //if type is abstract, implementation class should not be generated
         if(type.isAbstract()){
             return TemplateFile(
                     relativePath = "${vrapType.`package`}.${vrapType.simpleClassName}Impl".replace(".", "/") + ".java",
@@ -31,7 +30,7 @@ class JavaObjectTypeClassRenderer @Inject constructor(override val vrapTypeProvi
                 |package ${vrapType.`package`};
                 |
                 |${type.imports()}
-                |${type.parentTypeImport()?.let { "import ${it}Impl;"} ?: ""}
+                |import com.fasterxml.jackson.annotation.JsonCreator;
                 |import javax.annotation.Generated;
                 |import javax.validation.Valid;
                 |import javax.validation.constraints.NotNull;
@@ -47,13 +46,15 @@ class JavaObjectTypeClassRenderer @Inject constructor(override val vrapTypeProvi
                 |<${JavaSubTemplates.generatedAnnotation}>
                 |public class ${vrapType.simpleClassName}Impl ${type.extendsStatement()} implements ${vrapType.simpleClassName} {
                 |
+                |   <${type.finalBeanFields().escapeAll()}>
+                |   
+                |   <${type.beanFields().escapeAll()}>
                 |
-                |   <${type.toBeanFields().escapeAll()}>
-                |
+                |   <${type.constructor().escapeAll()}>
+                |   
                 |   <${type.getters().escapeAll()}>
                 |
                 |   <${type.setters().escapeAll()}>
-                |
                 |
                 |    @Override
                 |    public String toString() {
@@ -87,36 +88,41 @@ class JavaObjectTypeClassRenderer @Inject constructor(override val vrapTypeProvi
         }
 
     }
+    
+    private fun Property.toFinalJavaField() : String {
+        return if (this.isPatternProperty()) {
+            "private final Map<String,${this.type.toVrapType().simpleName()}> values;"
+        } else {
+            "private final ${this.type.toVrapType().simpleName()} ${if (this.isPatternProperty()) "values" else this.name};"
+        }
+    }
 
     private fun ObjectType.extendsStatement() : String {
         if(this.type is ObjectType){
-            val parentType = this.type as ObjectType
-            return when(parentType.isAbstract()) {
-                true -> ""
-                false -> type.type?.toVrapType()?.simpleName()?.let { "extends ${it}Impl" } ?: ""
-            }
+            return type.type?.toVrapType()?.simpleName()?.let { "extends ${it}Impl" } ?: ""
         }
         return ""
     }
     
-    private fun ObjectType.toBeanFields() = this.properties
-        .filter { it.name != this.discriminator }
-        .map { it.toJavaField() }.joinToString(separator = "\n\n")
+    private fun ObjectType.beanFields() = this.allProperties
+            .filter { it.name != this.discriminator() }
+            .map { it.toJavaField() }.joinToString(separator = "\n\n")
 
-    private fun ObjectType.setters() = this.properties
+    private fun ObjectType.finalBeanFields() = this.allProperties
+            .filter { it.name == this.discriminator() }
+            .map { it.toFinalJavaField() }.joinToString(separator = "\n\n")
+    
+    private fun ObjectType.setters() = this.allProperties
         //Filter the discriminators because they don't make much sense the generated bean
-        .filter { it.name != this.discriminator }
+        .filter { it.name != this.discriminator() }
         .map { it.setter() }
         .joinToString(separator = "\n\n")
-
-
-    private fun ObjectType.getters() = this.properties
+    
+    private fun ObjectType.getters() = this.allProperties
         //Filter the discriminators because they don't make much sense the generated bean
-        .filter { it.name != this.discriminator }
         .map { it.getter() }
         .joinToString(separator = "\n\n")
-
-
+    
     private fun Property.setter(): String {
         return if (this.isPatternProperty()) {
             """
@@ -154,12 +160,32 @@ class JavaObjectTypeClassRenderer @Inject constructor(override val vrapTypeProvi
         }
     }
 
-    private fun ObjectType.parentTypeImport() : String? {
-        return if(this.type != null && this.type is ObjectType) {
-            val parentType = vrapTypeProvider.doSwitch(this.type) as VrapObjectType
-            "${parentType.`package`}.${parentType.simpleClassName}"
-        }else{
-            null
-        }
+    private fun ObjectType.constructor(): String {
+        val vrapType = vrapTypeProvider.doSwitch(this) as VrapObjectType
+        val constructorArguments = this.properties
+                .filter { it.name != this.discriminator() }
+                .map { "final ${it.type.toVrapType().simpleName()} ${it.name}" }
+                .joinToString(separator = ", ")
+        
+        val discriminatorAssignment : String = 
+                if(this.discriminator() != null) {
+                    "this.${this.discriminator()} = \"${this.discriminatorValue}\";"
+                } else {
+                    ""
+                }
+        
+        val propertiesAssignment : String = this.properties
+                .map { "this.${it.name} = ${it.name};" }
+                .joinToString(separator = "\n")
+        
+        return """
+            |
+            |@JsonCreator
+            |${vrapType.simpleClassName}Impl(${constructorArguments.escapeAll()}){
+            |   <$discriminatorAssignment>
+            |   <$propertiesAssignment>
+            |}
+            |
+        """.trimMargin().keepIndentation()
     }
 }
