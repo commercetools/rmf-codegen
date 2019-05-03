@@ -1,17 +1,16 @@
 package io.vrap.codegen.languages.java.groovy.dsl;
 
 import com.google.inject.Inject
+import io.vrap.codegen.languages.extensions.EObjectExtensions
 import io.vrap.codegen.languages.java.JavaSubTemplates
-import io.vrap.codegen.languages.java.extensions.EObjectTypeExtensions
-import io.vrap.codegen.languages.java.extensions.ObjectTypeExtensions
-import io.vrap.codegen.languages.java.extensions.fullClassName
-import io.vrap.rmf.codegen.rendring.ObjectTypeRenderer
+import io.vrap.codegen.languages.java.extensions.JavaObjectTypeExtensions
 import io.vrap.rmf.codegen.io.TemplateFile
+import io.vrap.rmf.codegen.rendring.ObjectTypeRenderer
 import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.types.ObjectType
 
-class GroovyDslRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : ObjectTypeExtensions, EObjectTypeExtensions, ObjectTypeRenderer {
+class GroovyDslRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : JavaObjectTypeExtensions, EObjectExtensions, ObjectTypeRenderer {
 
     override fun render(type: ObjectType): TemplateFile {
 

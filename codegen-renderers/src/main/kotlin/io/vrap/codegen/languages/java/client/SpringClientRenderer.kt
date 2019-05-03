@@ -1,11 +1,10 @@
 package io.vrap.codegen.languages.java.client
 
 import com.google.inject.Inject
+import io.vrap.codegen.languages.extensions.EObjectExtensions
+import io.vrap.codegen.languages.extensions.toComment
 import io.vrap.codegen.languages.java.JavaSubTemplates
-import io.vrap.codegen.languages.java.extensions.EObjectTypeExtensions
 import io.vrap.codegen.languages.java.extensions.fullClassName
-import io.vrap.codegen.languages.java.extensions.returnType
-import io.vrap.codegen.languages.java.extensions.toComment
 import io.vrap.rmf.codegen.common.generator.core.ResourceCollection
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.ResourceCollectionRenderer
@@ -17,8 +16,11 @@ import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Resource
+import io.vrap.rmf.raml.model.responses.Response
+import io.vrap.rmf.raml.model.types.AnyType
+import io.vrap.rmf.raml.model.types.impl.TypesFactoryImpl
 
-class SpringClientRenderer @Inject constructor(val packageProvider: PackageProvider, override val vrapTypeProvider: VrapTypeProvider) : ResourceCollectionRenderer, EObjectTypeExtensions {
+class SpringClientRenderer @Inject constructor(val packageProvider: PackageProvider, override val vrapTypeProvider: VrapTypeProvider) : ResourceCollectionRenderer, EObjectExtensions {
 
 
     override fun render(type: ResourceCollection): TemplateFile {
@@ -76,7 +78,7 @@ class SpringClientRenderer @Inject constructor(val packageProvider: PackageProvi
 
     fun javaBody(resource: Resource, method: Method): String {
 
-        val methodReturnType = vrapTypeProvider.doSwitch(method.returnType())
+        val methodReturnType = vrapTypeProvider.doSwitch(method.retyurnType())
         val returnIsEmpty = methodReturnType is VrapNilType
 
         val body = """
@@ -94,7 +96,7 @@ class SpringClientRenderer @Inject constructor(val packageProvider: PackageProvi
             |
             |    <${method.mediaType().escapeAll()}>
             |
-            |    ${if(returnIsEmpty) "final ParameterizedTypeReference\\<Void\\> type = new ParameterizedTypeReference\\<Void\\>() {};" else "final ParameterizedTypeReference\\<${method.returnType().toVrapType().fullClassName().escapeAll()}\\> type = new ParameterizedTypeReference\\<${method.returnType().toVrapType().fullClassName().escapeAll()}\\>() {};"}
+            |    ${if(returnIsEmpty) "final ParameterizedTypeReference\\<Void\\> type = new ParameterizedTypeReference\\<Void\\>() {};" else "final ParameterizedTypeReference\\<${method.retyurnType().toVrapType().fullClassName().escapeAll()}\\> type = new ParameterizedTypeReference\\<${method.retyurnType().toVrapType().fullClassName().escapeAll()}\\>() {};"}
             |    final String fullUri = baseUri + "${relativeUrl(resource,method)}";
             |
             |    ${if(returnIsEmpty) "return restTemplate.exchange(fullUri, HttpMethod.${method.method.name.toUpperCase()}, entity, type, parameters);" else "return restTemplate.exchange(fullUri, HttpMethod.${method.method.name.toUpperCase()}, entity, type, parameters).getBody();"}
@@ -154,4 +156,17 @@ class SpringClientRenderer @Inject constructor(val packageProvider: PackageProvi
         return "final HttpEntity<?> entity = null;"
 
     }
+
+    fun Method.retyurnType(): AnyType {
+        return this.responses
+                .filter { it.isSuccessfull() }
+                .filter { it.bodies?.isNotEmpty() ?: false }
+                .firstOrNull()
+                ?.let { it.bodies[0].type }
+                ?: TypesFactoryImpl.eINSTANCE.createNilType()
+    }
+
+
+    fun Response.isSuccessfull(): Boolean = this.statusCode.toInt() in (200..299)
+
 }

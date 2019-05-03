@@ -1,10 +1,11 @@
 package io.vrap.codegen.languages.java.model
 
 import com.google.inject.Inject
+import io.vrap.codegen.languages.extensions.EObjectExtensions
+import io.vrap.codegen.languages.extensions.toComment
 import io.vrap.codegen.languages.java.JavaSubTemplates
-import io.vrap.codegen.languages.java.extensions.EObjectTypeExtensions
-import io.vrap.codegen.languages.java.extensions.ObjectTypeExtensions
-import io.vrap.codegen.languages.java.extensions.toComment
+import io.vrap.codegen.languages.java.extensions.JavaObjectTypeExtensions
+import io.vrap.codegen.languages.java.extensions.enumValueName
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.StringTypeRenderer
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
@@ -13,9 +14,8 @@ import io.vrap.rmf.codegen.types.VrapEnumType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.types.StringInstance
 import io.vrap.rmf.raml.model.types.StringType
-import io.vrap.rmf.raml.model.util.StringCaseFormat
 
-class JavaStringTypeRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : ObjectTypeExtensions, EObjectTypeExtensions, StringTypeRenderer {
+class JavaStringTypeRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : JavaObjectTypeExtensions, EObjectExtensions, StringTypeRenderer {
 
     override fun render(type: StringType): TemplateFile {
         val vrapType = vrapTypeProvider.doSwitch(type) as VrapEnumType
@@ -58,23 +58,17 @@ class JavaStringTypeRenderer @Inject constructor(override val vrapTypeProvider: 
         )
     }
 
-    fun StringType.enumFields(): String = this.enumJsonNames()
-            .map {
+    fun StringType.enumFields() = enumValues()
+            ?.map {
                 """
-                |@JsonProperty("$it")
-                |${it.enumValueName()}("$it")
+                |${it.toComment()?.escapeAll()?:""}
+                |@JsonProperty("${it.value}")
+                |${it.value.enumValueName()}("${it.value}")
             """.trimMargin()
             }
-            .joinToString(separator = ",\n\n", postfix = ";")
+            ?.joinToString(separator = ",\n\n", postfix = ";")
 
-
-    fun StringType.enumJsonNames() = this.enum?.filter { it is StringInstance }
+    fun StringType.enumValues() =  enum?.filter { it is StringInstance }
             ?.map { it as StringInstance }
-            ?.map { it.value }
-            ?.filterNotNull() ?: listOf()
-
-    fun String.enumValueName(): String {
-        return StringCaseFormat.UPPER_UNDERSCORE_CASE.apply(this)
-    }
-
+            ?.filter { it.value != null }
 }

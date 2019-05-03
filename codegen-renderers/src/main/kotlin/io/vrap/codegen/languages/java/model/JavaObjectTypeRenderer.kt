@@ -1,9 +1,11 @@
 package io.vrap.codegen.languages.java.model;
 
 import com.google.inject.Inject
-import io.vrap.codegen.languages.extensions.hasSubtypes
+import io.vrap.codegen.languages.extensions.*
 import io.vrap.codegen.languages.java.JavaSubTemplates
-import io.vrap.codegen.languages.java.extensions.*
+import io.vrap.codegen.languages.java.extensions.JavaObjectTypeExtensions
+import io.vrap.codegen.languages.java.extensions.enumValueName
+import io.vrap.codegen.languages.java.extensions.simpleName
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.ObjectTypeRenderer
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
@@ -17,7 +19,7 @@ import io.vrap.rmf.raml.model.types.util.TypesSwitch
 import org.eclipse.emf.ecore.EObject
 import java.util.*
 
-class JavaObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : ObjectTypeExtensions, EObjectTypeExtensions, ObjectTypeRenderer {
+class JavaObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : JavaObjectTypeExtensions, EObjectExtensions, ObjectTypeRenderer {
 
     override fun render(type: ObjectType): TemplateFile {
 
@@ -43,6 +45,8 @@ class JavaObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: 
                 |public class ${vrapType.simpleClassName} ${type.type?.toVrapType()?.simpleName()?.let { "extends $it" } ?: ""}{
                 |
                 |    <${type.toBeanFields().escapeAll()}>
+                |
+                |    <${type.renderConstructor()}>
                 |
                 |    <${type.setters().escapeAll()}>
                 |
@@ -72,14 +76,67 @@ class JavaObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: 
         )
     }
 
+    fun ObjectType.renderConstructor() : String {
+        val constructorParams = constructorParams()
+        return if (discriminator() != null) {
+            if (discriminatorValue == null) {
+            """
+            |public ${toVrapType().simpleName()}(${constructorParams}) {
+            |  ${constructorBody()}
+            |}
+            |
+            |public ${toVrapType().simpleName()}() {
+            |  this(null); // workaround needed for our groovy dsl
+            |}
+            """
+            } else {
+            """
+            |public ${toVrapType().simpleName()}() {
+            |  ${constructorBody()}
+            |}
+            """
+            }
+        } else {
+            ""
+        }
+    }
+
+    fun ObjectType.constructorParams() : String {
+        return if (discriminator() != null && discriminatorValue == null) {
+            "final ${discriminatorProperty()?.type?.toVrapType()?.simpleName()} ${discriminator()}"
+        } else {
+            ""
+        }
+    }
+
+
+    fun ObjectType.constructorBody() : String {
+        if (discriminator() != null && discriminatorValue == null) {
+            return "this.${discriminator()} = ${discriminator()};"
+        } else {
+            if (discriminatorValue != null) {
+                return """super(${renderDiscriminatorValue()});"""
+            }
+        }
+        return ""
+    }
+
+    fun ObjectType.renderDiscriminatorValue() : String {
+        val discriminatorProperty = discriminatorProperty()
+        if (discriminatorProperty?.type?.enum?.size?:0 > 0) {
+            return "${discriminatorProperty?.type?.name}.${discriminatorValue.enumValueName()}"
+        } else {
+            return """"${discriminatorValue}""""
+        }
+    }
 
     fun ObjectType.imports() = this.getImports().map { "import $it;" }.joinToString(separator = "\n")
 
     fun ObjectType.subTypesAnnotations(): String {
-        return if (this.hasSubtypes())
+        return if (hasSubtypes())
             """
             |@JsonSubTypes({
-            |   <${this.subTypes.map { "@JsonSubTypes.Type(value = ${it.toVrapType().simpleName()}.class, name = \"${(it as ObjectType).discriminatorValue}\")" }.joinToString(separator = ",\n")}>
+            |   <${namedSubTypes().map { "@JsonSubTypes.Type(value = ${it.toVrapType().simpleName()}.class, name = \"${(it as ObjectType).discriminatorValue}\")" }.joinToString(separator = ",\n")}>
             |})
             |@JsonTypeInfo(
             |   use = JsonTypeInfo.Id.NAME,
@@ -102,7 +159,6 @@ class JavaObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: 
     }
 
     fun ObjectType.toBeanFields() = this.properties
-            .filter { it.name != this.discriminator }
             .map { it.toJavaField() }.joinToString(separator = "\n\n")
 
     fun ObjectType.setters() = this.properties
@@ -114,11 +170,8 @@ class JavaObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: 
 
     fun ObjectType.getters() = this.properties
             //Filter the discriminators because they don't make much sense the generated bean
-            .filter { it.name != this.discriminator }
             .map { it.getter() }
             .joinToString(separator = "\n\n")
-
-    fun Property.isPatternProperty() = this.name.startsWith("/") && this.name.endsWith("/")
 
     fun Property.setter(): String {
         return if (this.isPatternProperty()) {

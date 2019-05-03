@@ -1,9 +1,8 @@
 package io.vrap.codegen.languages.typescript.model
 
 import com.google.inject.Inject
-import io.vrap.codegen.languages.java.extensions.EObjectTypeExtensions
+import io.vrap.codegen.languages.extensions.*
 import io.vrap.codegen.languages.java.extensions.simpleName
-import io.vrap.codegen.languages.java.extensions.toComment
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.FileProducer
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
@@ -12,173 +11,153 @@ import io.vrap.rmf.codegen.types.VrapEnumType
 import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.types.*
-import io.vrap.rmf.raml.model.util.StringCaseFormat
 
-class TypeScriptModuleRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : TsObjectTypeExtensions, EObjectTypeExtensions, FileProducer {
+class TypeScriptModuleRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : TsObjectTypeExtensions, EObjectExtensions, FileProducer {
 
     @Inject
     lateinit var allAnyTypes: MutableList<AnyType>
 
-
     override fun produceFiles(): List<TemplateFile> {
-        return allAnyTypes.groupBy { s(it) }
-                .map { entry: Map.Entry<String, List<AnyType>> -> buildModule(entry.key, entry.value) }
-                .toList()
+        return allAnyTypes.filter { it is ObjectType || it is StringType }.groupBy { moduleName(it) }
+            .map { entry: Map.Entry<String, List<AnyType>> -> buildModule(entry.key, entry.value) }
+            .toList()
     }
 
-    private fun s(it: AnyType): String {
+    private fun moduleName(it: AnyType): String {
         val t = it.toVrapType()
         return when (t) {
             is VrapObjectType -> t.`package`
             is VrapEnumType -> t.`package`
-            else -> ""
+            else -> throw IllegalArgumentException("Unsupported type ${t}")
         }
     }
 
-
-    fun buildModule(moduleName: String, types: List<AnyType>): TemplateFile {
-
+    private fun buildModule(moduleName: String, types: List<AnyType>): TemplateFile {
+        var sortedTypes = types.filter { it !is UnionType }.sortedByTopology(AnyType::getSuperTypes)
         val content = """
            |/* tslint:disable */
            |//Generated file, please do not change
            |
-           |${getImportsForModule(moduleName, types)}
+           |${getImportsForModule(moduleName, sortedTypes)}
            |
-           |${types.map { it.renderAnyType() }.joinToString(separator = "\n")}
+           |${sortedTypes.map { it.renderAnyType() }.joinToString(separator = "\n")}
        """.trimMargin().keepIndentation()
 
         return TemplateFile(content, moduleName.replace(".", "/") + ".ts")
 
     }
 
-    fun AnyType.renderAnyType(): String {
+    private fun AnyType.renderAnyType(): String {
         return when (this) {
             is ObjectType -> this.renderObjectType()
             is StringType -> this.renderStringType()
             else -> throw IllegalArgumentException("unhandled case ${this.javaClass}")
-
         }
     }
 
-    fun ObjectType.renderObjectType(): String {
-        val vrapType = this.toVrapType() as VrapObjectType
-
-        return """
-        |${this.toComment().escapeAll()}
-        |export class ${vrapType.simpleClassName} ${this.type?.toVrapType()?.simpleName()?.let { "extends $it " }
-                ?: ""}{
-        |
-        |   <${this.patternSpec()}>
-        |   <${this.constructorBlock()}>
-        |}
-        """.trimMargin()
-    }
-
-    fun ObjectType.constructorBlock():String{
-        return if(this.allProperties.filter { !it.isPatternProperty() }.isNotEmpty())
+    private fun ObjectType.renderObjectType(): String {
+        return if (discriminator() != null) {
+            if (discriminatorValue === null) {
+                """
+                |${toComment().escapeAll()}
+                |export type ${name} =
+                |  <${subTypes.filter { !it.isInlineType }.map { it.renderTypeExpr() }.joinToString(" |\n")}>
+                |;
+                """.trimMargin()
+            } else {
+                """
+                |${toComment().escapeAll()}
+                |export interface ${name} {
+                |  readonly ${discriminator()}: "${discriminatorValue}";
+                |  <${renderPatternSpec()}>
+                |  <${renderPropertyDecls(true)}>
+                |}
+                """.trimMargin()
+            }
+        } else {
             """
-            |constructor(
-            |       <${this.objectFields().escapeAll()}>
-            |){<${this.superConstructor()}>}
-            |""".trimMargin()
-        else ""
+                |${this.toComment().escapeAll()}
+                |export interface ${name} ${renderExtendsExpr()}{
+                |  <${renderPatternSpec()}>
+                |  <${renderPropertyDecls(false)}>
+                |}
+            """.trimMargin()
+        }
     }
 
-    fun ObjectType.superConstructor(): String {
-        return if (this.type != null)
-            "\nsuper(${(
-                    this.type as ObjectType)
-                    .properties
-                    .filter { !it.isPatternProperty() }
-                    .sortedWith(PropertiesComparator)
-                    .map {
-                        if (it.name != this.discriminator())
-                            it.name
-                        else if ((it.type as StringType).enum.isNotEmpty())
-                            "${it.type.toVrapType().simpleTSName()}.${this.discriminatorValueOrDefault().enumValueName()}"
-                        else
-                            "'${this.discriminatorValueOrDefault()}'"
-                    }
-                    .joinToString(separator = ",")
-            })\n"
-        else ""
+    /**
+     * Renders the optional typescript extends expression of this types type.
+     *
+     * @return the rendered extends expression
+     */
+    fun ObjectType.renderExtendsExpr(): String {
+        return type?.toVrapType()?.simpleName()?.let { "extends $it " } ?: ""
     }
 
-    fun ObjectType.objectFields(): String {
-        return this.allProperties
-                .filter { !it.isPatternProperty() }
-                .filter {
-                    it.name != this.discriminator() || this.properties.map { it.name }.contains(it.name)
-
-                }
-                .sortedWith(PropertiesComparator)
-                .map {
-                    val comment: String = it.type.toComment()
-                    val commentNotEmpty: Boolean = comment.isNotBlank()
-                    """
-                    |${if (commentNotEmpty) {
-                        comment + "\n"
-                    } else ""}readonly ${it.name}${if (!it.required) "?" else ""} : ${it.type.toVrapType().simpleTSName()}""".trimMargin()
-                }
-                .joinToString(separator = ", \n")
+    /**
+     * Renders the properties of this object type as typescript property declarations.
+     * Excludes pattern proprties and discriminator properties.
+     *
+     * @param all if true renders all inherited properties, if false renders only direct properties
+     * @return the rendered property type declarations
+     */
+    fun ObjectType.renderPropertyDecls(all: Boolean): String {
+        val renderProperties = if (all) allProperties else properties
+        return renderProperties
+            .filter { !it.isPatternProperty() && it.name != discriminator() }
+            .map {
+                val comment: String = it.type.toComment().escapeAll()
+                val optional = if (it.required) "" else "?"
+                """
+                    |${comment}
+                    |readonly ${it.name}${optional}: ${it.type.renderTypeExpr()}
+                    """.trimMargin()
+            }
+            .joinToString(";\n")
     }
 
-    fun StringType.renderStringType(): String {
+    /**
+     * Renders the typescript type expression for this types type.
+     *
+     * @param the typescript expression
+     */
+    fun AnyType.renderTypeExpr(): String {
+        return when (this) {
+            is UnionType -> oneOf.map { it.renderTypeExpr() }.joinToString(" | ")
+            is IntersectionType -> allOf.map { it.renderTypeExpr() }.joinToString(" & ")
+            is NilType -> "null"
+            else -> toVrapType().simpleTSName()
+        }
+    }
+
+    private fun StringType.renderStringType(): String {
         val vrapType = this.toVrapType() as VrapEnumType
 
         return """
         |${this.toComment().escapeAll()}
-        |export enum ${vrapType.simpleClassName} {
-        |
-        |   <${this.enumFields()}>
-        |
-        |}
+        |export type ${vrapType.simpleClassName} =
+        |   <${this.renderEnumValues()}>;
         """.trimMargin()
     }
 
-    fun StringType.enumFields(): String = this.enumJsonNames()
-            .map { "${it.enumValueName()} = '$it'" }
-            .joinToString(separator = ",\n")
+    private fun StringType.renderEnumValues(): String = enumValues()
+        .map { "'${it}'" }
+        .joinToString(" |\n")
 
 
-    fun StringType.enumJsonNames() = this.enum?.filter { it is StringInstance }
-            ?.map { it as StringInstance }
-            ?.map { it.value }
-            ?.filterNotNull() ?: listOf()
-
-    fun String.enumValueName(): String {
-        return StringCaseFormat.UPPER_UNDERSCORE_CASE.apply(this)
-    }
-
-    fun Property.isPatternProperty() = this.name.startsWith("/") && this.name.endsWith("/")
+    private fun StringType.enumValues() = enum?.filter { it is StringInstance }
+        ?.map { (it as StringInstance).value }
+        ?.filterNotNull() ?: listOf()
 
     /**
      * If the handled is a map type then the map args should be specified
      */
-    fun ObjectType.patternSpec(): String? {
-        return this.allProperties
-                .filter { it.isPatternProperty() }
-                .firstOrNull()
-                .let {
-                    if (it != null) "[key:string]: ${it.type.toVrapType().simpleTSName()}" else ""
-                }
-    }
-
-    /**
-     * in typescript optional properties should come after required ones
-     */
-    object PropertiesComparator : Comparator<Property> {
-        override fun compare(o1: Property, o2: Property): Int {
-            return if (o1.required && !o2.required) {
-                -1
-            } else if (!o1.required && o2.required) {
-                +1
-            } else if((o1.type?.name?:"").compareTo(o2.type?.name?:"") != 0){
-                (o1.type?.name?:"").compareTo(o2.type?.name?:"")
+    private fun ObjectType.renderPatternSpec(): String? {
+        return allProperties
+            .filter { it.isPatternProperty() }
+            .firstOrNull()
+            .let {
+                if (it != null) "[key:string]: ${it.type.renderTypeExpr()}" else ""
             }
-            else {
-                o1.name.compareTo(o2.name)
-            }
-        }
     }
 }
