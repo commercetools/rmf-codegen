@@ -32,9 +32,9 @@ class JavaModelInterfaceRenderer @Inject constructor(override val vrapTypeProvid
             |import com.fasterxml.jackson.databind.annotation.*;
             |import com.fasterxml.jackson.core.type.TypeReference;
             |import javax.annotation.Generated;
-            |import javax.validation.constraints.NotNull;
             |import javax.validation.Valid;
             |import javax.validation.constraints.NotNull;
+            |import javax.annotation.Nullable;
             |import java.util.List;
             |import java.util.Map;
             |
@@ -86,33 +86,21 @@ class JavaModelInterfaceRenderer @Inject constructor(override val vrapTypeProvid
             ""
     }
 
-    private fun ObjectType.requiredProperties() : String = allRequiredProperties(this)
-            .map { "final ${it.type.toVrapType().simpleName()} ${it.name}" }
-            .joinToString(separator = ", ")
-
     private fun ObjectType.staticOfMethod() : String {
         val vrapType = vrapTypeProvider.doSwitch(this) as VrapObjectType
-//        return if(this.isAbstract()) {
-//            ""
-//        }else {
-//            """
-//                |public static ${vrapType.simpleClassName}Impl of(${this.requiredProperties().escapeAll()}){
-//                |   <${this.staticOfMethodBody()}>
-//                |}
-//                |
-//             """.trimMargin()
-//        }
 
         val constructorArguments : String = this.properties
                 .filter { it.name != this.discriminator() }
-                .map { if(it.isPatternProperty()) "final Map<String, ${it.type.toVrapType().simpleName()}> values" else "final ${it.type.toVrapType().simpleName()} ${it.name}" }
+                .map { if(it.isPatternProperty()) "final Map<String, ${it.type.toVrapType().simpleName()}> values"
+                else if(!it.required) "@Nullable final ${it.type.toVrapType().simpleName()} ${it.name}"
+                else "final ${it.type.toVrapType().simpleName()} ${it.name}"}
                 .joinToString(separator = ", ")
 
         val constructorValues : String = this.properties
                 .filter { it.name != this.discriminator() }
                 .map { if(it.isPatternProperty()) "values" else it.name }
                 .joinToString(separator = ", ")
-        
+
         return if(this.isAbstract()) {
             ""
         }else {
