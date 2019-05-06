@@ -1,6 +1,10 @@
 package io.vrap.codegen.languages.java.commands
 
-import io.vrap.codegen.languages.java.extensions.*
+import io.vrap.codegen.languages.extensions.EObjectExtensions
+import io.vrap.codegen.languages.java.extensions.JavaObjectTypeExtensions
+import io.vrap.codegen.languages.java.extensions.resource
+import io.vrap.codegen.languages.java.extensions.returnType
+import io.vrap.codegen.languages.java.extensions.toRequestName
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.MethodRenderer
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
@@ -11,7 +15,7 @@ import io.vrap.rmf.raml.model.resources.Method
 import org.eclipse.emf.ecore.EObject
 import javax.inject.Inject
 
-class JavaCommandsRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : MethodRenderer, ObjectTypeExtensions, EObjectTypeExtensions {
+class JavaCommandsRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : MethodRenderer, JavaObjectTypeExtensions, EObjectExtensions {
 
     override fun render(type: Method): TemplateFile {
         val vrapType = vrapTypeProvider.doSwitch(type as EObject) as VrapObjectType

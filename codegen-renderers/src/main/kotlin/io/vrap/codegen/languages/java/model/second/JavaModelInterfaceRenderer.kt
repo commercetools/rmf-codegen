@@ -3,9 +3,9 @@ package io.vrap.codegen.languages.java.model.second
 import com.google.inject.Inject
 import io.vrap.codegen.languages.extensions.hasSubtypes
 import io.vrap.codegen.languages.extensions.isPatternProperty
+import io.vrap.codegen.languages.extensions.toComment
 import io.vrap.codegen.languages.java.JavaSubTemplates
 import io.vrap.codegen.languages.java.extensions.simpleName
-import io.vrap.codegen.languages.java.extensions.toComment
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
 import io.vrap.rmf.codegen.rendring.utils.keepIndentation
