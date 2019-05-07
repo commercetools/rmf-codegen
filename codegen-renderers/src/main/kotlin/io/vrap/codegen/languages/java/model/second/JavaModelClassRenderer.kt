@@ -180,7 +180,6 @@ class JavaModelClassRenderer @Inject constructor(override val vrapTypeProvider: 
                 } else {
                     ""
                 }
-        val aaa = this.allProperties;
         
         val propertiesAssignment : String = this.allProperties
                 .filter { it.name != this.discriminator() }
