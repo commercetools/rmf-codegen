@@ -37,6 +37,7 @@ class JavaModelInterfaceRenderer @Inject constructor(override val vrapTypeProvid
             |import javax.annotation.Nullable;
             |import java.util.List;
             |import java.util.Map;
+            |import java.time.*;
             |
             |<${type.toComment().escapeAll()}>
             |<${type.subTypesAnnotations()}>
@@ -89,14 +90,14 @@ class JavaModelInterfaceRenderer @Inject constructor(override val vrapTypeProvid
     private fun ObjectType.staticOfMethod() : String {
         val vrapType = vrapTypeProvider.doSwitch(this) as VrapObjectType
 
-        val constructorArguments : String = this.properties
+        val constructorArguments : String = this.allProperties
                 .filter { it.name != this.discriminator() }
                 .map { if(it.isPatternProperty()) "final Map<String, ${it.type.toVrapType().simpleName()}> values"
                 else if(!it.required) "@Nullable final ${it.type.toVrapType().simpleName()} ${it.name}"
                 else "final ${it.type.toVrapType().simpleName()} ${it.name}"}
                 .joinToString(separator = ", ")
 
-        val constructorValues : String = this.properties
+        val constructorValues : String = this.allProperties
                 .filter { it.name != this.discriminator() }
                 .map { if(it.isPatternProperty()) "values" else it.name }
                 .joinToString(separator = ", ")

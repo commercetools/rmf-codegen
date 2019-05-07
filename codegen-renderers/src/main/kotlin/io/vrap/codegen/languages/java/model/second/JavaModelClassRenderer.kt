@@ -35,6 +35,7 @@ class JavaModelClassRenderer @Inject constructor(override val vrapTypeProvider: 
                 |import javax.validation.Valid;
                 |import javax.validation.constraints.NotNull;
                 |import java.util.*;
+                |import java.time.*;
                 |import org.apache.commons.lang3.builder.EqualsBuilder;
                 |import org.apache.commons.lang3.builder.HashCodeBuilder;
                 |import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -162,7 +163,7 @@ class JavaModelClassRenderer @Inject constructor(override val vrapTypeProvider: 
 
     private fun ObjectType.constructor(): String {
         val vrapType = vrapTypeProvider.doSwitch(this) as VrapObjectType
-        val constructorArguments = this.properties
+        val constructorArguments = this.allProperties
                 .filter { it.name != this.discriminator() }
                 .map { if(it.isPatternProperty()) "final Map<String, ${it.type.toVrapType().simpleName()}> values" else "final ${it.type.toVrapType().simpleName()} ${it.name}" }
                 .joinToString(separator = ", ")
@@ -174,7 +175,7 @@ class JavaModelClassRenderer @Inject constructor(override val vrapTypeProvider: 
                     ""
                 }
         
-        val propertiesAssignment : String = this.properties
+        val propertiesAssignment : String = this.allProperties
                 .map { if(it.isPatternProperty()) "this.values = values;" else "this.${it.name} = ${it.name};" }
                 .joinToString(separator = "\n")
         
