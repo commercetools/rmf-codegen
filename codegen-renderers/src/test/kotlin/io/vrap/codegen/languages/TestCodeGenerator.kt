@@ -83,7 +83,7 @@ class TestCodeGenerator {
 
     @Test
     fun generateJavaCompleteModule() {
-        val generatorConfig = CodeGeneratorConfig(basePackageName = "com.commercetools.importer", outputFolder = Paths.get("build/gensrc/java"))
+        val generatorConfig = CodeGeneratorConfig(basePackageName = "com.commercetools.importer", outputFolder = Paths.get("../generated-code/src/test/java"))
         val generatorModule = GeneratorModule(apiProvider, generatorConfig, JavaBaseTypes)
         val generatorComponent = GeneratorComponent(generatorModule, JavaCompleteModule())
         generatorComponent.generateFiles()
