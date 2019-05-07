@@ -30,7 +30,6 @@ class JavaModelInterfaceRenderer @Inject constructor(override val vrapTypeProvid
             |
             |import com.fasterxml.jackson.annotation.*;
             |import com.fasterxml.jackson.databind.annotation.*;
-            |import com.fasterxml.jackson.core.type.TypeReference;
             |import javax.annotation.Generated;
             |import javax.validation.Valid;
             |import javax.validation.constraints.NotNull;
@@ -184,8 +183,8 @@ class JavaModelInterfaceRenderer @Inject constructor(override val vrapTypeProvid
     private fun ObjectType.typeReference() : String {
         val vrapType = vrapTypeProvider.doSwitch(this) as VrapObjectType
         return """
-            |static TypeReference<${vrapType.simpleClassName}> typeReference() {
-            |   return new TypeReference<${vrapType.simpleClassName}>(){
+            |static com.fasterxml.jackson.core.type.TypeReference<${vrapType.simpleClassName}> typeReference() {
+            |   return new com.fasterxml.jackson.core.type.TypeReference<${vrapType.simpleClassName}>(){
             |      @Override
             |      public String toString() {
             |         return "TypeReference<${vrapType.simpleClassName}>";

@@ -170,12 +170,20 @@ class JavaModelClassRenderer @Inject constructor(override val vrapTypeProvider: 
         
         val discriminatorAssignment : String = 
                 if(this.discriminator() != null) {
-                    "this.${this.discriminator()} = \"${this.discriminatorValue}\";"
+                    //if the type of a discriminator is an enum, and discriminatorValue is a String, we have to call EnumName.valueOf(discriminatorValue)
+                    val enumName : String = this.allProperties.filter { it.name == this.discriminator() }.get(0).type.toVrapType().simpleName()
+                    if(enumName != "String"){
+                        "this.${this.discriminator()} = $enumName.valueOf(\"${this.discriminatorValue}\");"
+                    }else{
+                        "this.${this.discriminator()} = \"${this.discriminatorValue}\";"
+                    }
                 } else {
                     ""
                 }
+        val aaa = this.allProperties;
         
         val propertiesAssignment : String = this.allProperties
+                .filter { it.name != this.discriminator() }
                 .map { if(it.isPatternProperty()) "this.values = values;" else "this.${it.name} = ${it.name};" }
                 .joinToString(separator = "\n")
         
