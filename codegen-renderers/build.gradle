@@ -20,11 +20,3 @@ compileKotlin {
 compileTestKotlin {
     kotlinOptions.jvmTarget = "1.8"
 }
-
-//sourceSets {
-//    test {
-//        java {
-//            srcDirs 'build/gensrc/java'
-//        }
-//    }
-//}
