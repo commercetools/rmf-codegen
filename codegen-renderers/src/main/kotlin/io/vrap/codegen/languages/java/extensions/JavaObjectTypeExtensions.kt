@@ -9,6 +9,8 @@ import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapType
 import io.vrap.rmf.raml.model.types.ObjectType
 
+const val ANNOTATION_ABSTRACT = "abstract"
+
 interface JavaObjectTypeExtensions : ExtensionsBase {
 
     fun ObjectType.getImports(): List<String> = this.properties
@@ -25,8 +27,11 @@ interface JavaObjectTypeExtensions : ExtensionsBase {
         .distinct()
         .toList()
 
-}
+    fun ObjectType.imports() = this.getImports().map { "import $it;" }.joinToString(separator = "\n")
 
+    fun ObjectType.isAbstract() : Boolean = this.annotations.find { it.type.name == ANNOTATION_ABSTRACT } != null
+
+}
 
 fun getImportsForType(vrapType: VrapType): String? {
     return when (vrapType) {

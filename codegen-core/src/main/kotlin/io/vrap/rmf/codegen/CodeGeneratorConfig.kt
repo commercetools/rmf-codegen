@@ -1,11 +1,8 @@
 package io.vrap.rmf.codegen
 
 import io.vrap.rmf.codegen.doc.toHtml
-import io.vrap.rmf.codegen.types.LanguageBaseTypes
 import io.vrap.rmf.codegen.types.VrapType
 import io.vrap.rmf.raml.model.types.DescriptionFacet
-import org.eclipse.emf.common.util.URI
-import java.io.File
 import java.nio.file.Path
 import java.nio.file.Paths
 

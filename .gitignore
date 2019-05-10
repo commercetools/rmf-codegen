@@ -22,3 +22,8 @@ raml-model/buildresources/AnnotationProcessorTests/raml-tck-1.1
 cache/
 requests.log
 composer.lock
+rmf-codegen.iml
+rmf-codegen.iml
+generated-code/build
+generated-code/out
+generated-code/src
