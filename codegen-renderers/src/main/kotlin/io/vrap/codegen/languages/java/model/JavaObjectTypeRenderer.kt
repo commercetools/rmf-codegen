@@ -130,8 +130,6 @@ class JavaObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: 
         }
     }
 
-    fun ObjectType.imports() = this.getImports().map { "import $it;" }.joinToString(separator = "\n")
-
     fun ObjectType.subTypesAnnotations(): String {
         return if (hasSubtypes())
             """

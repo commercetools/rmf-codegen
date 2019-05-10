@@ -1,5 +1,7 @@
 package io.vrap.codegen.languages.java.commands
 
+import com.damnhandy.uri.template.Expression
+import com.damnhandy.uri.template.UriTemplate
 import io.vrap.codegen.languages.extensions.EObjectExtensions
 import io.vrap.codegen.languages.java.extensions.JavaObjectTypeExtensions
 import io.vrap.codegen.languages.java.extensions.resource
@@ -23,7 +25,7 @@ class JavaCommandsRenderer @Inject constructor(override val vrapTypeProvider: Vr
         val content = """
                 |package ${vrapType.`package`};
                 |
-                |import com.commercetools.importer.commands.SphereRequest;
+                |import com.commercetools.importer.commands.ApiRequest;
                 |import com.fasterxml.jackson.databind.JavaType;
                 |import io.sphere.sdk.http.HttpResponse;
                 |import io.sphere.sdk.client.HttpRequestIntent;
@@ -62,8 +64,7 @@ class JavaCommandsRenderer @Inject constructor(override val vrapTypeProvider: Vr
 
     private fun Method.httpRequestIntentBody() : String? {
         val path = this.resource().fullUri.template
-        val parts = path.split("/").filter { it.isNotEmpty() }
-        val pathArguments = parts.filter { it.startsWith("{") && it.endsWith("}")}
+        val pathArguments = UriTemplate.fromTemplate(path).components.filter { it is Expression }.map { it.value }
         var stringFormat = path
         
         pathArguments.forEach { stringFormat = stringFormat.replace(it, "%s") }
@@ -72,7 +73,7 @@ class JavaCommandsRenderer @Inject constructor(override val vrapTypeProvider: Vr
                 .map { it.replace("{", "").replace("}", "") }
                 .map { "this.$it" }
                 .joinToString(separator = ",")
-
+        
         val httpRequestIntentArguments = mutableListOf<String>()
         httpRequestIntentArguments.add("HttpMethod.${this.method.name}")
         
@@ -80,9 +81,7 @@ class JavaCommandsRenderer @Inject constructor(override val vrapTypeProvider: Vr
             httpRequestIntentArguments.add("String.format(\"$stringFormat\", $stringFormatArgs)")
         }
         
-        if(this.bodyObjectName() != null){
-            httpRequestIntentArguments.add("SphereJsonUtils.toJsonString(${this.bodyObjectName()})")
-        }
+        this.bodyObjectName()?.let { httpRequestIntentArguments.add("SphereJsonUtils.toJsonString($it)") }
         
         return "return HttpRequestIntent.of(${httpRequestIntentArguments.joinToString(separator = ", ")});"
     }
@@ -101,9 +100,12 @@ class JavaCommandsRenderer @Inject constructor(override val vrapTypeProvider: Vr
             constructorArguments.add(methodBodyVrapType.simpleClassName.decapitalize())
         }
         
+        val ofMethodArgumentsString : String = ofMethodArguments.joinToString(separator = ", ")
+        val constructorArgumentsString : String = constructorArguments.joinToString(separator = ", ")
+        
         return """
-            |public static ${this.toRequestName()} of(${ofMethodArguments.joinToString(separator = ", ")}) {
-            |   <return new ${this.toRequestName()}(${constructorArguments.joinToString(separator = ", ")});>
+            |public static ${this.toRequestName()} of($ofMethodArgumentsString) {
+            |   <return new ${this.toRequestName()}($constructorArgumentsString);>
             |}
         """.trimMargin().keepIndentation()
     }
@@ -168,11 +170,12 @@ class JavaCommandsRenderer @Inject constructor(override val vrapTypeProvider: Vr
     }
     
     private fun Method.sphereRequestImplement() : String {
-        return "SphereRequest<${this.javaReturnType()}>".escapeAll()
+        return "ApiRequest<${this.javaReturnType()}>".escapeAll()
     }
     
     private fun Method.javaReturnType() : String {
         val commandReturnType = vrapTypeProvider.doSwitch(this.returnType()) as VrapObjectType
         return "${commandReturnType.`package`}.${commandReturnType.simpleClassName}"
     }
+    
 }

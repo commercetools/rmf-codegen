@@ -1,12 +1,15 @@
 package io.vrap.codegen.languages.java.model.second
 
 import com.google.inject.Inject
+import io.vrap.codegen.languages.extensions.EObjectExtensions
 import io.vrap.codegen.languages.extensions.hasSubtypes
 import io.vrap.codegen.languages.extensions.isPatternProperty
 import io.vrap.codegen.languages.extensions.toComment
 import io.vrap.codegen.languages.java.JavaSubTemplates
+import io.vrap.codegen.languages.java.extensions.JavaObjectTypeExtensions
 import io.vrap.codegen.languages.java.extensions.simpleName
 import io.vrap.rmf.codegen.io.TemplateFile
+import io.vrap.rmf.codegen.rendring.ObjectTypeRenderer
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
 import io.vrap.rmf.codegen.rendring.utils.keepIndentation
 import io.vrap.rmf.codegen.types.VrapObjectType
@@ -17,7 +20,7 @@ import io.vrap.rmf.raml.model.types.Property
 import io.vrap.rmf.raml.model.types.util.TypesSwitch
 import org.eclipse.emf.ecore.EObject
 
-class JavaModelInterfaceRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : JavaObjectTypeRenderer() {
+class JavaModelInterfaceRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : JavaObjectTypeExtensions, EObjectExtensions, ObjectTypeRenderer {
 
     override fun render(type: ObjectType): TemplateFile {
         val vrapType = vrapTypeProvider.doSwitch(type) as VrapObjectType
@@ -132,10 +135,10 @@ class JavaModelInterfaceRenderer @Inject constructor(override val vrapTypeProvid
     }
     
     private fun ObjectType.getters() = this.properties
-        .map { it.geter() }
+        .map { it.getter() }
         .joinToString(separator = "\n")
 
-    private fun Property.geter(): String {
+    private fun Property.getter(): String {
         return if(this.isPatternProperty()){
             """
             |${this.validationAnnotations()}

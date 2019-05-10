@@ -1,11 +1,14 @@
-package io.vrap.codegen.languages.java.model.second
+package io.vrap.codegen.languages.java.file.producers
 
 import com.google.inject.Inject
+import io.vrap.codegen.languages.extensions.EObjectExtensions
 import io.vrap.codegen.languages.extensions.isPatternProperty
 import io.vrap.codegen.languages.extensions.toComment
 import io.vrap.codegen.languages.java.JavaSubTemplates
+import io.vrap.codegen.languages.java.extensions.JavaObjectTypeExtensions
 import io.vrap.codegen.languages.java.extensions.simpleName
 import io.vrap.rmf.codegen.io.TemplateFile
+import io.vrap.rmf.codegen.rendring.FileProducer
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
 import io.vrap.rmf.codegen.rendring.utils.keepIndentation
 import io.vrap.rmf.codegen.types.VrapObjectType
@@ -13,18 +16,16 @@ import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.types.ObjectType
 import io.vrap.rmf.raml.model.types.Property
 
-class JavaModelClassRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : JavaObjectTypeRenderer() {
 
-    override fun render(type: ObjectType): TemplateFile {
+class JavaModelClassFileProducer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider, private val allObjectTypes: MutableList<ObjectType>) : JavaObjectTypeExtensions, EObjectExtensions, FileProducer {
+    
+    override fun produceFiles(): List<TemplateFile> {
+        return allObjectTypes.filter { !it.isAbstract() }.map { render(it) }
+    }
+
+    fun render(type: ObjectType): TemplateFile {
 
         val vrapType = vrapTypeProvider.doSwitch(type) as VrapObjectType
-        
-        if(type.isAbstract()){
-            return TemplateFile(
-                    relativePath = "${vrapType.`package`}.${vrapType.simpleClassName}Impl".replace(".", "/") + ".java",
-                    content = ""
-            )
-        }
         
         val content = """
                 |package ${vrapType.`package`};
@@ -75,11 +76,11 @@ class JavaModelClassRenderer @Inject constructor(override val vrapTypeProvider: 
         """.trimMargin().keepIndentation()
 
         return TemplateFile(
-            relativePath = "${vrapType.`package`}.${vrapType.simpleClassName}Impl".replace(".", "/") + ".java",
-            content = content
+                relativePath = "${vrapType.`package`}.${vrapType.simpleClassName}Impl".replace(".", "/") + ".java",
+                content = content
         )
     }
-    
+
     private fun Property.toJavaField(): String {
 
         return if (this.isPatternProperty()) {
@@ -89,7 +90,7 @@ class JavaModelClassRenderer @Inject constructor(override val vrapTypeProvider: 
         }
 
     }
-    
+
     private fun Property.toFinalJavaField() : String {
         return if (this.isPatternProperty()) {
             "private final Map<String,${this.type.toVrapType().simpleName()}> values;"
@@ -104,7 +105,7 @@ class JavaModelClassRenderer @Inject constructor(override val vrapTypeProvider: 
         }
         return ""
     }
-    
+
     private fun ObjectType.beanFields() = this.allProperties
             .filter { it.name != this.discriminator() }
             .map { it.toJavaField() }.joinToString(separator = "\n\n")
@@ -112,18 +113,18 @@ class JavaModelClassRenderer @Inject constructor(override val vrapTypeProvider: 
     private fun ObjectType.finalBeanFields() = this.allProperties
             .filter { it.name == this.discriminator() }
             .map { it.toFinalJavaField() }.joinToString(separator = "\n\n")
-    
+
     private fun ObjectType.setters() = this.allProperties
-        //Filter the discriminators because they don't make much sense the generated bean
-        .filter { it.name != this.discriminator() }
-        .map { it.setter() }
-        .joinToString(separator = "\n\n")
-    
+            //Filter the discriminators because they don't make much sense the generated bean
+            .filter { it.name != this.discriminator() }
+            .map { it.setter() }
+            .joinToString(separator = "\n\n")
+
     private fun ObjectType.getters() = this.allProperties
-        //Filter the discriminators because they don't make much sense the generated bean
-        .map { it.getter() }
-        .joinToString(separator = "\n\n")
-    
+            //Filter the discriminators because they don't make much sense the generated bean
+            .map { it.getter() }
+            .joinToString(separator = "\n\n")
+
     private fun Property.setter(): String {
         return if (this.isPatternProperty()) {
             """
@@ -167,8 +168,8 @@ class JavaModelClassRenderer @Inject constructor(override val vrapTypeProvider: 
                 .filter { it.name != this.discriminator() }
                 .map { if(it.isPatternProperty()) "final Map<String, ${it.type.toVrapType().simpleName()}> values" else "final ${it.type.toVrapType().simpleName()} ${it.name}" }
                 .joinToString(separator = ", ")
-        
-        val discriminatorAssignment : String = 
+
+        val discriminatorAssignment : String =
                 if(this.discriminator() != null) {
                     //if the type of a discriminator is an enum, and discriminatorValue is a String, we have to call EnumName.valueOf(discriminatorValue)
                     val enumName : String = this.allProperties.filter { it.name == this.discriminator() }.get(0).type.toVrapType().simpleName()
@@ -180,12 +181,12 @@ class JavaModelClassRenderer @Inject constructor(override val vrapTypeProvider: 
                 } else {
                     ""
                 }
-        
+
         val propertiesAssignment : String = this.allProperties
                 .filter { it.name != this.discriminator() }
                 .map { if(it.isPatternProperty()) "this.values = values;" else "this.${it.name} = ${it.name};" }
                 .joinToString(separator = "\n")
-        
+
         return """
             |
             |@JsonCreator

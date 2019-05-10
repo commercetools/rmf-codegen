@@ -5,13 +5,13 @@ import io.vrap.rmf.codegen.rendring.FileProducer
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
 import io.vrap.rmf.codegen.rendring.utils.keepIndentation
 
-class JavaFileProducer : FileProducer {
+class JavaStaticFilesProducer : FileProducer {
 
     override fun produceFiles(): List<TemplateFile> {
-        return listOf(produceSphereRequestInterface())
+        return listOf(produceApiRequestInterface())
     }
 
-    private fun produceSphereRequestInterface() : TemplateFile {
+    private fun produceApiRequestInterface() : TemplateFile {
         val content = """
             |package com.commercetools.importer.commands;
             |
@@ -19,7 +19,7 @@ class JavaFileProducer : FileProducer {
             |import io.sphere.sdk.http.HttpResponse;
             |import io.sphere.sdk.client.HttpRequestIntent;
             |
-            |public interface SphereRequest<T> {
+            |public interface ApiRequest<T> {
             |
             |   @Nullable
             |   T deserialize(final HttpResponse httpResponse);
@@ -34,7 +34,7 @@ class JavaFileProducer : FileProducer {
 
         return TemplateFile (
             content = content,
-            relativePath = "com/commercetools/importer/commands/SphereRequest.java"
+            relativePath = "com/commercetools/importer/commands/ApiRequest.java"
         )
     }
 }
