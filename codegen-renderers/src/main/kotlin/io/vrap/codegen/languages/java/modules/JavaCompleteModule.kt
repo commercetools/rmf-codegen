@@ -4,6 +4,7 @@ import com.google.inject.AbstractModule
 import com.google.inject.multibindings.Multibinder
 import io.vrap.codegen.languages.java.commands.JavaCommandsRenderer
 import io.vrap.codegen.languages.java.file.producers.JavaModelClassFileProducer
+import io.vrap.codegen.languages.java.file.producers.JavaModelDraftBuilderFileProducer
 import io.vrap.codegen.languages.java.file.producers.JavaStaticFilesProducer
 import io.vrap.codegen.languages.java.model.JavaStringTypeRenderer
 import io.vrap.codegen.languages.java.model.second.JavaModelInterfaceRenderer
@@ -23,6 +24,7 @@ class JavaCompleteModule: AbstractModule() {
         val fileTypeBinder = Multibinder.newSetBinder(binder(), FileProducer::class.java)
         fileTypeBinder.addBinding().to(JavaStaticFilesProducer::class.java)
         fileTypeBinder.addBinding().to(JavaModelClassFileProducer::class.java)
+        fileTypeBinder.addBinding().to(JavaModelDraftBuilderFileProducer::class.java)
 
         val methodTypeBinder = Multibinder.newSetBinder(binder(), MethodRenderer::class.java)
         methodTypeBinder.addBinding().to(JavaCommandsRenderer::class.java)
