@@ -23,4 +23,5 @@ An example of a Java Spring code generator can be found here: [codegen-renderers
 
 # Running tests against your own raml files
 
-Our `TestCodeGenerator` test can be run against a user provided RAML file by setting the `TEST_RAML_FILE` to the file path.
+Our `TestCodeGenerator` test can be run against a user provided RAML file by setting 
+the `TEST_RAML_FILE` environment variable to the file path.
