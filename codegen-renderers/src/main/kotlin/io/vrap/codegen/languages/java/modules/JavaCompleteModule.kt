@@ -3,8 +3,8 @@ package io.vrap.codegen.languages.java.modules
 import com.google.inject.AbstractModule
 import com.google.inject.multibindings.Multibinder
 import io.vrap.codegen.languages.java.commands.JavaCommandsRenderer
-import io.vrap.codegen.languages.java.file.producers.JavaStaticFilesProducer
 import io.vrap.codegen.languages.java.file.producers.JavaModelClassFileProducer
+import io.vrap.codegen.languages.java.file.producers.JavaStaticFilesProducer
 import io.vrap.codegen.languages.java.model.JavaStringTypeRenderer
 import io.vrap.codegen.languages.java.model.second.JavaModelInterfaceRenderer
 import io.vrap.rmf.codegen.rendring.FileProducer
