@@ -20,3 +20,7 @@ We choose kotlin because of the following features:
 
 These features make developing code generators for different programming languges/frameworks very easy. 
 An example of a Java Spring code generator can be found here: [codegen-renderers/src/main/kotlin/io/vrap/codegen/languages/java/client/SpringClientRenderer.kt](https://github.com/vrapio/rmf-codegen/blob/master/codegen-renderers/src/main/kotlin/io/vrap/codegen/languages/java/client/SpringClientRenderer.kt)
+
+# Running tests against your own raml files
+
+Our `TestCodeGenerator` test can be run against a user provided RAML file by setting the `TEST_RAML_FILE` to the file path.
