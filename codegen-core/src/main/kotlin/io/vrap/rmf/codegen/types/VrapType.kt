@@ -54,6 +54,9 @@ class VrapEnumType(val `package` :String, val simpleClassName:String) : VrapType
     }
 }
 
+/**
+ * Represent a tpe that comes from the default package
+ */
 class VrapScalarType(val scalarType:String) : VrapType() {
 
 
@@ -77,19 +80,6 @@ class VrapScalarType(val scalarType:String) : VrapType() {
     }
 }
 
-/**
- * Represent a tpe that comes from the default package
- */
-class VrapDefaultObjectType(`package` :String, simpleClassName:String) :VrapObjectType(`package` ,simpleClassName ){
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-        if (!super.equals(other)) return false
-        return true
-    }
-
-}
-
 class VrapArrayType(val itemType: VrapType) : VrapType(){
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -108,6 +98,9 @@ class VrapArrayType(val itemType: VrapType) : VrapType(){
 }
 
 class VrapNilType : VrapType(){
+
+    val name = "void"
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
