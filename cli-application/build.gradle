@@ -1,5 +1,5 @@
 plugins {
-    id 'org.jetbrains.kotlin.jvm' version '1.3.10'
+    id 'org.jetbrains.kotlin.jvm' version '1.3.21'
     id 'com.github.johnrengelman.shadow' version '4.0.3'
 }
 
@@ -25,6 +25,7 @@ shadowJar {
     manifest {
         attributes 'Main-Class': 'io.vrap.rmf.codegen.cli.MainKt'
     }
+    append "plugin.properties"
 }
 
 build.finalizedBy shadowJar

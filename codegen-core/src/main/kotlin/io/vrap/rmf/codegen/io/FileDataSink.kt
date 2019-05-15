@@ -7,7 +7,6 @@ import java.nio.file.Path
 class FileDataSink @Inject constructor(val outputFolder:Path): DataSink {
 
 
-
     override fun write(templateFile: TemplateFile) {
         val outputFile = File("$outputFolder/${templateFile.relativePath}")
         outputFile.parentFile.mkdirs()

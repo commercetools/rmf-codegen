@@ -8,115 +8,98 @@ baseUri: https://import.commercetools.com
 uses:
   error: types/error.raml
   import-item: types/import-item.raml
+  import-sink: types/import-sink.raml
   price-import: types/price-import.raml
   product-import: types/product-import.raml
   product-type-import: types/product-type-import.raml
   product-variant-import: types/product-variant-import.raml
   category-import: types/category-import.raml
   common: types/common.raml
+  unresolved-import-resource: types/unresolved-import-resource.raml
+  price-mapping: types/price-mapping.raml
 
 securitySchemes:
   oauth_2_0: !include security-schemes/oauth2.raml
 securedBy: [ oauth_2_0 ]
-
-resourceTypes:
-  import-resource-by-key:
-    description: |
-      This resource type describes the operations that can be performed for an import resource with a given key.
-    uriParameters:
-      key:
-        description: |
-          The key of the resource.
-        type: string
-    get:
-      description: |
-        Get an import item by key. This allows monitoring the progress of importing a resource with the given key.
-      responses:
-        200:
-          body:
-            type: import-item.ImportItem
-        404:
-          body:
-            type: error.ErrorResponse
-    delete:
-      description: |
-        Deletes the imported resource with the given key. This doesn't delete the corresponding import item.
-        This will change the state of the corresponding import item to 'DELETING' and on successful deletion
-        to 'DELETED'.
-      responses:
-        200:
-          body:
-            type: import-item.ImportItem
 
 /{projectKey}:
   uriParameters:
     projectKey:
       description: The CTP project key.
       type: string
-  /category:
+  /import-sinks:
     post:
-      description: Creates or updates a batch of categories.
+      description: Creates a new import sink.
       body:
-        type: category-import.CategoryImport[]
-        examples:
-          single:   !include examples/category.json
-          multiple: !include examples/categories.json
+        type: import-sink.ImportSinkDraft
       responses:
-        200:
+        201:
           body:
-            type: import-item.ImportItem[]
-    /{key}:
-      type: import-resource-by-key
-  /product:
-    post:
-      description: Creates or updates a batch of products.
-      body:
-        type: product-import.ProductImport[]
-        examples:
-          single: !include examples/product.json
-      responses:
-        200:
+            type: import-sink.ImportSink
+        400:
+          description: The request was invalid.
           body:
-            type: import-item.ImportItem[]
-    /{key}:
-      type: import-resource-by-key
-  /product-type:
-    post:
-      description: Creates or updates a batch of product types.
-      body:
-        type: product-type-import.ProductTypeImport[]
-      responses:
-        200:
+            type: error.ErrorResponse
+    /{importSinkKey}:
+      uriParameters:
+        key:
+          description: The key of the import sink.
+          type: string
+      put:
+        description: Updates the import sink given by the key.
+        body:
+          type: import-sink.ImportSinkDraft
+        responses:
+          200:
+            description: The import sink was successfully updated.
+            body:
+              type: import-sink.ImportSink
+          409:
+            description: A concurrent modification was detected. The client should retry and resolve the conflict.
+            body:
+              type: error.ErrorResponse
+      get:
+        description: Retrieves the import sink given by the key.
+        responses:
+          200:
+            description: The requested import sink was found.
+            body:
+              type: import-sink.ImportSink
+          404:
+            description: The requested import sink wasn't found.
+            body:
+              type: error.ErrorResponse
+      delete:
+        description: Deletes the import sink given by the key.
+        responses:
+          200:
+            body:
+              type: import-sink.ImportSink
+      /requests:
+        post:
+          description: Creates a new import request.
           body:
-            type: import-item.ImportItem[]
-    /{key}:
-      type: import-resource-by-key
-
-  /product-variant:
-    post:
-      description: Creates or updates a batch of product variants.
-      body:
-        type: product-variant-import.ProductVariantImport[]
-        examples:
-          single: !include examples/product-variant.json
-      responses:
-        200:
-          body:
-            type: import-item.ImportItem[]
-    /{key}:
-      type: import-resource-by-key
-
-  /price:
-    post:
-      description: Creates or updates a batch of prices.
-      body:
-        type: price-import.PriceImport[]
-        examples:
-          single:   !include examples/price.json
-          multiple: !include examples/prices.json
-      responses:
-        200:
-          body:
-            type: import-item.ImportItem[]
-    /{key}:
-      type: import-resource-by-key
+            type: import-sink.ImportRequest
+          responses:
+            201:
+              body:
+                type: import-sink.ImportRequestState
+      /items:
+        get:
+          queryParameters:
+            limit?:
+              type: number
+            offset?:
+              type: number
+          description: Retieves all import items of an import sink key
+          responses:
+            200:
+              body:
+                type: import-item.ImportItemPagedResponse
+        /{resourceKey}:
+          get:
+            description: Retrieves inidividual import items for the given resource and import sink.
+            responses:
+              200:
+                body:
+                  type: import-item.ImportItem

@@ -3,7 +3,6 @@ package io.vrap.rmf.codegen
 import io.vrap.rmf.codegen.doc.toHtml
 import io.vrap.rmf.codegen.types.VrapType
 import io.vrap.rmf.raml.model.types.DescriptionFacet
-import org.eclipse.emf.common.util.URI
 import java.nio.file.Path
 import java.nio.file.Paths
 
@@ -14,11 +13,10 @@ import java.nio.file.Paths
  * @param clientPackage if used it would override the package specified from clientPackage, for the client classes
  */
 data class CodeGeneratorConfig (
-        val basePackageName: String? = null,
-        val modelPackage: String? = null,
-        val clientPackage: String? = null,
-        val outputFolder: Path = Paths.get("build/gensrc"),
-        val customTypeMapping: Map<String, VrapType> = mapOf(),
-        val ramlFileLocation: URI,
-        val docTransformer: (DescriptionFacet) -> String? = DescriptionFacet::toHtml
+    val basePackageName: String? = null,
+    val modelPackage: String? = null,
+    val clientPackage: String? = null,
+    val outputFolder: Path = Paths.get("build/gensrc"),
+    val customTypeMapping: Map<String, VrapType> = mapOf(),
+    val docTransformer: (DescriptionFacet) -> String? = DescriptionFacet::toHtml
 )

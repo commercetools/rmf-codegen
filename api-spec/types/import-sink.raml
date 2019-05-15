@@ -1,0 +1,133 @@
+#%RAML 1.0 Library
+usage: Import sink types.
+(generator.package): importsinks
+
+uses:
+  common: common.raml
+  import-item: import-item.raml
+  generator: ../annotationTypes/generator.raml
+
+  category-import: category-import.raml
+  price-import: price-import.raml
+  product-import: product-import.raml
+  product-type-import: product-type-import.raml
+  product-variant-import: product-variant-import.raml
+
+types:
+  ImportSink:
+    description: This type represents an import sink.
+    properties:
+      key:
+        description: The key of import sink.
+        type: string
+      resourceType:
+        description: The type of the import resource sent to this import sink.
+        type: common.ResourceType
+      version:
+        description: The version of this resource.
+        type: number
+        format: int64
+      skipPredicate?:
+        description: |
+          The optional skip predicate is evaluated against the current state of the corresponding CTP resource.
+          If it evaluates to true, the import will be skipped.
+        type: Predicate
+      createdAt:
+        description: The creation time of this import sink.
+        type: datetime
+      lastModifiedAt:
+        description: The last modification time of this import sink.
+        type: datetime
+    examples:
+      minimal: !include ../examples/import-sink-minimal.json
+      with-skip-predicate: !include ../examples/import-sink-with-skip-predicate.json
+  ImportSinkDraft:
+    description: This type represents the read model of an ImportSink.
+    properties:
+      key:
+        description: The key of import sink.
+        type: string
+      resourceType:
+        description: The type of the import resource sent to this import sink.
+        type: common.ResourceType
+      skipPredicate?:
+        description: |
+          The optional skip predicate is evaluated against the current state of the corresponding CTP resource.
+          If it evaluates to true, the import will be skipped.
+        type: Predicate
+    examples:
+      minimal: !include ../examples/import-sink-draft-minimal.json
+      with-skip-predicate: !include ../examples/import-sink-draft-with-skip-predicate.json
+  Predicate:
+    description: |
+      A predicate allows to check the current state of a CTP resource. And can be used to detect if an import should
+      be performed or should be skipped. And this abstract type allows us to support different syntaxes for our predicates
+      without any breaking changes to our api.
+    discriminator: type
+    properties:
+      type:
+        type: string
+  JavascriptPredicate:
+    type: Predicate
+    discriminatorValue: javascript
+    description: |
+      A Javascript predicate uses a javascript boolean expression. For now we should just support any javascript
+      expression that evaluates to a truthy value. Later we have to add a strict validation of the expression to
+      prevent malicious javascript.
+    properties:
+      expression:
+        description: |
+          A javscript boolean expression.
+        type: string
+  ImportRequest:
+    discriminator: type
+    description: Abstract base type for requesting the import of items.
+    properties:
+      type: common.ResourceType
+  ImportRequestState:
+    description: Allows to retrieve the state of an ImportRequest.
+    properties:
+      items:
+        type: import-item.ImportItem[]
+  CategoryImportRequest:
+    type: ImportRequest
+    discriminatorValue: category
+    properties:
+      resources:
+        description: The individual categories to import.
+        type: category-import.CategoryImport[]
+  ProductImportRequest:
+    type: ImportRequest
+    discriminatorValue: product
+    properties:
+      resources:
+        description: The individual products to import.
+        type: product-import.ProductImport[]
+  ProductTypeImportRequest:
+    type: ImportRequest
+    discriminatorValue: product-type
+    properties:
+      resources:
+        description: The individual product types to import.
+        type: product-type-import.ProductTypeImport[]
+  ProductVariantImportRequest:
+    type: ImportRequest
+    discriminatorValue: product-variant
+    properties:
+      resources:
+        description: The individual product variants to import.
+        type: product-variant-import.ProductVariantImport[]
+  PriceImportRequest:
+    type: ImportRequest
+    discriminatorValue: price
+    properties:
+      resources:
+        description: The individual prices to import.
+        type: price-import.PriceImport[]
+  ProductVariantPatchRequest:
+    type: ImportRequest
+    discriminatorValue: product-variant-patch
+    properties:
+      patches:
+        description: The individual product variant patches.
+        type: product-variant-import.ProductVariantPatch[]

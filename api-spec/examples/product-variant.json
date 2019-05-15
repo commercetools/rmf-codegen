@@ -2,6 +2,7 @@
   {
     "typeId": "product-variant",
     "key": "red-t-shirt",
+    "sku": "red-t-shirt",
     "product": {
       "key": "t-shirt",
       "typeId": "product"
