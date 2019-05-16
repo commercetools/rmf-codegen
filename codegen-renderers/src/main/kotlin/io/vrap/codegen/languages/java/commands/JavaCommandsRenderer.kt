@@ -146,8 +146,7 @@ class JavaCommandsRenderer @Inject constructor(override val vrapTypeProvider: Vr
     }
     
     private fun Method.pathArguments() : List<String> {
-        val path = this.resource().fullUri.template
-        return UriTemplate.fromTemplate(path).components
+        return this.resource().fullUri.components
                 .filter { it is Expression }
                 .map { it.value }
                 .map { it.replace("{", "").replace("}", "") }
