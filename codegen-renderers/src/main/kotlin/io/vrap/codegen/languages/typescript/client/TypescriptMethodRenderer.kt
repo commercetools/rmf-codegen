@@ -1,5 +1,6 @@
 package io.vrap.codegen.languages.java.commands
 
+import com.google.inject.Inject
 import io.vrap.codegen.languages.extensions.EObjectExtensions
 import io.vrap.codegen.languages.java.extensions.JavaObjectTypeExtensions
 import io.vrap.codegen.languages.java.extensions.resource
@@ -7,6 +8,10 @@ import io.vrap.codegen.languages.java.extensions.returnType
 import io.vrap.codegen.languages.java.extensions.toRequestName
 import io.vrap.codegen.languages.typescript.model.TsObjectTypeExtensions
 import io.vrap.codegen.languages.typescript.model.simpleTSName
+import io.vrap.codegen.languages.typescript.tsMediaType
+import io.vrap.codegen.languages.typescript.tsRemoveRegexp
+import io.vrap.codegen.languages.typescript.tsRequestModuleName
+import io.vrap.codegen.languages.typescript.tsRequestName
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.MethodRenderer
 import io.vrap.rmf.codegen.rendring.utils.keepIndentation
@@ -16,12 +21,12 @@ import io.vrap.rmf.raml.model.resources.Method
 import java.nio.file.Path
 import java.nio.file.Paths
 
-class TypescriptClientRenderer @javax.inject.Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : MethodRenderer, JavaObjectTypeExtensions, EObjectExtensions, TsObjectTypeExtensions {
+class TypescriptMethodRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : MethodRenderer, JavaObjectTypeExtensions, EObjectExtensions, TsObjectTypeExtensions {
 
     override fun render(type: Method): TemplateFile {
 
         val vrapType = vrapTypeProvider.doSwitch(type) as VrapObjectType
-        val moduleName = "${vrapType.`package`}.${type.resource().resourcePathName}.${type.toRequestName()}".replace(".", "/")
+        val moduleName = type.tsRequestModuleName(vrapType.`package`).replace(".", "/")
 
         val content = """
             |/* tslint:disable */
@@ -30,10 +35,10 @@ class TypescriptClientRenderer @javax.inject.Inject constructor(override val vra
             |${type.imports(moduleName)}
             |import { CommonRequest } from '${relativizePaths(moduleName,"base/requests-utils")}'
             |
-            |export interface ${type.toRequestName()} extends CommonRequest\<${type.bodyType()}, ${type.returnType().toVrapType().simpleTSName()}\> {
+            |export interface ${type.tsRequestName()} extends CommonRequest\<${type.bodyType()}\> {
             |
             |   method: '${type.methodName.toUpperCase()}',
-            |
+            |   <${type.tsMediaType()}>
             |   uriTemplate: '${type.resource().fullUri.template}'
             |   <${type.pathVariables()}>
             |   <${type.queryParams()}>
@@ -50,7 +55,6 @@ class TypescriptClientRenderer @javax.inject.Inject constructor(override val vra
         )
     }
 
-
     fun Method.imports(moduleName: String): String {
 
         val importTypes = mutableListOf(this.returnType())
@@ -66,8 +70,7 @@ class TypescriptClientRenderer @javax.inject.Inject constructor(override val vra
     }
 
     fun Method.body():String{
-        return if (this.bodies != null && this.bodies.isNotEmpty()) {
-
+        return if (this.hasNonEmptyBody()) {
             "payload: ${this.bodyType()}"
         } else {
             ""
@@ -75,7 +78,7 @@ class TypescriptClientRenderer @javax.inject.Inject constructor(override val vra
     }
 
     fun Method.bodyType():String {
-        return if (this.bodies != null && this.bodies.isNotEmpty()) {
+        return if (this.hasNonEmptyBody()) {
             return this.bodies
                     .map { it.type }
                     .filter { it != null }
@@ -86,6 +89,10 @@ class TypescriptClientRenderer @javax.inject.Inject constructor(override val vra
             "void"
         }
     }
+
+    fun Method.hasNonEmptyBody() = this.bodies != null
+            && this.bodies.isNotEmpty()
+            && this.bodies.map { it.type != null }.reduce{acc, b ->  acc && b}
 
     fun Method.pathVariables(): String {
         val pathArguments = this.pathArguments()
@@ -104,10 +111,12 @@ class TypescriptClientRenderer @javax.inject.Inject constructor(override val vra
             return ""
         return """|
             |queryParams: {
-            |   <${this.queryParameters.map { "${it.name}${if (!it.required) "?" else ""}: ${it.type.toVrapType().simpleTSName()}" }.joinToString(separator = ",\n")}>
+            |   <${this.queryParameters.map {"${it.name.tsRemoveRegexp()}${if (!it.required) "?" else ""}: ${it.type.toVrapType().simpleTSName()}" }.joinToString(separator = ",\n")}>
             |}
         """.trimMargin()
     }
+
+
 
     private fun relativizePaths(currentModule:String, targetModule : String) : String {
         val currentRelative : Path = Paths.get(currentModule)

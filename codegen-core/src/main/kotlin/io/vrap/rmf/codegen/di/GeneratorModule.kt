@@ -40,7 +40,7 @@ class GeneratorModule constructor(
 
     @Provides
     @Singleton
-    @Named(io.vrap.rmf.codegen.di.VrapConstants.OUTPUT_FOLDER)
+    @Named(VrapConstants.OUTPUT_FOLDER)
     fun outpuFolder(): Path = generatorConfig.outputFolder
 
     @Provides
@@ -95,7 +95,7 @@ class GeneratorModule constructor(
 
     @Provides
     @Singleton
-    fun allResources(ramlApi: Api): List<Resource> = ramlApi.allContainedResources.filter { filterSwitch.doSwitch(it) }
+    fun allResources(ramlApi: Api): List<Resource> = ramlApi.allContainedResources
 
     @Provides
     @Singleton
@@ -119,7 +119,6 @@ class GeneratorModule constructor(
 
         init {
             addSwitch(FilterTypeSwitch())
-            addSwitch(FilterResourcesSwitch())
         }
 
         private inner class FilterTypeSwitch : TypesSwitch<Boolean>() {
@@ -128,11 +127,6 @@ class GeneratorModule constructor(
 
             override fun caseStringType(stringType: StringType): Boolean = stringType.enum?.isNotEmpty() ?: false
             override fun defaultCase(`object`: EObject?): Boolean? = false
-        }
-
-        private inner class FilterResourcesSwitch : ResourcesSwitch<Boolean>() {
-            override fun caseResource(resource: Resource): Boolean = resource.resourcePathName?.isNotBlank() ?: false
-            override fun defaultCase(`object`: EObject?): Boolean = false
         }
     }
 

@@ -1,12 +1,9 @@
 package io.vrap.codegen.languages.typescript.client
 
-import com.google.inject.Inject
-import com.google.inject.name.Named
-import io.vrap.rmf.codegen.di.VrapConstants
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.FileProducer
 
-class TsClientFileProducer @Inject constructor(@Named(VrapConstants.CLIENT_PACKAGE_NAME) val clientPackage : String ): FileProducer{
+class TsClientFileProducer : FileProducer{
 
     override fun produceFiles(): List<TemplateFile> {
         return listOf(produceRequestTemplate())
@@ -14,26 +11,35 @@ class TsClientFileProducer @Inject constructor(@Named(VrapConstants.CLIENT_PACKA
 
     fun produceRequestTemplate(): TemplateFile{
         var content = """
-            |
-            |type HttpMethod =
-            |  | "GET"
-            |  | "HEAD"
-            |  | "POST"
-            |  | "PUT"
-            |  | "DELETE"
-            |  | "CONNECT"
-            |  | "OPTIONS"
-            |  | "TRACE";
-            |
-            |export interface CommonRequest<T, R> {
-            |  method: HttpMethod;
-            |  uriTemplate: string;
-            |  pathVariables?: { [key: string]: string | number | boolean };
-            |  queryParams?: { [key: string]: string | number | boolean };
-            |  payload?: T;
-            |}
-            |
-        """.trimMargin()
+
+type HttpMethod =
+  | "GET"
+  | "HEAD"
+  | "POST"
+  | "PUT"
+  | "DELETE"
+  | "CONNECT"
+  | "OPTIONS"
+  | "TRACE";
+
+export interface CommonRequest<T> {
+  method: HttpMethod;
+  uriTemplate: string;
+  mediaType?: string;
+  pathVariables?: { [key: string]: string | number | boolean };
+  queryParams?: { [key: string]: string | number | boolean };
+  payload?: T;
+}
+
+export class ApiRequest<I, O, T extends CommonRequest<I>> {
+  constructor(readonly commonRequest: T) {}
+
+  execute(): Promise<O> {
+    return null;
+  }
+}
+
+        """
 
 
         return TemplateFile(content = content,relativePath = "base/requests-utils.ts")

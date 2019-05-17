@@ -8,6 +8,7 @@ import io.vrap.codegen.languages.java.modules.JavaCompleteModule
 import io.vrap.codegen.languages.java.plantuml.PlantUmlModule
 import io.vrap.codegen.languages.php.PhpBaseTypes
 import io.vrap.codegen.languages.php.model.PhpModelModule
+import io.vrap.codegen.languages.typescript.client.TypescriptClientModule
 import io.vrap.codegen.languages.typescript.joi.JoiBaseTypes
 import io.vrap.codegen.languages.typescript.joi.JoiModule
 import io.vrap.codegen.languages.typescript.model.TypeScriptBaseTypes
@@ -31,16 +32,19 @@ import javax.tools.ToolProvider
 class TestCodeGenerator {
 
     companion object {
-        private val importApiPath : Path = Paths.get("../../commercetools-api-reference/api.raml")
-        private val platformApiPath : Path = Paths.get("../api-spec/api.raml")
+        private val importApiPath: Path = Paths.get("../../commercetools-api-reference/api.raml")
+        private val platformApiPath: Path = Paths.get("../api-spec/api.raml")
         val apiProvider: ApiProvider = ApiProvider(importApiPath)
-        val generatorConfig = CodeGeneratorConfig(basePackageName = "com.commercetools.importer")
+        val generatorConfig = CodeGeneratorConfig(
+                modelPackage = "models",
+                clientPackage = "client",
+                outputFolder = Paths.get("/Users/abeniasaad/IdeaProjects/rmf-codegen/typescript_client/src/gen"))
     }
 
     @Test
     fun generateTsModels() {
         val generatorModule = GeneratorModule(apiProvider, generatorConfig, TypeScriptBaseTypes)
-        val generatorComponent = GeneratorComponent(generatorModule, TypeScriptModelModule())
+        val generatorComponent = GeneratorComponent(generatorModule, TypeScriptModelModule(),TypescriptClientModule())
         generatorComponent.generateFiles()
     }
 
