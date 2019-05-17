@@ -2,11 +2,14 @@ package io.vrap.codegen.languages.typescript
 
 import io.vrap.codegen.languages.java.extensions.resource
 import io.vrap.codegen.languages.java.extensions.toRequestName
+import io.vrap.codegen.languages.php.extensions.toResourceName
 import io.vrap.rmf.raml.model.resources.Method
+import io.vrap.rmf.raml.model.resources.Resource
 
 
 fun Method.tsRequestName():String = "${this.toRequestName()}Request"
-fun Method.tsRequestModuleName(clientPackageName: String):String = "$clientPackageName.${this.resource().resourcePathName}${this.toRequestName()}Request"
+fun Method.tsRequestModuleName(clientPackageName: String):String = "$clientPackageName.${this.resource().resourcePathName}.${this.toRequestName()}Request"
+
 fun Method.tsMediaType(): String{
     return if(this.bodies.isNullOrEmpty() || this.bodies[0].contentMediaType.type().isNullOrEmpty())
         ""
@@ -25,3 +28,5 @@ fun String.tsRemoveRegexp():String {
     }
     return this
 }
+
+fun Resource.tsRequestModuleName(clientPackageName: String):String = "$clientPackageName.${this.resourcePathName}.${this.toResourceName()}RequestBuilder"
