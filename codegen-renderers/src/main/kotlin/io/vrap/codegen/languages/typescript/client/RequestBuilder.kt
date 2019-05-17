@@ -114,8 +114,8 @@ class RequestBuilder @Inject constructor(
                         |   uriTemplate: '${it.resource().fullUri.template}',
                         |   pathVariables: this.pathArgs,
                         |   <${if(it.tsMediaType().isNotEmpty()) "${it.tsMediaType()}," else ""}>
-                        |   <${if(it.queryParameters.isNullOrEmpty()) "" else "queryParams: methodArgs.queryArgs,"}>
-                        |   <${if(it.bodies.isNullOrEmpty()) "" else "payload: methodArgs.payload,"}>
+                        |   <${if(it.queryParameters.isNullOrEmpty()) "" else "queryParams: (methodArgs || {} as any).queryArgs,"}>
+                        |   <${if(it.bodies.isNullOrEmpty()) "" else "payload: (methodArgs || {} as any).payload,"}>
                         |}
                     """.trimMargin()
 
