@@ -124,10 +124,7 @@ class TypescriptMethodRenderer @Inject constructor(override val vrapTypeProvider
         return currentRelative.relativize(targetRelative).toString().replaceFirst("../","")
     }
 
-    private fun Method.pathArguments(): List<String> {
-        val urlPathParts = this.resource().fullUri.template.split("/").filter { it.isNotEmpty() }
-        return urlPathParts.filter { it.startsWith("{") && it.endsWith("}") }.map { it.replace("{", "").replace("}", "") }
-    }
+    private fun Method.pathArguments(): List<String> = this.resource().fullUri.variables.toList()
 
     private fun Method.queryParametersList(): List<String> = this.queryParameters.map { it.name }
 

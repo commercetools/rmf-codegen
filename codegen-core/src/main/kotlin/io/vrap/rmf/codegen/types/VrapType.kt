@@ -55,7 +55,7 @@ class VrapEnumType(val `package` :String, val simpleClassName:String) : VrapType
 }
 
 /**
- * Represent a tpe that comes from the default package
+ * Represent a type that comes from the default package
  */
 class VrapScalarType(val scalarType:String) : VrapType() {
 

@@ -11,7 +11,7 @@ import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.modules.Api
 import io.vrap.rmf.raml.model.resources.Resource
 
-class EntryPointFileProducer @Inject constructor(
+class ApiRootFileProducer @Inject constructor(
         @Named(VrapConstants.CLIENT_PACKAGE_NAME) val client_package: String,
         api: Api,
         vrapTypeProvider: VrapTypeProvider
@@ -22,10 +22,10 @@ class EntryPointFileProducer @Inject constructor(
 
     override fun produceFiles(): List<TemplateFile> {
 
-        return listOf(produceEntryPoint(rootResources[0]))
+        return listOf(produceApiRoot(rootResources[0]))
     }
 
-    fun produceEntryPoint(type: Resource): TemplateFile {
+    fun produceApiRoot(type: Resource): TemplateFile {
         val modeuleName = "$client_package.ApiRoot"
         return TemplateFile(
                 relativePath = modeuleName.replace(".", "/") + ".ts",
