@@ -8,6 +8,7 @@ import io.vrap.codegen.languages.java.modules.JavaCompleteModule
 import io.vrap.codegen.languages.java.plantuml.PlantUmlModule
 import io.vrap.codegen.languages.php.PhpBaseTypes
 import io.vrap.codegen.languages.php.model.PhpModelModule
+import io.vrap.codegen.languages.typescript.client.TypescriptClientModule
 import io.vrap.codegen.languages.typescript.joi.JoiBaseTypes
 import io.vrap.codegen.languages.typescript.joi.JoiModule
 import io.vrap.codegen.languages.typescript.model.TypeScriptBaseTypes
@@ -40,7 +41,7 @@ class TestCodeGenerator {
     @Test
     fun generateTsModels() {
         val generatorModule = GeneratorModule(apiProvider, generatorConfig, TypeScriptBaseTypes)
-        val generatorComponent = GeneratorComponent(generatorModule, TypeScriptModelModule())
+        val generatorComponent = GeneratorComponent(generatorModule, TypeScriptModelModule(),TypescriptClientModule())
         generatorComponent.generateFiles()
     }
 

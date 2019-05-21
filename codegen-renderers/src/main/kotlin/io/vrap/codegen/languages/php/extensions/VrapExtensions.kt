@@ -91,6 +91,10 @@ fun Method.toRequestName(): String {
     return this.resource().fullUri.toParamName("By") + this.method.toString().capitalize()
 }
 
+fun Resource.toResourceName(): String {
+    return this.fullUri.toParamName("By")
+}
+
 fun UriTemplate.toParamName(delimiter: String): String {
     return this.toParamName(delimiter, "")
 }

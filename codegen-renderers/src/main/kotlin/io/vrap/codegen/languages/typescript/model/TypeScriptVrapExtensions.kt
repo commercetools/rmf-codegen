@@ -9,6 +9,6 @@ fun VrapType.simpleTSName():String{
         is VrapEnumType -> this.simpleClassName
         is VrapObjectType -> this.simpleClassName
         is VrapArrayType -> "${this.itemType.simpleName()}[]"
-        is VrapNilType -> throw IllegalStateException("$this has no simple class name.")
+        is VrapNilType -> this.name
     }
 }

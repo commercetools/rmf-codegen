@@ -28,10 +28,6 @@ interface  ObjectTypeExtensions : io.vrap.codegen.languages.ExtensionsBase {
                 .distinct()
                 .toList()
 
-        if(result.contains("")){
-            println()
-        }
-
         return result
     }
 }
