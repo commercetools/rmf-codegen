@@ -105,7 +105,7 @@ class JavaModelClassFileProducer @Inject constructor(override val vrapTypeProvid
         }
         return ""
     }
-
+    
     private fun ObjectType.beanFields() = this.allProperties
             .filter { it.name != this.discriminator() }
             .map { it.toJavaField() }.joinToString(separator = "\n\n")
