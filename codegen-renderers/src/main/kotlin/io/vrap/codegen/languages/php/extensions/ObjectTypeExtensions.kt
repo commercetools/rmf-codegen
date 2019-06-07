@@ -93,10 +93,6 @@ interface  ObjectTypeExtensions : ExtensionsBase {
                 .distinct()
                 .toList()
 
-        if(result.contains("")){
-            println()
-        }
-
         return result
     }
 }

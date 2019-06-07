@@ -1,5 +1,7 @@
 # rmf-codegen
 
+[![Build Status](https://travis-ci.com/vrapio/rmf-codegen.svg?branch=master)](https://travis-ci.com/vrapio/rmf-codegen)
+
 Provides RAML code generators based on [RMF](https://github.com/vrapio/rest-modeling-framework).
 The code generators are written in [kotlin](https://kotlinlang.org/).
 

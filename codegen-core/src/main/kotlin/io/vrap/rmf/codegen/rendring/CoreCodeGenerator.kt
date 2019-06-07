@@ -4,15 +4,17 @@ import com.google.inject.Inject
 import io.vrap.rmf.codegen.common.generator.core.ResourceCollection
 import io.vrap.rmf.codegen.io.DataSink
 import io.vrap.rmf.raml.model.resources.Method
+import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.types.ObjectType
 import io.vrap.rmf.raml.model.types.StringType
 import org.slf4j.LoggerFactory
 
-class CoreCodeGenerator @Inject constructor(val dataSink: DataSink
-                                            ,private val allObjectTypes: MutableList<ObjectType>
-                                            ,private val allStringTypes : MutableList<StringType>
-                                            ,private val allResourceCollections: MutableList<ResourceCollection>
-                                            ,private val allResourceMethods: MutableList<Method>
+class CoreCodeGenerator @Inject constructor(val dataSink: DataSink,
+                                            private val allObjectTypes: MutableList<ObjectType>,
+                                            private val allStringTypes : MutableList<StringType>,
+                                            private val allResourceCollections: MutableList<ResourceCollection>,
+                                            private val allResourceMethods: MutableList<Method>,
+                                            private val allResources: MutableList<Resource>
                                             ) {
 
     private val LOGGER = LoggerFactory.getLogger(CoreCodeGenerator::class.java)
@@ -28,6 +30,9 @@ class CoreCodeGenerator @Inject constructor(val dataSink: DataSink
 
     @Inject(optional = true)
     lateinit var allResourceMethodGenerators: MutableSet<MethodRenderer>
+
+    @Inject(optional = true)
+    lateinit var allResourceGenerators: MutableSet<ResourceRenderer>
 
     @Inject(optional = true)
     lateinit var fileProducers: MutableSet<FileProducer>
@@ -65,6 +70,13 @@ class CoreCodeGenerator @Inject constructor(val dataSink: DataSink
             LOGGER.info("generating files for resource methods")
             allResourceMethodGenerators.flatMap { resMethodRenderer ->
                 allResourceMethods.map { resMethodRenderer.render(it) }
+            }.map { dataSink.write(it) }
+        }
+
+        if (::allResourceGenerators.isInitialized) {
+            LOGGER.info("generating files for resource methods")
+            allResourceGenerators.flatMap { resMethodRenderer ->
+                allResources.map { resMethodRenderer.render(it) }
             }.map { dataSink.write(it) }
         }
 

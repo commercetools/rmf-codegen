@@ -8,7 +8,7 @@ import io.vrap.rmf.codegen.rendring.utils.keepIndentation
 class JavaStaticFilesProducer : FileProducer {
 
     override fun produceFiles(): List<TemplateFile> {
-        return listOf(produceApiRequestInterface())
+        return listOf(produceApiRequestInterface(), produceModelDraftBuilder())
     }
 
     private fun produceApiRequestInterface() : TemplateFile {
@@ -35,6 +35,29 @@ class JavaStaticFilesProducer : FileProducer {
         return TemplateFile (
             content = content,
             relativePath = "com/commercetools/importer/commands/ApiRequest.java"
+        )
+    }
+    
+    private fun produceModelDraftBuilder() : TemplateFile {
+        val content = """
+            |package com.commercetools.importer.models;
+            |
+            |import java.util.function.Supplier;
+            |
+            |public interface Builder<T> extends Supplier<T> {
+            |   
+            |   T build();
+            |   
+            |   default T get() {
+            |       return build();
+            |   }
+            |}
+            |
+        """.escapeAll().trimMargin().keepIndentation()
+
+        return TemplateFile (
+                content = content,
+                relativePath = "com/commercetools/importer/models/Builder.java"
         )
     }
 }

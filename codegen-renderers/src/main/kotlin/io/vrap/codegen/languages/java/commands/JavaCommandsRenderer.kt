@@ -72,7 +72,7 @@ class JavaCommandsRenderer @Inject constructor(override val vrapTypeProvider: Vr
         val stringFormatArgs = pathArguments
                 .map { it.replace("{", "").replace("}", "") }
                 .map { "this.$it" }
-                .joinToString(separator = ",")
+                .joinToString(separator = ", ")
         
         val httpRequestIntentArguments = mutableListOf<String>()
         httpRequestIntentArguments.add("HttpMethod.${this.method.name}")
@@ -146,8 +146,10 @@ class JavaCommandsRenderer @Inject constructor(override val vrapTypeProvider: Vr
     }
     
     private fun Method.pathArguments() : List<String> {
-        val urlPathParts = this.resource().fullUri.template.split("/").filter { it.isNotEmpty() }
-        return urlPathParts.filter { it.startsWith("{") && it.endsWith("}") }.map { it.replace("{", "").replace("}", "") }
+        return this.resource().fullUri.components
+                .filter { it is Expression }
+                .map { it.value }
+                .map { it.replace("{", "").replace("}", "") }
     }
     
     private fun Method.bodyObjectName() : String? {
