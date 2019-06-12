@@ -43,8 +43,10 @@ class PhpFileProducer @Inject constructor() : FileProducer {
             apiRequest(),
             mapperFactory(),
             jsonObject(),
+            baseJsonObject(),
             mapperIterator(),
-            mapCollection()
+            mapCollection(),
+            psalm()
     )
 
     private fun collection(): TemplateFile {
@@ -134,7 +136,34 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                         |
                         |namespace ${packagePrefix.toNamespaceName()}\Base;
                         |
-                        |class JsonObject implements \JsonSerializable
+                        |class JsonObject extends BaseJsonObject
+                        |{
+                        |    protected function toArray(): array
+                        |    {
+                        |        $!data = array_filter(
+                        |            get_object_vars($!this),
+                        |            function($!value, $!key) {
+                        |                return !is_null($!value);
+                        |            },
+                        |            ARRAY_FILTER_USE_BOTH
+                        |        );
+                        |        $!data = array_merge($!this->getRawDataArray(), $!data);
+                        |        return $!data;
+                        |    }
+                        |}
+                    """.trimMargin().forcedLiteralEscape()
+        )
+    }
+
+    private fun baseJsonObject(): TemplateFile {
+        return TemplateFile(relativePath = "src/Base/BaseJsonObject.php",
+                content = """
+                        |<?php
+                        |${PhpSubTemplates.generatorInfo}
+                        |
+                        |namespace ${packagePrefix.toNamespaceName()}\Base;
+                        |
+                        |abstract class BaseJsonObject implements \JsonSerializable
                         |{
                         |    private $!rawData;
                         |
@@ -151,6 +180,7 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                         |    public function get(string $!field)
                         |    {
                         |        if (isset($!this->rawData->$!field)) {
+                        |            /** @psalm-suppress PossiblyNullPropertyFetch */
                         |            return $!this->rawData->$!field;
                         |        }
                         |        return null;
@@ -161,22 +191,21 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                         |        return $!this->toArray();
                         |    }
                         |
-                        |    protected function toArray(): array
+                        |    /**
+                        |     * @return array
+                        |     */
+                        |    protected function getRawDataArray(): array
                         |    {
-                        |        $!rawData = is_null($!this->rawData) ? [] : get_object_vars($!this->rawData);
-                        |        $!data = array_filter(
-                        |            get_object_vars($!this),
-                        |            function($!value, $!key) {
-                        |                if ($!key == 'rawData') {
-                        |                    return false;
-                        |                }
-                        |                return !is_null($!value);
-                        |            },
-                        |            ARRAY_FILTER_USE_BOTH
-                        |        );
-                        |        $!data = array_merge($!rawData, $!data);
-                        |        return $!data;
+                        |        if (is_null($!this->rawData)) {
+                        |            return [];
+                        |        }
+                        |        return get_object_vars($!this->rawData);
                         |    }
+                        |
+                        |    /**
+                        |     * @return array
+                        |     */
+                        |    abstract protected function toArray();
                         |}
                     """.trimMargin().forcedLiteralEscape()
         )
@@ -343,7 +372,8 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |  },
                     |  "require-dev": {
                     |    "monolog/monolog": "^1.3",
-                    |    "phpunit/phpunit": "^6.0",
+                    |    "phpunit/phpunit": "^8.0",
+                    |    "vimeo/psalm": "^3.4",
                     |    "cache/array-adapter": "^1.0"
                     |  }
                     |}
@@ -541,7 +571,8 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |
                     |        $!token = $!this->provider->getToken();
                     |        // ensure token to be invalidated in cache before TTL
-                    |        $!ttl = max(1, floor($!token->getExpiresIn()/2));
+                    |        $!expiresIn = $!token->getExpiresIn() ?? 0;
+                    |        $!ttl = max(1, $!expiresIn - 300);
                     |        $!this->saveToken($!token->getValue(), $!item, (int)$!ttl);
                     |
                     |        return $!token;
@@ -580,9 +611,6 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |
                     |    /** @var Client */
                     |    private $!client;
-                    |
-                    |    /** @var ClientCredentials */
-                    |    private $!credentials;
                     |
                     |    /** @var ClientCredentialsConfig */
                     |    private $!authConfig;
@@ -667,6 +695,7 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |
                     |use GuzzleHttp\MessageFormatter;
                     |use GuzzleHttp\Middleware;
+                    |use Psr\Cache\CacheItemPoolInterface;
                     |use Psr\Log\LoggerInterface;
                     |use Psr\Log\LogLevel;
                     |
@@ -716,7 +745,7 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |    /** @var string */
                     |    private $!clientSecret;
                     |
-                    |    /** @var string */
+                    |    /** @var ?string */
                     |    private $!scope;
                     |
                     |    public function __construct(array $!authConfig = [])
@@ -842,6 +871,7 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |use GuzzleHttp\Client;
                     |use League\Flysystem\Adapter\Local;
                     |use League\Flysystem\Filesystem;
+                    |use Psr\Cache\CacheItemPoolInterface;
                     |
                     |class OAuthHandlerFactory
                     |{
@@ -920,7 +950,6 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |namespace ${packagePrefix.toNamespaceName()}\Client;
                     |
                     |use ${packagePrefix.toNamespaceName()}\Base\JsonObject;
-                    |use ${packagePrefix.toNamespaceName()}\Base\ResultMapper;
                     |use GuzzleHttp\Psr7\Request;
                     |use Psr\Http\Message\ResponseInterface;
                     |use GuzzleHttp\Psr7;
@@ -961,16 +990,6 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |        $!headers[$!header] = $!defaultValue;
                     |
                     |        return $!headers;
-                    |    }
-                    |
-                    |    /**
-                    |     * @param ResponseInterface $!response
-                    |     * @param ResultMapper $!mapper
-                    |     * @return mixed
-                    |     */
-                    |    public function map(ResponseInterface $!response, ResultMapper $!mapper)
-                    |    {
-                    |        return $!mapper->map($!this, $!response);
                     |    }
                     |
                     |    /**
@@ -1034,6 +1053,9 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |
                     |namespace ${packagePrefix.toNamespaceName()}\Base;
                     |
+                    |/**
+                    | * @template T
+                    | */
                     |class MapCollection implements Collection, \ArrayAccess, \JsonSerializable
                     |{
                     |    private $!data;
@@ -1074,7 +1096,10 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |    {
                     |    }
                     |
-                    |    final protected function get($!index)
+                    |    /**
+                    |     * @psalm-return ?T
+                    |     */
+                    |    final protected function get(int $!index)
                     |    {
                     |        if (isset($!this->data[$!index])) {
                     |            return $!this->data[$!index];
@@ -1082,7 +1107,10 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |        return null;
                     |    }
                     |
-                    |    final protected function set($!data, $!index)
+                    |    /**
+                    |     * @psalm-param ?T $!data
+                    |     */
+                    |    final protected function set($!data, ?int $!index)
                     |    {
                     |        if (is_null($!index)) {
                     |            $!this->data[] = $!data;
@@ -1092,6 +1120,7 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |    }
                     |
                     |    /**
+                    |     * @psalm-param ?T $!value
                     |     * @param $!value
                     |     * @return Collection
                     |     */
@@ -1103,24 +1132,30 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |        return $!this;
                     |    }
                     |
-                    |    public function at($!index)
+                    |    /**
+                    |     * @psalm-return ?T
+                    |     */
+                    |    public function at(int $!index)
                     |    {
                     |        return $!this->mapper()($!index);
                     |    }
                     |
+                    |    /**
+                    |     * @psalm-return callable(mixed):?T
+                    |     */
                     |    protected function mapper()
                     |    {
-                    |        return function ($!index) {
+                    |        return function (?int $!index) {
                     |            return $!this->get($!index);
                     |        };
                     |    }
                     |
-                    |    final protected function addToIndex($!index, $!key, $!value)
+                    |    final protected function addToIndex(int $!index, $!key, $!value)
                     |    {
                     |        $!this->indexes[$!index][$!key] = $!value;
                     |    }
                     |
-                    |    final protected function valueByKey($!index, $!key)
+                    |    final protected function valueByKey(int $!index, $!key)
                     |    {
                     |        return isset($!this->indexes[$!index][$!key]) ? $!this->at($!this->indexes[$!index][$!key]) : null;
                     |    }
@@ -1213,5 +1248,68 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |    }
                     |}
                 """.trimMargin().forcedLiteralEscape())
+    }
+
+    private fun psalm(): TemplateFile {
+        return TemplateFile(relativePath = "psalm.xml",
+                content = """
+                        |<?xml version="1.0"?>
+                        |<psalm
+                        |    totallyTyped="false"
+                        |    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                        |    xmlns="https://getpsalm.org/schema/config"
+                        |    xsi:schemaLocation="https://getpsalm.org/schema/config vendor/vimeo/psalm/config.xsd"
+                        |
+                        |    strictBinaryOperands="true"
+                        |    cacheDirectory="cache"
+                        |>
+                        |    <projectFiles>
+                        |        <directory name="src" />
+                        |        <ignoreFiles>
+                        |            <directory name="vendor" />
+                        |        </ignoreFiles>
+                        |    </projectFiles>
+                        |
+                        |    <issueHandlers>
+                        |        <LessSpecificReturnType errorLevel="info" />
+                        |        <MoreSpecificImplementedParamType errorLevel="info" />
+                        |        <!-- level 3 issues - slightly lazy code writing, but provably low false-negatives -->
+                        |
+                        |        <DeprecatedMethod errorLevel="info" />
+                        |        <DeprecatedProperty errorLevel="info" />
+                        |        <DeprecatedClass errorLevel="info" />
+                        |        <DeprecatedConstant errorLevel="info" />
+                        |        <DeprecatedInterface errorLevel="info" />
+                        |        <DeprecatedTrait errorLevel="info" />
+                        |
+                        |        <InternalMethod errorLevel="info" />
+                        |        <InternalProperty errorLevel="info" />
+                        |        <InternalClass errorLevel="info" />
+                        |
+                        |        <MissingClosureReturnType errorLevel="info" />
+                        |        <MissingReturnType errorLevel="info" />
+                        |        <MissingPropertyType errorLevel="info" />
+                        |        <InvalidDocblock errorLevel="info" />
+                        |        <MisplacedRequiredParam errorLevel="info" />
+                        |
+                        |        <PropertyNotSetInConstructor errorLevel="info" />
+                        |        <MissingConstructor errorLevel="info" />
+                        |        <MissingClosureParamType errorLevel="info" />
+                        |        <MissingParamType errorLevel="info" />
+                        |
+                        |        <RedundantCondition errorLevel="info" />
+                        |
+                        |        <DocblockTypeContradiction errorLevel="info" />
+                        |        <RedundantConditionGivenDocblockType errorLevel="info" />
+                        |
+                        |        <UnresolvableInclude errorLevel="info" />
+                        |
+                        |        <RawObjectIteration errorLevel="info" />
+                        |
+                        |        <InvalidStringClass errorLevel="info" />
+                        |    </issueHandlers>
+                        |</psalm>
+                    """.trimMargin()
+        )
     }
 }

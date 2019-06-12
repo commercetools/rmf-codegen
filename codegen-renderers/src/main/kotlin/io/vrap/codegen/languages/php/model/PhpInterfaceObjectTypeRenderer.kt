@@ -52,33 +52,7 @@ class PhpInterfaceObjectTypeRenderer @Inject constructor(override val vrapTypePr
         )
     }
 
-
-    fun ObjectType.constructor(): String {
-        return if (this.discriminator != null)
-            """
-            |/**
-            | * @param array $!data
-            | */
-            |public function __construct(array $!data = []) {
-            |    parent::__construct($!data);
-            |    $!this->set${this.discriminator.capitalize()}(static::DISCRIMINATOR_VALUE);
-            |}
-            """.trimMargin()
-        else
-            ""
-    }
-
     fun ObjectType.imports() = this.getImports().map { "use ${it.escapeAll()};" }.joinToString(separator = "\n")
-
-    fun Property.toPhpField(): String {
-
-        return """
-            |/**
-            | * @var ${this.type.toVrapType().simpleName()}
-            | */
-            |protected $${if (this.isPatternProperty()) "values" else this.name};
-        """.trimMargin();
-    }
 
     fun Property.toPhpConstant(): String {
 
@@ -97,10 +71,6 @@ class PhpInterfaceObjectTypeRenderer @Inject constructor(override val vrapTypePr
                 .filter { it -> superTypeAllProperties.none { property -> it.name == property.name } }
                 .map { it.toPhpConstant() }.joinToString(separator = "\n")
     }
-
-    fun ObjectType.toBeanFields() = this.properties
-//            .filter { it.name != this.discriminator }
-            .map { it.toPhpField() }.joinToString(separator = "\n\n")
 
     fun ObjectType.setters() = this.properties
             //Filter the discriminators because they don't make much sense the generated bean
@@ -151,39 +121,10 @@ class PhpInterfaceObjectTypeRenderer @Inject constructor(override val vrapTypePr
             """
             |/**
             | ${this.type.toPhpComment()}
-            | * @return ${this.type.toVrapType().simpleName()}
+            | * @return ?${this.type.toVrapType().simpleName()}
             | */
             |public function get${this.name.capitalize()}();
     """.trimMargin()
-        }
-    }
-
-    fun Property.validationAnnotations(): String {
-        val validationAnnotations = ArrayList<String>()
-        if (this.required != null && this.required!!) {
-            validationAnnotations.add("@NotNull")
-        }
-        if (CascadeValidationCheck.doSwitch(this.type)) {
-            validationAnnotations.add("@Valid")
-        }
-        return validationAnnotations.joinToString(separator = "\n")
-    }
-
-    private object CascadeValidationCheck : TypesSwitch<Boolean>() {
-        override fun defaultCase(`object`: EObject?): Boolean? {
-            return false
-        }
-
-        override fun caseObjectType(objectType: ObjectType?): Boolean? {
-            return true
-        }
-
-        override fun caseArrayType(arrayType: ArrayType): Boolean? {
-            return if (arrayType.items != null) {
-                doSwitch(arrayType.items)
-            } else {
-                false
-            }
         }
     }
 }

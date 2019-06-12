@@ -59,7 +59,7 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
         return if (this.discriminator != null)
             """
             |/**
-            | * @param array $!data
+            | * @param ?object $!data
             | */
             |public function __construct(object $!data = null)
             |{
@@ -82,7 +82,7 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
 
         return """
             |/**
-            | * @var ${this.type.toVrapType().simpleName()}
+            | * @var ?${this.type.toVrapType().simpleName()}
             | */
             |protected $${if (this.isPatternProperty()) "values" else this.name};
         """.trimMargin();
@@ -170,14 +170,14 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
                 | */
                 |public function values()
                 |{
-                |    return $!values;
+                |    return $!this->values;
                 |}
             """.trimMargin()
         } else {
             """
                 |/**
                 | ${this.type.toPhpComment()}
-                | * @return ${this.type.toVrapType().simpleName()}
+                | * @return ?${this.type.toVrapType().simpleName()}
                 | */
                 |public function get${this.name.capitalize()}()
                 |{

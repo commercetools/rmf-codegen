@@ -44,7 +44,7 @@ fun VrapType.fullClassName():String{
     return when(this){
         is VrapScalarType -> this.scalarType
         is VrapEnumType -> "string"
-        is VrapObjectType -> "${this.namespaceName()}\\\\${this.simpleClassName}"
+        is VrapObjectType -> "${this.namespaceName()}\\${this.simpleClassName}"
         is VrapArrayType -> "${this.itemType.fullClassName()}${if (!this.itemType.isScalar()) "Collection" else "[]"}"
         is VrapNilType -> throw IllegalStateException("$this has no full class name.")
     }
