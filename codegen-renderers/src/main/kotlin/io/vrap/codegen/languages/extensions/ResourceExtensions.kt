@@ -5,6 +5,7 @@ import com.google.common.base.CaseFormat
 import io.vrap.codegen.languages.php.extensions.toParamName
 import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.types.StringInstance
+import io.vrap.rmf.raml.model.util.StringCaseFormat
 
 fun Resource.getMethodName(): String {
     val annotation = this.getAnnotation("methodName")
@@ -19,5 +20,5 @@ fun Resource.getMethodName(): String {
         return CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_CAMEL, this.relativeUri.toParamName("With", "Value"))
     }
     val uri = this.relativeUri.template
-    return CaseFormat.LOWER_HYPHEN.to(CaseFormat.LOWER_CAMEL, uri.replaceFirst("/".toRegex(), ""))
+    return StringCaseFormat.LOWER_CAMEL_CASE.apply(uri.replaceFirst("/".toRegex(), "").replace("/", "_"))
 }
