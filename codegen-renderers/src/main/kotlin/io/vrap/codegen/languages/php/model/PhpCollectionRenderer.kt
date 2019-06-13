@@ -46,6 +46,7 @@ class PhpCollectionRenderer @Inject constructor(override val vrapTypeProvider: V
             |{
             |    /**
             |     * @psalm-assert ${vrapType.simpleClassName} $!value
+            |     * @psalm-param ${vrapType.simpleClassName}|object $!value
             |     * @return ${vrapType.simpleClassName}Collection
             |     * @throws InvalidArgumentException
             |     */
@@ -54,7 +55,7 @@ class PhpCollectionRenderer @Inject constructor(override val vrapTypeProvider: V
             |        if (!$!value instanceof ${vrapType.simpleClassName}) {
             |            throw new InvalidArgumentException();
             |        }
-            |        parent::add($!value);
+            |        $!this->store($!value);
             |
             |        return $!this;
             |    }

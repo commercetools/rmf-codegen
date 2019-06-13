@@ -41,13 +41,14 @@ class PhpMethodRenderer @Inject constructor(override val vrapTypeProvider: VrapT
             |
             |use ${packagePrefix.toNamespaceName().escapeAll()}\\Client\\ApiRequest;
             |
+            |/** @psalm-suppress PropertyNotSetInConstructor */
             |class ${type.toRequestName()} extends ApiRequest
             |{
             |   // const RESULT_TYPE = <returnType(request.returnType)>::class;
             |
             |    /**
-            |     <<${type.allParams()?.asSequence()?.map { "* @param ${'$'}$it" }?.joinToString(separator = "\n") ?: "*"}>>
-            |     * @param $!body
+            |     <<${type.allParams()?.asSequence()?.map { "* @param string $$it" }?.joinToString(separator = "\n") ?: "*"}>>
+            |     * @param object $!body
             |     * @param array $!headers
             |     */
             |    public function __construct(${type.allParams()?.asSequence()?.map { "$$it, "  }?.joinToString(separator = "") ?: ""}$!body = null, array $!headers = [])
@@ -72,8 +73,8 @@ class PhpMethodRenderer @Inject constructor(override val vrapTypeProvider: VrapT
             |   // <endif>
             |}
         """.trimMargin().keepIndentation("<<", ">>").forcedLiteralEscape()
-        val relativeTypeNamespace = vrapType.`package`.toNamespaceName().replace(packagePrefix.toNamespaceName() + "\\", "")
-        val relativePath = "src/" + relativeTypeNamespace.toNamespaceDir() + "/" + type.toRequestName() + ".php"
+        val relativeTypeNamespace = vrapType.`package`.toNamespaceName().replace(packagePrefix.toNamespaceName() + "\\", "").replace("\\", "/")
+        val relativePath = "src/" + relativeTypeNamespace + "/" + type.toRequestName() + ".php"
         return TemplateFile(
                 relativePath = relativePath,
                 content = content
