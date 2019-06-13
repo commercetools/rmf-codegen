@@ -78,6 +78,76 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                         |class MapperFactory
                         |{
                         |    const DATETIME_FORMAT = "Y-m-d?H:i:s.uT";
+                        |
+                        |    /**
+                        |     * @psalm-return callable(mixed): ?string
+                        |     */
+                        |    public static function stringMapper() {
+                        |       return
+                        |           /** @psalm-param ?mixed $!data */
+                        |           function ($!data): ?string {
+                        |               if (is_null($!data)) {
+                        |                   return null;
+                        |               }
+                        |               return (string)$!data;
+                        |           };
+                        |    }
+                        |
+                        |    /**
+                        |     * @psalm-return callable(?mixed): ?float
+                        |     */
+                        |    public static function numberMapper() {
+                        |       return
+                        |           /** @psalm-param ?mixed $!data */
+                        |           function ($!data): ?float {
+                        |               if (is_null($!data)) {
+                        |                   return null;
+                        |               }
+                        |               return (float)$!data;
+                        |           };
+                        |    }
+                        |
+                        |    /**
+                        |     * @psalm-return callable(?mixed): ?int
+                        |     */
+                        |    public static function integerMapper() {
+                        |       return
+                        |           /** @psalm-param ?mixed $!data */
+                        |           function ($!data): ?int {
+                        |               if (is_null($!data)) {
+                        |                   return null;
+                        |               }
+                        |               return (int)$!data;
+                        |           };
+                        |    }
+                        |
+                        |    /**
+                        |     * @psalm-return callable(?mixed): ?DateTimeImmutable
+                        |     */
+                        |    public static function dateTimeMapper(string $!format = self::DATETIME_FORMAT) {
+                        |       return
+                        |           /** @psalm-param ?mixed $!data */
+                        |           function ($!data) use ($!format): ?DateTimeImmutable {
+                        |               if (is_null($!data)) {
+                        |                   return null;
+                        |               }
+                        |               return DateTimeImmutable::createFromFormat($!format, $!data);
+                        |           };
+                        |    }
+                        |
+                        |    /**
+                        |     * @psalm-return callable(?mixed): ?object
+                        |     */
+                        |    public static function classMapper(string $!className) {
+                        |       return
+                        |           /** @psalm-param ?mixed $!data */
+                        |           function ($!data) use ($!className): ?object {
+                        |               if (is_null($!data)) {
+                        |                   return null;
+                        |               }
+                        |               return (new \ReflectionClass($!className))->newInstanceArgs([$!data]);
+                        |           };
+                        |    }
                         |}
                     """.trimMargin().forcedLiteralEscape()
         )
