@@ -217,7 +217,7 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |    }
                     |
                     |    /**
-                    |     * @psalm-assert Config|array $!config
+                    |     * @psalm-assert Config $!config
                     |     * @psalm-param mixed $!config
                     |     * @param Config|array $!config
                     |     * @throws InvalidArgumentException
@@ -935,7 +935,7 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |    private $!query;
                     |
                     |    /**
-                    |     * @param object|string|null $!body
+                    |     * @param string|null|resource|\Psr\Http\Message\StreamInterface $!body
                     |     */
                     |    public function __construct(string $!method, string $!uri, array $!headers = [], $!body = null, string $!version = '1.1')
                     |    {
@@ -1246,7 +1246,7 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |    public function offsetUnset($!offset)
                     |    {
                     |        if ($!this->offsetExists($!offset)) {
-                    |            /** psalm-suppress PossiblyNullArrayAccess */
+                    |            /** @psalm-suppress PossiblyNullArrayAccess */
                     |            unset($!this->data[$!offset]);
                     |            $!this->iterator = $!this->getIterator();
                     |        }
@@ -1266,7 +1266,6 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                         |    xsi:schemaLocation="https://getpsalm.org/schema/config vendor/vimeo/psalm/config.xsd"
                         |
                         |    strictBinaryOperands="true"
-                        |    cacheDirectory="cache"
                         |>
                         |    <projectFiles>
                         |        <directory name="src" />
@@ -1277,41 +1276,6 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                         |
                         |    <issueHandlers>
                         |        <LessSpecificReturnType errorLevel="info" />
-                        |        <MoreSpecificImplementedParamType errorLevel="info" />
-                        |        <!-- level 3 issues - slightly lazy code writing, but provably low false-negatives -->
-                        |
-                        |        <DeprecatedMethod errorLevel="info" />
-                        |        <DeprecatedProperty errorLevel="info" />
-                        |        <DeprecatedClass errorLevel="info" />
-                        |        <DeprecatedConstant errorLevel="info" />
-                        |        <DeprecatedInterface errorLevel="info" />
-                        |        <DeprecatedTrait errorLevel="info" />
-                        |
-                        |        <InternalMethod errorLevel="info" />
-                        |        <InternalProperty errorLevel="info" />
-                        |        <InternalClass errorLevel="info" />
-                        |
-                        |        <MissingClosureReturnType errorLevel="info" />
-                        |        <MissingReturnType errorLevel="info" />
-                        |        <MissingPropertyType errorLevel="info" />
-                        |        <InvalidDocblock errorLevel="info" />
-                        |        <MisplacedRequiredParam errorLevel="info" />
-                        |
-                        |        <PropertyNotSetInConstructor errorLevel="info" />
-                        |        <MissingConstructor errorLevel="info" />
-                        |        <MissingClosureParamType errorLevel="info" />
-                        |        <MissingParamType errorLevel="info" />
-                        |
-                        |        <RedundantCondition errorLevel="info" />
-                        |
-                        |        <DocblockTypeContradiction errorLevel="info" />
-                        |        <RedundantConditionGivenDocblockType errorLevel="info" />
-                        |
-                        |        <UnresolvableInclude errorLevel="info" />
-                        |
-                        |        <RawObjectIteration errorLevel="info" />
-                        |
-                        |        <InvalidStringClass errorLevel="info" />
                         |    </issueHandlers>
                         |</psalm>
                     """.trimMargin()

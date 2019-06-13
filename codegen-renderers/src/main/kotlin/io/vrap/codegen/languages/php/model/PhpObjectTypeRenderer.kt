@@ -167,6 +167,7 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
             """
                 |/**
                 | ${this.type.toPhpComment()}
+                | * @return ?${this.type.toVrapType().simpleName()}
                 | */
                 |public function values()
                 |{
@@ -176,6 +177,7 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
         } else {
             """
                 |/**
+                |
                 | ${this.type.toPhpComment()}
                 | * @return ?${this.type.toVrapType().simpleName()}
                 | */
@@ -235,23 +237,43 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
     fun Property.mapper():String {
         val type = this.type
         val defineObject = this.eContainer().toVrapType();
-        return when(type){
+        return when(type) {
             is ObjectType ->
-                """
-                   |$!data = $!this->get(${defineObject.simpleName()}::${this.toPhpConstantName()});
-                   |if (is_null($!data)) {
-                   |    return null;
-                   |}
-                   |$!this->${this.name} = new ${this.type.toVrapType().simpleName()}Model($!data);
-                """.trimMargin()
+                if (type.toVrapType().isScalar()) {
+                    """
+                        |$!data = $!this->get(${defineObject.simpleName()}::${this.toPhpConstantName()});
+                        |if (is_null($!data)) {
+                        |    return null;
+                        |}
+                        |$!this->${this.name} = $!data;
+                    """.trimMargin()
+                } else {
+                    """
+                        |$!data = $!this->get(${defineObject.simpleName()}::${this.toPhpConstantName()});
+                        |if (is_null($!data)) {
+                        |    return null;
+                        |}
+                        |$!this->${this.name} = new ${this.type.toVrapType().simpleName()}Model($!data);
+                    """.trimMargin()
+                }
             is ArrayType ->
-                """
-                   |$!data = $!this->get(${defineObject.simpleName()}::${this.toPhpConstantName()});
-                   |if (is_null($!data)) {
-                   |    return null;
-                   |}
-                   |$!this->${this.name} = ${if(type.items?.isScalar() != true) "new ${this.type.toVrapType().simpleName()}($!data)" else "$!data"};
-                """.trimMargin()
+                if (type.toVrapType().isScalar()) {
+                    """
+                        |$!data = $!this->get(${defineObject.simpleName()}::${this.toPhpConstantName()});
+                        |if (is_null($!data)) {
+                        |    return null;
+                        |}
+                        |$!this->${this.name} = $!data;
+                    """.trimMargin()
+                } else {
+                    """
+                    |$!data = $!this->get(${defineObject.simpleName()}::${this.toPhpConstantName()});
+                    |if (is_null($!data)) {
+                    |    return null;
+                    |}
+                    |$!this->${this.name} = ${if (type.items?.isScalar() != true) "new ${this.type.toVrapType().simpleName()}($!data)" else "$!data"};
+                    """.trimMargin()
+                }
             else ->
                 when (type.toVrapType()) {
                     is VrapEnumType -> """

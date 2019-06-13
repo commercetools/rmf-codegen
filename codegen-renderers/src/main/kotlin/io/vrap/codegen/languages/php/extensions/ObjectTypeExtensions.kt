@@ -1,7 +1,6 @@
 package io.vrap.codegen.languages.php.extensions
 
 import io.vrap.codegen.languages.ExtensionsBase
-import io.vrap.codegen.languages.extensions.namedSubTypes
 import io.vrap.rmf.codegen.types.*
 import io.vrap.rmf.raml.model.types.ObjectType
 import io.vrap.rmf.raml.model.types.Property
@@ -109,4 +108,4 @@ fun getImportsForType(vrapType: VrapType): String? {
     }
 }
 
-fun ObjectType.hasSubtypes(): Boolean = this.discriminator?.isNotBlank()?:false && (this.subTypes?.isNotEmpty() ?: false)
+fun ObjectType.namedSubTypes() = this.subTypes.asSequence().toList()
