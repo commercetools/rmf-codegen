@@ -10,8 +10,8 @@ object TypeScriptBaseTypes : LanguageBaseTypes(
     doubleType = nativeTypeScriptType("number"),
     stringType = nativeTypeScriptType("string"),
     booleanType = nativeTypeScriptType("boolean"),
-    dateTimeType = nativeTypeScriptType("string"),
-    dateOnlyType = nativeTypeScriptType("string"),
+    dateTimeType = nativeTypeScriptType("Date"),
+    dateOnlyType = nativeTypeScriptType("Date"),
     timeOnlyType = nativeTypeScriptType("string")
 )
 
