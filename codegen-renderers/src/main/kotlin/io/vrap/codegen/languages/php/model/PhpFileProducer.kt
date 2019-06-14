@@ -122,16 +122,20 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                         |    }
                         |
                         |    /**
-                        |     * @psalm-return callable(?mixed): ?DateTimeImmutable
+                        |     * @psalm-return callable(?string): ?DateTimeImmutable
                         |     */
                         |    public static function dateTimeMapper(string $!format = self::DATETIME_FORMAT) {
                         |       return
-                        |           /** @psalm-param ?mixed $!data */
+                        |           /** @psalm-param ?string $!data */
                         |           function ($!data) use ($!format): ?DateTimeImmutable {
                         |               if (is_null($!data)) {
                         |                   return null;
                         |               }
-                        |               return DateTimeImmutable::createFromFormat($!format, $!data);
+                        |               $!date = DateTimeImmutable::createFromFormat($!format, $!data);
+                        |               if ($!date === false) {
+                        |                   return null;
+                        |               }
+                        |               return $!date;
                         |           };
                         |    }
                         |
@@ -193,6 +197,7 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                         |
                         |abstract class BaseJsonObject implements \JsonSerializable
                         |{
+                        |    /** @var ?object */
                         |    private $!rawData;
                         |
                         |    public function __construct(object $!data = null)
@@ -209,7 +214,7 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                         |    }
                         |
                         |    /**
-                        |     * @return mixed|null
+                        |     * @return string|int|float|array<int, mixed>|\stdClass|bool|null
                         |     */
                         |    public function get(string $!field)
                         |    {
@@ -220,7 +225,7 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                         |        return null;
                         |    }
                         |
-                        |    public function jsonSerialize()
+                        |    public function jsonSerialize(): array
                         |    {
                         |        return $!this->toArray();
                         |    }
@@ -239,7 +244,7 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                         |    /**
                         |     * @return array
                         |     */
-                        |    abstract protected function toArray();
+                        |    abstract protected function toArray(): array;
                         |}
                     """.trimMargin().forcedLiteralEscape()
         )
@@ -1097,13 +1102,13 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |namespace ${packagePrefix.toNamespaceName()}\Base;
                     |
                     |/**
-                    | * @template T
+                    | * @template T of object
                     | */
                     |class MapCollection implements Collection, \ArrayAccess, \JsonSerializable
                     |{
                     |    /** @psalm-var ?array<int, T|object> */
                     |    private $!data;
-                    |    /** @var array */
+                    |    /** @var array<string, array<string, int>> */
                     |    private $!indexes = [];
                     |    /** @var MapperIterator */
                     |    private $!iterator;
@@ -1121,7 +1126,7 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |        $!this->iterator = $!this->getIterator();
                     |    }
                     |
-                    |    public function jsonSerialize()
+                    |    public function jsonSerialize(): ?array
                     |    {
                     |        return $!this->data;
                     |    }
@@ -1132,6 +1137,7 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |    }
                     |
                     |    /**
+                    |     * @psalm-param array<int, T|object> $!data
                     |     * @return static
                     |     */
                     |    public static function fromArray(array $!data)
@@ -1201,7 +1207,7 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |    }
                     |
                     |    /**
-                    |     * @psalm-return callable(mixed):?object
+                    |     * @psalm-return callable(mixed):?T
                     |     */
                     |    protected function mapper()
                     |    {
@@ -1213,17 +1219,17 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |    /**
                     |     * @psalm-param T|object $!value
                     |     */
-                    |    final protected function addToIndex(int $!index, string $!key, $!value): void
+                    |    final protected function addToIndex(string $!field, string $!key, int $!index): void
                     |    {
-                    |        $!this->indexes[$!index][$!key] = $!value;
+                    |        $!this->indexes[$!field][$!key] = $!index;
                     |    }
                     |
                     |    /**
                     |     * @psalm-return ?T
                     |     */
-                    |    final protected function valueByKey(int $!index, string $!key)
+                    |    final protected function valueByKey(string $!field, string $!key)
                     |    {
-                    |        return isset($!this->indexes[$!index][$!key]) ? $!this->at($!this->indexes[$!index][$!key]) : null;
+                    |        return isset($!this->indexes[$!field][$!key]) ? $!this->at($!this->indexes[$!field][$!key]) : null;
                     |    }
                     |
                     |    public function getIterator(): MapperIterator
@@ -1244,7 +1250,9 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |     */
                     |    public function current()
                     |    {
-                    |        return $!this->iterator->current();
+                    |        /** @psalm-var ?T $!current  */
+                    |        $!current = $!this->iterator->current();
+                    |        return $!current;
                     |    }
                     |
                     |    /**
@@ -1260,7 +1268,9 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |     */
                     |    public function key()
                     |    {
-                    |        return $!this->iterator->key();
+                    |        /** @var int $!key  */
+                    |        $!key = $!this->iterator->key();
+                    |        return $!key;
                     |    }
                     |
                     |    /**
@@ -1330,7 +1340,7 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                 content = """
                         |<?xml version="1.0"?>
                         |<psalm
-                        |    totallyTyped="false"
+                        |    totallyTyped="true"
                         |    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                         |    xmlns="https://getpsalm.org/schema/config"
                         |    xsi:schemaLocation="https://getpsalm.org/schema/config vendor/vimeo/psalm/config.xsd"
