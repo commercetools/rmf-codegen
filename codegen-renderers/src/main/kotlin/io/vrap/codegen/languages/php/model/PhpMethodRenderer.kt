@@ -26,20 +26,13 @@ class PhpMethodRenderer @Inject constructor(override val vrapTypeProvider: VrapT
     override fun render(type: Method): TemplateFile {
         val vrapType = vrapTypeProvider.doSwitch(type as EObject) as VrapObjectType
 
-        // final Body firstBodyType = method.getBodies().stream().findFirst().orElse(null);
-        //                         case "serialize":
-        //                            if (firstBodyType != null) {
-        //                                if (firstBodyType.getType() instanceof FileType) {
-        //                                    return "!is_null($body) ? $body->getStream() : null";
-        //                                }
-        //                            }
-        //                            return "!is_null($body) ? json_encode($body) : null";
         val content = """
             |<?php
             |${PhpSubTemplates.generatorInfo}
             |namespace ${vrapType.`package`.toNamespaceName().escapeAll()};
             |
             |use ${packagePrefix.toNamespaceName().escapeAll()}\\Client\\ApiRequest;
+            |${if (type.firstBody()?.type is FileType) "use Psr\\Http\\Message\\UploadedFileInterface;".escapeAll() else ""}
             |
             |/** @psalm-suppress PropertyNotSetInConstructor */
             |class ${type.toRequestName()} extends ApiRequest
@@ -48,13 +41,15 @@ class PhpMethodRenderer @Inject constructor(override val vrapTypeProvider: VrapT
             |
             |    /**
             |     <<${type.allParams()?.asSequence()?.map { "* @param string $$it" }?.joinToString(separator = "\n") ?: "*"}>>
-            |     * @param object $!body
+            |     * @param ${if (type.firstBody()?.type is FileType) "?UploadedFileInterface " else "?object"} $!body
+            |     * @psalm-param array<string, scalar|scalar[]> $!headers
             |     * @param array $!headers
             |     */
-            |    public function __construct(${type.allParams()?.asSequence()?.map { "$$it, "  }?.joinToString(separator = "") ?: ""}$!body = null, array $!headers = [])
+            |    public function __construct(${type.allParams()?.asSequence()?.map { "$$it, "  }?.joinToString(separator = "") ?: ""}${if (type.firstBody()?.type is FileType) "UploadedFileInterface " else ""}$!body = null, array $!headers = [])
             |    {
             |        $!uri = str_replace([${type.allParams()?.asSequence()?.map { "'{$it}'"  }?.joinToString(separator = ", ") ?: ""}], [${type.allParams()?.asSequence()?.map { "$$it"  }?.joinToString(separator = ", ") ?: ""}], '${type.resource().fullUri.template}');
-            |        // <request.method; format="ensureHeader">
+            |        <<${type.firstBody()?.ensureContentType() ?: ""}>>
+            |        <<${type.headers.filter { it.type?.default != null }.map { "\$headers = \$this->ensureHeader(\$headers, '${it.name}', '${it.type.default.value}');" }.joinToString(separator = "\n")}>>
             |        parent::__construct('${type.methodName.toUpperCase()}', $!uri, $!headers, ${type.firstBody()?.serialize()?: "!is_null(\$body) ? json_encode(\$body) : null"});
             |    }
             |
@@ -81,6 +76,19 @@ class PhpMethodRenderer @Inject constructor(override val vrapTypeProvider: VrapT
         )
     }
 
+    private fun Body.ensureContentType(): String {
+        if (this.type !is FileType) {
+            return "";
+        }
+        return """
+            |if (!is_null($!body)) {
+            |    $!mediaType = $!body->getClientMediaType();
+            |    if (!is_null($!mediaType)) {
+            |        $!headers = $!this->ensureHeader($!headers, 'Content-Type', $!mediaType);
+            |    }
+            |}
+        """.trimMargin()
+    }
     private fun Body.serialize(): String {
         if (this.type is FileType) {
             return "!is_null(\$body) ? \$body->getStream() : null"

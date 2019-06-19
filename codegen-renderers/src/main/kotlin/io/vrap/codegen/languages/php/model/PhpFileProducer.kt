@@ -330,6 +330,10 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |            ],
                     |            $!options
                     |        );
+                    |        /**
+                    |         * @var string $!key
+                    |         * @var callable $!middleware
+                    |         */
                     |        foreach ($!middlewares as $!key => $!middleware) {
                     |            if(!is_callable($!middleware)) {
                     |                throw new InvalidArgumentException('Middleware isn\'t callable');
@@ -445,6 +449,7 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |
                     |    public function __construct(array $!config = [])
                     |    {
+                    |        /** @var string $!apiUri */
                     |        $!apiUri = isset($!config[self::OPT_BASE_URI]) ? $!config[self::OPT_BASE_URI] : static::API_URI;
                     |        <<${if (api.baseUri.value.variables.isNotEmpty()) { api.baseUri.value.replaceValues()} else ""}>>
                     |        $!this->apiUri = $!apiUri;
@@ -522,14 +527,17 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |
                     |    public function __construct(array $!config = [])
                     |    {
+                    |        /** @var string authUri */
                     |        $!this->authUri = isset($!config[self::OPT_AUTH_URI]) ? $!config[self::OPT_AUTH_URI] : static::AUTH_URI;
                     |        $!this->clientOptions = isset($!config[self::OPT_CLIENT_OPTIONS]) && is_array($!config[self::OPT_CLIENT_OPTIONS]) ?
                     |            $!config[self::OPT_CLIENT_OPTIONS] : [];
+                    |        /** @var string authUri */
                     |        $!this->cacheDir = isset($!config[self::OPT_CACHE_DIR]) ? $!config[self::OPT_CACHE_DIR] : getcwd();
                     |    }
                     |
                     |    public function getGrantType(): string
                     |    {
+                    |        /** @var string */
                     |        return static::GRANT_TYPE;
                     |    }
                     |
@@ -675,6 +683,7 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |
                     |        $!result = $!this->client->post($!this->authConfig->getAuthUri(), $!options);
                     |
+                    |        /** @var array $!body */
                     |        $!body = json_decode((string)$!result->getBody(), true);
                     |        return new TokenModel((string)$!body[self::ACCESS_TOKEN], (int)$!body[self::EXPIRES_IN]);
                     |    }
@@ -793,11 +802,14 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |    /** @var ?string */
                     |    private $!scope;
                     |
+                    |    /**
+                    |     * @psalm-param array<string, string> $!authConfig
+                    |     */
                     |    public function __construct(array $!authConfig = [])
                     |    {
                     |        parent::__construct($!authConfig);
-                    |        $!this->clientId = isset($!authConfig[self::CLIENT_ID]) ? $!authConfig[self::CLIENT_ID] : null;
-                    |        $!this->clientSecret = isset($!authConfig[self::CLIENT_SECRET]) ? $!authConfig[self::CLIENT_SECRET] : null;
+                    |        $!this->clientId = isset($!authConfig[self::CLIENT_ID]) ? $!authConfig[self::CLIENT_ID] : '';
+                    |        $!this->clientSecret = isset($!authConfig[self::CLIENT_SECRET]) ? $!authConfig[self::CLIENT_SECRET] : '';
                     |        $!this->scope = isset($!authConfig[self::SCOPE]) ? $!authConfig[self::SCOPE] : null;
                     |    }
                     |
@@ -1004,12 +1016,13 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |{
                     |    const RESULT_TYPE = JsonObject::class;
                     |
-                    |    /** @psalm-var array<string, array<string>> */
+                    |    /** @psalm-var array<string, scalar[]> */
                     |    private $!queryParts;
                     |    /** @psalm-var string */
                     |    private $!query;
                     |
                     |    /**
+                    |     * @psalm-param array<string, scalar|scalar[]> $!headers
                     |     * @param string|null|resource|\Psr\Http\Message\StreamInterface $!body
                     |     */
                     |    public function __construct(string $!method, string $!uri, array $!headers = [], $!body = null, string $!version = '1.1')
@@ -1020,6 +1033,9 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |    }
                     |
                     |    /**
+                    |     * @psalm-param array<string, scalar|scalar[]> $!headers
+                    |     * @psalm-param string|string[] $!defaultValue
+                    |     * @psalm-return array<string, scalar|scalar[]>
                     |     * @param array $!headers
                     |     * @param string $!header
                     |     * @param mixed $!defaultValue
@@ -1042,6 +1058,7 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |
                     |    /**
                     |     * @param string $!parameterName
+                    |     * @psalm-param scalar $!value
                     |     * @param mixed $!value
                     |     * @return ApiRequest
                     |     */
@@ -1049,10 +1066,20 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |    {
                     |        $!query = $!this->getUri()->getQuery();
                     |        if ($!this->query !== $!query) {
-                    |            $!this->queryParts = Psr7\parse_query($!query);
-                    |        }
-                    |        if (isset($!this->queryParts[$!parameterName]) && !is_array($!this->queryParts[$!parameterName])) {
-                    |            $!this->queryParts[$!parameterName] = [$!this->queryParts[$!parameterName]];
+                    |            /** @var array<string, scalar[]> */
+                    |            $!this->queryParts = array_map(
+                    |                /**
+                    |                 * @psalm-param scalar|scalar[] $!value
+                    |                 * @psalm-return scalar[]
+                    |                 */
+                    |                function($!value): array {
+                    |                    if(is_array($!value)) {
+                    |                        return $!value;
+                    |                    }
+                    |                    return [$!value];
+                    |                },
+                    |                Psr7\parse_query($!query)
+                    |            );
                     |        }
                     |        $!this->queryParts[$!parameterName][] = $!value;
                     |        ksort($!this->queryParts);
