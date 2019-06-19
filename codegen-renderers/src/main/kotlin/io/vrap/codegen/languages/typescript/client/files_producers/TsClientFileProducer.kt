@@ -18,11 +18,11 @@ class TsClientFileProducer @Inject constructor(val api:Api): FileProducer{
 
 import { Middleware, MiddlewareArg, CommonRequest } from "./common-types";
 
-
 export class ApiRequest<I, O, T extends CommonRequest<I>> {
-  private middlewares: Middleware[] = [];
-
-  constructor(private readonly commonRequest: T) {}
+  constructor(
+    private readonly commonRequest: T,
+    private readonly middlewares: Middleware[]
+  ) {}
 
   async execute(): Promise<O> {
     const middleware: Middleware = this.middlewares.reduce(reduceMiddleware);
@@ -37,10 +37,7 @@ export class ApiRequest<I, O, T extends CommonRequest<I>> {
   }
 }
 
-export function reduceMiddleware(
-  op1: Middleware,
-  op2: Middleware
-): Middleware {
+export function reduceMiddleware(op1: Middleware, op2: Middleware): Middleware {
   return async (arg: MiddlewareArg) => {
     const { next, ...rest } = arg;
     const intermediateOp: Middleware = (tmpArg: MiddlewareArg) => {
@@ -54,8 +51,6 @@ export function reduceMiddleware(
     });
   };
 }
-
-
 
 """
 

@@ -5,6 +5,7 @@ import io.vrap.codegen.languages.java.extensions.returnType
 import io.vrap.codegen.languages.php.extensions.EObjectTypeExtensions
 import io.vrap.codegen.languages.php.extensions.resource
 import io.vrap.codegen.languages.php.extensions.toResourceName
+import io.vrap.codegen.languages.typescript.client.files_producers.middleware
 import io.vrap.codegen.languages.typescript.model.simpleTSName
 import io.vrap.codegen.languages.typescript.tsMediaType
 import io.vrap.codegen.languages.typescript.tsRemoveRegexp
@@ -25,18 +26,26 @@ abstract class AbstractRequestBuilder constructor(
 
     protected fun Resource.constructor(): String {
 
-        val constructorArgs = if (this.fullUri.variables.isEmpty())
+        val pathArgs = if (this.fullUri.variables.isEmpty())
             ""
         else
             this
                     .fullUri
                     .variables
                     .map { "      $it: string" }
-                    .joinToString(separator = ",\n", prefix = "\n  protected readonly pathArgs: {\n", postfix = "\n  }\n")
+                    .joinToString(
+                            separator = ",\n",
+                            prefix = "pathArgs: {\n",
+                            postfix = "\n }")
 
         return """|
-        |constructor($constructorArgs){}
-        """.trimMargin()
+                    |  constructor(
+                    |    protected readonly args: {
+                    |      <$pathArgs>,
+                    |      middlewares: Middleware[];
+                    |    }
+                    |  ) {}
+                    """.trimMargin()
     }
 
     protected fun Resource.methods(): String {
@@ -80,7 +89,7 @@ abstract class AbstractRequestBuilder constructor(
                     val bodyLiteral = """|{
                         |   method: '${it.methodName.toUpperCase()}',
                         |   uriTemplate: '${it.resource().fullUri.template}',
-                        |   pathVariables: this.pathArgs,
+                        |   pathVariables: this.args.pathArgs,
                         |   <${if(it.tsMediaType().isNotEmpty()) "${it.tsMediaType()}," else ""}>
                         |   <${if(it.queryParameters.isNullOrEmpty()) "" else "queryParams: (methodArgs || {} as any).queryArgs,"}>
                         |   <${if(it.bodies.isNullOrEmpty()) "" else "payload: (methodArgs || {} as any).payload,"}>
@@ -91,7 +100,8 @@ abstract class AbstractRequestBuilder constructor(
                     """|
                     |${it.methodName}(<$methodArgs>): $methodReturn {
                     |   return new $methodReturn(
-                    |       <$bodyLiteral>
+                    |       <$bodyLiteral>,
+                    |       this.args.middlewares
                     |   )
                     |}
                     |
@@ -113,10 +123,13 @@ abstract class AbstractRequestBuilder constructor(
                     """|
                     |${it.getMethodName()}($args): ${it.toRequestBuilderName()} {
                     |   return new ${it.toRequestBuilderName()}(
-                    |       {
-                    |          ...this.pathArgs,
-                    |          <${if (it.relativeUri.variables.isNotEmpty()) "...childPathArgs" else ""}>
-                    |       }
+                    |         {
+                    |            pathArgs: {
+                    |               ...this.args.pathArgs,
+                    |               <${if (it.relativeUri.variables.isNotEmpty()) "...childPathArgs" else ""}>
+                    |            },
+                    |            middlewares: this.args.middlewares
+                    |         }
                     |   )
                     |}
                     |
@@ -157,6 +170,9 @@ abstract class AbstractRequestBuilder constructor(
                                     val relativePath = relativizePaths(moduleName, it.`package`)
                                     "import { ${it.simpleTSName()} } from '$relativePath'"
                                 }
+                )
+                .plus(
+                        "import { ${middleware.simpleClassName} } from '${relativizePaths(moduleName, middleware.`package`)}'"
                 )
                 .distinct()
                 .joinToString(separator = "\n")
