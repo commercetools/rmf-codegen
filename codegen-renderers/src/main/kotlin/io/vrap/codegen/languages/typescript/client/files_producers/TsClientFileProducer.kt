@@ -25,14 +25,20 @@ export class ApiRequest<I, O, T extends CommonRequest<I>> {
   async execute(): Promise<O> {
     const middleware: Middleware = this.middlewares.reduce(reduceMiddleware);
 
+    const req = {
+      ...this.commonRequest,
+      url: getURI(this.commonRequest)
+    };
+
     const res = await middleware({
-      request: this.commonRequest,
+      request: req,
       error: null,
       next: async arg => arg,
       response: null
     });
-    if(res.error){
-      throw res.error
+
+    if (res.error) {
+      throw res.error;
     }
     return res.response;
   }
@@ -53,6 +59,26 @@ export function reduceMiddleware(op1: Middleware, op2: Middleware): Middleware {
   };
 }
 
+function getURI(commonRequest: CommonRequest<any>): string {
+  const pathMap = commonRequest.pathVariables;
+  const queryMap = commonRequest.queryParams;
+  var uri: String = commonRequest.uriTemplate;
+  var queryParams = [];
+  for (const param in pathMap) {
+    uri = uri.replace(`{${'$'}{param}}`, `${'$'}{pathMap[param]}`);
+  }
+  for (const query in queryMap) {
+    queryParams = [
+      ...queryParams,
+      `${'$'}{query}=${'$'}{encodeURIComponent(`${'$'}{queryMap[query]}`)}`
+    ];
+  }
+  const resQuery = queryParams.join("&");
+  if (resQuery == "") {
+    return `${'$'}{commonRequest.baseURL}${'$'}{uri}`;
+  }
+  return `${'$'}{commonRequest.baseURL}${'$'}{uri}?${'$'}{resQuery}`;
+}
 
 """
 

@@ -12,6 +12,7 @@ class CommonTypesFileProducer : FileProducer {
 
     fun produceRequestTemplate(): TemplateFile {
         val content = """
+
 type HttpMethod =
   | "GET"
   | "HEAD"
@@ -24,6 +25,7 @@ type HttpMethod =
 
 export interface CommonRequest<T> {
   baseURL: string;
+  url?: string,
   headers?: { [key: string]: string };
   method: HttpMethod;
   uriTemplate: string;
