@@ -14,8 +14,6 @@ class TsClientFileProducer @Inject constructor(val api:Api): FileProducer{
 
     fun produceRequestTemplate(): TemplateFile{
         val content = """
-
-
 import { Middleware, MiddlewareArg, CommonRequest } from "./common-types";
 
 export class ApiRequest<I, O, T extends CommonRequest<I>> {
@@ -33,6 +31,9 @@ export class ApiRequest<I, O, T extends CommonRequest<I>> {
       next: async arg => arg,
       response: null
     });
+    if(res.error){
+      throw res.error
+    }
     return res.response;
   }
 }
@@ -51,6 +52,7 @@ export function reduceMiddleware(op1: Middleware, op2: Middleware): Middleware {
     });
   };
 }
+
 
 """
 

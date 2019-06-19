@@ -33,9 +33,9 @@ class TestCodeGenerator {
 
     companion object {
         private val userProvidedPath = System.getenv("TEST_RAML_FILE")
-        private val apiPath : Path = Paths.get(if (userProvidedPath == null) "../api-spec/api.raml" else userProvidedPath)
+        private val apiPath : Path = Paths.get(if (userProvidedPath == null) "/Users/abeniasaad/IdeaProjects/commercetools-api-reference/api.raml" else userProvidedPath)
         val apiProvider: ApiProvider = ApiProvider(apiPath)
-        val generatorConfig = CodeGeneratorConfig(basePackageName = "com.commercetools.test")
+        val generatorConfig = CodeGeneratorConfig(basePackageName = "ct",outputFolder = Paths.get("/Users/abeniasaad/IdeaProjects/rmf-codegen/typescript_client/src/gen"))
     }
 
     @Test

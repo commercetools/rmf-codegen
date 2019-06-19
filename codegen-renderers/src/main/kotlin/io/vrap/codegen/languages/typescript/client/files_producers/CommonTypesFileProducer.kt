@@ -23,11 +23,10 @@ type HttpMethod =
   | "TRACE";
 
 export interface CommonRequest<T> {
-  baseUri: string;
-  headers?: { [key: string]: string | number | boolean };
+  baseURL: string;
+  headers?: { [key: string]: string };
   method: HttpMethod;
   uriTemplate: string;
-  mediaType?: string;
   pathVariables?: { [key: string]: string | number | boolean };
   queryParams?: { [key: string]: string | number | boolean };
   payload?: T;

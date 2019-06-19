@@ -17,7 +17,7 @@ fun Method.tsMediaType(): String{
     return if(this.bodies.isNullOrEmpty() || this.bodies[0].contentMediaType.type().isNullOrEmpty())
         ""
     else
-        "mediaType: '${this.bodies[0].contentMediaType}'"
+        "'Content-Type': '${this.bodies[0].contentMediaType}'"
 }
 
 fun String.tsRemoveRegexp():String {

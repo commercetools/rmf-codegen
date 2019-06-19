@@ -87,11 +87,13 @@ abstract class AbstractRequestBuilder constructor(
                     val methodReturn = "ApiRequest\\<${it.bodies.map { it.type.toVrapType().simpleTSName() }.joinToString(separator = " | ").ifEmpty { "void" }}, ${it.returnType().toVrapType().simpleTSName()}, ${it.tsRequestName()}\\>"
 
                     val bodyLiteral = """|{
-                        |   baseUri: '${api.baseUri.template}',
+                        |   baseURL: '${api.baseUri.template}',
                         |   method: '${it.methodName.toUpperCase()}',
                         |   uriTemplate: '${it.resource().fullUri.template}',
                         |   pathVariables: this.args.pathArgs,
-                        |   <${if(it.tsMediaType().isNotEmpty()) "${it.tsMediaType()}," else ""}>
+                        |   headers: {
+                        |       <${if(it.tsMediaType().isNotEmpty()) "${it.tsMediaType()}," else ""}>
+                        |   },
                         |   <${if(it.queryParameters.isNullOrEmpty()) "" else "queryParams: (methodArgs || {} as any).queryArgs,"}>
                         |   <${if(it.bodies.isNullOrEmpty()) "" else "payload: (methodArgs || {} as any).payload,"}>
                         |}
