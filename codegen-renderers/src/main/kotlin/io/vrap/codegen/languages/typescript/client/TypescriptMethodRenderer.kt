@@ -6,6 +6,7 @@ import io.vrap.codegen.languages.java.extensions.JavaObjectTypeExtensions
 import io.vrap.codegen.languages.java.extensions.resource
 import io.vrap.codegen.languages.java.extensions.returnType
 import io.vrap.codegen.languages.java.extensions.toRequestName
+import io.vrap.codegen.languages.typescript.client.files_producers.commonRequest
 import io.vrap.codegen.languages.typescript.model.TsObjectTypeExtensions
 import io.vrap.codegen.languages.typescript.model.simpleTSName
 import io.vrap.codegen.languages.typescript.tsMediaType
@@ -26,14 +27,14 @@ class TypescriptMethodRenderer @Inject constructor(override val vrapTypeProvider
     override fun render(type: Method): TemplateFile {
 
         val vrapType = vrapTypeProvider.doSwitch(type) as VrapObjectType
-        val moduleName = type.tsRequestModuleName(vrapType.`package`).replace(".", "/")
+        val moduleName = type.tsRequestModuleName(vrapType.`package`)
 
         val content = """
             |/* tslint:disable */
             |//Generated file, please do not change
             |
             |${type.imports(moduleName)}
-            |import { CommonRequest } from '${relativizePaths(moduleName,"base/requests-utils")}'
+            |import { ${commonRequest.simpleClassName} } from '${relativizePaths(moduleName, commonRequest.`package`)}'
             |
             |export interface ${type.tsRequestName()} extends CommonRequest\<${type.bodyType()}\> {
             |
@@ -50,7 +51,7 @@ class TypescriptMethodRenderer @Inject constructor(override val vrapTypeProvider
             """.trimMargin().keepIndentation()
 
         return TemplateFile(
-                relativePath = "$moduleName.ts",
+                relativePath = "${moduleName.replace(".","/")}.ts",
                 content = content
         )
     }
@@ -64,7 +65,7 @@ class TypescriptMethodRenderer @Inject constructor(override val vrapTypeProvider
                 .map { it.toVrapType() }
                 .filter { it is VrapObjectType  }
                 .map { it as VrapObjectType }
-                .map { "import { ${it.simpleTSName()} } from '${relativizePaths(moduleName, it.`package`.replace(".","/"))}'" }
+                .map { "import { ${it.simpleTSName()} } from '${relativizePaths(moduleName, it.`package`)}'" }
                 .joinToString(separator = "\n")
 
     }
@@ -119,8 +120,8 @@ class TypescriptMethodRenderer @Inject constructor(override val vrapTypeProvider
 
 
     private fun relativizePaths(currentModule:String, targetModule : String) : String {
-        val currentRelative : Path = Paths.get(currentModule)
-        val targetRelative : Path = Paths.get(targetModule)
+        val currentRelative : Path = Paths.get(currentModule.replace(".","/"))
+        val targetRelative : Path = Paths.get(targetModule.replace(".","/"))
         return currentRelative.relativize(targetRelative).toString().replaceFirst("../","")
     }
 
