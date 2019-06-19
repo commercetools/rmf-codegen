@@ -23,6 +23,7 @@ type HttpMethod =
   | "TRACE";
 
 export interface CommonRequest<T> {
+  baseUri: string;
   headers?: { [key: string]: string | number | boolean };
   method: HttpMethod;
   uriTemplate: string;
