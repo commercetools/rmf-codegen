@@ -2,6 +2,7 @@ package io.vrap.codegen.languages.php.model;
 
 import com.google.inject.Inject
 import com.google.inject.name.Named
+import io.vrap.codegen.languages.java.extensions.simpleName
 import io.vrap.codegen.languages.php.PhpBaseTypes
 import io.vrap.codegen.languages.php.PhpSubTemplates
 import io.vrap.codegen.languages.php.extensions.*
@@ -44,6 +45,9 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
             |    <<${type.getters()}>>
             |
             |    <<${type.serializer()}>>
+            |    
+            |    <<${type.discriminatorClasses()}>>
+            |    <<${type.discriminatorResolver()}>>
             |}
         """.trimMargin().keepIndentation("<<", ">>").forcedLiteralEscape()
 
@@ -256,7 +260,8 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
                         |if (is_null($!data)) {
                         |    return null;
                         |}
-                        |$!this->${this.name} = new ${this.type.toVrapType().simpleName()}Model($!data);
+                        |${if (type.discriminator.isNullOrBlank()) "" else "$!className = ${type.toVrapType().simpleName()}Model::resolveDiscriminatorClass($!data);"}
+                        |$!this->${this.name} = new ${if (type.discriminator.isNullOrBlank()) "${this.type.toVrapType().simpleName()}Model" else "$!className"}($!data);
                     """.trimMargin()
                 }
             is ArrayType ->
@@ -360,4 +365,35 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
             }
         }
     }
+
+
+    private fun ObjectType.discriminatorClasses(): String {
+        if (this.discriminator.isNullOrBlank()) {
+            return ""
+        }
+        return """
+                |private static $!discriminatorClasses = [
+                |   <<${this.namedSubTypes().filterIsInstance<ObjectType>().map { "'${it.discriminatorValue}' => ${it.toVrapType().simpleName()}Model::class," }.joinToString(separator = "\n")}>>
+                |];
+            """.trimMargin()
+    }
+
+    private fun ObjectType.discriminatorResolver(): String {
+        if (this.discriminator.isNullOrBlank()) {
+            return ""
+        }
+        return """
+            |public static function resolveDiscriminatorClass($!value)
+            |{
+            |   if (isset($!value[${this.toVrapType().simpleName()}::DISCRIMINATOR_FIELD])) {
+            |       $!discriminatorValue = $!value[${this.toVrapType().simpleName()}::DISCRIMINATOR_FIELD];
+            |       if (isset(static::$!discriminatorClasses[$!discriminatorValue])) {
+            |            return static::$!discriminatorClasses[$!discriminatorValue];
+            |       }
+            |   }
+            |   return ${this.toVrapType().simpleName()}Model::class;
+            |}
+        """.trimMargin()
+    }
 }
+

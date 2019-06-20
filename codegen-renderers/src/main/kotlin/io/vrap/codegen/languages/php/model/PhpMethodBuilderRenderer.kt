@@ -2,17 +2,20 @@ package io.vrap.codegen.languages.php.model
 
 import com.google.inject.Inject
 import com.google.inject.name.Named
+import io.vrap.codegen.languages.extensions.getMethodName
 import io.vrap.codegen.languages.java.extensions.isSuccessfull
 import io.vrap.codegen.languages.php.PhpSubTemplates
 import io.vrap.codegen.languages.php.extensions.*
 import io.vrap.rmf.codegen.di.VrapConstants
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.MethodRenderer
+import io.vrap.rmf.codegen.rendring.ResourceRenderer
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
 import io.vrap.rmf.codegen.rendring.utils.keepIndentation
 import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.resources.Method
+import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.responses.Body
 import io.vrap.rmf.raml.model.responses.Response
 import io.vrap.rmf.raml.model.types.AnyType
@@ -20,7 +23,7 @@ import io.vrap.rmf.raml.model.types.FileType
 import io.vrap.rmf.raml.model.types.impl.TypesFactoryImpl
 import org.eclipse.emf.ecore.EObject
 
-class PhpMethodRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : MethodRenderer, EObjectTypeExtensions {
+class PhpMethodBuilderRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : ResourceRenderer, EObjectTypeExtensions {
 
     @Inject
     @Named(io.vrap.rmf.codegen.di.VrapConstants.BASE_PACKAGE_NAME)
@@ -28,7 +31,7 @@ class PhpMethodRenderer @Inject constructor(override val vrapTypeProvider: VrapT
 
     private val resourcePackage = "Resource";
 
-    override fun render(type: Method): TemplateFile {
+    override fun render(type: Resource): TemplateFile {
 
         val vrapType = vrapTypeProvider.doSwitch(type as EObject) as VrapObjectType
 
@@ -37,70 +40,41 @@ class PhpMethodRenderer @Inject constructor(override val vrapTypeProvider: VrapT
             |${PhpSubTemplates.generatorInfo}
             |namespace ${vrapType.`package`.toNamespaceName().escapeAll()}\\$resourcePackage;
             |
-            |use ${vrapType.`package`.toNamespaceName().escapeAll()}\\ApiRequest;
-            |use ${type.returnTypeFullClass().escapeAll()};
-            |${if (type.firstBody()?.type is FileType) "use Psr\\Http\\Message\\UploadedFileInterface;".escapeAll() else ""}
-            |
             |/** @psalm-suppress PropertyNotSetInConstructor */
-            |class ${type.toRequestName()} extends ApiRequest
+            |class ${type.resourceBuilderName()}
             |{
-            |    const RESULT_TYPE = ${type.returnTypeClass()}::class;
-            |
-            |    /**
-            |     <<${type.allParams()?.asSequence()?.map { "* @param string $$it" }?.joinToString(separator = "\n") ?: "*"}>>
-            |     * @param ${if (type.firstBody()?.type is FileType) "?UploadedFileInterface " else "?object"} $!body
-            |     * @psalm-param array<string, scalar|scalar[]> $!headers
-            |     * @param array $!headers
-            |     */
-            |    public function __construct(${type.allParams()?.asSequence()?.map { "$$it, "  }?.joinToString(separator = "") ?: ""}${if (type.firstBody()?.type is FileType) "UploadedFileInterface " else ""}$!body = null, array $!headers = [])
-            |    {
-            |        $!uri = str_replace([${type.allParams()?.asSequence()?.map { "'{$it}'"  }?.joinToString(separator = ", ") ?: ""}], [${type.allParams()?.asSequence()?.map { "$$it"  }?.joinToString(separator = ", ") ?: ""}], '${type.resource().fullUri.template}');
-            |        <<${type.firstBody()?.ensureContentType() ?: ""}>>
-            |        <<${type.headers.filter { it.type?.default != null }.map { "\$headers = \$this->ensureHeader(\$headers, '${it.name}', '${it.type.default.value}');" }.joinToString(separator = "\n")}>>
-            |        parent::__construct('${type.methodName.toUpperCase()}', $!uri, $!headers, ${type.firstBody()?.serialize()?: "!is_null(\$body) ? json_encode(\$body) : null"});
-            |    }
-            |
-            |    /**
-            |     * @param ResponseInterface $!response
-            |     * @param ResultMapper $!mapper
-            |     * @return <returnType(request.returnType)>
-            |     */
-            |   // public function map(ResponseInterface $!response, ResultMapper $!mapper):  <returnType(request.returnType)>
-            |   // {
-            |   //     return parent::map($!response, $!mapper);
-            |   // }
-            |
-            |   // <if(request.method.queryParameters)>
-            |   // <request.method.queryParameters: {param |<withParam(request.name, param)>}>
-            |   // <endif>
+            |   <<${type.subResources()}>>
+            |   <<${type.methods()}>>
             |}
         """.trimMargin().keepIndentation("<<", ">>").forcedLiteralEscape()
         val relativeTypeNamespace = vrapType.`package`.toNamespaceName().replace(packagePrefix.toNamespaceName() + "\\", "").replace("\\", "/") + "/$resourcePackage"
-        val relativePath = "src/" + relativeTypeNamespace + "/" + type.toRequestName() + ".php"
+        val relativePath = "src/" + relativeTypeNamespace + "/" + type.resourceBuilderName() + ".php"
         return TemplateFile(
                 relativePath = relativePath,
                 content = content
         )
     }
 
-    private fun Body.ensureContentType(): String {
-        if (this.type !is FileType) {
-            return "";
-        }
-        return """
-            |if (!is_null($!body)) {
-            |    $!mediaType = $!body->getClientMediaType();
-            |    if (!is_null($!mediaType)) {
-            |        $!headers = $!this->ensureHeader($!headers, 'Content-Type', $!mediaType);
-            |    }
-            |}
-        """.trimMargin()
+    private fun Resource.methods(): String {
+        return this.methods.map {
+            """
+                |public function ${it.methodName}() {
+                |   return new ${it.toRequestName()}();
+                |}
+                |
+            """.trimMargin()
+        }.joinToString(separator = "")
     }
-    private fun Body.serialize(): String {
-        if (this.type is FileType) {
-            return "!is_null(\$body) ? \$body->getStream() : null"
-        }
-        return "!is_null(\$body) ? json_encode(\$body) : null"
+
+    private fun Resource.subResources(): String {
+        return this.resources.map {
+            """
+                |public function ${it.getMethodName()}() {
+                |   return new ${it.resourceBuilderName()}();
+                |}
+                |
+            """.trimMargin()
+        }.joinToString(separator = "")
     }
 
 
@@ -218,4 +192,6 @@ class PhpMethodRenderer @Inject constructor(override val vrapTypeProvider: VrapT
             else -> "${packagePrefix.toNamespaceName()}\\Base\\JsonObject"
         }
     }
+
+    fun Resource.resourceBuilderName():String = "Resource${this.toResourceName()}"
 }
