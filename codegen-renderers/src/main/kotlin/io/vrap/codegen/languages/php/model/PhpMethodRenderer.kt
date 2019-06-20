@@ -2,6 +2,7 @@ package io.vrap.codegen.languages.php.model
 
 import com.google.inject.Inject
 import com.google.inject.name.Named
+import io.vrap.codegen.languages.java.extensions.isSuccessfull
 import io.vrap.codegen.languages.php.PhpSubTemplates
 import io.vrap.codegen.languages.php.extensions.*
 import io.vrap.rmf.codegen.di.VrapConstants
@@ -14,7 +15,9 @@ import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.responses.Body
 import io.vrap.rmf.raml.model.responses.Response
+import io.vrap.rmf.raml.model.types.AnyType
 import io.vrap.rmf.raml.model.types.FileType
+import io.vrap.rmf.raml.model.types.impl.TypesFactoryImpl
 import org.eclipse.emf.ecore.EObject
 
 class PhpMethodRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : MethodRenderer, EObjectTypeExtensions {
@@ -33,11 +36,12 @@ class PhpMethodRenderer @Inject constructor(override val vrapTypeProvider: VrapT
             |
             |use ${packagePrefix.toNamespaceName().escapeAll()}\\Client\\ApiRequest;
             |${if (type.firstBody()?.type is FileType) "use Psr\\Http\\Message\\UploadedFileInterface;".escapeAll() else ""}
+            |use ${type.returnTypeFullClass()};
             |
             |/** @psalm-suppress PropertyNotSetInConstructor */
             |class ${type.toRequestName()} extends ApiRequest
             |{
-            |   // const RESULT_TYPE = <returnType(request.returnType)>::class;
+            |    const RESULT_TYPE = ${type.returnTypeClass()}::class;
             |
             |    /**
             |     <<${type.allParams()?.asSequence()?.map { "* @param string $$it" }?.joinToString(separator = "\n") ?: "*"}>>
@@ -186,4 +190,29 @@ class PhpMethodRenderer @Inject constructor(override val vrapTypeProvider: VrapT
 
 
     fun Response.isSuccessfull(): Boolean = this.statusCode.toInt() in (200..299)
+
+    fun Method.returnType(): AnyType {
+        return this.responses
+                .filter { it.isSuccessfull() }
+                .filter { it.bodies?.isNotEmpty() ?: false }
+                .firstOrNull()
+                ?.let { it.bodies[0].type }
+                ?: TypesFactoryImpl.eINSTANCE.createNilType()
+    }
+
+    fun Method.returnTypeClass(): String {
+        val vrapType = this.returnType().toVrapType()
+        return when (vrapType) {
+            is VrapObjectType -> vrapType.simpleName()
+            else -> "JsonObject"
+        }
+    }
+
+    fun Method.returnTypeFullClass(): String {
+        val vrapType = this.returnType().toVrapType()
+        return when (vrapType) {
+            is VrapObjectType -> vrapType.fullClassName()
+            else -> "${packagePrefix.toNamespaceName()}\\Base\\JsonObject".escapeAll()
+        }
+    }
 }
