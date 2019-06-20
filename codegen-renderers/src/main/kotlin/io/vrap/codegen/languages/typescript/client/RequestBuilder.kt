@@ -78,9 +78,7 @@ class RequestBuilder @Inject constructor(
 
         return this.methods
                 .map {
-                    val methodArgs = if (it.queryParameters.isNullOrEmpty() && it.bodies.isNullOrEmpty())
-                        ""
-                    else {
+
                         var queryParamsArg = ""
                         var bodies = ""
                         if (!it.queryParameters.isNullOrEmpty()) {
@@ -103,14 +101,14 @@ class RequestBuilder @Inject constructor(
                                                 it.queryParameters.map { !it.required }.reduce(Boolean::and)
                                         )
 
-                        """ |
+                    val methodArgs = """ |
                             |methodArgs${if (argsAreOptional) "?" else ""}:{
                             |   <${it.headersPartInMethodSigniture()}>
                             |   <$queryParamsArg>
                             |   <$bodies>
                             |}
                         """.trimMargin()
-                    }
+
                     val methodReturn = "ApiRequest\\<${it.bodies.map { it.type.toVrapType().simpleTSName() }.joinToString(separator = " | ").ifEmpty { "void" }}, ${it.returnType().toVrapType().simpleTSName()}, ${it.tsRequestName()}\\>"
 
                     val bodyLiteral = """|{
@@ -120,6 +118,7 @@ class RequestBuilder @Inject constructor(
                         |   pathVariables: this.args.pathArgs,
                         |   headers: {
                         |       <${if(it.tsMediaType().isNotEmpty()) "${it.tsMediaType()}," else ""}>
+                        |       ...(methodArgs || {} as any).headers
                         |   },
                         |   <${if(it.queryParameters.isNullOrEmpty()) "" else "queryParams: (methodArgs || {} as any).queryArgs,"}>
                         |   <${if(it.bodies.isNullOrEmpty()) "" else "payload: (methodArgs || {} as any).payload,"}>
