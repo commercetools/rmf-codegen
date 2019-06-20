@@ -28,6 +28,8 @@ open class VrapObjectType(val `package` :String, val simpleClassName:String) : V
     }
 }
 
+class VrapLibraryType( `package` :String, simpleClassName:String) : VrapObjectType(`package`,simpleClassName)
+
 class VrapEnumType(val `package` :String, val simpleClassName:String) : VrapType() {
 
 

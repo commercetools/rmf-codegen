@@ -43,14 +43,6 @@ export type MiddlewareArg = {
 
 export type Middleware = (arg: MiddlewareArg) => Promise<MiddlewareArg>;
 
-export type FilePath = {
-  filePath: string
-}
-
-export type VFile = {
-  filePath: string
-}
-
 """
 
 

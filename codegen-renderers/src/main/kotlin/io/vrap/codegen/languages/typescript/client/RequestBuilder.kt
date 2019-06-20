@@ -12,6 +12,7 @@ import io.vrap.codegen.languages.typescript.model.simpleTSName
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.ResourceRenderer
 import io.vrap.rmf.codegen.rendring.utils.keepIndentation
+import io.vrap.rmf.codegen.types.VrapLibraryType
 import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.modules.Api
@@ -91,7 +92,7 @@ class RequestBuilder @Inject constructor(
                         if (!it.bodies.isNullOrEmpty()) {
                             bodies = "payload: ${it.bodies.map {
                                 it.type.toVrapType().simpleTSName()
-                            }.joinToString(separator = " | ")}"
+                            }.joinToString(separator = " | ")},"
                         }
 
                         val argsAreOptional =
@@ -103,9 +104,10 @@ class RequestBuilder @Inject constructor(
 
                     val methodArgs = """ |
                             |methodArgs${if (argsAreOptional) "?" else ""}:{
-                            |   <${it.headersPartInMethodSigniture()}>
+                            |   
                             |   <$queryParamsArg>
                             |   <$bodies>
+                            |   <${it.headersPartInMethodSigniture()}>
                             |}
                         """.trimMargin()
 
@@ -194,8 +196,14 @@ class RequestBuilder @Inject constructor(
                                 .filter { it is VrapObjectType }
                                 .map { it as VrapObjectType }
                                 .map {
-                                    val relativePath = relativizePaths(moduleName, it.`package`)
-                                    "import { ${it.simpleTSName()} } from '$relativePath'"
+                                    when(it){
+                                        is VrapLibraryType -> "import { ${it.simpleClassName} } from '${it.`package`}'"
+                                        else -> {
+                                            val relativePath = relativizePaths(moduleName, it.`package`)
+                                            "import { ${it.simpleTSName()} } from '$relativePath'"
+
+                                        }
+                                    }
                                 }
                 )
                 .plus(
@@ -210,9 +218,6 @@ class RequestBuilder @Inject constructor(
                 )
                 .plus(
                         "import { ${middleware.simpleClassName} } from '${relativizePaths(moduleName, middleware.`package`)}'"
-                )
-                .plus(
-                        "import { ${TypeScriptBaseTypes.file.simpleTSName()} } from '${relativizePaths(moduleName, (TypeScriptBaseTypes.file as VrapObjectType).`package`)}'"
                 )
                 .distinct()
                 .joinToString(separator = "\n")

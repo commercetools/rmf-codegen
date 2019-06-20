@@ -8,9 +8,9 @@ import { version } from "punycode";
 const apiRoot = new ApiRoot({
   middlewares: [
     createOAuth2Middleware({
-      clientId: "kOgSGYIMCS4Wai4Ko-lEwp4a",
-      clientSecret: "DsopewhYM-VUpHBgbcXLS8Na8NdjvPUT",
-      scopes: ["manage_project:achraf-61", "manage_api_clients:achraf-61"],
+      clientId: "",
+      clientSecret: "",
+      scopes: [],
       authorizationUri: "https://auth.sphere.io",
       accessTokenUri: "https://auth.sphere.io/oauth/token"
     }),
