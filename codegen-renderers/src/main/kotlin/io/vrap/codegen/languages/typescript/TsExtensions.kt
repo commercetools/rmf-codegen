@@ -6,6 +6,7 @@ import io.vrap.codegen.languages.php.extensions.toResourceName
 import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Resource
+import io.vrap.rmf.raml.model.types.StringType
 import java.nio.file.Path
 import java.nio.file.Paths
 
@@ -15,11 +16,26 @@ fun Method.tsRequestModuleName(clientPackageName: String):String = "$clientPacka
 
 fun VrapObjectType.tsModuleName() : String = "${this.`package`.replace(".","/")}.ts"
 
-fun Method.tsMediaType(): String{
-    return if(this.bodies.isNullOrEmpty() || this.bodies[0].contentMediaType.type().isNullOrEmpty())
-        ""
-    else
-        "'Content-Type': '${this.headers}'"
+fun Method.tsMediaType(): String {
+
+    val  headers = mutableMapOf<String,List<String>>()
+    if (!this.bodies.isNullOrEmpty() && !this.bodies[0].contentMediaType.type().isNullOrEmpty())
+    {
+        headers["Content-Type"] = listOf(this.bodies[0].contentMediaType.toString())
+    }
+    this.headers
+            .map {
+                it.name to (it.type as StringType).enum.map { it.value as String }
+            }
+            .toMap(headers)
+
+
+    return headers
+            .filter { it.value.size == 1 }
+            .map {
+        "'${it.key}': '${it.value[0]}'"
+    }.joinToString(separator = "\n")
+
 }
 
 fun String.tsRemoveRegexp():String {

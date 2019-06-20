@@ -1,11 +1,8 @@
 package io.vrap.codegen.languages.typescript.client
 
 import com.google.inject.Inject
-import io.vrap.codegen.languages.extensions.getMethodName
 import io.vrap.codegen.languages.java.extensions.returnType
-import io.vrap.codegen.languages.php.extensions.EObjectTypeExtensions
 import io.vrap.codegen.languages.php.extensions.resource
-import io.vrap.codegen.languages.php.extensions.toResourceName
 import io.vrap.codegen.languages.typescript.*
 import io.vrap.codegen.languages.typescript.client.files_producers.apiRequest
 import io.vrap.codegen.languages.typescript.client.files_producers.commonRequest
@@ -20,9 +17,7 @@ import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.modules.Api
 import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Resource
-import io.vrap.rmf.raml.model.resources.ResourceContainer
-import java.nio.file.Path
-import java.nio.file.Paths
+import io.vrap.rmf.raml.model.types.StringType
 
 
 class RequestBuilder @Inject constructor(
@@ -110,6 +105,7 @@ class RequestBuilder @Inject constructor(
 
                         """ |
                             |methodArgs${if (argsAreOptional) "?" else ""}:{
+                            |   <${it.headersPartInMethodSigniture()}>
                             |   <$queryParamsArg>
                             |   <$bodies>
                             |}
@@ -143,6 +139,26 @@ class RequestBuilder @Inject constructor(
                     |
                  """.trimMargin()
                 }.joinToString(separator = "")
+    }
+
+    fun Method.headersPartInMethodSigniture(): String {
+        return """
+            |headers${if (this.headerIsRequired()) "" else "?"}: {
+            |   <${this
+                .headers
+                .map { "'${it.name}': ${(it.type as StringType).enum.map { "'${it.value}'" }.joinToString(separator = " | ")}" }
+                .joinToString(separator = "\n")
+        }>
+            |   [key:string]:string
+            |},
+        """.trimMargin()
+    }
+
+    fun Method.headerIsRequired(): Boolean{
+        if(this.headers.isEmpty()){
+            return false
+        }
+        return this.headers.map { (it.type as StringType).enum.size>1 }.reduce{acc, b -> acc || b}
     }
 
     fun Method.dataType(): String {
