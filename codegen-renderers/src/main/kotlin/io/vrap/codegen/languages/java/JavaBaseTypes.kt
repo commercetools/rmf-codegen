@@ -17,7 +17,8 @@ object JavaBaseTypes : LanguageBaseTypes(
     booleanType = fromDefaultJavaType(java.lang.Boolean::class),
     dateTimeType = fromJavaType(ZonedDateTime::class),
     dateOnlyType = fromJavaType(LocalDate::class),
-    timeOnlyType = fromJavaType(LocalTime::class)
+    timeOnlyType = fromJavaType(LocalTime::class),
+    file = fromJavaType(FileAlreadyExistsException::class)
 
 )
 

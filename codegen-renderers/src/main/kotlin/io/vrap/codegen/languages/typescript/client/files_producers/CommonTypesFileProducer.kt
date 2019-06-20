@@ -12,7 +12,6 @@ class CommonTypesFileProducer : FileProducer {
 
     fun produceRequestTemplate(): TemplateFile {
         val content = """
-
 type HttpMethod =
   | "GET"
   | "HEAD"
@@ -32,6 +31,7 @@ export interface CommonRequest<T> {
   pathVariables?: { [key: string]: string | number | boolean };
   queryParams?: { [key: string]: string | number | boolean };
   payload?: T;
+  dataType?: 'TEXT'|'BINARY';
 }
 
 export type MiddlewareArg = {
@@ -43,6 +43,13 @@ export type MiddlewareArg = {
 
 export type Middleware = (arg: MiddlewareArg) => Promise<MiddlewareArg>;
 
+export type FilePath = {
+  filePath: string
+}
+
+export type VFile = {
+  filePath: string
+}
 
 """
 

@@ -13,7 +13,9 @@ object JoiBaseTypes : LanguageBaseTypes(
     booleanType = nativeTypeScriptType("boolean"),
     dateTimeType = nativeTypeScriptType("date"),
     dateOnlyType = nativeTypeScriptType("date"),
-    timeOnlyType = nativeTypeScriptType("string")
+    timeOnlyType = nativeTypeScriptType("string"),
+    file = nativeTypeScriptType("string")
+
 )
 
 fun nativeTypeScriptType(typeName: String): VrapScalarType = VrapScalarType(typeName)

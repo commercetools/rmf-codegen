@@ -6,6 +6,8 @@ import io.vrap.codegen.languages.php.extensions.toResourceName
 import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Resource
+import java.nio.file.Path
+import java.nio.file.Paths
 
 
 fun Method.tsRequestName():String = "${this.toRequestName()}Request"
@@ -33,3 +35,9 @@ fun String.tsRemoveRegexp():String {
 }
 
 fun Resource.tsRequestModuleName(clientPackageName: String):String = "$clientPackageName.${this.resourcePathName}.${this.toResourceName()}RequestBuilder"
+
+fun relativizePaths(currentModule: String, targetModule: String): String {
+    val currentRelative: Path = Paths.get(currentModule.replace(".", "/"))
+    val targetRelative: Path = Paths.get(targetModule.replace(".", "/"))
+    return "./" + currentRelative.relativize(targetRelative).toString().replaceFirst("../", "")
+}
