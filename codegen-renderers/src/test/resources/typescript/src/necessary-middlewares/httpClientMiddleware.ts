@@ -14,12 +14,13 @@ export const httpMiddleware: Middleware = async (args: MiddlewareArg) => {
 
     var axiosConfig: axios.AxiosRequestConfig;
     if (request.dataType == "BINARY") {
-      const data = fs.readFileSync(request.payload.filePath);
+      const data = fs.createReadStream(request.payload.filePath);
       axiosConfig = {
         method: request.method,
         url: request.url,
         data,
-        headers: request.headers
+        headers: request.headers,
+        maxContentLength:1000000000
       };
     } else {
       axiosConfig = {
