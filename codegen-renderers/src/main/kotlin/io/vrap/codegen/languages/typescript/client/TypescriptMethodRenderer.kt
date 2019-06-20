@@ -40,7 +40,7 @@ class TypescriptMethodRenderer @Inject constructor(override val vrapTypeProvider
             |   method: '${type.methodName.toUpperCase()}',
             |   headers: {
             |       <${type.tsMediaType()}>
-            |     },
+            |   },
             |   uriTemplate: '${type.resource().fullUri.template}'
             |   <${type.pathVariables()}>
             |   <${type.queryParams()}>
