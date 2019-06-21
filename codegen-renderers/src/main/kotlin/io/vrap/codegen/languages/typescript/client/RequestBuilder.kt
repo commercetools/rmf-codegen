@@ -82,14 +82,14 @@ class RequestBuilder @Inject constructor(
 
                         var queryParamsArg = ""
                         var bodies = ""
-                        if (!it.queryParameters.isNullOrEmpty()) {
+                        if (!it.queryParameters.isEmpty()) {
                             val allQueryParamsOptional = it.queryParameters.map { !it.required }.reduce(Boolean::and)
                             queryParamsArg =
                                     """|queryArgs${if (allQueryParamsOptional) "?" else ""}: {
                             |   <${it.queryParameters.map { "${it.name.tsRemoveRegexp()}${if (it.required) "" else "?"}: ${it.type.toVrapType().simpleTSName()}" }.joinToString(separator = "\n")}>
                             |},""".trimMargin()
                         }
-                        if (!it.bodies.isNullOrEmpty()) {
+                        if (!it.bodies.isEmpty()) {
                             bodies = "payload: ${it.bodies.map {
                                 it.type.toVrapType().simpleTSName()
                             }.joinToString(separator = " | ")},"

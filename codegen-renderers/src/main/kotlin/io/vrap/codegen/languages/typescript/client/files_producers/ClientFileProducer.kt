@@ -21,14 +21,16 @@ type HttpMethod =
   | "OPTIONS"
   | "TRACE";
 
+type Variable =  { [key: string]: string | number | boolean }
+
 export interface CommonRequest<T> {
   baseURL: string;
   url?: string,
   headers?: { [key: string]: string };
   method: HttpMethod;
   uriTemplate: string;
-  pathVariables?: { [key: string]: string | number | boolean };
-  queryParams?: { [key: string]: string | number | boolean };
+  pathVariables?: Variable;
+  queryParams?: Variable;
   payload?: T;
   dataType?: 'TEXT'|'BINARY';
 }
