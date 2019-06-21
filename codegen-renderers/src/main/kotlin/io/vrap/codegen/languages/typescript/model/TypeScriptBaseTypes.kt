@@ -1,6 +1,7 @@
 package io.vrap.codegen.languages.typescript.model
 
 import io.vrap.rmf.codegen.types.LanguageBaseTypes
+import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapScalarType
 
 object TypeScriptBaseTypes : LanguageBaseTypes(
@@ -12,7 +13,8 @@ object TypeScriptBaseTypes : LanguageBaseTypes(
     booleanType = nativeTypeScriptType("boolean"),
     dateTimeType = nativeTypeScriptType("string"),
     dateOnlyType = nativeTypeScriptType("string"),
-    timeOnlyType = nativeTypeScriptType("string")
+    timeOnlyType = nativeTypeScriptType("string"),
+    file =  VrapObjectType("base.local-common-types","VFile")
 )
 
 fun nativeTypeScriptType(typeName: String): VrapScalarType = VrapScalarType(typeName)

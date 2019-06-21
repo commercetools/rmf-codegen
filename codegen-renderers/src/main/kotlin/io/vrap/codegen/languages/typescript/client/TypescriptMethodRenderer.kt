@@ -5,7 +5,7 @@ import io.vrap.codegen.languages.extensions.EObjectExtensions
 import io.vrap.codegen.languages.java.extensions.JavaObjectTypeExtensions
 import io.vrap.codegen.languages.java.extensions.resource
 import io.vrap.codegen.languages.java.extensions.returnType
-import io.vrap.codegen.languages.java.extensions.toRequestName
+import io.vrap.codegen.languages.typescript.client.files_producers.commonRequest
 import io.vrap.codegen.languages.typescript.model.TsObjectTypeExtensions
 import io.vrap.codegen.languages.typescript.model.simpleTSName
 import io.vrap.codegen.languages.typescript.tsMediaType
@@ -26,19 +26,21 @@ class TypescriptMethodRenderer @Inject constructor(override val vrapTypeProvider
     override fun render(type: Method): TemplateFile {
 
         val vrapType = vrapTypeProvider.doSwitch(type) as VrapObjectType
-        val moduleName = type.tsRequestModuleName(vrapType.`package`).replace(".", "/")
+        val moduleName = type.tsRequestModuleName(vrapType.`package`)
 
         val content = """
             |/* tslint:disable */
             |//Generated file, please do not change
             |
             |${type.imports(moduleName)}
-            |import { CommonRequest } from '${relativizePaths(moduleName,"base/requests-utils")}'
+            |import { ${commonRequest.simpleClassName} } from '${relativizePaths(moduleName, commonRequest.`package`)}'
             |
             |export interface ${type.tsRequestName()} extends CommonRequest\<${type.bodyType()}\> {
             |
             |   method: '${type.methodName.toUpperCase()}',
-            |   <${type.tsMediaType()}>
+            |   headers: {
+            |       <${type.tsMediaType()}>
+            |   },
             |   uriTemplate: '${type.resource().fullUri.template}'
             |   <${type.pathVariables()}>
             |   <${type.queryParams()}>
@@ -50,7 +52,7 @@ class TypescriptMethodRenderer @Inject constructor(override val vrapTypeProvider
             """.trimMargin().keepIndentation()
 
         return TemplateFile(
-                relativePath = "$moduleName.ts",
+                relativePath = "${moduleName.replace(".", "/")}.ts",
                 content = content
         )
     }
@@ -62,14 +64,14 @@ class TypescriptMethodRenderer @Inject constructor(override val vrapTypeProvider
         return importTypes
                 .filter { it != null }
                 .map { it.toVrapType() }
-                .filter { it is VrapObjectType  }
+                .filter { it is VrapObjectType }
                 .map { it as VrapObjectType }
-                .map { "import { ${it.simpleTSName()} } from '${relativizePaths(moduleName, it.`package`.replace(".","/"))}'" }
+                .map { "import { ${it.simpleTSName()} } from '${relativizePaths(moduleName, it.`package`)}'" }
                 .joinToString(separator = "\n")
 
     }
 
-    fun Method.body():String{
+    fun Method.body(): String {
         return if (this.hasNonEmptyBody()) {
             "payload: ${this.bodyType()}"
         } else {
@@ -77,7 +79,7 @@ class TypescriptMethodRenderer @Inject constructor(override val vrapTypeProvider
         }
     }
 
-    fun Method.bodyType():String {
+    fun Method.bodyType(): String {
         return if (this.hasNonEmptyBody()) {
             return this.bodies
                     .map { it.type }
@@ -92,7 +94,7 @@ class TypescriptMethodRenderer @Inject constructor(override val vrapTypeProvider
 
     fun Method.hasNonEmptyBody() = this.bodies != null
             && this.bodies.isNotEmpty()
-            && this.bodies.map { it.type != null }.reduce{acc, b ->  acc && b}
+            && this.bodies.map { it.type != null }.reduce { acc, b -> acc && b }
 
     fun Method.pathVariables(): String {
         val pathArguments = this.pathArguments()
@@ -111,17 +113,16 @@ class TypescriptMethodRenderer @Inject constructor(override val vrapTypeProvider
             return ""
         return """|
             |queryParams: {
-            |   <${this.queryParameters.map {"${it.name.tsRemoveRegexp()}${if (!it.required) "?" else ""}: ${it.type.toVrapType().simpleTSName()}" }.joinToString(separator = ",\n")}>
+            |   <${this.queryParameters.map { "${it.name.tsRemoveRegexp()}${if (!it.required) "?" else ""}: ${it.type.toVrapType().simpleTSName()}" }.joinToString(separator = ",\n")}>
             |}
         """.trimMargin()
     }
 
 
-
-    private fun relativizePaths(currentModule:String, targetModule : String) : String {
-        val currentRelative : Path = Paths.get(currentModule)
-        val targetRelative : Path = Paths.get(targetModule)
-        return currentRelative.relativize(targetRelative).toString().replaceFirst("../","")
+    private fun relativizePaths(currentModule: String, targetModule: String): String {
+        val currentRelative: Path = Paths.get(currentModule.replace(".", "/"))
+        val targetRelative: Path = Paths.get(targetModule.replace(".", "/"))
+        return currentRelative.relativize(targetRelative).toString().replaceFirst("../", "")
     }
 
     private fun Method.pathArguments(): List<String> = this.resource().fullUri.variables.toList()

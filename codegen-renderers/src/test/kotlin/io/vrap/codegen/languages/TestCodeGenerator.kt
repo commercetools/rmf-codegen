@@ -59,15 +59,15 @@ class TestCodeGenerator {
         val generatorModule = GeneratorModule(apiProvider, generatorConfig, JavaBaseTypes)
         val generatorComponent = GeneratorComponent(generatorModule, JavaCompleteModule())
         generatorComponent.generateFiles()
-        
+
         File("build/compiled").deleteRecursively()
         File("build/compiled").mkdirs()
-        
+
         val filesList =  File("build/gensrc")
-            .walkTopDown()
-            .filter( File::isFile )
-            .filter { it.name.endsWith(".java") }
-            .toList()
+                .walkTopDown()
+                .filter( File::isFile )
+                .filter { it.name.endsWith(".java") }
+                .toList()
 
         val compiler = ToolProvider.getSystemJavaCompiler()
         val fileManager = compiler.getStandardFileManager(null, null, null)
@@ -148,8 +148,8 @@ class TestCodeGenerator {
     @Test
     fun generatePHPModels() {
         val generatorConfig = CodeGeneratorConfig(
-            basePackageName = "com.commercetools.importer",
-            outputFolder = Paths.get("build/gensrc/commercetools-raml-sdk")
+                basePackageName = "com.commercetools.importer",
+                outputFolder = Paths.get("build/gensrc/commercetools-raml-sdk")
         )
 
         val generatorModule = GeneratorModule(apiProvider, generatorConfig, PhpBaseTypes)
