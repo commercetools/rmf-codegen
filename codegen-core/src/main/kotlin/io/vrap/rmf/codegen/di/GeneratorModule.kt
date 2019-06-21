@@ -65,12 +65,12 @@ class GeneratorModule constructor(
     @Provides
     @Singleton
     @Named(io.vrap.rmf.codegen.di.VrapConstants.MODEL_PACKAGE_NAME)
-    fun provideModelPackageName(@Named(io.vrap.rmf.codegen.di.VrapConstants.BASE_PACKAGE_NAME) basePackageName:String): String = generatorConfig.modelPackage?: "$basePackageName.models"
+    fun provideModelPackageName(@Named(io.vrap.rmf.codegen.di.VrapConstants.BASE_PACKAGE_NAME) basePackageName:String): String = generatorConfig.modelPackage?: if(basePackageName.isBlank()) "models" else "$basePackageName.models"
 
     @Provides
     @Singleton
     @Named(io.vrap.rmf.codegen.di.VrapConstants.CLIENT_PACKAGE_NAME)
-    fun provideClientPackageName(@Named(io.vrap.rmf.codegen.di.VrapConstants.BASE_PACKAGE_NAME) basePackageName:String): String = generatorConfig.clientPackage?: "$basePackageName.client"
+    fun provideClientPackageName(@Named(io.vrap.rmf.codegen.di.VrapConstants.BASE_PACKAGE_NAME) basePackageName:String): String = generatorConfig.clientPackage?:  if(basePackageName.isBlank())  "client" else "$basePackageName.client"
 
     @Provides
     @Singleton

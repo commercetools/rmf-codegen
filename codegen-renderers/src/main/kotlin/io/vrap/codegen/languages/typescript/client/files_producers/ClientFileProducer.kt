@@ -1,26 +1,67 @@
 package io.vrap.codegen.languages.typescript.client.files_producers
 
-import com.google.inject.Inject
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.FileProducer
-import io.vrap.rmf.raml.model.modules.Api
 
-class TsClientFileProducer @Inject constructor(val api:Api): FileProducer{
+class ClientFileProducer : FileProducer {
 
 
     override fun produceFiles(): List<TemplateFile> {
-        return listOf(produceRequestTemplate())
+        return listOf(commonTypes(), localCommonTypes(),produceClient())
     }
 
-    fun produceRequestTemplate(): TemplateFile{
-        val content = """
+    fun commonTypes() = TemplateFile(relativePath = "base/common-types.ts", content = """
+type HttpMethod =
+  | "GET"
+  | "HEAD"
+  | "POST"
+  | "PUT"
+  | "DELETE"
+  | "CONNECT"
+  | "OPTIONS"
+  | "TRACE";
+
+export interface CommonRequest<T> {
+  baseURL: string;
+  url?: string,
+  headers?: { [key: string]: string };
+  method: HttpMethod;
+  uriTemplate: string;
+  pathVariables?: { [key: string]: string | number | boolean };
+  queryParams?: { [key: string]: string | number | boolean };
+  payload?: T;
+  dataType?: 'TEXT'|'BINARY';
+}
+
+export type MiddlewareArg = {
+  request: CommonRequest<any>;
+  response: any;
+  error: Error;
+  next: Middleware;
+};
+
+export type Middleware = (arg: MiddlewareArg) => Promise<MiddlewareArg>;
+
+""")
+}
+
+fun localCommonTypes() = TemplateFile(relativePath = "base/local-common-types.ts", content = """
+import { PathLike } from "fs";
+
+export type VFile = {
+    filePath: PathLike
+}
+
+""")
+
+fun produceClient() = TemplateFile(relativePath = "base/requests-utils.ts", content = """
 import { Middleware, MiddlewareArg, CommonRequest } from "./common-types";
 
 export class ApiRequest<I, O, T extends CommonRequest<I>> {
   private middleware: Middleware;
   constructor(private readonly commonRequest: T, middlewares: Middleware[]) {
     if (!middlewares || middlewares.length == 0) {
-      throw Error("At least one middleware should be provided");
+      middlewares = [noOpMiddleware];
     }
     this.middleware = middlewares.reduce(reduceMiddleware);
   }
@@ -34,7 +75,7 @@ export class ApiRequest<I, O, T extends CommonRequest<I>> {
     const res = await this.middleware({
       request: req,
       error: null,
-      next: async arg => arg,
+      next: noOpMiddleware,
       response: null
     });
 
@@ -81,10 +122,6 @@ function getURI(commonRequest: CommonRequest<any>): string {
   return `${'$'}{commonRequest.baseURL}${'$'}{uri}?${'$'}{resQuery}`;
 }
 
-"""
+const noOpMiddleware = async (x: MiddlewareArg) => x;
 
-
-        return TemplateFile(content = content,relativePath = "base/requests-utils.ts")
-
-    }
-}
+""")

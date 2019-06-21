@@ -12,7 +12,7 @@ import java.nio.file.Paths
 
 
 fun Method.tsRequestName():String = "${this.toRequestName()}Request"
-fun Method.tsRequestModuleName(clientPackageName: String):String = "$clientPackageName.${this.resource().resourcePathName}.${this.toRequestName()}Request"
+fun Method.tsRequestModuleName(clientPackageName: String):String = "${if(clientPackageName.isEmpty()) "" else "$clientPackageName."}${this.resource().resourcePathName}.${this.toRequestName()}Request"
 
 fun VrapObjectType.tsModuleName() : String = "${this.`package`.replace(".","/")}.ts"
 
