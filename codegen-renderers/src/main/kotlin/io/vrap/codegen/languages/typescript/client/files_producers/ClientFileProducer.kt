@@ -57,11 +57,12 @@ export type VFile = {
 """)
 
 fun produceClient() = TemplateFile(relativePath = "base/requests-utils.ts", content = """
+
 import { Middleware, MiddlewareArg, CommonRequest } from "./common-types";
 
-export class ApiRequest<I, O, T extends CommonRequest<I>> {
+export class ApiRequest<O> {
   private middleware: Middleware;
-  constructor(private readonly commonRequest: T, middlewares: Middleware[]) {
+  constructor(private readonly commonRequest: CommonRequest<any>, middlewares: Middleware[]) {
     if (!middlewares || middlewares.length == 0) {
       middlewares = [noOpMiddleware];
     }
@@ -125,5 +126,7 @@ function getURI(commonRequest: CommonRequest<any>): string {
 }
 
 const noOpMiddleware = async (x: MiddlewareArg) => x;
+
+
 
 """)

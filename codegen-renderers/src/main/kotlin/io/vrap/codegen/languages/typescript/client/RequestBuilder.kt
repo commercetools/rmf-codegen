@@ -111,7 +111,7 @@ class RequestBuilder @Inject constructor(
                             |}
                         """.trimMargin()
 
-                    val methodReturn = "ApiRequest\\<${it.bodies.map { it.type.toVrapType().simpleTSName() }.joinToString(separator = " | ").ifEmpty { "void" }}, ${it.returnType().toVrapType().simpleTSName()}, ${it.tsRequestName()}\\>"
+                    val methodReturn = "ApiRequest\\<${it.returnType().toVrapType().simpleTSName()}\\>"
 
                     val bodyLiteral = """|{
                         |   baseURL: '${api.baseUri.template}',
@@ -177,18 +177,11 @@ class RequestBuilder @Inject constructor(
 
 
     fun Resource.imports(moduleName: String): String {
-        return this.methods
+        return this.resources
                 .map {
-                    val requestModuleName = it.tsRequestModuleName((it.toVrapType() as VrapObjectType).`package`)
-                    val relativePath = relativizePaths(moduleName, requestModuleName)
-                    "import { ${it.tsRequestName()} } from '$relativePath'"
+                    val relativePath = relativizePaths(moduleName, it.tsRequestModuleName((this.toVrapType() as VrapObjectType).`package`))
+                    "import { ${it.toRequestBuilderName()} } from '$relativePath'"
                 }.plus(
-                        this.resources
-                                .map {
-                                    val relativePath = relativizePaths(moduleName, it.tsRequestModuleName((this.toVrapType() as VrapObjectType).`package`))
-                                    "import { ${it.toRequestBuilderName()} } from '$relativePath'"
-                                }
-                ).plus(
                         this.methods
                                 .flatMap { it.bodies }
                                 .filter { it.type != null }
