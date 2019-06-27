@@ -2,7 +2,6 @@ package io.vrap.codegen.languages.php.model;
 
 import com.google.inject.Inject
 import com.google.inject.name.Named
-import io.vrap.codegen.languages.java.extensions.simpleName
 import io.vrap.codegen.languages.php.PhpBaseTypes
 import io.vrap.codegen.languages.php.PhpSubTemplates
 import io.vrap.codegen.languages.php.extensions.*
@@ -38,6 +37,7 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
             |
             |final class ${vrapType.simpleClassName}Model extends JsonObject implements ${vrapType.simpleClassName}
             |{
+            |    ${if (type.discriminator != null || type.discriminatorValue != null) {"const DISCRIMINATOR_VALUE = '${type.discriminatorValue ?: ""}';"} else ""}
             |    <<${type.constructor()}>>
             |
             |    <<${type.toBeanFields()}>>
@@ -372,6 +372,7 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
             return ""
         }
         return """
+                |/** @var array<string, class-string<${this.toVrapType().simpleName()}> > */
                 |private static $!discriminatorClasses = [
                 |   <<${this.namedSubTypes().filterIsInstance<ObjectType>().map { "'${it.discriminatorValue}' => ${it.toVrapType().simpleName()}Model::class," }.joinToString(separator = "\n")}>>
                 |];
@@ -383,15 +384,22 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
             return ""
         }
         return """
-            |public static function resolveDiscriminatorClass($!value)
+            |/**
+            | * @psalm-return class-string<${this.toVrapType().simpleName()}>
+            | */
+            |public static function resolveDiscriminatorClass(object $!value): string
             |{
-            |   if (isset($!value[${this.toVrapType().simpleName()}::DISCRIMINATOR_FIELD])) {
-            |       $!discriminatorValue = $!value[${this.toVrapType().simpleName()}::DISCRIMINATOR_FIELD];
+            |   $!fieldName = ${this.toVrapType().simpleName()}::DISCRIMINATOR_FIELD;
+            |   if (isset($!value->$!fieldName)) {
+            |       /** @var string $!discriminatorValue */
+            |       $!discriminatorValue = $!value->$!fieldName;
             |       if (isset(static::$!discriminatorClasses[$!discriminatorValue])) {
             |            return static::$!discriminatorClasses[$!discriminatorValue];
             |       }
             |   }
-            |   return ${this.toVrapType().simpleName()}Model::class;
+            |   /** @psalm-var class-string<${this.toVrapType().simpleName()}> */
+            |   $!type = ${this.toVrapType().simpleName()}Model::class;
+            |   return $!type;
             |}
         """.trimMargin()
     }

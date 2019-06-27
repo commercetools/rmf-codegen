@@ -40,8 +40,11 @@ class PhpMethodBuilderRenderer @Inject constructor(override val vrapTypeProvider
             |${PhpSubTemplates.generatorInfo}
             |namespace ${vrapType.`package`.toNamespaceName().escapeAll()}\\$resourcePackage;
             |
+            |use ${vrapType.`package`.toNamespaceName().escapeAll()}\\ApiResource;
+            |use Psr\\Http\\Message\\UploadedFileInterface;
+            |
             |/** @psalm-suppress PropertyNotSetInConstructor */
-            |class ${type.resourceBuilderName()}
+            |class ${type.resourceBuilderName()} extends ApiResource
             |{
             |   <<${type.subResources()}>>
             |   <<${type.methods()}>>
@@ -58,8 +61,13 @@ class PhpMethodBuilderRenderer @Inject constructor(override val vrapTypeProvider
     private fun Resource.methods(): String {
         return this.methods.map {
             """
-                |public function ${it.methodName}() {
-                |   return new ${it.toRequestName()}();
+                |/**
+                | * @psalm-param ${if (it.firstBody()?.type is FileType) "?UploadedFileInterface " else "?object"} $!body
+                | * @psalm-param array<string, scalar|scalar[]> $!headers
+                | */
+                |public function ${it.methodName}(${if (it.firstBody()?.type is FileType) "?UploadedFileInterface " else ""}$!body = null, array $!headers = []): ${it.toRequestName()} {
+                |   $!args = $!this->getArgs();
+                |   return new ${it.toRequestName()}(${it.allParams()?.map { "$!args['${it}'], " }?.joinToString("")}$!body, $!headers);
                 |}
                 |
             """.trimMargin()
@@ -69,8 +77,13 @@ class PhpMethodBuilderRenderer @Inject constructor(override val vrapTypeProvider
     private fun Resource.subResources(): String {
         return this.resources.map {
             """
-                |public function ${it.getMethodName()}() {
-                |   return new ${it.resourceBuilderName()}();
+                |/**
+                | <<${it.uriParameters?.asSequence()?.map { "* @psalm-param scalar $${it.name}" }?.joinToString(separator = "\n") ?: "*"}>>
+                | */
+                |public function ${it.getMethodName()}(${it.uriParameters?.asSequence()?.map { "$${it.name} = null"  }?.joinToString(", ") ?: ""}): ${it.resourceBuilderName()} {
+                |   $!args = $!this->getArgs();
+                |   ${it.uriParameters?.asSequence()?.map { "if (!is_null($${it.name})) { $!args['${it.name}'] = $${it.name}; }" }?.joinToString("\n")}
+                |   return new ${it.resourceBuilderName()}($!this->getUri() . '${it.relativeUri.template}', $!args);
                 |}
                 |
             """.trimMargin()
@@ -81,9 +94,9 @@ class PhpMethodBuilderRenderer @Inject constructor(override val vrapTypeProvider
 
 
 
-//    fun getAllParamNames(): List<String>? {
-//        val params = getAbsoluteUri().getComponents().stream()
-//                .filter({ uriTemplatePart -> uriTemplatePart is Expression })
+//    fun Method.getAllParamNames(): List<String>? {
+//        val params = this.getAbsoluteUri().getComponents().stream()
+//                .filter({ uriTemplatePart -> uriTemplatePart is ExpressioResourceByProjectKeyProductsByIDImagesn })
 //                .flatMap({ uriTemplatePart -> (uriTemplatePart as Expression).varSpecs.stream().map<String>(Function<VarSpec, String> { it.getVariableName() }) })
 //                .collect(Collectors.toList<String>())
 //        return if (params.size > 0) {

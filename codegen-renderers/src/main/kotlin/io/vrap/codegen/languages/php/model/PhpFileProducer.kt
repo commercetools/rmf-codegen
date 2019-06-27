@@ -46,7 +46,8 @@ class PhpFileProducer @Inject constructor() : FileProducer {
             baseJsonObject(),
             mapperIterator(),
             mapCollection(),
-            psalm()
+            psalm(),
+            resource()
     )
 
     private fun collection(): TemplateFile {
@@ -491,7 +492,10 @@ class PhpFileProducer @Inject constructor() : FileProducer {
     }
 
     fun UriTemplate.replaceValues(): String = variables
-            .map { "$!apiUri = str_replace('{$it}', (isset($!config[self::OPT_${StringCaseFormat.UPPER_UNDERSCORE_CASE.apply(it)}]) ? $!config[self::OPT_${StringCaseFormat.UPPER_UNDERSCORE_CASE.apply(it)}] : '{$it}'), $!apiUri);" }
+            .map { """
+                |/** @psalm-var string $!${StringCaseFormat.LOWER_CAMEL_CASE.apply(it)} */
+                |$!${StringCaseFormat.LOWER_CAMEL_CASE.apply(it)} = isset($!config[self::OPT_${StringCaseFormat.UPPER_UNDERSCORE_CASE.apply(it)}]) ? $!config[self::OPT_${StringCaseFormat.UPPER_UNDERSCORE_CASE.apply(it)}] : '{$it}';
+                |$!apiUri = str_replace('{$it}', $!${StringCaseFormat.LOWER_CAMEL_CASE.apply(it)}, $!apiUri);""".trimMargin() }
             .joinToString(separator = "\n")
 
     fun UriTemplate.constVariables(): String = variables
@@ -1038,7 +1042,7 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |     * @psalm-return array<string, scalar|scalar[]>
                     |     * @param array $!headers
                     |     * @param string $!header
-                    |     * @param mixed $!defaultValue
+                    |     * @param scalar|array $!defaultValue
                     |     * @return array
                     |     */
                     |    protected function ensureHeader(array $!headers, string $!header, $!defaultValue): array
@@ -1060,7 +1064,7 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |     * @param string $!parameterName
                     |     * @psalm-param scalar $!value
                     |     * @param mixed $!value
-                    |     * @return ApiRequest
+                    |     * @psalm-return static
                     |     */
                     |    public function withQueryParam(string $!parameterName, $!value): ApiRequest
                     |    {
@@ -1386,6 +1390,56 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                         |    </issueHandlers>
                         |</psalm>
                     """.trimMargin()
+        )
+    }
+
+    private fun resource(): TemplateFile {
+        return TemplateFile(relativePath = "src/Client/ApiResource.php",
+                content = """
+                    |<?php
+                    |${PhpSubTemplates.generatorInfo}
+                    |
+                    |namespace ${packagePrefix.toNamespaceName()}\Client;
+                    |
+                    |class ApiResource
+                    |{
+                    |    /**
+                    |     * @var string
+                    |     */
+                    |    private $!uri;
+                    |
+                    |    /**
+                    |     * @psalm-var array<string, scalar>
+                    |     */
+                    |    private $!args = [];
+                    |
+                    |    /**
+                    |     * @param string $!uri
+                    |     * @psalm-param array<string, scalar> $!args
+                    |     */
+                    |    public function __construct(string $!uri, array $!args = [])
+                    |    {
+                    |        $!this->uri = $!uri;
+                    |        $!this->args = $!args;
+                    |    }
+                    |
+                    |    /**
+                    |     * @return string
+                    |     */
+                    |    final protected function getUri(): string
+                    |    {
+                    |        return $!this->uri;
+                    |    }
+                    |
+                    |    /**
+                    |     * @psalm-return array<string, scalar>
+                    |     */
+                    |    final protected function getArgs(): array
+                    |    {
+                    |        return $!this->args;
+                    |    }
+                    |}
+                """.trimMargin().forcedLiteralEscape()
         )
     }
 }

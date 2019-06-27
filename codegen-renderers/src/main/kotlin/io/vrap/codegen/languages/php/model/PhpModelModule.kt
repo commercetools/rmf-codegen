@@ -23,6 +23,6 @@ class PhpModelModule: AbstractModule() {
         methodBinder.addBinding().to(PhpMethodRenderer::class.java)
 
         val resourceBinder = Multibinder.newSetBinder(binder(), ResourceRenderer::class.java)
-//        resourceBinder.addBinding().to(PhpMethodBuilderRenderer::class.java)
+        resourceBinder.addBinding().to(PhpMethodBuilderRenderer::class.java)
     }
 }

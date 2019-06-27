@@ -2,10 +2,8 @@ package io.vrap.codegen.languages.php.model
 
 import com.google.inject.Inject
 import com.google.inject.name.Named
-import io.vrap.codegen.languages.java.extensions.isSuccessfull
 import io.vrap.codegen.languages.php.PhpSubTemplates
 import io.vrap.codegen.languages.php.extensions.*
-import io.vrap.rmf.codegen.di.VrapConstants
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.MethodRenderer
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
@@ -15,10 +13,11 @@ import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.responses.Body
 import io.vrap.rmf.raml.model.responses.Response
-import io.vrap.rmf.raml.model.types.AnyType
-import io.vrap.rmf.raml.model.types.FileType
+import io.vrap.rmf.raml.model.types.*
 import io.vrap.rmf.raml.model.types.impl.TypesFactoryImpl
+import io.vrap.rmf.raml.model.util.StringCaseFormat
 import org.eclipse.emf.ecore.EObject
+import javax.management.Query
 
 class PhpMethodRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : MethodRenderer, EObjectTypeExtensions {
 
@@ -29,7 +28,6 @@ class PhpMethodRenderer @Inject constructor(override val vrapTypeProvider: VrapT
     private val resourcePackage = "Resource";
 
     override fun render(type: Method): TemplateFile {
-
         val vrapType = vrapTypeProvider.doSwitch(type as EObject) as VrapObjectType
 
         val content = """
@@ -47,7 +45,7 @@ class PhpMethodRenderer @Inject constructor(override val vrapTypeProvider: VrapT
             |    const RESULT_TYPE = ${type.returnTypeClass()}::class;
             |
             |    /**
-            |     <<${type.allParams()?.asSequence()?.map { "* @param string $$it" }?.joinToString(separator = "\n") ?: "*"}>>
+            |     <<${type.allParams()?.asSequence()?.map { "* @psalm-param scalar $$it" }?.joinToString(separator = "\n") ?: "*"}>>
             |     * @param ${if (type.firstBody()?.type is FileType) "?UploadedFileInterface " else "?object"} $!body
             |     * @psalm-param array<string, scalar|scalar[]> $!headers
             |     * @param array $!headers
@@ -56,7 +54,7 @@ class PhpMethodRenderer @Inject constructor(override val vrapTypeProvider: VrapT
             |    {
             |        $!uri = str_replace([${type.allParams()?.asSequence()?.map { "'{$it}'"  }?.joinToString(separator = ", ") ?: ""}], [${type.allParams()?.asSequence()?.map { "$$it"  }?.joinToString(separator = ", ") ?: ""}], '${type.resource().fullUri.template}');
             |        <<${type.firstBody()?.ensureContentType() ?: ""}>>
-            |        <<${type.headers.filter { it.type?.default != null }.map { "\$headers = \$this->ensureHeader(\$headers, '${it.name}', '${it.type.default.value}');" }.joinToString(separator = "\n")}>>
+            |        <<${type.headers.filter { it.type?.default != null }.map { "\$headers = \$this->ensureHeader(\$headers, '${it.name}', '${it.type.default.value}');" }.joinToString("\n\n")}>>
             |        parent::__construct('${type.methodName.toUpperCase()}', $!uri, $!headers, ${type.firstBody()?.serialize()?: "!is_null(\$body) ? json_encode(\$body) : null"});
             |    }
             |
@@ -70,9 +68,7 @@ class PhpMethodRenderer @Inject constructor(override val vrapTypeProvider: VrapT
             |   //     return parent::map($!response, $!mapper);
             |   // }
             |
-            |   // <if(request.method.queryParameters)>
-            |   // <request.method.queryParameters: {param |<withParam(request.name, param)>}>
-            |   // <endif>
+            |   <<${type.queryParameters.map { it.withParam(type) }.joinToString("\n\n")}>>
             |}
         """.trimMargin().keepIndentation("<<", ">>").forcedLiteralEscape()
         val relativeTypeNamespace = vrapType.`package`.toNamespaceName().replace(packagePrefix.toNamespaceName() + "\\", "").replace("\\", "/") + "/$resourcePackage"
@@ -81,6 +77,76 @@ class PhpMethodRenderer @Inject constructor(override val vrapTypeProvider: VrapT
                 relativePath = relativePath,
                 content = content
         )
+    }
+
+    private fun QueryParameter.methodName(): String {
+        val anno = this.getAnnotation("placeholderParam");
+
+        if (anno != null) {
+            val o = anno.getValue() as ObjectInstance
+            val paramName = o.value.stream().filter { propertyValue -> propertyValue.name == "paramName" }.findFirst().orElse(null).value as StringInstance
+            return "with" + StringCaseFormat.UPPER_CAMEL_CASE.apply(paramName.value)
+        }
+        return "with" + StringCaseFormat.UPPER_CAMEL_CASE.apply(this.name.replace(".", "-"))
+    }
+
+    private fun QueryParameter.methodParam(): String {
+        val anno = this.getAnnotation("placeholderParam");
+
+        if (anno != null) {
+            val o = anno.value as ObjectInstance
+            val placeholder = o.value.stream().filter { propertyValue -> propertyValue.name == "placeholder" }.findFirst().orElse(null).value as StringInstance
+            val paramName = o.value.stream().filter { propertyValue -> propertyValue.name == "paramName" }.findFirst().orElse(null).value as StringInstance
+            return "$" + StringCaseFormat.LOWER_CAMEL_CASE.apply(placeholder.value) + ", $" + paramName.value
+        }
+        return "$" + StringCaseFormat.LOWER_CAMEL_CASE.apply(this.name.replace(".", "-"))
+    }
+
+    private fun QueryParameter.paramName(): String {
+        val anno = this.getAnnotation("placeholderParam");
+
+        if (anno != null) {
+            val o = anno.value as ObjectInstance
+            val paramName = o.value.stream().filter { propertyValue -> propertyValue.name == "paramName" }.findFirst().orElse(null).value as StringInstance
+            return "$" + paramName.value
+        }
+        return "$" + StringCaseFormat.LOWER_CAMEL_CASE.apply(this.name.replace(".", "-"))
+    }
+
+    private fun QueryParameter.template(): String {
+        val anno = this.getAnnotation("placeholderParam");
+
+        if (anno != null) {
+            val o = anno.value as ObjectInstance
+            val template = o.value.stream().filter { propertyValue -> propertyValue.name == "template" }.findFirst().orElse(null).value as StringInstance
+            val placeholder = o.value.stream().filter { propertyValue -> propertyValue.name == "placeholder" }.findFirst().orElse(null).value as StringInstance
+            return "sprintf('" + template.value.replace("<" + placeholder.value + ">", "%s") + "', $" + placeholder.value + ")"
+        }
+        return "'" + this.name + "'"
+    }
+
+    private fun QueryParameter.placeholderDocBlock(): String {
+        val anno = this.getAnnotation("placeholderParam");
+
+        if (anno != null) {
+            val o = anno.value as ObjectInstance
+            val placeholder = o.value.stream().filter { propertyValue -> propertyValue.name == "placeholder" }.findFirst().orElse(null).value as StringInstance
+            return "@psalm-param scalar $" + placeholder.value
+        }
+        return ""
+    }
+
+    private fun QueryParameter.withParam(type: Method): String {
+        return """
+            |/**
+            | * ${this.placeholderDocBlock()}
+            | * @psalm-param scalar ${this.paramName()}
+            | */
+            |public function ${this.methodName()}(${this.methodParam()}): ${type.toRequestName()}
+            |{
+            |    return $!this->withQueryParam(${this.template()}, ${this.paramName()});
+            |}
+        """.trimMargin()
     }
 
     private fun Body.ensureContentType(): String {
@@ -217,5 +283,14 @@ class PhpMethodRenderer @Inject constructor(override val vrapTypeProvider: VrapT
             is VrapObjectType -> vrapType.fullClassName()
             else -> "${packagePrefix.toNamespaceName()}\\Base\\JsonObject"
         }
+    }
+
+    fun <T> EObject.getParent(parentClass: Class<T>): T? {
+        if (this.eContainer() == null) {
+            return null
+        }
+        return if (parentClass.isInstance(this.eContainer())) {
+            this.eContainer() as T
+        } else this.eContainer().getParent(parentClass)
     }
 }
