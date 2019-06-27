@@ -6,7 +6,9 @@ import io.vrap.codegen.languages.extensions.isPatternProperty
 import io.vrap.codegen.languages.extensions.toComment
 import io.vrap.codegen.languages.java.JavaSubTemplates
 import io.vrap.codegen.languages.java.extensions.JavaObjectTypeExtensions
+import io.vrap.codegen.languages.java.extensions.lowerCamelCase
 import io.vrap.codegen.languages.java.extensions.simpleName
+import io.vrap.codegen.languages.java.extensions.upperCamelCase
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.FileProducer
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
@@ -37,41 +39,24 @@ class JavaModelClassFileProducer @Inject constructor(override val vrapTypeProvid
                 |import javax.validation.constraints.NotNull;
                 |import java.util.*;
                 |import java.time.*;
-                |import org.apache.commons.lang3.builder.EqualsBuilder;
-                |import org.apache.commons.lang3.builder.HashCodeBuilder;
-                |import org.apache.commons.lang3.builder.ToStringBuilder;
-                |import org.apache.commons.lang3.builder.ToStringStyle;
                 |import java.util.List;
                 |import java.util.Map;
+                |import sun.reflect.generics.reflectiveObjects.NotImplementedException;
                 |
                 |<${type.toComment().escapeAll()}>
                 |<${JavaSubTemplates.generatedAnnotation}>
-                |public class ${vrapType.simpleClassName}Impl ${type.extendsStatement()} implements ${vrapType.simpleClassName} {
+                |public class ${vrapType.simpleClassName}Impl implements ${vrapType.simpleClassName} {
                 |
                 |   <${type.finalBeanFields().escapeAll()}>
                 |   
                 |   <${type.beanFields().escapeAll()}>
                 |
-                |   <${type.constructor().escapeAll()}>
+                |   <${type.constructors().escapeAll()}>
                 |   
                 |   <${type.getters().escapeAll()}>
                 |
                 |   <${type.setters().escapeAll()}>
                 |
-                |    @Override
-                |    public String toString() {
-                |        return ToStringBuilder.reflectionToString(this, ToStringStyle.SHORT_PREFIX_STYLE);
-                |    }
-                |
-                |    @Override
-                |    public boolean equals(Object o) {
-                |        return EqualsBuilder.reflectionEquals(this, o);
-                |    }
-                |
-                |    @Override
-                |    public int hashCode() {
-                |        return HashCodeBuilder.reflectionHashCode(this);
-                |    }
                 |}
         """.trimMargin().keepIndentation()
 
@@ -80,30 +65,31 @@ class JavaModelClassFileProducer @Inject constructor(override val vrapTypeProvid
                 content = content
         )
     }
-
+    
+    private fun Property.packageName() : String {
+        return if(this.type is ObjectType) {
+            "${(this.type.toVrapType() as VrapObjectType).`package`}."
+        } else {
+            ""
+        }
+    }
+    
     private fun Property.toJavaField(): String {
 
         return if (this.isPatternProperty()) {
-            "private Map<String,${this.type.toVrapType().simpleName()}> values;"
+            "private Map<String, ${this.packageName()}${this.type.toVrapType().simpleName()}> values;"
         } else {
-            "private ${this.type.toVrapType().simpleName()} ${if (this.isPatternProperty()) "values" else this.name};"
+            "private ${this.packageName()}${this.type.toVrapType().simpleName()} ${if (this.isPatternProperty()) "values" else this.name.lowerCamelCase()};"
         }
 
     }
 
     private fun Property.toFinalJavaField() : String {
         return if (this.isPatternProperty()) {
-            "private final Map<String,${this.type.toVrapType().simpleName()}> values;"
+            "private final Map<String, ${this.type.toVrapType().simpleName()}> values;"
         } else {
-            "private final ${this.type.toVrapType().simpleName()} ${if (this.isPatternProperty()) "values" else this.name};"
+            "private final ${this.type.toVrapType().simpleName()} ${if (this.isPatternProperty()) "values" else this.name.lowerCamelCase()};"
         }
-    }
-
-    private fun ObjectType.extendsStatement() : String {
-        if(this.type is ObjectType){
-            return type.type?.toVrapType()?.simpleName()?.let { "extends ${it}Impl" } ?: ""
-        }
-        return ""
     }
     
     private fun ObjectType.beanFields() = this.allProperties
@@ -128,7 +114,7 @@ class JavaModelClassFileProducer @Inject constructor(override val vrapTypeProvid
     private fun Property.setter(): String {
         return if (this.isPatternProperty()) {
             """
-            |public void setValue(String key, ${this.type.toVrapType().simpleName()} value) {
+            |public void setValue(String key, ${this.packageName()}${this.type.toVrapType().simpleName()} value) {
             |    if (values == null) {
             |        values = new HashMap<>();
             |    }
@@ -137,8 +123,8 @@ class JavaModelClassFileProducer @Inject constructor(override val vrapTypeProvid
             """.trimMargin()
         } else {
             """
-            |public void set${this.name.capitalize()}(final ${this.type.toVrapType().simpleName()} ${this.name}){
-            |   this.${this.name} = ${this.name};
+            |public void set${this.name.upperCamelCase()}(final ${this.packageName()}${this.type.toVrapType().simpleName()} ${this.name.lowerCamelCase()}){
+            |   this.${this.name.lowerCamelCase()} = ${this.name.lowerCamelCase()};
             |}
             """.trimMargin()
         }
@@ -148,25 +134,25 @@ class JavaModelClassFileProducer @Inject constructor(override val vrapTypeProvid
         return if (this.isPatternProperty()) {
             """
             |${this.type.toComment()}
-            |public Map<String, ${this.type.toVrapType().simpleName()}> values() {
+            |public Map<String, ${this.packageName()}${this.type.toVrapType().simpleName()}> values() {
             |    return values;
             |}
             """.trimMargin()
         } else {
             """
             |${this.type.toComment()}
-            |public ${this.type.toVrapType().simpleName()} get${this.name.capitalize()}(){
-            |   return this.${this.name};
+            |public ${this.packageName()}${this.type.toVrapType().simpleName()} get${this.name.upperCamelCase()}(){
+            |   return this.${this.name.lowerCamelCase()};
             |}
         """.trimMargin()
         }
     }
-
-    private fun ObjectType.constructor(): String {
+    
+    private fun ObjectType.constructors(): String {
         val vrapType = vrapTypeProvider.doSwitch(this) as VrapObjectType
         val constructorArguments = this.allProperties
                 .filter { it.name != this.discriminator() }
-                .map { if(it.isPatternProperty()) "final Map<String, ${it.type.toVrapType().simpleName()}> values" else "final ${it.type.toVrapType().simpleName()} ${it.name}" }
+                .map { if(it.isPatternProperty()) "final Map<String, ${it.packageName()}${it.type.toVrapType().simpleName()}> values" else "final ${it.packageName()}${it.type.toVrapType().simpleName()} ${it.name.lowerCamelCase()}" }
                 .joinToString(separator = ", ")
 
         val discriminatorAssignment : String =
@@ -184,17 +170,25 @@ class JavaModelClassFileProducer @Inject constructor(override val vrapTypeProvid
 
         val propertiesAssignment : String = this.allProperties
                 .filter { it.name != this.discriminator() }
-                .map { if(it.isPatternProperty()) "this.values = values;" else "this.${it.name} = ${it.name};" }
+                .map { if(it.isPatternProperty()) "this.values = values;" else "this.${it.name.lowerCamelCase()} = ${it.name.lowerCamelCase()};" }
                 .joinToString(separator = "\n")
 
+        val emptyConstructor : String = """
+            |
+            |public ${vrapType.simpleClassName}Impl() {
+            |   <$discriminatorAssignment>
+            |}
+        """.trimMargin()
+        
         return """
             |
             |@JsonCreator
-            |${vrapType.simpleClassName}Impl(${constructorArguments.escapeAll()}){
+            |${vrapType.simpleClassName}Impl(${constructorArguments.escapeAll()}) {
             |   <$discriminatorAssignment>
             |   <$propertiesAssignment>
             |}
-            |
+            |${if(constructorArguments.isEmpty()) "" else emptyConstructor}
         """.trimMargin().keepIndentation()
     }
+
 }
