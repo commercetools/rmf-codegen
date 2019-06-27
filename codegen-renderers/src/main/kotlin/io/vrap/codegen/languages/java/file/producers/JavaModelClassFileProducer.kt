@@ -41,7 +41,6 @@ class JavaModelClassFileProducer @Inject constructor(override val vrapTypeProvid
                 |import java.time.*;
                 |import java.util.List;
                 |import java.util.Map;
-                |import sun.reflect.generics.reflectiveObjects.NotImplementedException;
                 |
                 |<${type.toComment().escapeAll()}>
                 |<${JavaSubTemplates.generatedAnnotation}>
