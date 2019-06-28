@@ -75,7 +75,7 @@ class JavaModelInterfaceRenderer @Inject constructor(override val vrapTypeProvid
         return if (this.hasSubtypes())
             """
             |@JsonSubTypes({
-            |   <${this.subTypes.map { "@JsonSubTypes.Type(value = ${it.toVrapType().simpleName()}.class, name = \"${(it as ObjectType).discriminatorValue}\")" }.joinToString(separator = ",\n")}>
+            |   <${this.subTypes.filter { (it as ObjectType).discriminatorValue != null }.map { "@JsonSubTypes.Type(value = ${it.toVrapType().simpleName()}.class, name = \"${(it as ObjectType).discriminatorValue}\")" }.joinToString(separator = ",\n")}>
             |})
             |@JsonTypeInfo(
             |   use = JsonTypeInfo.Id.NAME,
