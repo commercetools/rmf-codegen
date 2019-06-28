@@ -271,6 +271,8 @@ class PhpMethodRenderer @Inject constructor(override val vrapTypeProvider: VrapT
 
     fun Method.returnTypeClass(): String {
         val vrapType = this.returnType().toVrapType()
+        if (vrapType.isScalar())
+            return "JsonObject"
         return when (vrapType) {
             is VrapObjectType -> vrapType.simpleName()
             else -> "JsonObject"
@@ -279,6 +281,8 @@ class PhpMethodRenderer @Inject constructor(override val vrapTypeProvider: VrapT
 
     fun Method.returnTypeFullClass(): String {
         val vrapType = this.returnType().toVrapType()
+        if (vrapType.isScalar())
+            return "${packagePrefix.toNamespaceName()}\\Base\\JsonObject"
         return when (vrapType) {
             is VrapObjectType -> vrapType.fullClassName()
             else -> "${packagePrefix.toNamespaceName()}\\Base\\JsonObject"

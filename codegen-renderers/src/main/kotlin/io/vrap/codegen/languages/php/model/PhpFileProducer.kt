@@ -142,6 +142,7 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                         |
                         |    /**
                         |     * @psalm-return callable(?mixed): ?object
+                        |     * @psalm-param class-string $!className
                         |     */
                         |    public static function classMapper(string $!className) {
                         |       return
@@ -1133,9 +1134,9 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |namespace ${packagePrefix.toNamespaceName()}\Base;
                     |
                     |/**
-                    | * @template T of object
+                    | * @template T
                     | */
-                    |class MapCollection implements Collection, \ArrayAccess, \JsonSerializable
+                    |abstract class MapCollection implements Collection, \ArrayAccess, \JsonSerializable
                     |{
                     |    /** @psalm-var ?array<int, T|object> */
                     |    private $!data;
@@ -1238,14 +1239,9 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |    }
                     |
                     |    /**
-                    |     * @psalm-return callable(mixed):?T
+                    |     * @psalm-return callable(int): ?T
                     |     */
-                    |    protected function mapper()
-                    |    {
-                    |        return function (int $!index): ?object {
-                    |            return $!this->get($!index);
-                    |        };
-                    |    }
+                    |    abstract protected function mapper();
                     |
                     |    /**
                     |     * @psalm-param T|object $!value
@@ -1417,7 +1413,7 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |     * @param string $!uri
                     |     * @psalm-param array<string, scalar> $!args
                     |     */
-                    |    public function __construct(string $!uri, array $!args = [])
+                    |    public function __construct(string $!uri = '', array $!args = [])
                     |    {
                     |        $!this->uri = $!uri;
                     |        $!this->args = $!args;

@@ -3,13 +3,13 @@ declare(strict_types = 1);
 namespace Commercetools;
 
 use Cache\Adapter\Filesystem\FilesystemCachePool;
-use Commercetools\Importer\Base\MapperFactory;
 use Commercetools\Importer\Client\CachedTokenProvider;
 use Commercetools\Importer\Client\ClientCredentialsConfig;
 use Commercetools\Importer\Client\ClientCredentialTokenProvider;
 use Commercetools\Importer\Client\ClientFactory;
 use Commercetools\Importer\Client\Config;
 use Commercetools\Importer\Client\MiddlewareFactory;
+use Commercetools\Importer\Client\Resource\ResourceByProjectKey;
 use Commercetools\Importer\Models\Category\CategoryPagedQueryResponseModel;
 use Commercetools\Importer\Models\Project\ProjectModel;
 use GuzzleHttp\Client;
@@ -104,3 +104,7 @@ var_dump($t->current());
 $t->next();
 var_dump($t->current());
 var_dump($categories);
+
+$id = '';
+$t = (new ResourceByProjectKey('', ['projectKey' => 'phpsphere-90']))->inStoreKeyWithStoreKeyValue('mystore')->carts()->get();
+var_dump($t);

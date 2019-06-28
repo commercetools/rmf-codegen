@@ -12,6 +12,8 @@ import io.vrap.rmf.codegen.rendring.MethodRenderer
 import io.vrap.rmf.codegen.rendring.ResourceRenderer
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
 import io.vrap.rmf.codegen.rendring.utils.keepIndentation
+import io.vrap.rmf.codegen.types.VrapArrayType
+import io.vrap.rmf.codegen.types.VrapNilType
 import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.resources.Method
@@ -20,6 +22,8 @@ import io.vrap.rmf.raml.model.responses.Body
 import io.vrap.rmf.raml.model.responses.Response
 import io.vrap.rmf.raml.model.types.AnyType
 import io.vrap.rmf.raml.model.types.FileType
+import io.vrap.rmf.raml.model.types.NilType
+import io.vrap.rmf.raml.model.types.ObjectType
 import io.vrap.rmf.raml.model.types.impl.TypesFactoryImpl
 import org.eclipse.emf.ecore.EObject
 
@@ -42,6 +46,7 @@ class PhpMethodBuilderRenderer @Inject constructor(override val vrapTypeProvider
             |
             |use ${vrapType.`package`.toNamespaceName().escapeAll()}\\ApiResource;
             |use Psr\\Http\\Message\\UploadedFileInterface;
+            |<<${type.imports()}>>
             |
             |/** @psalm-suppress PropertyNotSetInConstructor */
             |class ${type.resourceBuilderName()} extends ApiResource
@@ -58,14 +63,40 @@ class PhpMethodBuilderRenderer @Inject constructor(override val vrapTypeProvider
         )
     }
 
+    private fun Resource.imports() = this.methods.asSequence().mapNotNull { it.firstBody()?.type }
+            .map { it.toVrapType() }
+            .filter { !it.isScalar() }
+            .map {
+                when (it) {
+                    is VrapObjectType -> it.fullClassName()
+                    is VrapArrayType -> it.fullClassName()
+                    else -> ""
+                }
+            }
+            .filter { it != "" }
+            .map { "use ${it.escapeAll()};" }
+            .distinct()
+            .sorted()
+            .joinToString("\n")
+
+    private fun Method.bodyType(): String? {
+        val firstBody = this.firstBody()?.type
+        val vrapType = firstBody.toVrapType()
+        if (firstBody is FileType)
+            return "?UploadedFileInterface "
+        if (vrapType is VrapNilType || vrapType.simpleName() == "stdClass")
+            return null
+        return "?${vrapType.simpleName()} "
+    }
+
     private fun Resource.methods(): String {
         return this.methods.map {
             """
                 |/**
-                | * @psalm-param ${if (it.firstBody()?.type is FileType) "?UploadedFileInterface " else "?object"} $!body
+                | * @psalm-param ${it.bodyType() ?: "?object "}$!body
                 | * @psalm-param array<string, scalar|scalar[]> $!headers
                 | */
-                |public function ${it.methodName}(${if (it.firstBody()?.type is FileType) "?UploadedFileInterface " else ""}$!body = null, array $!headers = []): ${it.toRequestName()} {
+                |public function ${it.methodName}(${it.bodyType() ?: ""}$!body = null, array $!headers = []): ${it.toRequestName()} {
                 |   $!args = $!this->getArgs();
                 |   return new ${it.toRequestName()}(${it.allParams()?.map { "$!args['${it}'], " }?.joinToString("")}$!body, $!headers);
                 |}

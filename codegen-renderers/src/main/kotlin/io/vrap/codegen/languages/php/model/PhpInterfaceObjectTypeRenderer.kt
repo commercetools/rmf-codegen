@@ -34,6 +34,7 @@ class PhpInterfaceObjectTypeRenderer @Inject constructor(override val vrapTypePr
             |${PhpSubTemplates.generatorInfo}
             |namespace ${vrapType.namespaceName().escapeAll()};
             |
+            |use ${packagePrefix.toNamespaceName().escapeAll()}\\Base\\JsonObject;
             |<<${type.imports()}>>
             |
             |interface ${vrapType.simpleClassName} ${type.type?.toVrapType()?.simpleName()?.let { "extends $it" } ?: ""}
@@ -121,7 +122,7 @@ class PhpInterfaceObjectTypeRenderer @Inject constructor(override val vrapTypePr
             """
             |/**
             | ${this.type.toPhpComment()}
-            | * @return ?${this.type.toVrapType().simpleName()}
+            | * @return ?${if (this.type.toVrapType().simpleName() != "stdClass") this.type.toVrapType().simpleName() else "JsonObject" }
             | */
             |public function get${this.name.capitalize()}();
     """.trimMargin()

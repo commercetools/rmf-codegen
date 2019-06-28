@@ -20,8 +20,8 @@ interface  ObjectTypeExtensions : ExtensionsBase {
                 .plus(this.namedSubTypes())
                 .plus(this.type)
                 .filterNotNull()
-                .filter { !it.isScalar() }
                 .map { vrapTypeProvider.doSwitch(it) }
+                .filter { !it.isScalar() }
                 .filter { it.namespaceName() != vrapType.namespaceName()}
                 .map { getImportsForType(it) }
                 .filterNotNull()
@@ -50,6 +50,7 @@ interface  ObjectTypeExtensions : ExtensionsBase {
                         else -> false
                     }
                 }
+                .filter { !it.isScalar() }
                 .filter { it.namespaceName() != vrapType.namespaceName()}
                 .map { getImportsForType(it) }
                 .filterNotNull()
@@ -73,8 +74,8 @@ interface  ObjectTypeExtensions : ExtensionsBase {
                 .plus(this.namedSubTypes())
                 .plus(this.type)
                 .filterNotNull()
-                .filter { !it.isScalar() }
                 .map { vrapTypeProvider.doSwitch(it) }
+                .filter { !it.isScalar() }
                 .filter { s -> when(s) {
                         is VrapObjectType -> true
                         is VrapArrayType -> when (s.itemType) {

@@ -87,7 +87,7 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
 
         return """
             |/**
-            | * @var ?${this.type.toVrapType().simpleName()}
+            | * @var ?${if (this.type.toVrapType().simpleName() != "stdClass") this.type.toVrapType().simpleName() else "JsonObject" }
             | */
             |protected $${if (this.isPatternProperty()) "values" else this.name};
         """.trimMargin();
@@ -172,7 +172,7 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
             """
                 |/**
                 | ${this.type.toPhpComment()}
-                | * @return ?${this.type.toVrapType().simpleName()}
+                | * @return ?${if (this.type.toVrapType().simpleName() != "stdClass") this.type.toVrapType().simpleName() else "JsonObject" }
                 | */
                 |public function values()
                 |{
@@ -184,7 +184,7 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
                 |/**
                 |
                 | ${this.type.toPhpComment()}
-                | * @return ?${this.type.toVrapType().simpleName()}
+                | * @return ?${if (this.type.toVrapType().simpleName() != "stdClass") this.type.toVrapType().simpleName() else "JsonObject" }
                 | */
                 |public function get${this.name.capitalize()}()
                 |{
@@ -251,7 +251,7 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
                         |if (is_null($!data)) {
                         |    return null;
                         |}
-                        |$!this->${this.name} = $!data;
+                        |$!this->${this.name} = new JsonObject($!data);
                     """.trimMargin()
                 } else {
                     """
@@ -341,8 +341,12 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
                         """.trimMargin()
                     else ->
                         """
-                            |/** @psalm-var ?${this.type.toVrapType().simpleName()} $!this->${this.name} */
-                            |$!this->${this.name} =  $!this->get(${defineObject.simpleName()}::${this.toPhpConstantName()});
+                            |/** @psalm-var ?\\stdClass $!data */
+                            |$!data = $!this->get(${defineObject.simpleName()}::${this.toPhpConstantName()});
+                            |if (is_null($!data)) {
+                            |    return null;
+                            |}
+                            |$!this->${this.name} = new JsonObject($!data);
                         """.trimMargin()
                 }
         }
