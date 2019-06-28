@@ -52,6 +52,10 @@ class AnyTypeProvider @Inject constructor(val packageProvider: PackageProvider, 
         return VrapObjectType(`package` = packageProvider.doSwitch(objectType), simpleClassName = objectType.name)
     }
 
+    override fun caseFileType(`object`: FileType?): VrapType {
+        return languageBaseTypes.file
+    }
+
     override fun caseNilType(`object`: NilType) = VrapNilType()
 
     override fun caseStringType(stringType: StringType): VrapType {

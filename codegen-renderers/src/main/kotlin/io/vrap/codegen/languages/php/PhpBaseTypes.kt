@@ -13,7 +13,8 @@ object PhpBaseTypes : LanguageBaseTypes(
         booleanType = fromScalarPhpType("bool"),
         dateTimeType = fromPhpType("", "DateTimeImmutable"),
         dateOnlyType = fromPhpType("", "DateTimeImmutable"),
-        timeOnlyType = fromPhpType("", "DateTimeImmutable")
+        timeOnlyType = fromPhpType("", "DateTimeImmutable"),
+        file = fromPhpType("","File")
 )
 
 fun  fromPhpType(`package`: String, simpleName: String):VrapObjectType{

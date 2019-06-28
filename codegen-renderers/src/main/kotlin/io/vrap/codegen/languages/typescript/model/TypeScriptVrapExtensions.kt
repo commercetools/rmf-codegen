@@ -12,3 +12,4 @@ fun VrapType.simpleTSName():String{
         is VrapNilType -> this.name
     }
 }
+

@@ -10,5 +10,6 @@ abstract class LanguageBaseTypes(
         val dateTimeType: VrapType,
         val dateOnlyType: VrapType,
         val timeOnlyType: VrapType,
-        val stringType: VrapType
+        val stringType: VrapType,
+        val file: VrapType
 )

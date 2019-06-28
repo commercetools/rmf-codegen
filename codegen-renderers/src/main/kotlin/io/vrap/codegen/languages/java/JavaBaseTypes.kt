@@ -2,6 +2,7 @@ package io.vrap.codegen.languages.java
 
 import io.vrap.rmf.codegen.types.LanguageBaseTypes
 import io.vrap.rmf.codegen.types.VrapObjectType
+import java.io.File
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.ZonedDateTime
@@ -17,7 +18,8 @@ object JavaBaseTypes : LanguageBaseTypes(
     booleanType = fromDefaultJavaType(java.lang.Boolean::class),
     dateTimeType = fromJavaType(ZonedDateTime::class),
     dateOnlyType = fromJavaType(LocalDate::class),
-    timeOnlyType = fromJavaType(LocalTime::class)
+    timeOnlyType = fromJavaType(LocalTime::class),
+    file = fromJavaType(File::class)
 
 )
 
