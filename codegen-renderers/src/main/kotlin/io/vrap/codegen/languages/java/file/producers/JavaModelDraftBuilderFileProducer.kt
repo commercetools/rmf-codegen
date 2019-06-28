@@ -27,20 +27,18 @@ class JavaModelDraftBuilderFileProducer @Inject constructor(override val vrapTyp
             |package ${vrapType.`package`};
             |
             |${type.imports()}
-            |import com.commercetools.importer.models.Builder;
             |import ${vrapType.`package`}.${vrapType.simpleClassName};
             |import javax.annotation.Nullable;
             |import java.util.List;
             |
-            |public final class ${vrapType.simpleClassName}Builder implements ${type.implements()} {
+            |public final class ${vrapType.simpleClassName}Builder {
             |   
             |   <${type.fields().escapeAll()}>
             |   
             |   <${type.assignments().escapeAll()}>
             |   
             |   <${type.getters().escapeAll()}>
-            |   
-            |   @Override
+            |
             |   public ${vrapType.simpleClassName} build() {
             |       <${type.buildMethodBody().escapeAll()}>
             |   }
@@ -56,11 +54,6 @@ class JavaModelDraftBuilderFileProducer @Inject constructor(override val vrapTyp
                 relativePath = "${vrapType.`package`}.${vrapType.simpleClassName}Builder".replace(".", "/") + ".java",
                 content = content
         )
-    }
-    
-    private fun ObjectType.implements() : String {
-        val vrapType = vrapTypeProvider.doSwitch(this) as VrapObjectType
-        return "Builder<${vrapType.simpleClassName}>".escapeAll()
     }
     
     private fun ObjectType.fields() = this.allProperties
