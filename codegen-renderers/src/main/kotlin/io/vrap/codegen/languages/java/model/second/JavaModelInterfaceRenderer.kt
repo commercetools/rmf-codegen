@@ -52,7 +52,10 @@ class JavaModelInterfaceRenderer @Inject constructor(override val vrapTypeProvid
             |
             |   <${type.setters().escapeAll()}>
             |
+            |   <${type.toJson()}>
+            |   
             |   <${type.staticOfMethod()}>
+            |
             |}
         """.trimMargin().keepIndentation()
         
@@ -150,20 +153,6 @@ class JavaModelInterfaceRenderer @Inject constructor(override val vrapTypeProvid
         return validationAnnotations.joinToString(separator = "\n")
     }
     
-    private fun ObjectType.typeReference() : String {
-        val vrapType = vrapTypeProvider.doSwitch(this) as VrapObjectType
-        return """
-            |static com.fasterxml.jackson.core.type.TypeReference<${vrapType.simpleClassName}> typeReference() {
-            |   return new com.fasterxml.jackson.core.type.TypeReference<${vrapType.simpleClassName}>(){
-            |      @Override
-            |      public String toString() {
-            |         return "TypeReference<${vrapType.simpleClassName}>";
-            |      }
-            |   };
-            |}
-            |
-        """.trimMargin()
-    }
     
     private fun ObjectType.jsonDeserialize() : String {
         val vrapType = vrapTypeProvider.doSwitch(this) as VrapObjectType
@@ -172,6 +161,10 @@ class JavaModelInterfaceRenderer @Inject constructor(override val vrapTypeProvid
         }else{
             "@JsonDeserialize(as = ${vrapType.simpleClassName}Impl.class)"    
         }
+    }
+    
+    private fun ObjectType.toJson() : String {
+        return "public String toJson();"
     }
     
     private object CascadeValidationCheck : TypesSwitch<Boolean>() {

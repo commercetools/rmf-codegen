@@ -7,6 +7,10 @@ public class HttpRequest {
     private HttpHeaders headers;
     private String body;
 
+    public HttpRequest() {
+        
+    }
+    
     public HttpRequest(HttpMethod method, String path, HttpHeaders headers, String body) {
         this.method = method;
         this.path = path;

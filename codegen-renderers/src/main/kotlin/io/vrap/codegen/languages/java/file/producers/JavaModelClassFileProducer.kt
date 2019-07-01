@@ -55,6 +55,8 @@ class JavaModelClassFileProducer @Inject constructor(override val vrapTypeProvid
                 |   <${type.getters().escapeAll()}>
                 |
                 |   <${type.setters().escapeAll()}>
+                |   
+                |   <${type.toJson()}>
                 |
                 |}
         """.trimMargin().keepIndentation()
@@ -188,6 +190,10 @@ class JavaModelClassFileProducer @Inject constructor(override val vrapTypeProvid
             |}
             |${if(constructorArguments.isEmpty()) "" else emptyConstructor}
         """.trimMargin().keepIndentation()
+    }
+    
+    private fun ObjectType.toJson() : String {
+        return "public String toJson() { return \"{}\"; }"
     }
 
 }
