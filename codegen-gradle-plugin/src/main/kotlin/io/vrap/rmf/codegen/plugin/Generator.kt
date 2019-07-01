@@ -28,6 +28,7 @@ open class Target constructor(val name: String){
     var base_package: String? = null
     var client_package: String? = null
     var target: TargetType? = null
+    var customTypeMapping: Map<String, String> = mapOf()
 
     override fun toString(): String {
         return "Target(name='$name', path=$path, models_package=$models_package, base_package=$base_package, client_package=$client_package, target=$target)"

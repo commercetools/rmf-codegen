@@ -13,6 +13,7 @@ import io.vrap.rmf.codegen.CodeGeneratorConfig
 import io.vrap.rmf.codegen.di.ApiProvider
 import io.vrap.rmf.codegen.di.GeneratorComponent
 import io.vrap.rmf.codegen.di.GeneratorModule
+import io.vrap.rmf.codegen.types.VrapObjectType
 import org.gradle.api.DefaultTask
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.tasks.TaskAction
@@ -46,7 +47,9 @@ open class RamlCodeGeneratorTask : DefaultTask() {
             basePackageName = target.base_package,
             modelPackage = target.models_package,
             clientPackage = target.client_package,
-            outputFolder = target.path?.toPath() ?: Paths.get("gensrc/${target.name}")
+            outputFolder = target.path?.toPath() ?: Paths.get("gensrc/${target.name}"),
+            customTypeMapping = target.customTypeMapping.
+                    entries.associate { kotlin.Pair(it.key, VrapObjectType(it.value.substringBeforeLast("."), it.value.substringAfterLast("."))) }
         )
 
         val generatorComponent: GeneratorComponent = when (target.target) {
