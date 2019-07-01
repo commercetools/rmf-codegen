@@ -1,6 +1,7 @@
 package io.vrap.codegen.languages.java.requests
 
 import com.google.inject.Inject
+import io.vrap.codegen.languages.extensions.getMethodName
 import io.vrap.codegen.languages.java.extensions.resource
 import io.vrap.codegen.languages.java.extensions.toRequestName
 import io.vrap.codegen.languages.php.extensions.EObjectTypeExtensions
@@ -13,6 +14,7 @@ import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.modules.Api
 import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Resource
+import io.vrap.rmf.raml.model.resources.ResourceContainer
 
 class JavaRequestBuilderResourceRenderer @Inject constructor(val api: Api, override val vrapTypeProvider: VrapTypeProvider) : ResourceRenderer, EObjectTypeExtensions {
 
@@ -28,6 +30,7 @@ class JavaRequestBuilderResourceRenderer @Inject constructor(val api: Api, overr
             |   
             |   <${type.methods()}>
             |   
+            |   <${type.subResources()}>
             |}
             |
         """.trimMargin().keepIndentation()
@@ -82,5 +85,14 @@ class JavaRequestBuilderResourceRenderer @Inject constructor(val api: Api, overr
     private fun Method.pathArguments() : List<String> {
         val urlPathParts = this.resource().fullUri.template.split("/").filter { it.isNotEmpty() }
         return urlPathParts.filter { it.startsWith("{") && it.endsWith("}") }.map { it.replace("{", "").replace("}", "") }
+    }
+    
+    private fun ResourceContainer.subResources() : String {
+        return this.resources.map { """
+            |public ${it.toResourceName()}RequestBuilder ${it.getMethodName()}() {
+            |   return new ${it.toResourceName()}RequestBuilder();
+            |}
+        """.trimMargin() 
+        }.joinToString(separator = "\n")
     }
 }
