@@ -32,7 +32,7 @@ export type MiddlewareArg = {
 export type ClientRequest = {
   uri: string,
   method: MethodType,
-  body?: string | Object,
+  body?: any,
   headers?: {
     [key: string]: string,
   },
