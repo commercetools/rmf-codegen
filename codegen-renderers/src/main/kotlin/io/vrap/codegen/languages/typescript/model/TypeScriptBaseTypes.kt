@@ -14,7 +14,7 @@ object TypeScriptBaseTypes : LanguageBaseTypes(
     dateTimeType = nativeTypeScriptType("string"),
     dateOnlyType = nativeTypeScriptType("string"),
     timeOnlyType = nativeTypeScriptType("string"),
-    file =  VrapObjectType("base.local-common-types","VFile")
+    file =  nativeTypeScriptType("Buffer")
 )
 
 fun nativeTypeScriptType(typeName: String): VrapScalarType = VrapScalarType(typeName)

@@ -1,6 +1,5 @@
-import { Middleware, MiddlewareArg } from "./common-types";
 import axios = require("axios");
-import fs = require("fs");
+import { Middleware, MiddlewareArg } from "../gen/base/common-types";
 
 const client = axios.default;
 
@@ -12,29 +11,21 @@ export const httpMiddleware: Middleware = async (args: MiddlewareArg) => {
       return next(args);
     }
 
-    var axiosConfig: axios.AxiosRequestConfig;
-    if (request.dataType == "BINARY") {
-      const data = fs.createReadStream(request.payload.filePath);
-      axiosConfig = {
-        method: request.method,
-        url: request.url,
-        data,
-        headers: request.headers,
-        maxContentLength:1000000000
-      };
-    } else {
-      axiosConfig = {
-        method: request.method,
-        url: request.url,
-        data: request.payload,
-        headers: request.headers
-      };
-    }
+    var axiosConfig: axios.AxiosRequestConfig = {
+      method: request.method,
+      url: request.uri,
+      data: request.body,
+      headers: request.headers
+    };
 
     const response = await client.request(axiosConfig);
     return args.next({
       ...args,
-      response: response.data
+      response: {
+        body:response.data,
+        headers:response.headers,
+        statusCode:response.status
+      }
     });
   } catch (error) {
     if (error.response && error.response.data) {

@@ -3,8 +3,6 @@ package io.vrap.codegen.languages.typescript.client.files_producers
 import com.google.inject.Inject
 import com.google.inject.name.Named
 import io.vrap.codegen.languages.typescript.client.AbstractRequestBuilder
-import io.vrap.codegen.languages.typescript.model.TypeScriptBaseTypes
-import io.vrap.codegen.languages.typescript.model.simpleTSName
 import io.vrap.codegen.languages.typescript.relativizePaths
 import io.vrap.codegen.languages.typescript.tsRequestModuleName
 import io.vrap.rmf.codegen.di.VrapConstants
@@ -60,9 +58,6 @@ class ApiRootFileProducer @Inject constructor(
                 }
                 .plus(
                         "import { ${middleware.simpleClassName} } from '${relativizePaths(moduleName, middleware.`package`)}'"
-                )
-                .plus(
-                        "import { ${TypeScriptBaseTypes.file.simpleTSName()} } from '${relativizePaths(moduleName, (TypeScriptBaseTypes.file as VrapObjectType).`package`)}'"
                 )
                 .distinct()
                 .joinToString(separator = "\n")

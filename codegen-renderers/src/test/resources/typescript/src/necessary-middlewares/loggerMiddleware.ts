@@ -1,6 +1,9 @@
-import { Middleware, MiddlewareArg } from "./common-types";
+import { Middleware, MiddlewareArg } from "../gen/base/common-types";
 
-export const  loggerMiddleware: Middleware = async (arg:MiddlewareArg) => {
-    console.log(`called url ${arg.request.url}`)
-    return arg.next(arg)
-}
+
+export const loggerMiddleware: Middleware = async (arg: MiddlewareArg) => {
+
+  console.log(arg)
+
+  return arg.next(arg);
+};
