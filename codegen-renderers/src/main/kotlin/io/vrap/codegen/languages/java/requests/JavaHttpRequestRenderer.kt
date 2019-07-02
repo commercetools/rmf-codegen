@@ -2,7 +2,6 @@ package io.vrap.codegen.languages.java.requests
 
 import com.google.inject.Inject
 import io.vrap.codegen.languages.java.extensions.resource
-import io.vrap.codegen.languages.java.extensions.returnType
 import io.vrap.codegen.languages.java.extensions.toRequestName
 import io.vrap.codegen.languages.php.extensions.EObjectTypeExtensions
 import io.vrap.codegen.languages.php.extensions.ObjectTypeExtensions
@@ -19,8 +18,6 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
     
     override fun render(type: Method): TemplateFile {
         val vrapType = vrapTypeProvider.doSwitch(type as EObject) as VrapObjectType
-
-        val asdf = type.toRequestName()
         
         val content = """
             |package ${vrapType.`package`};
@@ -104,20 +101,5 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
         }else{
             return null
         }
-    }
-
-    private fun Method.jacksonJavaTypeMethod() : String {
-        val commandReturnType = vrapTypeProvider.doSwitch(this.returnType()) as VrapObjectType
-
-        return """
-            |private JavaType jacksonJavaType() {
-            |   return SphereJsonUtils.convertToJavaType(${commandReturnType.`package`}.${commandReturnType.simpleClassName}.typeReference());
-            |}
-        """.trimMargin()
-    }
-    
-    private fun Method.javaReturnType() : String {
-        val commandReturnType = vrapTypeProvider.doSwitch(this.returnType()) as VrapObjectType
-        return "${commandReturnType.`package`}.${commandReturnType.simpleClassName}"
     }
 }
