@@ -103,12 +103,12 @@ class JavaRequestBuilderResourceRenderer @Inject constructor(val api: Api, overr
 
     private fun Method.pathArguments() : List<String> {
         val urlPathParts = this.resource().fullUri.template.split("/").filter { it.isNotEmpty() }
-        return urlPathParts.filter { it.startsWith("{") && it.endsWith("}") }.map { it.replace("{", "").replace("}", "") }
+        return urlPathParts.filter { it.contains("{") && it.contains("}")}.map { it.substring(it.indexOf("{") + 1, it.indexOf("}")) }
     }
     
     private fun Resource.pathArguments(): List<String> {
         val urlPathParts = this.fullUri.template.split("/").filter { it.isNotEmpty() }
-        return urlPathParts.filter { it.startsWith("{") && it.endsWith("}") }.map { it.replace("{", "").replace("}", "") }
+        return urlPathParts.filter { it.contains("{") && it.contains("}")}.map { it.substring(it.indexOf("{") + 1, it.indexOf("}")) }
     }
     
     private fun ResourceContainer.subResources() : String {
@@ -118,9 +118,10 @@ class JavaRequestBuilderResourceRenderer @Inject constructor(val api: Api, overr
             }else {
                 it.relativeUri.variables.map { "String $it" }.joinToString(separator = " ,")
             }
+            val subResourceArgs : String = it.pathArguments().joinToString(separator = ", ")
             """
             |public ${it.toResourceName()}RequestBuilder ${it.getMethodName()}($args) {
-            |   return new ${it.toResourceName()}RequestBuilder();
+            |   return new ${it.toResourceName()}RequestBuilder($subResourceArgs);
             |}
         """.trimMargin() 
         }.joinToString(separator = "\n")
