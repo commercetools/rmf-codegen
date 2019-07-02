@@ -34,11 +34,24 @@ class JavaApiRootFileProducer @Inject constructor(@Named(VrapConstants.CLIENT_PA
                 content = content
         )
     }
-
+    
     private fun ResourceContainer.subResources() : String {
-        return this.resources.map { """
-            |public static ${it.toResourceName()}RequestBuilder ${it.getMethodName()}() {
-            |   return new ${it.toResourceName()}RequestBuilder();
+        
+        return this.resources.map {
+            val args = if (it.relativeUri.variables.isNullOrEmpty()){
+                ""
+            }else {
+                it.relativeUri.variables.map { "String $it" }.joinToString(separator = " ,")
+            }
+            
+            val constructorArgs = if (it.relativeUri.variables.isNullOrEmpty()){
+                ""
+            }else {
+                it.relativeUri.variables.joinToString(separator = " ,")
+            }
+            """
+            |public static ${it.toResourceName()}RequestBuilder ${it.getMethodName()}($args) {
+            |   return new ${it.toResourceName()}RequestBuilder($constructorArgs);
             |}
         """.trimMargin()
         }.joinToString(separator = "\n")

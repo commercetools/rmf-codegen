@@ -28,6 +28,10 @@ class JavaRequestBuilderResourceRenderer @Inject constructor(val api: Api, overr
             |
             |public class $className {
             |   
+            |   <${type.fields()}>
+            |   
+            |   <${type.constructor()}>
+            |   
             |   <${type.methods()}>
             |   
             |   <${type.subResources()}>
@@ -41,12 +45,30 @@ class JavaRequestBuilderResourceRenderer @Inject constructor(val api: Api, overr
         )
     }
     
+    private fun Resource.fields() : String {
+        return this.pathArguments().map { "private String $it;" }.joinToString(separator = "\n")
+    }
+    
+    private fun Resource.constructor() : String {
+        val resourceName : String = this.toResourceName()
+        val className : String = "${resourceName}RequestBuilder"
+        
+        val constructorArguments : String = this.pathArguments().map { "String $it" }.joinToString(separator = ",")
+        val constructorAssignment : String = this.pathArguments().map { "this.$it = $it;" }.joinToString(separator = "\n")
+        return """
+            |public $className ($constructorArguments) {
+            |   $constructorAssignment
+            |}
+        """.trimMargin()
+        
+    }
+    
     private fun Resource.toResourceName(): String {
         return this.fullUri.toParamName("By")
     }
     
     private fun Resource.methods() : String {
-        return this.methods.map { it.method() }.joinToString(separator = "\n")
+        return this.methods.map { it.method() }.joinToString(separator = "\n\n")
     }
     
     private fun Method.method() : String {
@@ -58,16 +80,13 @@ class JavaRequestBuilderResourceRenderer @Inject constructor(val api: Api, overr
     }
 
     private fun Method.constructorArguments(): String? {
-        val constructorArguments = mutableListOf<String>()
-        this.pathArguments().map { "String $it" }.forEach { constructorArguments.add(it) }
-        
-        if(this.bodies != null && this.bodies.isNotEmpty()){
+        return if(this.bodies != null && this.bodies.isNotEmpty()){
             val methodBodyVrapType = this.bodies[0].type.toVrapType() as VrapObjectType
             val methodBodyArgument = "${methodBodyVrapType.`package`}.${methodBodyVrapType.simpleClassName} ${methodBodyVrapType.simpleClassName.decapitalize()}"
-            constructorArguments.add(methodBodyArgument) 
+            methodBodyArgument
+        }else {
+            ""
         }
-
-        return constructorArguments.joinToString(separator = ", ")
     }
     
     private fun Method.requestArguments() : String {
@@ -87,9 +106,20 @@ class JavaRequestBuilderResourceRenderer @Inject constructor(val api: Api, overr
         return urlPathParts.filter { it.startsWith("{") && it.endsWith("}") }.map { it.replace("{", "").replace("}", "") }
     }
     
+    private fun Resource.pathArguments(): List<String> {
+        val urlPathParts = this.fullUri.template.split("/").filter { it.isNotEmpty() }
+        return urlPathParts.filter { it.startsWith("{") && it.endsWith("}") }.map { it.replace("{", "").replace("}", "") }
+    }
+    
     private fun ResourceContainer.subResources() : String {
-        return this.resources.map { """
-            |public ${it.toResourceName()}RequestBuilder ${it.getMethodName()}() {
+        return this.resources.map {
+            val args = if (it.relativeUri.variables.isNullOrEmpty()){
+                ""
+            }else {
+                it.relativeUri.variables.map { "String $it" }.joinToString(separator = " ,")
+            }
+            """
+            |public ${it.toResourceName()}RequestBuilder ${it.getMethodName()}($args) {
             |   return new ${it.toResourceName()}RequestBuilder();
             |}
         """.trimMargin() 

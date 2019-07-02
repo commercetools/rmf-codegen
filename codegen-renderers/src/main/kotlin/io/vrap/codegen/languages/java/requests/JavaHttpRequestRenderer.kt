@@ -20,6 +20,8 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
     override fun render(type: Method): TemplateFile {
         val vrapType = vrapTypeProvider.doSwitch(type as EObject) as VrapObjectType
 
+        val asdf = type.toRequestName()
+        
         val content = """
             |package ${vrapType.`package`};
             |
@@ -57,8 +59,7 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
         }
 
         val path = this.resource().fullUri.template
-        val parts = path.split("/").filter { it.isNotEmpty() }
-        val pathArguments = parts.filter { it.startsWith("{") && it.endsWith("}")}
+        val pathArguments = this.pathArguments().map { "{$it}" }
         var stringFormat = path
 
         pathArguments.forEach { stringFormat = stringFormat.replace(it, "%s") }
@@ -66,7 +67,7 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
         val stringFormatArgs = pathArguments
                 .map { it.replace("{", "").replace("}", "") }
                 .map { "this.$it" }
-                .joinToString(separator = ",")
+                .joinToString(separator = ", ")
         
         val httpBodyAssignment : String = if(this.bodyObjectName() != null) { "setBody(${this.bodyObjectName()}.toJson());" } else { "" }
         
@@ -93,7 +94,7 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
 
     private fun Method.pathArguments() : List<String> {
         val urlPathParts = this.resource().fullUri.template.split("/").filter { it.isNotEmpty() }
-        return urlPathParts.filter { it.startsWith("{") && it.endsWith("}") }.map { it.replace("{", "").replace("}", "") }
+        return urlPathParts.filter { it.contains("{") && it.contains("}")}.map { it.substring(it.indexOf("{") + 1, it.indexOf("}")) }
     }
 
     private fun Method.bodyObjectName() : String? {
