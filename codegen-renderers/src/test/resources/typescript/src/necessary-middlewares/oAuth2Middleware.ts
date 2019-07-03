@@ -1,5 +1,5 @@
 import ClientOAuth2 = require("client-oauth2");
-import { Middleware, MiddlewareArg } from "./common-types";
+import { Middleware, MiddlewareArg } from "../gen/base/common-types";
 
 export function createOAuth2Middleware(apiCredentials: {
   clientId: string;
@@ -40,8 +40,8 @@ class TokenProvider {
         const token = await this.mutex.dispatch(()=>this.getOrCreateToken())
         const { request, ...rest } = arg;
         const headers = {
+          Authorization: `Bearer ${token.accessToken}`,
           ...request.headers,
-          Authorization: `Bearer ${token.accessToken}`
         };
         const newRequest = {
           ...request,
@@ -53,6 +53,11 @@ class TokenProvider {
           request: newRequest
         });
       } catch (error) {
+        console.log({
+          error,
+          ...arg
+        })
+        console.log(error)
         return arg.next({
           error,
           ...arg

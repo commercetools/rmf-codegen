@@ -3,12 +3,13 @@ package io.vrap.codegen.languages.typescript.client
 import com.google.inject.Inject
 import io.vrap.codegen.languages.java.extensions.returnType
 import io.vrap.codegen.languages.php.extensions.resource
-import io.vrap.codegen.languages.typescript.*
 import io.vrap.codegen.languages.typescript.client.files_producers.apiRequest
-import io.vrap.codegen.languages.typescript.client.files_producers.commonRequest
 import io.vrap.codegen.languages.typescript.client.files_producers.middleware
-import io.vrap.codegen.languages.typescript.model.TypeScriptBaseTypes
 import io.vrap.codegen.languages.typescript.model.simpleTSName
+import io.vrap.codegen.languages.typescript.relativizePaths
+import io.vrap.codegen.languages.typescript.tsMediaType
+import io.vrap.codegen.languages.typescript.tsRemoveRegexp
+import io.vrap.codegen.languages.typescript.tsRequestModuleName
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.ResourceRenderer
 import io.vrap.rmf.codegen.rendring.utils.keepIndentation
@@ -34,7 +35,6 @@ class RequestBuilder @Inject constructor(
                 relativePath = type.tsRequestModuleName(pakage).replace(".", "/") + ".ts",
                 content = """|
                 |${type.imports(type.tsRequestModuleName(pakage))}
-                |import { ${commonRequest.simpleClassName} } from '${relativizePaths(type.tsRequestModuleName(pakage), commonRequest.`package`)}'
                 |import { ${apiRequest.simpleClassName} } from '${relativizePaths(type.tsRequestModuleName(pakage), apiRequest.`package`)}'
                 |
                 |export class ${type.toRequestBuilderName()} {
@@ -90,7 +90,7 @@ class RequestBuilder @Inject constructor(
                             |},""".trimMargin()
                         }
                         if (!it.bodies.isEmpty()) {
-                            bodies = "payload: ${it.bodies.map {
+                            bodies = "body: ${it.bodies.map {
                                 it.type.toVrapType().simpleTSName()
                             }.joinToString(separator = " | ")},"
                         }
@@ -123,9 +123,7 @@ class RequestBuilder @Inject constructor(
                         |       ...(methodArgs || {} as any).headers
                         |   },
                         |   <${if(it.queryParameters.isNullOrEmpty()) "" else "queryParams: (methodArgs || {} as any).queryArgs,"}>
-                        |   <${if(it.bodies.isNullOrEmpty()) "" else "payload: (methodArgs || {} as any).payload,"}>
-                        |   <${it.dataType()}>
-                        |
+                        |   <${if(it.bodies.isNullOrEmpty()) "" else "body: (methodArgs || {} as any).body,"}>
                         |}
                     """.trimMargin()
 
@@ -161,18 +159,6 @@ class RequestBuilder @Inject constructor(
         }
         return this.headers.map { (it.type as StringType).enum.size>1 }.reduce{acc, b -> acc || b}
     }
-
-    fun Method.dataType(): String {
-
-        if(this.bodies.isNullOrEmpty()){
-            return ""
-        }
-        if(this.bodies[0].type.toVrapType() == TypeScriptBaseTypes.file){
-            return "dataType: 'BINARY'"
-        }
-        return "dataType: 'TEXT'"
-    }
-
 
 
 
