@@ -4,4 +4,5 @@ include 'codegen-renderers'
 include 'codegen-core'
 include 'generated-code'
 include 'commercetools-java-client'
+include 'commercetools-java-base'
 

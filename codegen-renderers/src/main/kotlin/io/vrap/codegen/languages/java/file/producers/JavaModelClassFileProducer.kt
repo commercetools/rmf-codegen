@@ -33,7 +33,6 @@ class JavaModelClassFileProducer @Inject constructor(override val vrapTypeProvid
                 |package ${vrapType.`package`};
                 |
                 |${type.imports()}
-                |import com.fasterxml.jackson.annotation.JsonCreator;
                 |import javax.annotation.Generated;
                 |import javax.validation.Valid;
                 |import javax.validation.constraints.NotNull;
@@ -42,12 +41,18 @@ class JavaModelClassFileProducer @Inject constructor(override val vrapTypeProvid
                 |import java.util.List;
                 |import java.util.Map;
                 |
+                |import com.fasterxml.jackson.core.JsonProcessingException;
+                |import com.fasterxml.jackson.databind.ObjectMapper;
+                |import com.fasterxml.jackson.annotation.JsonInclude;
+                |import com.fasterxml.jackson.annotation.JsonCreator;
+                |import com.fasterxml.jackson.annotation.JsonProperty;
+                |
+                |import json.CommercetoolsJsonUtils;
+                |
                 |<${type.toComment().escapeAll()}>
                 |<${JavaSubTemplates.generatedAnnotation}>
                 |public class ${vrapType.simpleClassName}Impl implements ${vrapType.simpleClassName} {
                 |
-                |   <${type.finalBeanFields().escapeAll()}>
-                |   
                 |   <${type.beanFields().escapeAll()}>
                 |
                 |   <${type.constructors().escapeAll()}>
@@ -82,33 +87,19 @@ class JavaModelClassFileProducer @Inject constructor(override val vrapTypeProvid
         } else {
             "private ${this.packageName()}${this.type.toVrapType().simpleName()} ${if (this.isPatternProperty()) "values" else this.name.lowerCamelCase()};"
         }
-
-    }
-
-    private fun Property.toFinalJavaField() : String {
-        return if (this.isPatternProperty()) {
-            "private final Map<String, ${this.type.toVrapType().simpleName()}> values;"
-        } else {
-            "private final ${this.type.toVrapType().simpleName()} ${if (this.isPatternProperty()) "values" else this.name.lowerCamelCase()};"
-        }
     }
     
     private fun ObjectType.beanFields() = this.allProperties
             .filter { it.name != this.discriminator() }
             .map { it.toJavaField() }.joinToString(separator = "\n\n")
 
-    private fun ObjectType.finalBeanFields() = this.allProperties
-            .filter { it.name == this.discriminator() }
-            .map { it.toFinalJavaField() }.joinToString(separator = "\n\n")
-
     private fun ObjectType.setters() = this.allProperties
-            //Filter the discriminators because they don't make much sense the generated bean
             .filter { it.name != this.discriminator() }
             .map { it.setter() }
             .joinToString(separator = "\n\n")
 
     private fun ObjectType.getters() = this.allProperties
-            //Filter the discriminators because they don't make much sense the generated bean
+            .filter { it.name != this.discriminator() }
             .map { it.getter() }
             .joinToString(separator = "\n\n")
 
@@ -153,21 +144,8 @@ class JavaModelClassFileProducer @Inject constructor(override val vrapTypeProvid
         val vrapType = vrapTypeProvider.doSwitch(this) as VrapObjectType
         val constructorArguments = this.allProperties
                 .filter { it.name != this.discriminator() }
-                .map { if(it.isPatternProperty()) "final Map<String, ${it.packageName()}${it.type.toVrapType().simpleName()}> values" else "final ${it.packageName()}${it.type.toVrapType().simpleName()} ${it.name.lowerCamelCase()}" }
+                .map { if(it.isPatternProperty()) "@JsonProperty(\"values\") final Map<String, ${it.packageName()}${it.type.toVrapType().simpleName()}> values" else "@JsonProperty(\"${it.name.lowerCamelCase()}\") final ${it.packageName()}${it.type.toVrapType().simpleName()} ${it.name.lowerCamelCase()}" }
                 .joinToString(separator = ", ")
-
-        val discriminatorAssignment : String =
-                if(this.discriminator() != null) {
-                    //if the type of a discriminator is an enum, and discriminatorValue is a String, we have to call EnumName.valueOf(discriminatorValue)
-                    val enumName : String = this.allProperties.filter { it.name == this.discriminator() }.get(0).type.toVrapType().simpleName()
-                    if(enumName != "String"){
-                        "this.${this.discriminator()} = $enumName.valueOf(\"${this.discriminatorValue}\");"
-                    }else{
-                        "this.${this.discriminator()} = \"${this.discriminatorValue}\";"
-                    }
-                } else {
-                    ""
-                }
 
         val propertiesAssignment : String = this.allProperties
                 .filter { it.name != this.discriminator() }
@@ -175,25 +153,30 @@ class JavaModelClassFileProducer @Inject constructor(override val vrapTypeProvid
                 .joinToString(separator = "\n")
 
         val emptyConstructor : String = """
-            |
             |public ${vrapType.simpleClassName}Impl() {
-            |   <$discriminatorAssignment>
+            |   
             |}
         """.trimMargin()
         
         return """
-            |
             |@JsonCreator
             |${vrapType.simpleClassName}Impl(${constructorArguments.escapeAll()}) {
-            |   <$discriminatorAssignment>
             |   <$propertiesAssignment>
             |}
-            |${if(constructorArguments.isEmpty()) "" else emptyConstructor}
+            |${if(constructorArguments.isEmpty()) "" else emptyConstructor }
         """.trimMargin().keepIndentation()
     }
     
     private fun ObjectType.toJson() : String {
-        return "public String toJson() { return \"{}\"; }"
+        return """
+            |public String toJson() {
+            |   try {
+            |       return CommercetoolsJsonUtils.toJsonString(this);
+            |   }catch(JsonProcessingException e) {
+            |       e.printStackTrace();
+            |   }
+            |   return null;
+            |}
+        """.trimMargin()
     }
-
 }

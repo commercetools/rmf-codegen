@@ -42,6 +42,9 @@ class JavaModelInterfaceRenderer @Inject constructor(override val vrapTypeProvid
             |import java.util.Map;
             |import java.time.*;
             |
+            |import json.CommercetoolsJsonUtils;
+            |import java.io.IOException;
+            |
             |<${type.toComment().escapeAll()}>
             |<${type.subTypesAnnotations()}>
             |<${JavaSubTemplates.generatedAnnotation}>
@@ -55,6 +58,8 @@ class JavaModelInterfaceRenderer @Inject constructor(override val vrapTypeProvid
             |   <${type.toJson()}>
             |   
             |   <${type.staticOfMethod()}>
+            |   
+            |   <${type.staticOfJsonMethod()}>
             |
             |}
         """.trimMargin().keepIndentation()
@@ -78,7 +83,13 @@ class JavaModelInterfaceRenderer @Inject constructor(override val vrapTypeProvid
         return if (this.hasSubtypes())
             """
             |@JsonSubTypes({
-            |   <${this.subTypes.filter { (it as ObjectType).discriminatorValue != null }.map { "@JsonSubTypes.Type(value = ${it.toVrapType().simpleName()}.class, name = \"${(it as ObjectType).discriminatorValue}\")" }.joinToString(separator = ",\n")}>
+            |   <${this.subTypes
+                    .filter { (it as ObjectType).discriminatorValue != null }
+                    .map {
+                        val vrapType = vrapTypeProvider.doSwitch(it) as VrapObjectType
+                        "@JsonSubTypes.Type(value = ${vrapType.`package`}.${vrapType.simpleClassName}Impl.class, name = \"${(it as ObjectType).discriminatorValue}\")" 
+                    }
+                    .joinToString(separator = ",\n")}>
             |})
             |@JsonTypeInfo(
             |   use = JsonTypeInfo.Id.NAME,
@@ -104,9 +115,28 @@ class JavaModelInterfaceRenderer @Inject constructor(override val vrapTypeProvid
         }
     }
     
+    private fun ObjectType.staticOfJsonMethod() : String {
+        val vrapType = vrapTypeProvider.doSwitch(this) as VrapObjectType
+        return if(this.isAbstract()) {
+            ""
+        }else {
+            """
+                |public static ${vrapType.simpleClassName}Impl of(String json) {
+                |   try{
+                |       return CommercetoolsJsonUtils.fromJsonString(json, ${vrapType.simpleClassName}Impl.class);
+                |   }catch (IOException e){
+                |       e.printStackTrace();
+                |   }
+                |   return null;
+                |}
+             """.trimMargin()
+        }
+    }
+    
     private fun ObjectType.getters() = this.properties
-        .map { it.getter() }
-        .joinToString(separator = "\n")
+            .filter { it.name != this.discriminator() }
+            .map { it.getter() }
+            .joinToString(separator = "\n")
 
     private fun Property.getter(): String {
         return if(this.isPatternProperty()){
