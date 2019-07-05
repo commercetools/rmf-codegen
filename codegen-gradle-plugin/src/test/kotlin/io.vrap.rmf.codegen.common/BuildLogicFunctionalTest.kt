@@ -59,6 +59,26 @@ class BuildLogicFunctionalTest {
         |               client_package = 'com.commercetools.client2'
         |               target = 'javaModel'
         |          }
+        |          importResolveableModels {
+        |               path = file('import-api-resolveable-model/build/generated-classes')
+        |               base_package = 'com.commercetools.importapi.resolveable'
+        |               target = 'javaModel'
+        |               customTypeMapping = [
+        |                       'CategoryKeyReference': 'com.commercetools.importstorage.resolvable.models.common.ResolvableReference',
+        |                       'CartDiscountKeyReference': 'com.commercetools.importstorage.resolvable.models.common.ResolvableReference',
+        |                       'ResolvableReference': 'com.commercetools.importstorage.resolvable.models.common.ResolvableReference',
+        |                       'ChannelKeyReference': 'com.commercetools.importstorage.resolvable.models.common.ResolvableReference',
+        |                       'CustomerKeyReference': 'com.commercetools.importstorage.resolvable.models.common.ResolvableReference',
+        |                       'CustomerGroupKeyReference': 'com.commercetools.importstorage.resolvable.models.common.ResolvableReference',
+        |                       'PriceKeyReference': 'com.commercetools.importstorage.resolvable.models.common.ResolvableReference',
+        |                       'ProductKeyReference': 'com.commercetools.importstorage.resolvable.models.common.ResolvableReference',
+        |                       'ProductTypeKeyReference': 'com.commercetools.importstorage.resolvable.models.common.ResolvableReference',
+        |                       'ProductVariantKeyReference': 'com.commercetools.importstorage.resolvable.models.common.ResolvableReference',
+        |                       'ShippingMethodKeyReference': 'com.commercetools.importstorage.resolvable.models.common.ResolvableReference',
+        |                       'StateKeyReference': 'com.commercetools.importstorage.resolvable.models.common.ResolvableReference',
+        |                       'TaxCategoryKeyReference': 'com.commercetools.importstorage.resolvable.models.common.ResolvableReference'
+        |               ]
+        |          }
         |          importStorageService {
         |               path = file('import-api2/build/generated-classes')
         |               models_package = 'com.commercetools.models2'

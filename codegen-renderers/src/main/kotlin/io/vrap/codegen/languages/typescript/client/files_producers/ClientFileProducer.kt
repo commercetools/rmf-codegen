@@ -7,11 +7,12 @@ class ClientFileProducer : FileProducer {
 
 
     override fun produceFiles(): List<TemplateFile> {
-        return listOf(commonTypes(), localCommonTypes(),produceClient())
+        return listOf(commonTypes(), localCommonTypes(),produceRequestUtils())
     }
 
     fun commonTypes() = TemplateFile(relativePath = "base/common-types.ts", content = """
-type HttpMethod =
+        
+export type MethodType =
   | "GET"
   | "HEAD"
   | "POST"
@@ -21,58 +22,73 @@ type HttpMethod =
   | "OPTIONS"
   | "TRACE";
 
-type Variable =  { [key: string]: string | number | boolean }
+export type MiddlewareArg = {
+  request: ClientRequest;
+  response: ClientResponse<any>;
+  error: Error;
+  next: Middleware;
+};
+
+export type ClientRequest = {
+  uri: string,
+  method: MethodType,
+  body?: any,
+  headers?: {
+    [key: string]: string,
+  },
+}
+
+export type ClientResponse<T> = {
+  body?: T,
+  statusCode: number,
+  headers?: Object
+}
+
+export type Middleware = (arg: MiddlewareArg) => Promise<MiddlewareArg>;
+
+""".trim())
+}
+
+fun localCommonTypes() = TemplateFile(relativePath = "base/local-common-types.ts", content = """
+import { MethodType } from "./common-types";
+
+export type Variable =  { [key: string]: string | number | boolean }
 
 export interface CommonRequest<T> {
   baseURL: string;
   url?: string,
   headers?: { [key: string]: string };
-  method: HttpMethod;
+  method: MethodType;
   uriTemplate: string;
   pathVariables?: Variable;
   queryParams?: Variable;
-  payload?: T;
-  dataType?: 'TEXT'|'BINARY';
+  body?: T
 }
+""".trim())
 
-export type MiddlewareArg = {
-  request: CommonRequest<any>;
-  response: any;
-  error: Error;
-  next: Middleware;
-};
-
-export type Middleware = (arg: MiddlewareArg) => Promise<MiddlewareArg>;
-
-""")
-}
-
-fun localCommonTypes() = TemplateFile(relativePath = "base/local-common-types.ts", content = """
-import { PathLike } from "fs";
-
-export type VFile = {
-    filePath: PathLike
-}
-
-""")
-
-fun produceClient() = TemplateFile(relativePath = "base/requests-utils.ts", content = """
-
-import { Middleware, MiddlewareArg, CommonRequest } from "./common-types";
+fun produceRequestUtils() = TemplateFile(relativePath = "base/requests-utils.ts", content = """
+import { Middleware, MiddlewareArg, ClientResponse } from "./common-types";
+import { CommonRequest } from "./local-common-types";
 
 export class ApiRequest<O> {
   private middleware: Middleware;
-  constructor(private readonly commonRequest: CommonRequest<any>, middlewares: Middleware[]) {
+  constructor(
+    private readonly commonRequest: CommonRequest<any>,
+    middlewares: Middleware[]
+  ) {
     if (!middlewares || middlewares.length == 0) {
       middlewares = [noOpMiddleware];
     }
     this.middleware = middlewares.reduce(reduceMiddleware);
   }
 
-  async execute(): Promise<O> {
+  async execute(): Promise<ClientResponse<O>> {
+    const { body, headers, method } = this.commonRequest;
     const req = {
-      ...this.commonRequest,
-      url: getURI(this.commonRequest)
+      headers,
+      method,
+      body,
+      uri: getURI(this.commonRequest)
     };
 
     const res = await this.middleware({
@@ -126,7 +142,4 @@ function getURI(commonRequest: CommonRequest<any>): string {
 }
 
 const noOpMiddleware = async (x: MiddlewareArg) => x;
-
-
-
-""")
+""".trim())
