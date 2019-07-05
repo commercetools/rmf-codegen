@@ -4,7 +4,7 @@ import com.google.inject.Inject
 import com.google.inject.name.Named
 import io.vrap.codegen.languages.php.PhpSubTemplates
 import io.vrap.codegen.languages.php.extensions.*
-import io.vrap.rmf.codegen.di.VrapConstants
+import io.vrap.rmf.codegen.di.BasePackageName
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.MethodRenderer
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
@@ -20,7 +20,7 @@ import org.eclipse.emf.ecore.EObject
 class PhpMethodRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : MethodRenderer, EObjectTypeExtensions {
 
     @Inject
-    @Named(io.vrap.rmf.codegen.di.VrapConstants.BASE_PACKAGE_NAME)
+    @BasePackageName
     lateinit var packagePrefix:String
 
     override fun render(type: Method): TemplateFile {

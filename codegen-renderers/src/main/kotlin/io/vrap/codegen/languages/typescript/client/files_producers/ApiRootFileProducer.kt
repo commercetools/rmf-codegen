@@ -1,13 +1,12 @@
 package io.vrap.codegen.languages.typescript.client.files_producers
 
 import com.google.inject.Inject
-import com.google.inject.name.Named
 import io.vrap.codegen.languages.typescript.client.AbstractRequestBuilder
 import io.vrap.codegen.languages.typescript.model.TypeScriptBaseTypes
 import io.vrap.codegen.languages.typescript.model.simpleTSName
 import io.vrap.codegen.languages.typescript.relativizePaths
 import io.vrap.codegen.languages.typescript.tsRequestModuleName
-import io.vrap.rmf.codegen.di.VrapConstants
+import io.vrap.rmf.codegen.di.ClientPackageName
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.FileProducer
 import io.vrap.rmf.codegen.rendring.utils.keepIndentation
@@ -16,7 +15,7 @@ import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.modules.Api
 
 class ApiRootFileProducer @Inject constructor(
-        @Named(VrapConstants.CLIENT_PACKAGE_NAME) val client_package: String,
+        @ClientPackageName val client_package: String,
         api: Api,
         vrapTypeProvider: VrapTypeProvider
 ) : FileProducer, AbstractRequestBuilder(api, vrapTypeProvider) {
