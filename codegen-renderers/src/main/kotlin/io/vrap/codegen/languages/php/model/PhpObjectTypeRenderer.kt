@@ -2,18 +2,16 @@ package io.vrap.codegen.languages.php.model;
 
 import com.google.inject.Inject
 import com.google.inject.name.Named
+import io.vrap.codegen.languages.php.PhpBaseTypes
 import io.vrap.codegen.languages.php.PhpSubTemplates
 import io.vrap.codegen.languages.php.extensions.*
-import io.vrap.rmf.codegen.di.VrapConstants
+import io.vrap.rmf.codegen.di.BasePackageName
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.ObjectTypeRenderer
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
 import io.vrap.rmf.codegen.rendring.utils.keepIndentation
-import io.vrap.rmf.codegen.types.VrapObjectType
-import io.vrap.rmf.codegen.types.VrapTypeProvider
-import io.vrap.rmf.raml.model.types.ArrayType
-import io.vrap.rmf.raml.model.types.ObjectType
-import io.vrap.rmf.raml.model.types.Property
+import io.vrap.rmf.codegen.types.*
+import io.vrap.rmf.raml.model.types.*
 import io.vrap.rmf.raml.model.types.util.TypesSwitch
 import io.vrap.rmf.raml.model.util.StringCaseFormat
 import org.eclipse.emf.ecore.EObject
@@ -22,7 +20,7 @@ import java.util.*
 class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : ObjectTypeExtensions, EObjectTypeExtensions, ObjectTypeRenderer {
 
     @Inject
-    @Named(io.vrap.rmf.codegen.di.VrapConstants.BASE_PACKAGE_NAME)
+    @BasePackageName
     lateinit var packagePrefix:String
 
     override fun render(type: ObjectType): TemplateFile {
@@ -34,9 +32,11 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
             |${PhpSubTemplates.generatorInfo}
             |namespace ${vrapType.namespaceName().escapeAll()};
             |
+            |use ${packagePrefix.toNamespaceName().escapeAll()}\\Base\\JsonObject;
+            |use ${packagePrefix.toNamespaceName().escapeAll()}\\Base\\MapperFactory;
             |<<${type.imports()}>>
             |
-            |final class ${vrapType.simpleClassName}Model implements ${vrapType.simpleClassName}
+            |final class ${vrapType.simpleClassName}Model extends JsonObject implements ${vrapType.simpleClassName}
             |{
             |    ${if (type.discriminator != null || type.discriminatorValue != null) {"const DISCRIMINATOR_VALUE = '${type.discriminatorValue ?: ""}';"} else ""}
             |    <<${type.constructor()}>>
@@ -44,6 +44,11 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
             |    <<${type.toBeanFields()}>>
             |
             |    <<${type.getters()}>>
+            |
+            |    <<${type.serializer()}>>
+            |    
+            |    <<${type.discriminatorClasses()}>>
+            |    <<${type.discriminatorResolver()}>>
             |}
         """.trimMargin().keepIndentation("<<", ">>").forcedLiteralEscape()
 
@@ -59,42 +64,53 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
         return if (this.discriminator != null)
             """
             |/**
-            | * @param array $!data
+            | * @param ?object $!data
             | */
-            |public function __construct(array $!data = []) {
+            |public function __construct(object $!data = null)
+            |{
             |    parent::__construct($!data);
-            |    $!this->set${this.discriminator.capitalize()}(static::DISCRIMINATOR_VALUE);
+            |    /** @var string $!this->${this.discriminator} */
+            |    $!this->${this.discriminator} = static::DISCRIMINATOR_VALUE;
             |}
             """.trimMargin()
         else
             ""
     }
 
-    fun ObjectType.imports() = this.getImports(this.allProperties).map { "use ${it.escapeAll()};" }.joinToString(separator = "\n")
+    fun ObjectType.imports() = this.getImports(this.allProperties).map { "use ${it.escapeAll()};" }
+            .plus(this.getPropertyImports(this.allProperties).map { "use ${it.escapeAll()};" })
+            .plus(this.getObjectImports(this.allProperties).map { "use ${it.escapeAll()}Model;" })
+            .distinct()
+            .sorted()
+            .joinToString(separator = "\n")
 
     fun Property.toPhpField(): String {
 
         return """
             |/**
-            | * @var ${this.type.toVrapType().simpleName()}
+            | * @var ?${if (this.type.toVrapType().simpleName() != "stdClass") this.type.toVrapType().simpleName() else "JsonObject" }
             | */
             |protected $${if (this.isPatternProperty()) "values" else this.name};
         """.trimMargin();
     }
 
+    fun Property.toPhpConstantName(): String {
+        return "FIELD_${if (this.isPatternProperty()) "VALUES" else StringCaseFormat.UPPER_UNDERSCORE_CASE.apply(this.name)}"
+    }
+
     fun Property.toPhpConstant(): String {
 
         return """
-            |const FIELD_${if (this.isPatternProperty()) "VALUES" else StringCaseFormat.UPPER_UNDERSCORE_CASE.apply(this.name)} = '${if (this.isPatternProperty()) "values" else this.name}';
-        """.trimMargin();
+            |const ${this.toPhpConstantName()} = '${if (this.isPatternProperty()) "values" else this.name}';
+        """.trimMargin()
     }
 
     fun ObjectType.toBeanConstant() = this.properties
-            .filter { it.name != this.discriminator }
+//            .filter { it.name != this.discriminator }
             .map { it.toPhpConstant() }.joinToString(separator = "\n")
 
     fun ObjectType.toBeanFields() = this.allProperties
-            .filter { it.name != this.discriminator }
+//            .filter { it.name != this.discriminator }
             .map { it.toPhpField() }.joinToString(separator = "\n\n")
 
     fun ObjectType.setters() = this.properties
@@ -106,18 +122,35 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
 
     fun ObjectType.getters() = this.allProperties
             //Filter the discriminators because they don't make much sense the generated bean
-            .filter { it.name != this.discriminator }
+//            .filter { it.name != this.discriminator }
             .map { it.getter() }
             .joinToString(separator = "\n\n")
+
+    fun ObjectType.serializer(): String {
+        val dtProperties = this.allProperties
+            .filter { it.type is DateTimeOnlyType || it.type is DateTimeType || it.type is DateOnlyType || it.type is TimeOnlyType }
+
+        if (dtProperties.isNotEmpty()) {
+            return """
+            |public function jsonSerialize(): array {
+            |    $!data = parent::jsonSerialize();
+            |    <<${dtProperties.map { it.serializer() }.joinToString(separator = "\n\n")}>>
+            |    return $!data;
+            |}
+        """.trimMargin()
+        } else {
+            return ""
+        }
+    }
 
     fun Property.isPatternProperty() = this.name.startsWith("/") && this.name.endsWith("/")
 
     fun Property.setter(): String {
         return if (this.isPatternProperty()) {
-
             """
             |@JsonAnySetter
-            |public void setValue(String key, ${this.type.toVrapType().simpleName()} value) {
+            |public void setValue(String key, ${this.type.toVrapType().simpleName()} value)
+            |{
             |    if (values == null) {
             |        values = new HashMap<>();
             |    }
@@ -126,7 +159,8 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
             """.trimMargin()
         } else {
             """
-            |public void set${this.name.capitalize()}(final ${this.type.toVrapType().simpleName()} ${this.name}){
+            |public void set${this.name.capitalize()}(final ${this.type.toVrapType().simpleName()} ${this.name})
+            |{
             |   this.${this.name} = ${this.name};
             |}
             """.trimMargin()
@@ -139,23 +173,31 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
             """
                 |/**
                 | ${this.type.toPhpComment()}
+                | * @return ?${if (this.type.toVrapType().simpleName() != "stdClass") this.type.toVrapType().simpleName() else "JsonObject" }
                 | */
-                |public function values() {
-                |    return $!values;
+                |public function values()
+                |{
+                |    return $!this->values;
                 |}
             """.trimMargin()
         } else {
             """
                 |/**
+                |
                 | ${this.type.toPhpComment()}
-                | * @return ${this.type.toVrapType().simpleName()}
+                | * @return ?${if (this.type.toVrapType().simpleName() != "stdClass") this.type.toVrapType().simpleName() else "JsonObject" }
                 | */
-                |public function get${this.name.capitalize()}(){
+                |public function get${this.name.capitalize()}()
+                |{
+                |   if (is_null($!this->${this.name})) {
+                |       <<${this.mapper()}>>
+                |   }
                 |   return $!this->${this.name};
                 |}
         """.trimMargin()
         }
     }
+
 
     fun Property.validationAnnotations(): String {
         val validationAnnotations = ArrayList<String>()
@@ -168,8 +210,148 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
         return validationAnnotations.joinToString(separator = "\n")
     }
 
+    fun Property.serializer(): String {
+        val type = this.type
+        val defineObject = this.eContainer().toVrapType();
+        val indexName = "${defineObject.simpleName()}::${this.toPhpConstantName()}"
+        return when(type) {
+            is DateTimeType -> """
+                |if (isset($!data[$indexName]) && $!data[$indexName] instanceof \DateTimeImmutable) {
+                |   $!data[$indexName] = $!data[$indexName]->setTimeZone(new \DateTimeZone('UTC'))->format('c');
+                |}
+            """.trimMargin()
+            is DateOnlyType -> """
+                |if (isset($!data[$indexName]) && $!data[$indexName] instanceof \DateTimeImmutable) {
+                |   $!data[$indexName] = $!data[$indexName]->format('Y-m-d');
+                |}
+            """.trimMargin()
+            is TimeOnlyType -> """
+                |if (isset($!data[$indexName]) && $!data[$indexName] instanceof \DateTimeImmutable) {
+                |   $!data[$indexName] = $!data[$indexName]->format('H:i:s.u');
+                |}
+            """.trimMargin()
+            is DateTimeOnlyType -> """
+                |if (isset($!data[$indexName]) && $!data[$indexName] instanceof \DateTimeImmutable) {
+                |   $!data[$indexName] = $!data[$indexName]->setTimeZone(new \DateTimeZone('UTC'))->format('c');
+                |}
+            """.trimMargin()
+            else -> return ""
+        }.escapeAll()
+    }
 
 
+    fun Property.mapper():String {
+        val type = this.type
+        val defineObject = this.eContainer().toVrapType();
+        return when(type) {
+            is ObjectType ->
+                if (type.toVrapType().isScalar()) {
+                    """
+                        |/** @psalm-var ?\\stdClass $!data */
+                        |$!data = $!this->get(${defineObject.simpleName()}::${this.toPhpConstantName()});
+                        |if (is_null($!data)) {
+                        |    return null;
+                        |}
+                        |$!this->${this.name} = new JsonObject($!data);
+                    """.trimMargin()
+                } else {
+                    """
+                        |/** @psalm-var ?\\stdClass $!data */
+                        |$!data = $!this->get(${defineObject.simpleName()}::${this.toPhpConstantName()});
+                        |if (is_null($!data)) {
+                        |    return null;
+                        |}
+                        |${if (type.discriminator.isNullOrBlank()) "" else "$!className = ${type.toVrapType().simpleName()}Model::resolveDiscriminatorClass($!data);"}
+                        |$!this->${this.name} = new ${if (type.discriminator.isNullOrBlank()) "${this.type.toVrapType().simpleName()}Model" else "$!className"}($!data);
+                    """.trimMargin()
+                }
+            is ArrayType ->
+                if (type.toVrapType().isScalar()) {
+                    """
+                        |/** @psalm-var ?array<int, mixed> $!data */
+                        |$!data = $!this->get(${defineObject.simpleName()}::${this.toPhpConstantName()});
+                        |if (is_null($!data)) {
+                        |    return null;
+                        |}
+                        |$!this->${this.name} = $!data;
+                    """.trimMargin()
+                } else {
+                    """
+                    |/** @psalm-var ?array<int, object> $!data */
+                    |$!data = $!this->get(${defineObject.simpleName()}::${this.toPhpConstantName()});
+                    |if (is_null($!data)) {
+                    |    return null;
+                    |}
+                    |$!this->${this.name} = ${if (type.items?.isScalar() != true) "new ${this.type.toVrapType().simpleName()}($!data)" else "$!data"};
+                    """.trimMargin()
+                }
+            else ->
+                when (type.toVrapType()) {
+                    is VrapEnumType -> """
+                       |/** @psalm-var ?string $!data */
+                       |$!data = $!this->get(${defineObject.simpleName()}::${this.toPhpConstantName()});
+                       |if (is_null($!data)) {
+                       |    return null;
+                       |}
+                       |$!this->${this.name} = (string)$!data;
+                    """.trimMargin()
+                    PhpBaseTypes.integerType ->  """
+                       |/** @psalm-var ?int $!data */
+                       |$!data = $!this->get(${defineObject.simpleName()}::${this.toPhpConstantName()});
+                       |if (is_null($!data)) {
+                       |    return null;
+                       |}
+                       |$!this->${this.name} = (int)$!data;
+                    """.trimMargin()
+                    PhpBaseTypes.stringType ->  """
+                       |/** @psalm-var ?string $!data */
+                       |$!data = $!this->get(${defineObject.simpleName()}::${this.toPhpConstantName()});
+                       |if (is_null($!data)) {
+                       |    return null;
+                       |}
+                       |$!this->${this.name} = (string)$!data;
+                    """.trimMargin()
+                    PhpBaseTypes.doubleType ->  """
+                       |/** @psalm-var ?float $!data */
+                       |$!data = $!this->get(${defineObject.simpleName()}::${this.toPhpConstantName()});
+                       |if (is_null($!data)) {
+                       |    return null;
+                       |}
+                       |$!this->${this.name} = (float)$!data;
+                    """.trimMargin()
+                    PhpBaseTypes.booleanType ->  """
+                       |/** @psalm-var ?bool $!data */
+                       |$!data = $!this->get(${defineObject.simpleName()}::${this.toPhpConstantName()});
+                       |if (is_null($!data)) {
+                       |    return null;
+                       |}
+                       |$!this->${this.name} = (bool)$!data;
+                    """.trimMargin()
+                    PhpBaseTypes.dateTimeType ->
+                        """
+                           |/** @psalm-var ?string $!data */
+                           |$!data = $!this->get(${defineObject.simpleName()}::${this.toPhpConstantName()});
+                           |if (is_null($!data)) {
+                           |    return null;
+                           |}
+                           |$!data = DateTimeImmutable::createFromFormat(MapperFactory::DATETIME_FORMAT, $!data);
+                           |if ($!data === false) {
+                           |    return null;
+                           |}
+                           |$!this->${this.name} = $!data;
+                        """.trimMargin()
+                    else ->
+                        """
+                            |/** @psalm-var ?\\stdClass $!data */
+                            |$!data = $!this->get(${defineObject.simpleName()}::${this.toPhpConstantName()});
+                            |if (is_null($!data)) {
+                            |    return null;
+                            |}
+                            |$!this->${this.name} = new JsonObject($!data);
+                        """.trimMargin()
+                }
+        }
+    }
 
     private object CascadeValidationCheck : TypesSwitch<Boolean>() {
         override fun defaultCase(`object`: EObject?): Boolean? {
@@ -188,4 +370,43 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
             }
         }
     }
+
+
+    private fun ObjectType.discriminatorClasses(): String {
+        if (this.discriminator.isNullOrBlank()) {
+            return ""
+        }
+        return """
+                |/** @var array<string, class-string<${this.toVrapType().simpleName()}> > */
+                |private static $!discriminatorClasses = [
+                |   <<${this.namedSubTypes().filterIsInstance<ObjectType>().map { "'${it.discriminatorValue}' => ${it.toVrapType().simpleName()}Model::class," }.joinToString(separator = "\n")}>>
+                |];
+            """.trimMargin()
+    }
+
+    private fun ObjectType.discriminatorResolver(): String {
+        if (this.discriminator.isNullOrBlank()) {
+            return ""
+        }
+        return """
+            |/**
+            | * @psalm-return class-string<${this.toVrapType().simpleName()}>
+            | */
+            |public static function resolveDiscriminatorClass(object $!value): string
+            |{
+            |   $!fieldName = ${this.toVrapType().simpleName()}::DISCRIMINATOR_FIELD;
+            |   if (isset($!value->$!fieldName)) {
+            |       /** @var string $!discriminatorValue */
+            |       $!discriminatorValue = $!value->$!fieldName;
+            |       if (isset(static::$!discriminatorClasses[$!discriminatorValue])) {
+            |            return static::$!discriminatorClasses[$!discriminatorValue];
+            |       }
+            |   }
+            |   /** @psalm-var class-string<${this.toVrapType().simpleName()}> */
+            |   $!type = ${this.toVrapType().simpleName()}Model::class;
+            |   return $!type;
+            |}
+        """.trimMargin()
+    }
 }
+

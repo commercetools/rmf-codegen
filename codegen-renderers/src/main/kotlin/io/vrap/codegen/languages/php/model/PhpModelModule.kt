@@ -6,6 +6,7 @@ import com.google.inject.multibindings.Multibinder
 import io.vrap.rmf.codegen.rendring.FileProducer
 import io.vrap.rmf.codegen.rendring.ObjectTypeRenderer
 import io.vrap.rmf.codegen.rendring.MethodRenderer
+import io.vrap.rmf.codegen.rendring.ResourceRenderer
 
 class PhpModelModule: AbstractModule() {
 
@@ -18,7 +19,10 @@ class PhpModelModule: AbstractModule() {
         val fileBinder = Multibinder.newSetBinder(binder(), FileProducer::class.java)
         fileBinder.addBinding().to(PhpFileProducer::class.java)
 
-        val resourceBinder = Multibinder.newSetBinder(binder(), MethodRenderer::class.java)
-        resourceBinder.addBinding().to(PhpMethodRenderer::class.java)
+        val methodBinder = Multibinder.newSetBinder(binder(), MethodRenderer::class.java)
+        methodBinder.addBinding().to(PhpMethodRenderer::class.java)
+
+        val resourceBinder = Multibinder.newSetBinder(binder(), ResourceRenderer::class.java)
+        resourceBinder.addBinding().to(PhpMethodBuilderRenderer::class.java)
     }
 }

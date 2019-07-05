@@ -5,7 +5,7 @@ import com.google.inject.Inject
 import com.google.inject.name.Named
 import io.vrap.codegen.languages.php.PhpSubTemplates
 import io.vrap.codegen.languages.php.extensions.*
-import io.vrap.rmf.codegen.di.VrapConstants
+import io.vrap.rmf.codegen.di.BasePackageName
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.FileProducer
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
@@ -16,14 +16,14 @@ import io.vrap.rmf.raml.model.util.StringCaseFormat
 class PhpFileProducer @Inject constructor() : FileProducer {
 
     @Inject
-    @Named(io.vrap.rmf.codegen.di.VrapConstants.BASE_PACKAGE_NAME)
+    @BasePackageName
     lateinit var packagePrefix:String
 
     @Inject
     lateinit var api:Api
 
     override fun produceFiles(): List<TemplateFile> = listOf(
-            baseCollection(),
+            collection(),
             baseNullable(),
             clientFactory(),
             tokenProvider(),
@@ -41,10 +41,17 @@ class PhpFileProducer @Inject constructor() : FileProducer {
             oauthHandlerFactory(),
             baseException(),
             invalidArgumentException(),
-            apiRequest()
+            apiRequest(),
+            mapperFactory(),
+            jsonObject(),
+            baseJsonObject(),
+            mapperIterator(),
+            mapCollection(),
+            psalm(),
+            resource()
     )
 
-    private fun baseCollection(): TemplateFile {
+    private fun collection(): TemplateFile {
         return TemplateFile(relativePath = "src/Base/Collection.php",
                 content = """
                         |<?php
@@ -52,10 +59,197 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                         |
                         |namespace ${packagePrefix.toNamespaceName()}\Base;
                         |
-                        |class Collection
+                        |interface Collection
                         |{
                         |}
                     """.trimMargin()
+        )
+    }
+
+    private fun mapperFactory(): TemplateFile {
+        return TemplateFile(relativePath = "src/Base/MapperFactory.php",
+                content = """
+                        |<?php
+                        |${PhpSubTemplates.generatorInfo}
+                        |
+                        |namespace ${packagePrefix.toNamespaceName()}\Base;
+                        |
+                        |use DateTime;
+                        |use DateTimeImmutable;
+                        |
+                        |class MapperFactory
+                        |{
+                        |    const DATETIME_FORMAT = "Y-m-d?H:i:s.uT";
+                        |
+                        |    /**
+                        |     * @psalm-return callable(mixed): ?string
+                        |     */
+                        |    public static function stringMapper() {
+                        |       return
+                        |           /** @psalm-param ?mixed $!data */
+                        |           function ($!data): ?string {
+                        |               if (is_null($!data)) {
+                        |                   return null;
+                        |               }
+                        |               return (string)$!data;
+                        |           };
+                        |    }
+                        |
+                        |    /**
+                        |     * @psalm-return callable(?mixed): ?float
+                        |     */
+                        |    public static function numberMapper() {
+                        |       return
+                        |           /** @psalm-param ?mixed $!data */
+                        |           function ($!data): ?float {
+                        |               if (is_null($!data)) {
+                        |                   return null;
+                        |               }
+                        |               return (float)$!data;
+                        |           };
+                        |    }
+                        |
+                        |    /**
+                        |     * @psalm-return callable(?mixed): ?int
+                        |     */
+                        |    public static function integerMapper() {
+                        |       return
+                        |           /** @psalm-param ?mixed $!data */
+                        |           function ($!data): ?int {
+                        |               if (is_null($!data)) {
+                        |                   return null;
+                        |               }
+                        |               return (int)$!data;
+                        |           };
+                        |    }
+                        |
+                        |    /**
+                        |     * @psalm-return callable(?string): ?DateTimeImmutable
+                        |     */
+                        |    public static function dateTimeMapper(string $!format = self::DATETIME_FORMAT) {
+                        |       return
+                        |           /** @psalm-param ?string $!data */
+                        |           function ($!data) use ($!format): ?DateTimeImmutable {
+                        |               if (is_null($!data)) {
+                        |                   return null;
+                        |               }
+                        |               $!date = DateTimeImmutable::createFromFormat($!format, $!data);
+                        |               if ($!date === false) {
+                        |                   return null;
+                        |               }
+                        |               return $!date;
+                        |           };
+                        |    }
+                        |
+                        |    /**
+                        |     * @psalm-return callable(?mixed): ?object
+                        |     * @psalm-param class-string $!className
+                        |     */
+                        |    public static function classMapper(string $!className) {
+                        |       return
+                        |           /** @psalm-param ?mixed $!data */
+                        |           function ($!data) use ($!className): ?object {
+                        |               if (is_null($!data)) {
+                        |                   return null;
+                        |               }
+                        |               return (new \ReflectionClass($!className))->newInstanceArgs([$!data]);
+                        |           };
+                        |    }
+                        |}
+                    """.trimMargin().forcedLiteralEscape()
+        )
+    }
+
+    private fun jsonObject(): TemplateFile {
+        return TemplateFile(relativePath = "src/Base/JsonObject.php",
+                content = """
+                        |<?php
+                        |${PhpSubTemplates.generatorInfo}
+                        |
+                        |namespace ${packagePrefix.toNamespaceName()}\Base;
+                        |
+                        |class JsonObject extends BaseJsonObject
+                        |{
+                        |    protected function toArray(): array
+                        |    {
+                        |        $!data = array_filter(
+                        |            get_object_vars($!this),
+                        |            /**
+                        |             * @psalm-param mixed|null $!value
+                        |             */
+                        |            function($!value, string $!key) {
+                        |                return !is_null($!value);
+                        |            },
+                        |            ARRAY_FILTER_USE_BOTH
+                        |        );
+                        |        $!data = array_merge($!this->getRawDataArray(), $!data);
+                        |        return $!data;
+                        |    }
+                        |}
+                    """.trimMargin().forcedLiteralEscape()
+        )
+    }
+
+    private fun baseJsonObject(): TemplateFile {
+        return TemplateFile(relativePath = "src/Base/BaseJsonObject.php",
+                content = """
+                        |<?php
+                        |${PhpSubTemplates.generatorInfo}
+                        |
+                        |namespace ${packagePrefix.toNamespaceName()}\Base;
+                        |
+                        |abstract class BaseJsonObject implements \JsonSerializable
+                        |{
+                        |    /** @var ?object */
+                        |    private $!rawData;
+                        |
+                        |    public function __construct(object $!data = null)
+                        |    {
+                        |        $!this->rawData = $!data;
+                        |    }
+                        |
+                        |    /**
+                        |     * @return mixed|null
+                        |     */
+                        |    public function map(string $!field, callable $!mapper)
+                        |    {
+                        |        return call_user_func($!mapper, $!this->get($!field));
+                        |    }
+                        |
+                        |    /**
+                        |     * @return string|int|float|array<int, mixed>|\stdClass|bool|null
+                        |     */
+                        |    public function get(string $!field)
+                        |    {
+                        |        if (isset($!this->rawData->$!field)) {
+                        |            /** @psalm-suppress PossiblyNullPropertyFetch */
+                        |            return $!this->rawData->$!field;
+                        |        }
+                        |        return null;
+                        |    }
+                        |
+                        |    public function jsonSerialize(): array
+                        |    {
+                        |        return $!this->toArray();
+                        |    }
+                        |
+                        |    /**
+                        |     * @return array
+                        |     */
+                        |    protected function getRawDataArray(): array
+                        |    {
+                        |        if (is_null($!this->rawData)) {
+                        |            return [];
+                        |        }
+                        |        return get_object_vars($!this->rawData);
+                        |    }
+                        |
+                        |    /**
+                        |     * @return array
+                        |     */
+                        |    abstract protected function toArray(): array;
+                        |}
+                    """.trimMargin().forcedLiteralEscape()
         )
     }
 
@@ -101,6 +295,8 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |    }
                     |
                     |    /**
+                    |     * @psalm-assert Config $!config
+                    |     * @psalm-param mixed $!config
                     |     * @param Config|array $!config
                     |     * @throws InvalidArgumentException
                     |     */
@@ -137,6 +333,10 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |            ],
                     |            $!options
                     |        );
+                    |        /**
+                    |         * @var string $!key
+                    |         * @var callable $!middleware
+                    |         */
                     |        foreach ($!middlewares as $!key => $!middleware) {
                     |            if(!is_callable($!middleware)) {
                     |                throw new InvalidArgumentException('Middleware isn\'t callable');
@@ -211,7 +411,7 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |    }
                     |  },
                     |  "require": {
-                    |    "php": ">=7.1",
+                    |    "php": ">=7.2",
                     |    "guzzlehttp/psr7": "^1.1",
                     |    "guzzlehttp/guzzle": "^6.0",
                     |    "psr/cache": "^1.0",
@@ -220,7 +420,8 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |  },
                     |  "require-dev": {
                     |    "monolog/monolog": "^1.3",
-                    |    "phpunit/phpunit": "^6.0",
+                    |    "phpunit/phpunit": "^8.0",
+                    |    "vimeo/psalm": "^3.4",
                     |    "cache/array-adapter": "^1.0"
                     |  }
                     |}
@@ -251,6 +452,7 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |
                     |    public function __construct(array $!config = [])
                     |    {
+                    |        /** @var string $!apiUri */
                     |        $!apiUri = isset($!config[self::OPT_BASE_URI]) ? $!config[self::OPT_BASE_URI] : static::API_URI;
                     |        <<${if (api.baseUri.value.variables.isNotEmpty()) { api.baseUri.value.replaceValues()} else ""}>>
                     |        $!this->apiUri = $!apiUri;
@@ -292,7 +494,10 @@ class PhpFileProducer @Inject constructor() : FileProducer {
     }
 
     fun UriTemplate.replaceValues(): String = variables
-            .map { "$!apiUri = str_replace('{$it}', (isset($!config[self::OPT_${StringCaseFormat.UPPER_UNDERSCORE_CASE.apply(it)}]) ? $!config[self::OPT_${StringCaseFormat.UPPER_UNDERSCORE_CASE.apply(it)}] : '{$it}'), $!apiUri);" }
+            .map { """
+                |/** @psalm-var string $!${StringCaseFormat.LOWER_CAMEL_CASE.apply(it)} */
+                |$!${StringCaseFormat.LOWER_CAMEL_CASE.apply(it)} = isset($!config[self::OPT_${StringCaseFormat.UPPER_UNDERSCORE_CASE.apply(it)}]) ? $!config[self::OPT_${StringCaseFormat.UPPER_UNDERSCORE_CASE.apply(it)}] : '{$it}';
+                |$!apiUri = str_replace('{$it}', $!${StringCaseFormat.LOWER_CAMEL_CASE.apply(it)}, $!apiUri);""".trimMargin() }
             .joinToString(separator = "\n")
 
     fun UriTemplate.constVariables(): String = variables
@@ -328,14 +533,17 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |
                     |    public function __construct(array $!config = [])
                     |    {
+                    |        /** @var string authUri */
                     |        $!this->authUri = isset($!config[self::OPT_AUTH_URI]) ? $!config[self::OPT_AUTH_URI] : static::AUTH_URI;
                     |        $!this->clientOptions = isset($!config[self::OPT_CLIENT_OPTIONS]) && is_array($!config[self::OPT_CLIENT_OPTIONS]) ?
                     |            $!config[self::OPT_CLIENT_OPTIONS] : [];
+                    |        /** @var string authUri */
                     |        $!this->cacheDir = isset($!config[self::OPT_CACHE_DIR]) ? $!config[self::OPT_CACHE_DIR] : getcwd();
                     |    }
                     |
                     |    public function getGrantType(): string
                     |    {
+                    |        /** @var string */
                     |        return static::GRANT_TYPE;
                     |    }
                     |
@@ -374,7 +582,7 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |        return $!this->cacheDir;
                     |    }
                     |
-                    |    public function setCacheDir($!cacheDir): AuthConfig
+                    |    public function setCacheDir(string $!cacheDir): AuthConfig
                     |    {
                     |        $!this->cacheDir = $!cacheDir;
                     |        return $!this;
@@ -418,7 +626,8 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |
                     |        $!token = $!this->provider->getToken();
                     |        // ensure token to be invalidated in cache before TTL
-                    |        $!ttl = max(1, floor($!token->getExpiresIn()/2));
+                    |        $!expiresIn = $!token->getExpiresIn() ?? 0;
+                    |        $!ttl = max(1, $!expiresIn - 300);
                     |        $!this->saveToken($!token->getValue(), $!item, (int)$!ttl);
                     |
                     |        return $!token;
@@ -426,11 +635,9 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |
                     |    private function saveToken(string $!token, CacheItemInterface $!item, int $!ttl): void
                     |    {
-                    |        if (!is_null($!this->cache)) {
-                    |            $!item->set($!token);
-                    |            $!item->expiresAfter($!ttl);
-                    |            $!this->cache->save($!item);
-                    |        }
+                    |        $!item->set($!token);
+                    |        $!item->expiresAfter($!ttl);
+                    |        $!this->cache->save($!item);
                     |    }
                     |}
                 """.trimMargin().forcedLiteralEscape())
@@ -458,9 +665,6 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |    /** @var Client */
                     |    private $!client;
                     |
-                    |    /** @var ClientCredentials */
-                    |    private $!credentials;
-                    |
                     |    /** @var ClientCredentialsConfig */
                     |    private $!authConfig;
                     |
@@ -485,6 +689,7 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |
                     |        $!result = $!this->client->post($!this->authConfig->getAuthUri(), $!options);
                     |
+                    |        /** @var array $!body */
                     |        $!body = json_decode((string)$!result->getBody(), true);
                     |        return new TokenModel((string)$!body[self::ACCESS_TOKEN], (int)$!body[self::EXPIRES_IN]);
                     |    }
@@ -508,9 +713,6 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |{
                     |    /** @var TokenProvider */
                     |    private $!provider;
-                    |
-                    |    /** @var CacheItemPoolInterface */
-                    |    private $!cache;
                     |
                     |    /**
                     |     * OAuth2Handler constructor.
@@ -544,24 +746,34 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |
                     |use GuzzleHttp\MessageFormatter;
                     |use GuzzleHttp\Middleware;
+                    |use Psr\Cache\CacheItemPoolInterface;
                     |use Psr\Log\LoggerInterface;
                     |use Psr\Log\LogLevel;
                     |
                     |class MiddlewareFactory
                     |{
+                    |    /**
+                    |     * @psalm-return callable()
+                    |     */
                     |    public static function createOAuthMiddleware(AuthConfig $!authConfig, CacheItemPoolInterface $!cache = null)
                     |    {
                     |        $!handler = OAuthHandlerFactory::ofAuthConfig($!authConfig, $!cache);
                     |        return Middleware::mapRequest($!handler);
                     |    }
                     |
+                    |    /**
+                    |     * @psalm-return callable()
+                    |     */
                     |    public static function createOAuthMiddlewareForProvider(TokenProvider $!provider)
                     |    {
                     |        $!handler = OAuthHandlerFactory::ofProvider($!provider);
                     |        return Middleware::mapRequest($!handler);
                     |    }
                     |
-                    |    public static function createLoggerMiddleware(LoggerInterface $!logger, $!logLevel = LogLevel::INFO, $!template = MessageFormatter::CLF)
+                    |    /**
+                    |     * @psalm-return callable()
+                    |     */
+                    |    public static function createLoggerMiddleware(LoggerInterface $!logger, string $!logLevel = LogLevel::INFO, string $!template = MessageFormatter::CLF)
                     |    {
                     |        return Middleware::log($!logger, new MessageFormatter($!template), $!logLevel);
                     |    }
@@ -593,14 +805,17 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |    /** @var string */
                     |    private $!clientSecret;
                     |
-                    |    /** @var string */
+                    |    /** @var ?string */
                     |    private $!scope;
                     |
+                    |    /**
+                    |     * @psalm-param array<string, string> $!authConfig
+                    |     */
                     |    public function __construct(array $!authConfig = [])
                     |    {
                     |        parent::__construct($!authConfig);
-                    |        $!this->clientId = isset($!authConfig[self::CLIENT_ID]) ? $!authConfig[self::CLIENT_ID] : null;
-                    |        $!this->clientSecret = isset($!authConfig[self::CLIENT_SECRET]) ? $!authConfig[self::CLIENT_SECRET] : null;
+                    |        $!this->clientId = isset($!authConfig[self::CLIENT_ID]) ? $!authConfig[self::CLIENT_ID] : '';
+                    |        $!this->clientSecret = isset($!authConfig[self::CLIENT_SECRET]) ? $!authConfig[self::CLIENT_SECRET] : '';
                     |        $!this->scope = isset($!authConfig[self::SCOPE]) ? $!authConfig[self::SCOPE] : null;
                     |    }
                     |
@@ -631,7 +846,7 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |        return $!this->clientSecret;
                     |    }
                     |
-                    |    public function setClientSecret($!clientSecret): ClientCredentialsConfig
+                    |    public function setClientSecret(string $!clientSecret): ClientCredentialsConfig
                     |    {
                     |        $!this->clientSecret = $!clientSecret;
                     |        return $!this;
@@ -719,6 +934,7 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |use GuzzleHttp\Client;
                     |use League\Flysystem\Adapter\Local;
                     |use League\Flysystem\Filesystem;
+                    |use Psr\Cache\CacheItemPoolInterface;
                     |
                     |class OAuthHandlerFactory
                     |{
@@ -797,20 +1013,23 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |namespace ${packagePrefix.toNamespaceName()}\Client;
                     |
                     |use ${packagePrefix.toNamespaceName()}\Base\JsonObject;
-                    |use ${packagePrefix.toNamespaceName()}\Base\ResultMapper;
                     |use GuzzleHttp\Psr7\Request;
                     |use Psr\Http\Message\ResponseInterface;
                     |use GuzzleHttp\Psr7;
                     |
+                    |/** @psalm-suppress PropertyNotSetInConstructor */
                     |class ApiRequest extends Request
                     |{
                     |    const RESULT_TYPE = JsonObject::class;
                     |
+                    |    /** @psalm-var array<string, scalar[]> */
                     |    private $!queryParts;
+                    |    /** @psalm-var string */
                     |    private $!query;
                     |
                     |    /**
-                    |     * @inheritDoc
+                    |     * @psalm-param array<string, scalar|scalar[]> $!headers
+                    |     * @param string|null|resource|\Psr\Http\Message\StreamInterface $!body
                     |     */
                     |    public function __construct(string $!method, string $!uri, array $!headers = [], $!body = null, string $!version = '1.1')
                     |    {
@@ -820,9 +1039,12 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |    }
                     |
                     |    /**
+                    |     * @psalm-param array<string, scalar|scalar[]> $!headers
+                    |     * @psalm-param string|string[] $!defaultValue
+                    |     * @psalm-return array<string, scalar|scalar[]>
                     |     * @param array $!headers
                     |     * @param string $!header
-                    |     * @param mixed $!defaultValue
+                    |     * @param scalar|array $!defaultValue
                     |     * @return array
                     |     */
                     |    protected function ensureHeader(array $!headers, string $!header, $!defaultValue): array
@@ -841,28 +1063,29 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |    }
                     |
                     |    /**
-                    |     * @param ResponseInterface $!response
-                    |     * @param ResultMapper $!mapper
-                    |     * @return mixed
-                    |     */
-                    |    public function map(ResponseInterface $!response, ResultMapper $!mapper)
-                    |    {
-                    |        return $!mapper->map($!this, $!response);
-                    |    }
-                    |
-                    |    /**
                     |     * @param string $!parameterName
+                    |     * @psalm-param scalar $!value
                     |     * @param mixed $!value
-                    |     * @return ApiRequest
+                    |     * @psalm-return static
                     |     */
                     |    public function withQueryParam(string $!parameterName, $!value): ApiRequest
                     |    {
                     |        $!query = $!this->getUri()->getQuery();
                     |        if ($!this->query !== $!query) {
-                    |            $!this->queryParts = Psr7\parse_query($!query);
-                    |        }
-                    |        if (isset($!this->queryParts[$!parameterName]) && !is_array($!this->queryParts[$!parameterName])) {
-                    |            $!this->queryParts[$!parameterName] = [$!this->queryParts[$!parameterName]];
+                    |            /** @var array<string, scalar[]> */
+                    |            $!this->queryParts = array_map(
+                    |                /**
+                    |                 * @psalm-param scalar|scalar[] $!value
+                    |                 * @psalm-return scalar[]
+                    |                 */
+                    |                function($!value): array {
+                    |                    if(is_array($!value)) {
+                    |                        return $!value;
+                    |                    }
+                    |                    return [$!value];
+                    |                },
+                    |                Psr7\parse_query($!query)
+                    |            );
                     |        }
                     |        $!this->queryParts[$!parameterName][] = $!value;
                     |        ksort($!this->queryParts);
@@ -872,5 +1095,348 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |    }
                     |}
                 """.trimMargin().forcedLiteralEscape())
+    }
+
+    private fun mapperIterator(): TemplateFile {
+        return TemplateFile(relativePath = "src/Base/MapperIterator.php",
+                content = """
+                    |<?php
+                    |${PhpSubTemplates.generatorInfo}
+                    |
+                    |namespace ${packagePrefix.toNamespaceName()}\Base;
+                    |
+                    |class MapperIterator extends \IteratorIterator
+                    |{
+                    |    /**
+                    |     * @var callable
+                    |     */
+                    |    private $!mapper;
+                    |
+                    |    public function __construct(\Traversable $!iterator, callable $!mapper)
+                    |    {
+                    |        parent::__construct($!iterator);
+                    |        $!this->mapper = $!mapper;
+                    |    }
+                    |
+                    |    public function current()
+                    |    {
+                    |        return call_user_func($!this->mapper, parent::current(), parent::key());
+                    |    }
+                    |}
+                """.trimMargin().forcedLiteralEscape())
+    }
+
+    private fun mapCollection(): TemplateFile {
+        return TemplateFile(relativePath = "src/Base/MapCollection.php",
+                content = """
+                    |<?php
+                    |${PhpSubTemplates.generatorInfo}
+                    |
+                    |namespace ${packagePrefix.toNamespaceName()}\Base;
+                    |
+                    |/**
+                    | * @template T
+                    | */
+                    |abstract class MapCollection implements Collection, \ArrayAccess, \JsonSerializable
+                    |{
+                    |    /** @psalm-var ?array<int, T|object> */
+                    |    private $!data;
+                    |    /** @var array<string, array<string, int>> */
+                    |    private $!indexes = [];
+                    |    /** @var MapperIterator */
+                    |    private $!iterator;
+                    |
+                    |    /**
+                    |     * @psalm-param ?array<int, T|object> $!data
+                    |     * @param array|null $!data
+                    |     */
+                    |    public function __construct(array $!data = null)
+                    |    {
+                    |        if (!is_null($!data)) {
+                    |            $!this->index($!data);
+                    |        }
+                    |        $!this->data = $!data;
+                    |        $!this->iterator = $!this->getIterator();
+                    |    }
+                    |
+                    |    public function jsonSerialize(): ?array
+                    |    {
+                    |        return $!this->data;
+                    |    }
+                    |
+                    |    public function isPresent(): bool
+                    |    {
+                    |        return !is_null($!this->data);
+                    |    }
+                    |
+                    |    /**
+                    |     * @psalm-param array<int, T|object> $!data
+                    |     * @return static
+                    |     */
+                    |    public static function fromArray(array $!data)
+                    |    {
+                    |        return new static($!data);
+                    |    }
+                    |
+                    |    /**
+                    |     * @param mixed $!data
+                    |     */
+                    |    protected function index($!data): void
+                    |    {
+                    |    }
+                    |
+                    |    /**
+                    |     * @psalm-return T|object|null
+                    |     */
+                    |    final protected function get(int $!index)
+                    |    {
+                    |        if (isset($!this->data[$!index])) {
+                    |            return $!this->data[$!index];
+                    |        }
+                    |        return null;
+                    |    }
+                    |
+                    |    /**
+                    |     * @psalm-param T|object $!data
+                    |     */
+                    |    final protected function set($!data, ?int $!index): void
+                    |    {
+                    |        if (is_null($!index)) {
+                    |            $!this->data[] = $!data;
+                    |        } else {
+                    |            $!this->data[$!index] = $!data;
+                    |        }
+                    |    }
+                    |
+                    |    /**
+                    |     * @psalm-param T|object $!value
+                    |     * @param $!value
+                    |     * @return Collection
+                    |     */
+                    |    public function add($!value)
+                    |    {
+                    |        return $!this->store($!value);
+                    |    }
+                    |
+                    |    /**
+                    |     * @psalm-param T|object $!value
+                    |     * @param $!value
+                    |     * @return Collection
+                    |     */
+                    |    final protected function store($!value)
+                    |    {
+                    |        $!this->set($!value, null);
+                    |        $!this->iterator = $!this->getIterator();
+                    |
+                    |        return $!this;
+                    |    }
+                    |
+                    |    /**
+                    |     * @psalm-return ?T
+                    |     */
+                    |    public function at(int $!index)
+                    |    {
+                    |        return $!this->mapper()($!index);
+                    |    }
+                    |
+                    |    /**
+                    |     * @psalm-return callable(int): ?T
+                    |     */
+                    |    abstract protected function mapper();
+                    |
+                    |    /**
+                    |     * @psalm-param T|object $!value
+                    |     */
+                    |    final protected function addToIndex(string $!field, string $!key, int $!index): void
+                    |    {
+                    |        $!this->indexes[$!field][$!key] = $!index;
+                    |    }
+                    |
+                    |    /**
+                    |     * @psalm-return ?T
+                    |     */
+                    |    final protected function valueByKey(string $!field, string $!key)
+                    |    {
+                    |        return isset($!this->indexes[$!field][$!key]) ? $!this->at($!this->indexes[$!field][$!key]) : null;
+                    |    }
+                    |
+                    |    public function getIterator(): MapperIterator
+                    |    {
+                    |        $!keys = !is_null($!this->data) ? array_keys($!this->data) : [];
+                    |        $!keyIterator = new \ArrayIterator(array_combine($!keys, $!keys));
+                    |        $!iterator = new MapperIterator(
+                    |            $!keyIterator,
+                    |            $!this->mapper()
+                    |        );
+                    |        $!iterator->rewind();
+                    |
+                    |        return $!iterator;
+                    |    }
+                    |
+                    |    /**
+                    |     * @return ?T
+                    |     */
+                    |    public function current()
+                    |    {
+                    |        /** @psalm-var ?T $!current  */
+                    |        $!current = $!this->iterator->current();
+                    |        return $!current;
+                    |    }
+                    |
+                    |    /**
+                    |     * @return void
+                    |     */
+                    |    public function next()
+                    |    {
+                    |        $!this->iterator->next();
+                    |    }
+                    |
+                    |    /**
+                    |     * @return int
+                    |     */
+                    |    public function key()
+                    |    {
+                    |        /** @var int $!key  */
+                    |        $!key = $!this->iterator->key();
+                    |        return $!key;
+                    |    }
+                    |
+                    |    /**
+                    |     * @return bool
+                    |     */
+                    |    public function valid()
+                    |    {
+                    |        return $!this->iterator->valid();
+                    |    }
+                    |
+                    |    /**
+                    |     * @return void
+                    |     */
+                    |    public function rewind()
+                    |    {
+                    |        $!this->iterator->rewind();
+                    |    }
+                    |
+                    |    /**
+                    |     * @param int $!offset
+                    |     * @return bool
+                    |     */
+                    |    public function offsetExists($!offset)
+                    |    {
+                    |        return !is_null($!this->data) && array_key_exists($!offset, $!this->data);
+                    |    }
+                    |
+                    |    /**
+                    |     * @param int $!offset
+                    |     * @return ?T
+                    |     */
+                    |    public function offsetGet($!offset)
+                    |    {
+                    |        return $!this->at($!offset);
+                    |    }
+                    |
+                    |    /**
+                    |     * @param int $!offset
+                    |     * @psalm-param T|object $!value
+                    |     * @param mixed $!value
+                    |     * @return void
+                    |     */
+                    |    public function offsetSet($!offset, $!value)
+                    |    {
+                    |        $!this->set($!value, $!offset);
+                    |        $!this->iterator = $!this->getIterator();
+                    |    }
+                    |
+                    |    /**
+                    |     * @param int $!offset
+                    |     * @return void
+                    |     */
+                    |    public function offsetUnset($!offset)
+                    |    {
+                    |        if ($!this->offsetExists($!offset)) {
+                    |            /** @psalm-suppress PossiblyNullArrayAccess */
+                    |            unset($!this->data[$!offset]);
+                    |            $!this->iterator = $!this->getIterator();
+                    |        }
+                    |    }
+                    |}
+                """.trimMargin().forcedLiteralEscape())
+    }
+
+    private fun psalm(): TemplateFile {
+        return TemplateFile(relativePath = "psalm.xml",
+                content = """
+                        |<?xml version="1.0"?>
+                        |<psalm
+                        |    totallyTyped="true"
+                        |    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                        |    xmlns="https://getpsalm.org/schema/config"
+                        |    xsi:schemaLocation="https://getpsalm.org/schema/config vendor/vimeo/psalm/config.xsd"
+                        |
+                        |    strictBinaryOperands="true"
+                        |>
+                        |    <projectFiles>
+                        |        <directory name="src" />
+                        |        <ignoreFiles>
+                        |            <directory name="vendor" />
+                        |        </ignoreFiles>
+                        |    </projectFiles>
+                        |
+                        |    <issueHandlers>
+                        |        <LessSpecificReturnType errorLevel="info" />
+                        |    </issueHandlers>
+                        |</psalm>
+                    """.trimMargin()
+        )
+    }
+
+    private fun resource(): TemplateFile {
+        return TemplateFile(relativePath = "src/Client/ApiResource.php",
+                content = """
+                    |<?php
+                    |${PhpSubTemplates.generatorInfo}
+                    |
+                    |namespace ${packagePrefix.toNamespaceName()}\Client;
+                    |
+                    |class ApiResource
+                    |{
+                    |    /**
+                    |     * @var string
+                    |     */
+                    |    private $!uri;
+                    |
+                    |    /**
+                    |     * @psalm-var array<string, scalar>
+                    |     */
+                    |    private $!args = [];
+                    |
+                    |    /**
+                    |     * @param string $!uri
+                    |     * @psalm-param array<string, scalar> $!args
+                    |     */
+                    |    public function __construct(string $!uri = '', array $!args = [])
+                    |    {
+                    |        $!this->uri = $!uri;
+                    |        $!this->args = $!args;
+                    |    }
+                    |
+                    |    /**
+                    |     * @return string
+                    |     */
+                    |    final protected function getUri(): string
+                    |    {
+                    |        return $!this->uri;
+                    |    }
+                    |
+                    |    /**
+                    |     * @psalm-return array<string, scalar>
+                    |     */
+                    |    final protected function getArgs(): array
+                    |    {
+                    |        return $!this->args;
+                    |    }
+                    |}
+                """.trimMargin().forcedLiteralEscape()
+        )
     }
 }
