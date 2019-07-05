@@ -1,14 +1,11 @@
 package io.vrap.codegen.languages.php.model
 
 import com.google.inject.Inject
-import com.google.inject.name.Named
 import io.vrap.codegen.languages.extensions.getMethodName
-import io.vrap.codegen.languages.java.extensions.isSuccessfull
 import io.vrap.codegen.languages.php.PhpSubTemplates
 import io.vrap.codegen.languages.php.extensions.*
-import io.vrap.rmf.codegen.di.VrapConstants
+import io.vrap.rmf.codegen.di.BasePackageName
 import io.vrap.rmf.codegen.io.TemplateFile
-import io.vrap.rmf.codegen.rendring.MethodRenderer
 import io.vrap.rmf.codegen.rendring.ResourceRenderer
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
 import io.vrap.rmf.codegen.rendring.utils.keepIndentation
@@ -18,19 +15,16 @@ import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Resource
-import io.vrap.rmf.raml.model.responses.Body
 import io.vrap.rmf.raml.model.responses.Response
 import io.vrap.rmf.raml.model.types.AnyType
 import io.vrap.rmf.raml.model.types.FileType
-import io.vrap.rmf.raml.model.types.NilType
-import io.vrap.rmf.raml.model.types.ObjectType
 import io.vrap.rmf.raml.model.types.impl.TypesFactoryImpl
 import org.eclipse.emf.ecore.EObject
 
 class PhpMethodBuilderRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : ResourceRenderer, EObjectTypeExtensions {
 
     @Inject
-    @Named(io.vrap.rmf.codegen.di.VrapConstants.BASE_PACKAGE_NAME)
+    @BasePackageName
     lateinit var packagePrefix:String
 
     private val resourcePackage = "Resource";

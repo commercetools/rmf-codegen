@@ -2,7 +2,6 @@ package io.vrap.codegen.languages.typescript.model
 
 import com.google.inject.Inject
 import io.vrap.codegen.languages.extensions.*
-import io.vrap.codegen.languages.java.extensions.simpleName
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.FileProducer
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
@@ -91,7 +90,7 @@ class TypeScriptModuleRenderer @Inject constructor(override val vrapTypeProvider
      * @return the rendered extends expression
      */
     fun ObjectType.renderExtendsExpr(): String {
-        return type?.toVrapType()?.simpleName()?.let { "extends $it " } ?: ""
+        return type?.toVrapType()?.simpleTSName()?.let { "extends $it " } ?: ""
     }
 
     /**

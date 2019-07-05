@@ -1,6 +1,7 @@
 package io.vrap.codegen.languages.typescript.joi
 
-import io.vrap.codegen.languages.java.extensions.simpleName
+
+import io.vrap.codegen.languages.php.extensions.simpleName
 import io.vrap.rmf.codegen.types.*
 import io.vrap.rmf.raml.model.types.AnyType
 import io.vrap.rmf.raml.model.types.ObjectType

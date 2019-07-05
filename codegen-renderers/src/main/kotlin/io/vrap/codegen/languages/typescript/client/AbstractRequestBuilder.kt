@@ -1,25 +1,12 @@
 package io.vrap.codegen.languages.typescript.client
 
 import io.vrap.codegen.languages.extensions.getMethodName
-import io.vrap.codegen.languages.java.extensions.returnType
 import io.vrap.codegen.languages.php.extensions.EObjectTypeExtensions
-import io.vrap.codegen.languages.php.extensions.resource
 import io.vrap.codegen.languages.php.extensions.toResourceName
-import io.vrap.codegen.languages.typescript.client.files_producers.middleware
-import io.vrap.codegen.languages.typescript.model.TypeScriptBaseTypes
-import io.vrap.codegen.languages.typescript.model.simpleTSName
-import io.vrap.codegen.languages.typescript.tsMediaType
-import io.vrap.codegen.languages.typescript.tsRemoveRegexp
-import io.vrap.codegen.languages.typescript.tsRequestModuleName
-import io.vrap.codegen.languages.typescript.tsRequestName
-import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.modules.Api
-import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.resources.ResourceContainer
-import java.nio.file.Path
-import java.nio.file.Paths
 
 abstract class AbstractRequestBuilder constructor(
         val api: Api,

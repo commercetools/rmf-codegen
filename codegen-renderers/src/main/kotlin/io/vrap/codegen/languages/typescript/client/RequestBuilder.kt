@@ -1,7 +1,7 @@
 package io.vrap.codegen.languages.typescript.client
 
 import com.google.inject.Inject
-import io.vrap.codegen.languages.java.extensions.returnType
+import io.vrap.codegen.languages.extensions.returnType
 import io.vrap.codegen.languages.php.extensions.resource
 import io.vrap.codegen.languages.typescript.client.files_producers.apiRequest
 import io.vrap.codegen.languages.typescript.client.files_producers.middleware
