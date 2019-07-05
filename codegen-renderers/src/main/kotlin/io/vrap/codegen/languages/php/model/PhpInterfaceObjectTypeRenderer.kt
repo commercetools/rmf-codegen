@@ -34,11 +34,12 @@ class PhpInterfaceObjectTypeRenderer @Inject constructor(override val vrapTypePr
             |${PhpSubTemplates.generatorInfo}
             |namespace ${vrapType.namespaceName().escapeAll()};
             |
+            |use ${packagePrefix.toNamespaceName().escapeAll()}\\Base\\JsonObject;
             |<<${type.imports()}>>
             |
             |interface ${vrapType.simpleClassName} ${type.type?.toVrapType()?.simpleName()?.let { "extends $it" } ?: ""}
             |{
-            |    ${if (type.discriminator != null || type.discriminatorValue != null) {"const DISCRIMINATOR_VALUE = '${type.discriminatorValue ?: ""}';"} else ""}
+            |    ${if (type.discriminator != null) {"const DISCRIMINATOR_FIELD = '${type.discriminator}';"} else ""}
             |    <<${type.toBeanConstant()}>>
             |
             |    <<${type.getters()}>>
@@ -52,33 +53,7 @@ class PhpInterfaceObjectTypeRenderer @Inject constructor(override val vrapTypePr
         )
     }
 
-
-    fun ObjectType.constructor(): String {
-        return if (this.discriminator != null)
-            """
-            |/**
-            | * @param array $!data
-            | */
-            |public function __construct(array $!data = []) {
-            |    parent::__construct($!data);
-            |    $!this->set${this.discriminator.capitalize()}(static::DISCRIMINATOR_VALUE);
-            |}
-            """.trimMargin()
-        else
-            ""
-    }
-
     fun ObjectType.imports() = this.getImports().map { "use ${it.escapeAll()};" }.joinToString(separator = "\n")
-
-    fun Property.toPhpField(): String {
-
-        return """
-            |/**
-            | * @var ${this.type.toVrapType().simpleName()}
-            | */
-            |protected $${if (this.isPatternProperty()) "values" else this.name};
-        """.trimMargin();
-    }
 
     fun Property.toPhpConstant(): String {
 
@@ -87,13 +62,16 @@ class PhpInterfaceObjectTypeRenderer @Inject constructor(override val vrapTypePr
         """.trimMargin();
     }
 
-    fun ObjectType.toBeanConstant() = this.properties
-            .filter { it.name != this.discriminator }
-            .map { it.toPhpConstant() }.joinToString(separator = "\n")
-
-    fun ObjectType.toBeanFields() = this.properties
-            .filter { it.name != this.discriminator }
-            .map { it.toPhpField() }.joinToString(separator = "\n\n")
+    fun ObjectType.toBeanConstant(): String {
+        val superTypeAllProperties = when(this.type) {
+            is ObjectType -> (this.type as ObjectType).allProperties
+            else -> emptyList<Property>()
+        };
+        return this.properties
+                .asSequence()
+                .filter { it -> superTypeAllProperties.none { property -> it.name == property.name } }
+                .map { it.toPhpConstant() }.joinToString(separator = "\n")
+    }
 
     fun ObjectType.setters() = this.properties
             //Filter the discriminators because they don't make much sense the generated bean
@@ -104,7 +82,7 @@ class PhpInterfaceObjectTypeRenderer @Inject constructor(override val vrapTypePr
 
     fun ObjectType.getters() = this.properties
             //Filter the discriminators because they don't make much sense the generated bean
-            .filter { it.name != this.discriminator }
+//            .filter { it.name != this.discriminator }
             .map { it.getter() }
             .joinToString(separator = "\n\n")
 
@@ -114,20 +92,20 @@ class PhpInterfaceObjectTypeRenderer @Inject constructor(override val vrapTypePr
         return if (this.isPatternProperty()) {
 
             """
-            |@JsonAnySetter
-            |public void setValue(String key, ${this.type.toVrapType().simpleName()} value) {
-            |    if (values == null) {
-            |        values = new HashMap<>();
-            |    }
-            |    values.put(key, value);
-            |}
-            """.trimMargin()
+        |@JsonAnySetter
+        |public void setValue(String key, ${this.type.toVrapType().simpleName()} value) {
+        |    if (values == null) {
+        |        values = new HashMap<>();
+        |    }
+        |    values.put(key, value);
+        |}
+        """.trimMargin()
         } else {
             """
-            |public void set${this.name.capitalize()}(final ${this.type.toVrapType().simpleName()} ${this.name}){
-            |   this.${this.name} = ${this.name};
-            |}
-            """.trimMargin()
+        |public void set${this.name.capitalize()}(final ${this.type.toVrapType().simpleName()} ${this.name}){
+        |   this.${this.name} = ${this.name};
+        |}
+        """.trimMargin()
         }
     }
 
@@ -135,51 +113,19 @@ class PhpInterfaceObjectTypeRenderer @Inject constructor(override val vrapTypePr
         return if (this.isPatternProperty()) {
 
             """
-                |/**
-                | ${this.type.toPhpComment()}
-                | */
-                |public function values();
-            """.trimMargin()
+            |/**
+            | ${this.type.toPhpComment()}
+            | */
+            |public function values();
+        """.trimMargin()
         } else {
             """
-                |/**
-                | ${this.type.toPhpComment()}
-                | * @return ${this.type.toVrapType().simpleName()}
-                | */
-                |public function get${this.name.capitalize()}();
-        """.trimMargin()
-        }
-    }
-
-    fun Property.validationAnnotations(): String {
-        val validationAnnotations = ArrayList<String>()
-        if (this.required != null && this.required!!) {
-            validationAnnotations.add("@NotNull")
-        }
-        if (CascadeValidationCheck.doSwitch(this.type)) {
-            validationAnnotations.add("@Valid")
-        }
-        return validationAnnotations.joinToString(separator = "\n")
-    }
-
-
-
-
-    private object CascadeValidationCheck : TypesSwitch<Boolean>() {
-        override fun defaultCase(`object`: EObject?): Boolean? {
-            return false
-        }
-
-        override fun caseObjectType(objectType: ObjectType?): Boolean? {
-            return true
-        }
-
-        override fun caseArrayType(arrayType: ArrayType): Boolean? {
-            return if (arrayType.items != null) {
-                doSwitch(arrayType.items)
-            } else {
-                false
-            }
+            |/**
+            | ${this.type.toPhpComment()}
+            | * @return ?${if (this.type.toVrapType().simpleName() != "stdClass") this.type.toVrapType().simpleName() else "JsonObject" }
+            | */
+            |public function get${this.name.capitalize()}();
+    """.trimMargin()
         }
     }
 }

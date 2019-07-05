@@ -35,7 +35,7 @@ fun VrapType.simpleName():String{
         is VrapScalarType -> this.scalarType
         is VrapEnumType -> "string"
         is VrapObjectType -> this.simpleClassName
-        is VrapArrayType -> "${this.itemType.simpleName()}${if (!this.itemType.isScalar()) "Collection" else "[]"}"
+        is VrapArrayType -> if (this.itemType.isScalar()) "array" else "${this.itemType.simpleName()}Collection"
         is VrapNilType -> throw IllegalStateException("$this has no simple class name.")
     }
 }
@@ -44,13 +44,11 @@ fun VrapType.fullClassName():String{
     return when(this){
         is VrapScalarType -> this.scalarType
         is VrapEnumType -> "string"
-        is VrapObjectType -> "${this.namespaceName()}\\\\${this.simpleClassName}"
+        is VrapObjectType -> "${this.namespaceName()}\\${this.simpleClassName}"
         is VrapArrayType -> "${this.itemType.fullClassName()}${if (!this.itemType.isScalar()) "Collection" else "[]"}"
         is VrapNilType -> throw IllegalStateException("$this has no full class name.")
     }
 }
-
-fun scalarTypes():Array<String> { return arrayOf("string", "int", "float", "bool", "array") }
 
 fun AnyType.isScalar(): Boolean {
     return when(this) {
@@ -58,7 +56,7 @@ fun AnyType.isScalar(): Boolean {
         is IntegerType -> true
         is NumberType -> true
         is BooleanType -> true
-        is ArrayType -> this.items.isScalar()
+        is ArrayType -> this.items == null || this.items.isScalar()
         else -> false
     }
 }
@@ -73,6 +71,8 @@ fun VrapType.isScalar(): Boolean {
             in scalarTypes() -> true
             else -> false
         }
+        is VrapScalarType -> true
+        is VrapEnumType -> true
         else -> false
     }
 }
@@ -117,3 +117,5 @@ fun Method.allParams(): List<String>? {
 }
 
 fun Method.firstBody(): Body? = this.bodies.stream().findFirst().orElse(null)
+
+fun scalarTypes():Array<String> { return arrayOf("string", "int", "float", "bool", "array", "stdClass") }
