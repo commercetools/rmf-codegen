@@ -106,5 +106,8 @@ var_dump($t->current());
 var_dump($categories);
 
 $id = '';
-$t = (new ResourceByProjectKey('', ['projectKey' => 'phpsphere-90']))->inStoreKeyWithStoreKeyValue('mystore')->carts()->get();
-var_dump($t);
+
+$t = (new ResourceByProjectKey('', ['projectKey' => 'phpsphere-90'], $client))->inStoreKeyWithStoreKeyValue('mystore')->carts()->get();
+
+$r = $client->send($t);
+var_dump((string)$r->getBody());

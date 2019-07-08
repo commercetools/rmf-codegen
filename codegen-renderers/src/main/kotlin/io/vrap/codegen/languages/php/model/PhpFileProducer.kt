@@ -416,6 +416,8 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |    "guzzlehttp/guzzle": "^6.0",
                     |    "psr/cache": "^1.0",
                     |    "psr/log": "^1.0",
+                    |    "psr/http-client": "^1.0",
+                    |    "psr/http-message": "^1.0",
                     |    "cache/filesystem-adapter": "^1.0"
                     |  },
                     |  "require-dev": {
@@ -1013,9 +1015,11 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |namespace ${packagePrefix.toNamespaceName()}\Client;
                     |
                     |use ${packagePrefix.toNamespaceName()}\Base\JsonObject;
+                    |use ${packagePrefix.toNamespaceName()}\Exception\InvalidArgumentException;
+                    |use GuzzleHttp\Client;
+                    |use GuzzleHttp\Psr7;
                     |use GuzzleHttp\Psr7\Request;
                     |use Psr\Http\Message\ResponseInterface;
-                    |use GuzzleHttp\Psr7;
                     |
                     |/** @psalm-suppress PropertyNotSetInConstructor */
                     |class ApiRequest extends Request
@@ -1026,13 +1030,16 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |    private $!queryParts;
                     |    /** @psalm-var string */
                     |    private $!query;
+                    |    /** @var Client|null */
+                    |    private $!client;
                     |
                     |    /**
                     |     * @psalm-param array<string, scalar|scalar[]> $!headers
                     |     * @param string|null|resource|\Psr\Http\Message\StreamInterface $!body
                     |     */
-                    |    public function __construct(string $!method, string $!uri, array $!headers = [], $!body = null, string $!version = '1.1')
+                    |    public function __construct(?Client $!client, string $!method, string $!uri, array $!headers = [], $!body = null, string $!version = '1.1')
                     |    {
+                    |        $!this->client = $!client;
                     |        $!headers = $!this->ensureHeader($!headers, 'Content-Type', 'application/json');
                     |
                     |        parent::__construct($!method, $!uri, $!headers, $!body, $!version);
@@ -1092,6 +1099,25 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |        $!this->query = Psr7\build_query($!this->queryParts);
                     |
                     |        return $!this->withUri($!this->getUri()->withQuery($!this->query));
+                    |    }
+                    |    
+                    |    /**
+                    |     * @param array $!options
+                    |     * @return ResponseInterface|mixed
+                    |     * @throws InvalidArgumentException
+                    |     * @throws \GuzzleHttp\Exception\GuzzleException
+                    |     */
+                    |    public function send(array $!options = [])
+                    |    {
+                    |        if (is_null($!this->client)) {
+                    |           throw new InvalidArgumentException();
+                    |        }
+                    |        return $!this->client->send($!this, $!options);
+                    |    }
+                    |    
+                    |    public function getClient(): ?Client
+                    |    {
+                    |       return $!this->client;
                     |    }
                     |}
                 """.trimMargin().forcedLiteralEscape())
@@ -1398,6 +1424,8 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |
                     |namespace ${packagePrefix.toNamespaceName()}\Client;
                     |
+                    |use GuzzleHttp\Client;
+                    |
                     |class ApiResource
                     |{
                     |    /**
@@ -1411,13 +1439,19 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |    private $!args = [];
                     |
                     |    /**
+                    |     * @var ?Client
+                    |     */
+                    |    private $!client;
+                    |
+                    |    /**
                     |     * @param string $!uri
                     |     * @psalm-param array<string, scalar> $!args
                     |     */
-                    |    public function __construct(string $!uri = '', array $!args = [])
+                    |    public function __construct(string $!uri = '', array $!args = [], Client $!client = null)
                     |    {
                     |        $!this->uri = $!uri;
                     |        $!this->args = $!args;
+                    |        $!this->client = $!client;
                     |    }
                     |
                     |    /**
@@ -1434,6 +1468,11 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |    final protected function getArgs(): array
                     |    {
                     |        return $!this->args;
+                    |    }
+                    |
+                    |    public function getClient(): ?Client
+                    |    {
+                    |       return $!this->client;
                     |    }
                     |}
                 """.trimMargin().forcedLiteralEscape()

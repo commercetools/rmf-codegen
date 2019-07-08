@@ -36,6 +36,7 @@ class PhpMethodRenderer @Inject constructor(override val vrapTypeProvider: VrapT
             |${PhpSubTemplates.generatorInfo}
             |namespace ${vrapType.`package`.toNamespaceName().escapeAll()}\\$resourcePackage;
             |
+            |use GuzzleHttp\\Client;
             |use ${vrapType.`package`.toNamespaceName().escapeAll()}\\ApiRequest;
             |use ${type.returnTypeFullClass().escapeAll()};
             |${if (type.firstBody()?.type is FileType) "use Psr\\Http\\Message\\UploadedFileInterface;".escapeAll() else ""}
@@ -51,12 +52,12 @@ class PhpMethodRenderer @Inject constructor(override val vrapTypeProvider: VrapT
             |     * @psalm-param array<string, scalar|scalar[]> $!headers
             |     * @param array $!headers
             |     */
-            |    public function __construct(${type.allParams()?.asSequence()?.map { "$$it, "  }?.joinToString(separator = "") ?: ""}${if (type.firstBody()?.type is FileType) "UploadedFileInterface " else ""}$!body = null, array $!headers = [])
+            |    public function __construct(${type.allParams()?.asSequence()?.map { "$$it, "  }?.joinToString(separator = "") ?: ""}${if (type.firstBody()?.type is FileType) "UploadedFileInterface " else ""}$!body = null, array $!headers = [], Client $!client = null)
             |    {
             |        $!uri = str_replace([${type.allParams()?.asSequence()?.map { "'{$it}'"  }?.joinToString(separator = ", ") ?: ""}], [${type.allParams()?.asSequence()?.map { "$$it"  }?.joinToString(separator = ", ") ?: ""}], '${type.resource().fullUri.template}');
             |        <<${type.firstBody()?.ensureContentType() ?: ""}>>
             |        <<${type.headers.filter { it.type?.default != null }.map { "\$headers = \$this->ensureHeader(\$headers, '${it.name}', '${it.type.default.value}');" }.joinToString("\n\n")}>>
-            |        parent::__construct('${type.methodName.toUpperCase()}', $!uri, $!headers, ${type.firstBody()?.serialize()?: "!is_null(\$body) ? json_encode(\$body) : null"});
+            |        parent::__construct($!client, '${type.methodName.toUpperCase()}', $!uri, $!headers, ${type.firstBody()?.serialize()?: "!is_null(\$body) ? json_encode(\$body) : null"});
             |    }
             |
             |    /**
