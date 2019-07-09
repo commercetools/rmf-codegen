@@ -173,7 +173,7 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
             """
                 |/**
                 | ${this.type.toPhpComment()}
-                | * @return ?${if (this.type.toVrapType().simpleName() != "stdClass") this.type.toVrapType().simpleName() else "JsonObject" }
+                | * @return ${if (this.type.toVrapType().simpleName() != "stdClass") this.type.toVrapType().simpleName() else "JsonObject" }|null
                 | */
                 |public function values()
                 |{
@@ -185,7 +185,7 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
                 |/**
                 |
                 | ${this.type.toPhpComment()}
-                | * @return ?${if (this.type.toVrapType().simpleName() != "stdClass") this.type.toVrapType().simpleName() else "JsonObject" }
+                | * @return ${if (this.type.toVrapType().simpleName() != "stdClass") this.type.toVrapType().simpleName() else "JsonObject" }|null
                 | */
                 |public function get${this.name.capitalize()}()
                 |{

@@ -48,7 +48,9 @@ class PhpFileProducer @Inject constructor() : FileProducer {
             mapperIterator(),
             mapCollection(),
             psalm(),
-            resource()
+            resource(),
+            resultMapper(),
+            mapperInterface()
     )
 
     private fun collection(): TemplateFile {
@@ -64,6 +66,68 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                         |}
                     """.trimMargin()
         )
+    }
+
+    private fun resultMapper(): TemplateFile {
+        return TemplateFile(relativePath = "src/Base/ResultMapper.php",
+                content = """
+                        |<?php
+                        |${PhpSubTemplates.generatorInfo}
+                        |
+                        |namespace ${packagePrefix.toNamespaceName()}\Base;
+                        |
+                        |use ${packagePrefix.toNamespaceName()}\Exception\InvalidArgumentException;
+                        |use Psr\Http\Message\ResponseInterface;
+                        |
+                        |class ResultMapper implements MapperInterface
+                        |{
+                        |    /**
+                        |     * @template T
+                        |     * @psalm-param class-string<T> $!type
+                        |     * @psalm-return T
+                        |     */
+                        |    public function mapResponseToClass($!type, ResponseInterface $!response)
+                        |    {
+                        |        return new $!type($!this->responseData($!response));
+                        |    }
+                        |    
+                        |    /**
+                        |     * @psalm-return scalar
+                        |     */
+                        |    private function responseData(ResponseInterface $!response)
+                        |    {
+                        |        $!body = (string)$!response->getBody();
+                        |        /** @psalm-var ?scalar $!data */
+                        |        $!data = json_decode($!body);
+                        |        if (is_null($!data)) {
+                        |           throw new InvalidArgumentException();
+                        |        }
+                        |        return $!data;
+                        |    }
+                        |}
+                """.trimMargin().forcedLiteralEscape())
+    }
+
+    private fun mapperInterface(): TemplateFile {
+        return TemplateFile(relativePath = "src/Base/MapperInterface.php",
+                content = """
+                        |<?php
+                        |${PhpSubTemplates.generatorInfo}
+                        |
+                        |namespace ${packagePrefix.toNamespaceName()}\Base;
+                        |
+                        |use Psr\Http\Message\ResponseInterface;
+                        |
+                        |interface MapperInterface
+                        |{
+                        |    /**
+                        |     * @template T
+                        |     * @psalm-param class-string<T> $!type
+                        |     * @psalm-return T
+                        |     */
+                        |    public function mapResponseToClass($!type, ResponseInterface $!response);
+                        |}
+                """.trimMargin().forcedLiteralEscape())
     }
 
     private fun mapperFactory(): TemplateFile {
@@ -142,17 +206,21 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                         |    }
                         |
                         |    /**
-                        |     * @psalm-return callable(?mixed): ?object
-                        |     * @psalm-param class-string $!className
+                        |     * @template T
+                        |     * @psalm-return callable(?mixed): ?T
+                        |     * @psalm-param class-string<T> $!className
                         |     */
                         |    public static function classMapper(string $!className) {
                         |       return
-                        |           /** @psalm-param ?mixed $!data */
+                        |           /**
+                        |            * @psalm-param ?mixed $!data
+                        |            * @psalm-return ?T
+                        |            */
                         |           function ($!data) use ($!className): ?object {
                         |               if (is_null($!data)) {
                         |                   return null;
                         |               }
-                        |               return (new \ReflectionClass($!className))->newInstanceArgs([$!data]);
+                        |               return new $!className($!data);
                         |           };
                         |    }
                         |}
@@ -1163,7 +1231,7 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |/**
                     | * @template T
                     | */
-                    |abstract class MapCollection implements Collection, \ArrayAccess, \JsonSerializable
+                    |abstract class MapCollection implements Collection, \ArrayAccess, \JsonSerializable, \IteratorAggregate
                     |{
                     |    /** @psalm-var ?array<int, T|object> */
                     |    private $!data;

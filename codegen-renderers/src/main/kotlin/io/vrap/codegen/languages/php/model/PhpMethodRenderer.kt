@@ -37,9 +37,13 @@ class PhpMethodRenderer @Inject constructor(override val vrapTypeProvider: VrapT
             |namespace ${vrapType.`package`.toNamespaceName().escapeAll()}\\$resourcePackage;
             |
             |use GuzzleHttp\\Client;
+            |use ${packagePrefix.toNamespaceName().escapeAll()}\\Base\\MapperInterface;
+            |use ${packagePrefix.toNamespaceName().escapeAll()}\\Base\\ResultMapper;
             |use ${vrapType.`package`.toNamespaceName().escapeAll()}\\ApiRequest;
             |use ${type.returnTypeFullClass().escapeAll()};
+            |${if (type.returnTypeClass() !== "JsonObject") "use ${type.returnTypeModelFullClass().escapeAll()}" else ""};
             |${if (type.firstBody()?.type is FileType) "use Psr\\Http\\Message\\UploadedFileInterface;".escapeAll() else ""}
+            |use Psr\\Http\\Message\\ResponseInterface;
             |
             |/** @psalm-suppress PropertyNotSetInConstructor */
             |class ${type.toRequestName()} extends ApiRequest
@@ -60,15 +64,13 @@ class PhpMethodRenderer @Inject constructor(override val vrapTypeProvider: VrapT
             |        parent::__construct($!client, '${type.methodName.toUpperCase()}', $!uri, $!headers, ${type.firstBody()?.serialize()?: "!is_null(\$body) ? json_encode(\$body) : null"});
             |    }
             |
-            |    /**
-            |     * @param ResponseInterface $!response
-            |     * @param ResultMapper $!mapper
-            |     * @return <returnType(request.returnType)>
-            |     */
-            |   // public function map(ResponseInterface $!response, ResultMapper $!mapper):  <returnType(request.returnType)>
-            |   // {
-            |   //     return parent::map($!response, $!mapper);
-            |   // }
+            |    public function mapFromResponse(ResponseInterface $!response, MapperInterface $!mapper = null):  ${type.returnTypeClass()}
+            |    {
+            |        if (is_null($!mapper)) {
+            |            $!mapper = new ResultMapper();
+            |        }
+            |        return $!mapper->mapResponseToClass(${type.returnTypeModelClass()}::class, $!response);
+            |    }
             |
             |   <<${type.queryParameters.map { it.withParam(type) }.joinToString("\n\n")}>>
             |}
@@ -281,6 +283,16 @@ class PhpMethodRenderer @Inject constructor(override val vrapTypeProvider: VrapT
         }
     }
 
+    fun Method.returnTypeModelClass(): String {
+        val vrapType = this.returnType().toVrapType()
+        if (vrapType.isScalar())
+            return "JsonObject"
+        return when (vrapType) {
+            is VrapObjectType -> vrapType.simpleName() + "Model"
+            else -> "JsonObject"
+        }
+    }
+
     fun Method.returnTypeFullClass(): String {
         val vrapType = this.returnType().toVrapType()
         if (vrapType.isScalar())
@@ -290,6 +302,17 @@ class PhpMethodRenderer @Inject constructor(override val vrapTypeProvider: VrapT
             else -> "${packagePrefix.toNamespaceName()}\\Base\\JsonObject"
         }
     }
+
+    fun Method.returnTypeModelFullClass(): String {
+        val vrapType = this.returnType().toVrapType()
+        if (vrapType.isScalar())
+            return "${packagePrefix.toNamespaceName()}\\Base\\JsonObject"
+        return when (vrapType) {
+            is VrapObjectType -> vrapType.fullClassName() + "Model"
+            else -> "${packagePrefix.toNamespaceName()}\\Base\\JsonObject"
+        }
+    }
+
 
     fun <T> EObject.getParent(parentClass: Class<T>): T? {
         if (this.eContainer() == null) {
