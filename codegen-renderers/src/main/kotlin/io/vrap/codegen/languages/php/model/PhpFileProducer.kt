@@ -273,14 +273,6 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                         |    }
                         |
                         |    /**
-                        |     * @return mixed|null
-                        |     */
-                        |    public function map(string $!field, callable $!mapper)
-                        |    {
-                        |        return call_user_func($!mapper, $!this->get($!field));
-                        |    }
-                        |
-                        |    /**
                         |     * @return string|int|float|array<int, mixed>|\stdClass|bool|null
                         |     */
                         |    public function get(string $!field)
