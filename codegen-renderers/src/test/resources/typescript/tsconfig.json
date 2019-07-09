@@ -2,14 +2,15 @@
   "compilerOptions": {
     "outDir": "dist",
     "rootDir": "src",
-    "target": "es2018",
+    "target": "es2019",
     "types": ["node"],
     "module": "commonjs",
     "moduleResolution": "node",
-    "sourceMap": true,
+    "sourceMap": false,
     "experimentalDecorators": true,
-    "emitDecoratorMetadata": true,
-    "composite": true
+    "emitDecoratorMetadata": false,
+    "strict": true,
+    "strictNullChecks": true
   },
   "exclude": ["**/node_modules", "**/dist"]
 }
