@@ -122,7 +122,7 @@ class PhpInterfaceObjectTypeRenderer @Inject constructor(override val vrapTypePr
             """
             |/**
             | ${this.type.toPhpComment()}
-            | * @return ?${if (this.type.toVrapType().simpleName() != "stdClass") this.type.toVrapType().simpleName() else "JsonObject" }
+            | * @return ${if (this.type.toVrapType().simpleName() != "stdClass") this.type.toVrapType().simpleName() else "JsonObject" }|null
             | */
             |public function get${this.name.capitalize()}();
     """.trimMargin()

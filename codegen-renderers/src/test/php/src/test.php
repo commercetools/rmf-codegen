@@ -3,6 +3,7 @@ declare(strict_types = 1);
 namespace Commercetools;
 
 use Cache\Adapter\Filesystem\FilesystemCachePool;
+use Commercetools\Importer\Base\ResultMapper;
 use Commercetools\Importer\Client\CachedTokenProvider;
 use Commercetools\Importer\Client\ClientCredentialsConfig;
 use Commercetools\Importer\Client\ClientCredentialTokenProvider;
@@ -107,7 +108,11 @@ var_dump($categories);
 
 $id = '';
 
-$t = (new ResourceByProjectKey('', ['projectKey' => 'phpsphere-90'], $client))->inStoreKeyWithStoreKeyValue('mystore')->carts()->get();
+$t = (new ResourceByProjectKey('', ['projectKey' => 'phpsphere-90'], $client))->productProjections()->search()->get();
 
 $r = $client->send($t);
+$c = $t->mapFromResponse($r);
+
+var_dump($c->getResults()->current());
+var_dump($c->getFacets());
 var_dump((string)$r->getBody());
