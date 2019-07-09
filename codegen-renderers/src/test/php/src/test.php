@@ -4,6 +4,7 @@ namespace Commercetools;
 
 use Cache\Adapter\Filesystem\FilesystemCachePool;
 use Commercetools\Importer\Base\ResultMapper;
+use Commercetools\Importer\Client\ApiRoot;
 use Commercetools\Importer\Client\CachedTokenProvider;
 use Commercetools\Importer\Client\ClientCredentialsConfig;
 use Commercetools\Importer\Client\ClientCredentialTokenProvider;
@@ -56,6 +57,7 @@ $client = ClientFactory::of()->createGuzzleClient(
 
 var_dump($config);
 
+
 $response = $client->get('');
 
 var_dump((string)$response->getBody());
@@ -70,7 +72,10 @@ var_dump((string)$response->getBody());
 //    ]
 //);
 
-$response = $client->get('/phpsphere-90');
+
+$root = new ApiRoot($client);
+
+$response = $root->withProjectKey('phpsphere-90')->get()->send();
 
 $project = new ProjectModel(json_decode((string)$response->getBody()));
 
@@ -85,7 +90,7 @@ var_dump(json_encode($project));
 //var_dump($project);
 //var_dump($project->getKey());
 
-$response = $client->get('/phpsphere-90/categories');
+$response = $root->withProjectKey('phpsphere-90')->categories()->get()->send();
 
 
 $catResponse = new CategoryPagedQueryResponseModel(json_decode((string)$response->getBody()));
@@ -106,9 +111,9 @@ $t->next();
 var_dump($t->current());
 var_dump($categories);
 
-$id = '';
+$root = new ApiRoot($client, ['projectKey' => 'phpsphere-90']);
 
-$t = (new ResourceByProjectKey('', ['projectKey' => 'phpsphere-90'], $client))->productProjections()->search()->get();
+$t = $root->withProjectKey()->productProjections()->search()->get();
 
 $r = $client->send($t);
 $c = $t->mapFromResponse($r);

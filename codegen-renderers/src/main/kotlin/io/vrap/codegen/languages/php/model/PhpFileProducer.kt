@@ -2,7 +2,6 @@ package io.vrap.codegen.languages.php.model
 
 import com.damnhandy.uri.template.UriTemplate
 import com.google.inject.Inject
-import com.google.inject.name.Named
 import io.vrap.codegen.languages.php.PhpSubTemplates
 import io.vrap.codegen.languages.php.extensions.*
 import io.vrap.rmf.codegen.di.BasePackageName
@@ -13,14 +12,11 @@ import io.vrap.rmf.codegen.rendring.utils.keepIndentation
 import io.vrap.rmf.raml.model.modules.Api
 import io.vrap.rmf.raml.model.util.StringCaseFormat
 
-class PhpFileProducer @Inject constructor() : FileProducer {
+class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
 
     @Inject
     @BasePackageName
     lateinit var packagePrefix:String
-
-    @Inject
-    lateinit var api:Api
 
     override fun produceFiles(): List<TemplateFile> = listOf(
             collection(),
@@ -29,14 +25,14 @@ class PhpFileProducer @Inject constructor() : FileProducer {
             tokenProvider(),
             token(),
             composerJson(),
-            config(),
+            config(api),
             credentialTokenProvider(),
             cachedProvider(),
             rawTokenProvider(),
             oauth2Handler(),
             middlewareFactory(),
-            authConfig(),
-            clientCredentialsConfig(),
+            authConfig(api),
+            clientCredentialsConfig(api),
             tokenModel(),
             oauthHandlerFactory(),
             baseException(),
@@ -498,7 +494,7 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                 """.trimMargin())
     }
     
-    private fun config(): TemplateFile {
+    private fun config(api: Api): TemplateFile {
         return TemplateFile(relativePath = "src/Client/Config.php",
                 content = """
                     |<?php
@@ -574,7 +570,7 @@ class PhpFileProducer @Inject constructor() : FileProducer {
             .map { "const OPT_${StringCaseFormat.UPPER_UNDERSCORE_CASE.apply(it)}= '$it';" }
             .joinToString(separator = "\n")
 
-    private fun authConfig(): TemplateFile {
+    private fun authConfig(api: Api): TemplateFile {
         return TemplateFile(relativePath = "src/Client/AuthConfig.php",
                 content = """
                     |<?php
@@ -852,7 +848,7 @@ class PhpFileProducer @Inject constructor() : FileProducer {
         )
     }
 
-    private fun clientCredentialsConfig(): TemplateFile {
+    private fun clientCredentialsConfig(api: Api): TemplateFile {
         return TemplateFile(relativePath = "src/Client/ClientCredentialsConfig.php",
                 content = """
                     |<?php

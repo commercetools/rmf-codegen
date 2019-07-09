@@ -1,14 +1,11 @@
 package io.vrap.codegen.languages.php.model
 
 import com.google.inject.Inject
-import com.google.inject.name.Named
 import io.vrap.codegen.languages.extensions.getMethodName
-import io.vrap.codegen.languages.java.extensions.isSuccessfull
 import io.vrap.codegen.languages.php.PhpSubTemplates
 import io.vrap.codegen.languages.php.extensions.*
 import io.vrap.rmf.codegen.di.BasePackageName
 import io.vrap.rmf.codegen.io.TemplateFile
-import io.vrap.rmf.codegen.rendring.MethodRenderer
 import io.vrap.rmf.codegen.rendring.ResourceRenderer
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
 import io.vrap.rmf.codegen.rendring.utils.keepIndentation
@@ -16,22 +13,16 @@ import io.vrap.rmf.codegen.types.VrapArrayType
 import io.vrap.rmf.codegen.types.VrapNilType
 import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
+import io.vrap.rmf.raml.model.modules.Api
 import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Resource
-import io.vrap.rmf.raml.model.responses.Body
 import io.vrap.rmf.raml.model.responses.Response
 import io.vrap.rmf.raml.model.types.AnyType
 import io.vrap.rmf.raml.model.types.FileType
-import io.vrap.rmf.raml.model.types.NilType
-import io.vrap.rmf.raml.model.types.ObjectType
 import io.vrap.rmf.raml.model.types.impl.TypesFactoryImpl
 import org.eclipse.emf.ecore.EObject
 
-class PhpMethodBuilderRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : ResourceRenderer, EObjectTypeExtensions {
-
-    @Inject
-    @BasePackageName
-    lateinit var packagePrefix:String
+class PhpMethodBuilderRenderer @Inject constructor(api: Api, vrapTypeProvider: VrapTypeProvider) : ResourceRenderer, AbstractRequestBuilder(api, vrapTypeProvider) {
 
     private val resourcePackage = "Resource";
 
@@ -63,63 +54,9 @@ class PhpMethodBuilderRenderer @Inject constructor(override val vrapTypeProvider
         )
     }
 
-    private fun Resource.imports() = this.methods.asSequence().mapNotNull { it.firstBody()?.type }
-            .map { it.toVrapType() }
-            .filter { !it.isScalar() }
-            .map {
-                when (it) {
-                    is VrapObjectType -> it.fullClassName()
-                    is VrapArrayType -> it.fullClassName()
-                    else -> ""
-                }
-            }
-            .filter { it != "" }
-            .map { "use ${it.escapeAll()};" }
-            .distinct()
-            .sorted()
-            .joinToString("\n")
 
-    private fun Method.bodyType(): String? {
-        val firstBody = this.firstBody()?.type
-        val vrapType = firstBody.toVrapType()
-        if (firstBody is FileType)
-            return "?UploadedFileInterface "
-        if (vrapType is VrapNilType || vrapType.simpleName() == "stdClass")
-            return null
-        return "?${vrapType.simpleName()} "
-    }
 
-    private fun Resource.methods(): String {
-        return this.methods.map {
-            """
-                |/**
-                | * @psalm-param ${it.bodyType() ?: "?object "}$!body
-                | * @psalm-param array<string, scalar|scalar[]> $!headers
-                | */
-                |public function ${it.methodName}(${it.bodyType() ?: ""}$!body = null, array $!headers = []): ${it.toRequestName()} {
-                |   $!args = $!this->getArgs();
-                |   return new ${it.toRequestName()}(${it.allParams()?.map { "$!args['${it}'], " }?.joinToString("")}$!body, $!headers, $!this->getClient());
-                |}
-                |
-            """.trimMargin()
-        }.joinToString(separator = "")
-    }
 
-    private fun Resource.subResources(): String {
-        return this.resources.map {
-            """
-                |/**
-                | <<${it.uriParameters?.asSequence()?.map { "* @psalm-param scalar $${it.name}" }?.joinToString(separator = "\n") ?: "*"}>>
-                | */
-                |public function ${it.getMethodName()}(${it.uriParameters?.asSequence()?.map { "$${it.name} = null"  }?.joinToString(", ") ?: ""}): ${it.resourceBuilderName()} {
-                |   $!args = $!this->getArgs();
-                |   ${it.uriParameters?.asSequence()?.map { "if (!is_null($${it.name})) { $!args['${it.name}'] = $${it.name}; }" }?.joinToString("\n")}
-                |   return new ${it.resourceBuilderName()}($!this->getUri() . '${it.relativeUri.template}', $!args, $!this->getClient());
-                |}
-                |
-            """.trimMargin()
-        }.joinToString(separator = "")
-    }
 
 
 
@@ -209,33 +146,4 @@ class PhpMethodBuilderRenderer @Inject constructor(override val vrapTypeProvider
 //                ?: TypesFactoryImpl.eINSTANCE.createNilType()
 //    }
 
-
-    fun Response.isSuccessfull(): Boolean = this.statusCode.toInt() in (200..299)
-
-    fun Method.returnType(): AnyType {
-        return this.responses
-                .filter { it.isSuccessfull() }
-                .filter { it.bodies?.isNotEmpty() ?: false }
-                .firstOrNull()
-                ?.let { it.bodies[0].type }
-                ?: TypesFactoryImpl.eINSTANCE.createNilType()
-    }
-
-    fun Method.returnTypeClass(): String {
-        val vrapType = this.returnType().toVrapType()
-        return when (vrapType) {
-            is VrapObjectType -> vrapType.simpleName()
-            else -> "JsonObject"
-        }
-    }
-
-    fun Method.returnTypeFullClass(): String {
-        val vrapType = this.returnType().toVrapType()
-        return when (vrapType) {
-            is VrapObjectType -> vrapType.fullClassName()
-            else -> "${packagePrefix.toNamespaceName()}\\Base\\JsonObject"
-        }
-    }
-
-    fun Resource.resourceBuilderName():String = "Resource${this.toResourceName()}"
 }
