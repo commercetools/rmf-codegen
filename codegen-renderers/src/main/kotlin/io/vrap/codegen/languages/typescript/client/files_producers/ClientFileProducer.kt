@@ -38,7 +38,7 @@ export type ClientRequest = {
 }
 
 export type ClientResponse<T> = {
-  body?: T,
+  body: T,
   statusCode?: number,
   headers?: Object
 }
@@ -100,7 +100,9 @@ export class ApiRequest<O> {
       return res.response
     }
     
-    return {};
+    return {
+      body: {} as O
+    }
   }
 }
 
