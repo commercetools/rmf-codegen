@@ -57,11 +57,7 @@ class TestCodeGenerator {
         val generatorComponent = GeneratorComponent(generatorModule, PlantUmlModule())
         generatorComponent.generateFiles()
     }
-
-    private fun cleanGenTestFolder() {
-        cleanFolder("build/gensrc")
-    }
-
+    
     private fun cleanFolder(path: String) {
         Paths.get(path).toFile().deleteRecursively()
     }

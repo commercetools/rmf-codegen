@@ -121,7 +121,7 @@ class JavaModelInterfaceRenderer @Inject constructor(override val vrapTypeProvid
             ""
         }else {
             """
-                |public static ${vrapType.simpleClassName}Impl of(String json) {
+                |public static ${vrapType.simpleClassName}Impl of(final String json) {
                 |   try{
                 |       return CommercetoolsJsonUtils.fromJsonString(json, ${vrapType.simpleClassName}Impl.class);
                 |   }catch (IOException e){

@@ -40,7 +40,6 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
         )
     }
     
-    
     private fun Method.constructor(): String? {
         val constructorArguments = mutableListOf<String>()
         val constructorAssignments = mutableListOf<String>()
@@ -91,8 +90,7 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
     }
 
     private fun Method.pathArguments() : List<String> {
-        val urlPathParts = this.resource().fullUri.template.split("/").filter { it.isNotEmpty() }
-        return urlPathParts.filter { it.contains("{") && it.contains("}")}.map { it.substring(it.indexOf("{") + 1, it.indexOf("}")) }
+        return this.resource().fullUri.variables.toList()
     }
 
     private fun Method.bodyObjectName() : String? {

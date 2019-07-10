@@ -81,7 +81,6 @@ class JavaModelClassFileProducer @Inject constructor(override val vrapTypeProvid
     }
     
     private fun Property.toJavaField(): String {
-
         return if (this.isPatternProperty()) {
             "private Map<String, ${this.packageName()}${this.type.toVrapType().simpleName()}> values;"
         } else {

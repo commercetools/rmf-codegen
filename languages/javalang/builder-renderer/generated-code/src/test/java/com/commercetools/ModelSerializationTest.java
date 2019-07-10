@@ -23,14 +23,14 @@ public class ModelSerializationTest {
         localizedString.setValue("test-key", "test-value");
         String key = "test-key";
         String id = "test-id";
-        String randomString = "test-string";
+        String testString = "test-string";
         
         CategoryResourceIdentifier resourceIdentifier = new CategoryResourceIdentifierImpl();
         resourceIdentifier.setId(id);
         resourceIdentifier.setKey(key);
 
         FieldContainer fieldContainer = new FieldContainerImpl();
-        fieldContainer.setValue(key, randomString);
+        fieldContainer.setValue(key, testString);
 
         AssetDimensions assetDimensions = new AssetDimensionsImpl();
         assetDimensions.setH(10);
@@ -63,7 +63,7 @@ public class ModelSerializationTest {
                 .metaKeywords(localizedString)
                 .metaTitle(localizedString)
                 .name(localizedString)
-                .orderHint(randomString)
+                .orderHint(testString)
                 .slug(localizedString)
                 .build();
         
@@ -90,14 +90,14 @@ public class ModelSerializationTest {
         localizedString.setValue("test-key", "test-value");
         String key = "test-key";
         String id = "test-id";
-        String randomString = "test-string";
+        String testString = "test-string";
 
         CategoryResourceIdentifier resourceIdentifier = new CategoryResourceIdentifierImpl();
         resourceIdentifier.setId(id);
         resourceIdentifier.setKey(key);
 
         FieldContainer fieldContainer = new FieldContainerImpl();
-        fieldContainer.setValue(key, randomString);
+        fieldContainer.setValue(key, testString);
 
         AssetDimensions assetDimensions = new AssetDimensionsImpl();
         assetDimensions.setH(10);
@@ -141,11 +141,11 @@ public class ModelSerializationTest {
         category.setMetaKeywords(localizedString);
         category.setMetaTitle(localizedString);
         category.setName(localizedString);
-        category.setOrderHint(randomString);
+        category.setOrderHint(testString);
         category.setParent(reference);
         category.setSlug(localizedString);
         category.setCreatedAt(ZonedDateTime.of(2019, 12, 12, 12, 12, 12, 12, ZoneId.ofOffset("UTC", ZoneOffset.ofHours(1))));
-        
+
         try{
             final URL url = Thread.currentThread().getContextClassLoader().getResource("json_examples/category-example.json");
             String categoryExampleJsonString = new String(Files.readAllBytes(Paths.get(url.getPath())));

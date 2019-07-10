@@ -4,10 +4,6 @@ plugins {
 
 version 'unspecified'
 
-repositories {
-    mavenCentral()
-}
-
 dependencies {
     compile 'com.fasterxml.jackson.core:jackson-databind:2.9.9'
     compile 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.9.8'
