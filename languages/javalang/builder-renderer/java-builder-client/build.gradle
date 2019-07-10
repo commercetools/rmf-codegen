@@ -3,8 +3,6 @@ plugins {
     id 'org.jetbrains.kotlin.jvm' version '1.3.41'
 }
 
-apply plugin: 'de.undercouch.download'
-
 compileKotlin {
     kotlinOptions.jvmTarget = "1.8"
 }
@@ -21,11 +19,4 @@ dependencies {
     testCompile 'com.fasterxml.jackson.core:jackson-databind:2.9.8'
     testCompile 'javax.annotation:javax.annotation-api:1.2'
     testCompile 'javax.validation:validation-api:2.0.1.Final'
-}
-
-task downloadCtpApiZipFile(type: Download) {
-    src 'https://github.com/commercetools/commercetools-api-reference/archive/new-code-gen.zip'
-    dest new File("$projectDir/cache", 'api.zip')
-    onlyIfNewer(true)
-    overwrite(true)
 }
