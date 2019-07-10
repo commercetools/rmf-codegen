@@ -14,6 +14,8 @@ import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 public class ModelSerializationTest {
     
@@ -25,20 +27,9 @@ public class ModelSerializationTest {
         String id = "test-id";
         String testString = "test-string";
         
-        CategoryResourceIdentifier resourceIdentifier = new CategoryResourceIdentifierImpl();
-        resourceIdentifier.setId(id);
-        resourceIdentifier.setKey(key);
-
-        FieldContainer fieldContainer = new FieldContainerImpl();
-        fieldContainer.setValue(key, testString);
-
-        AssetDimensions assetDimensions = new AssetDimensionsImpl();
-        assetDimensions.setH(10);
-        assetDimensions.setW(5);
-        
-        AssetSource assetSource = new AssetSourceImpl();
-        assetSource.setContentType("application/json");
-        assetSource.setDimensions(assetDimensions);
+        Map<String, Object> fieldContainerValues = new HashMap<>();
+        fieldContainerValues.put(key, testString);
+        FieldContainer fieldContainer = FieldContainerBuilder.of().values(fieldContainerValues).build();
         
         AssetDraft assetDraft = AssetDraftBuilder.of()
                 .description(localizedString)
@@ -48,12 +39,12 @@ public class ModelSerializationTest {
                         .fields(fieldContainer)
                         .type("string type")
                         .build())
-                .sources(Arrays.asList(assetSource))
+                .sources(Arrays.asList(AssetSourceBuilder.of().contentType("application/json").dimensions(AssetDimensionsBuilder.of().h(10).w(5).build()).build()))
                 .tags(Arrays.asList("tag 1", "tag 2"))
                 .build();
                 
         CategoryDraft categoryDraft = CategoryDraftBuilder.of()
-                .parent(resourceIdentifier)
+                .parent(CategoryResourceIdentifierBuilder.of().id(id).key(key).build())
                 .assets(Arrays.asList(assetDraft))
                 .custom(CustomFieldsDraftBuilder.of().type("string type").fields(fieldContainer).build())
                 .description(localizedString)
@@ -92,60 +83,50 @@ public class ModelSerializationTest {
         String id = "test-id";
         String testString = "test-string";
 
-        CategoryResourceIdentifier resourceIdentifier = new CategoryResourceIdentifierImpl();
-        resourceIdentifier.setId(id);
-        resourceIdentifier.setKey(key);
+        Map<String, Object> fieldContainerValues = new HashMap<>();
+        fieldContainerValues.put(key, testString);
+        FieldContainer fieldContainer = FieldContainerBuilder.of().values(fieldContainerValues).build();
 
-        FieldContainer fieldContainer = new FieldContainerImpl();
-        fieldContainer.setValue(key, testString);
+        CustomFields customFields = CustomFieldsBuilder.of()
+                .fields(fieldContainer)
+                .type(TypeReferenceBuilder.of().key(key).obj(Type.of()).build())
+                .build();
 
-        AssetDimensions assetDimensions = new AssetDimensionsImpl();
-        assetDimensions.setH(10);
-        assetDimensions.setW(5);
+        
+        Asset asset = AssetBuilder.of()
+                .custom(customFields)
+                .description(localizedString)
+                .id(id)
+                .key(key)
+                .name(localizedString)
+                .sources(Arrays.asList(AssetSourceBuilder.of().contentType("application/json").dimensions(AssetDimensionsBuilder.of().h(10).w(5).build()).build()))
+                .tags(Arrays.asList("tag 1", "tag 2"))
+                .build();
+        
+        CategoryReference reference = CategoryReferenceBuilder.of()
+                .key(key)
+                .id(id)
+                .obj(Category.of())
+                .build();
 
-        AssetSource assetSource = new AssetSourceImpl();
-        assetSource.setContentType("application/json");
-        assetSource.setDimensions(assetDimensions);
-
-        CustomFields customFields = new CustomFieldsImpl();
-        customFields.setFields(fieldContainer);
-        TypeReference typeReference = TypeReference.of();
-        typeReference.setKey(key);
-        typeReference.setObj(Type.of());
-        customFields.setType(typeReference);
-
-        Asset asset = new AssetImpl();
-        asset.setCustom(customFields);
-        asset.setDescription(localizedString);
-        asset.setId(id);
-        asset.setKey(key);
-        asset.setName(localizedString);
-        asset.setCustom(customFields);
-        asset.setSources(Arrays.asList(assetSource));
-        asset.setTags(Arrays.asList("tag 1", "tag 2"));
-
-        CategoryReference reference = new CategoryReferenceImpl();
-        reference.setKey(key);
-        reference.setId(id);
-        reference.setObj(new CategoryImpl());
-
-        Category category = new CategoryImpl();
-        category.setKey(key);
-        category.setId(id);
-        category.setAncestors(Arrays.asList(reference));
-        category.setAssets(Arrays.asList(asset));
-        category.setCustom(customFields);
-        category.setDescription(localizedString);
-        category.setExternalId(id);
-        category.setMetaDescription(localizedString);
-        category.setMetaKeywords(localizedString);
-        category.setMetaTitle(localizedString);
-        category.setName(localizedString);
-        category.setOrderHint(testString);
-        category.setParent(reference);
-        category.setSlug(localizedString);
-        category.setCreatedAt(ZonedDateTime.of(2019, 12, 12, 12, 12, 12, 12, ZoneId.ofOffset("UTC", ZoneOffset.ofHours(1))));
-
+        Category category = CategoryBuilder.of()
+                .key(key)
+                .id(id)
+                .ancestors(Arrays.asList(reference))
+                .assets(Arrays.asList(asset))
+                .custom(customFields)
+                .description(localizedString)
+                .externalId(id)
+                .metaDescription(localizedString)
+                .metaKeywords(localizedString)
+                .metaTitle(localizedString)
+                .name(localizedString)
+                .orderHint(testString)
+                .parent(reference)
+                .slug(localizedString)
+                .createdAt(ZonedDateTime.of(2019, 12, 12, 12, 12, 12, 12, ZoneId.ofOffset("UTC", ZoneOffset.ofHours(1))))
+                .build();
+        
         try{
             final URL url = Thread.currentThread().getContextClassLoader().getResource("json_examples/category-example.json");
             String categoryExampleJsonString = new String(Files.readAllBytes(Paths.get(url.getPath())));
