@@ -1,7 +1,8 @@
 package io.vrap.codegen.languages.typescript
 
-import io.vrap.codegen.languages.java.extensions.resource
-import io.vrap.codegen.languages.java.extensions.toRequestName
+
+import io.vrap.codegen.languages.extensions.resource
+import io.vrap.codegen.languages.extensions.toRequestName
 import io.vrap.codegen.languages.php.extensions.toResourceName
 import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.raml.model.resources.Method

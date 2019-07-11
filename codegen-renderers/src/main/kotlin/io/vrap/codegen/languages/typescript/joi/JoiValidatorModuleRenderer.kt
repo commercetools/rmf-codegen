@@ -3,7 +3,7 @@ package io.vrap.codegen.languages.typescript.joi
 import com.google.inject.Inject
 import io.vrap.codegen.languages.extensions.EObjectExtensions
 import io.vrap.codegen.languages.extensions.hasSubtypes
-import io.vrap.codegen.languages.java.extensions.simpleName
+import io.vrap.codegen.languages.php.extensions.simpleName
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.FileProducer
 import io.vrap.rmf.codegen.rendring.utils.keepIndentation
