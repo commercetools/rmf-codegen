@@ -57,6 +57,7 @@ class BuilderTestCodeGenerator {
         }
     }
 
+    @Ignore
     @Test
     fun generateJavaCompleteModule() {
         val generatorConfig = CodeGeneratorConfig(basePackageName = "com.commercetools", outputFolder = Paths.get("../generated-code/src/main/java"))
