@@ -101,4 +101,12 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
             return null
         }
     }
+    
+    private fun Method.executeBlockingMethod() : String {
+        
+    }
+
+//    public Category executeBlocking() {
+//        return Category.of(CommercetoolsClient.getClient().execute(this).getBody());
+//    }
 }
