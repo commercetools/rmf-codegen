@@ -39,6 +39,7 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
             invalidArgumentException(),
             apiRequest(),
             mapperFactory(),
+            jsonObjectModel(),
             jsonObject(),
             baseJsonObject(),
             mapperIterator(),
@@ -46,7 +47,10 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
             psalm(),
             resource(),
             resultMapper(),
-            mapperInterface()
+            mapperInterface(),
+            jsonObjectCollection(),
+            apiClientException(),
+            apiServerException()
     )
 
     private fun collection(): TemplateFile {
@@ -224,17 +228,33 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
         )
     }
 
-    private fun jsonObject(): TemplateFile {
-        return TemplateFile(relativePath = "src/Base/JsonObject.php",
+    private fun jsonObjectModel(): TemplateFile {
+        return TemplateFile(relativePath = "src/Base/JsonObjectModel.php",
                 content = """
                         |<?php
                         |${PhpSubTemplates.generatorInfo}
                         |
                         |namespace ${packagePrefix.toNamespaceName()}\Base;
                         |
-                        |class JsonObject extends BaseJsonObject
+                        |class JsonObjectModel extends BaseJsonObject implements JsonObject
                         |{
-                        |    protected function toArray(): array
+                        |    /**
+                        |     * @return string|int|float|JsonObject|array<int, mixed>|JsonObjectCollection|bool|null
+                        |     */
+                        |    final public function get(string $!field)
+                        |    {
+                        |        $!data = $!this->raw($!field);
+                        |        if ($!data instanceof \stdClass) {
+                        |            return new JsonObjectModel($!data);
+                        |        }
+                        |        if (is_array($!data) && isset($!data[0]) && $!data[0] instanceof \stdClass) {
+                        |            /** @psalm-var ?array<int, object> $!data */
+                        |            return new JsonObjectCollection($!data);
+                        |        }
+                        |        return $!data;
+                        |    }
+                        |
+                        |    final protected function toArray(): array
                         |    {
                         |        $!data = array_filter(
                         |            get_object_vars($!this),
@@ -249,6 +269,25 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                         |        $!data = array_merge($!this->getRawDataArray(), $!data);
                         |        return $!data;
                         |    }
+                        |}
+                    """.trimMargin().forcedLiteralEscape()
+        )
+    }
+
+    private fun jsonObject(): TemplateFile {
+        return TemplateFile(relativePath = "src/Base/JsonObject.php",
+                content = """
+                        |<?php
+                        |${PhpSubTemplates.generatorInfo}
+                        |
+                        |namespace ${packagePrefix.toNamespaceName()}\Base;
+                        |
+                        |interface JsonObject
+                        |{
+                        |    /**
+                        |     * @return string|int|float|JsonObject|array<int, mixed>|JsonObjectCollection|bool|null
+                        |     */
+                        |    public function get(string $!field);
                         |}
                     """.trimMargin().forcedLiteralEscape()
         )
@@ -275,7 +314,7 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                         |    /**
                         |     * @return string|int|float|array<int, mixed>|\stdClass|bool|null
                         |     */
-                        |    public function get(string $!field)
+                        |    final protected function raw(string $!field)
                         |    {
                         |        if (isset($!this->rawData->$!field)) {
                         |            /** @psalm-suppress PossiblyNullPropertyFetch */
@@ -292,7 +331,7 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                         |    /**
                         |     * @return array
                         |     */
-                        |    protected function getRawDataArray(): array
+                        |    final protected function getRawDataArray(): array
                         |    {
                         |        if (is_null($!this->rawData)) {
                         |            return [];
@@ -1062,6 +1101,88 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                 """.trimMargin())
     }
 
+    private fun apiServerException(): TemplateFile {
+        return TemplateFile(relativePath = "src/Exception/ApiServerException.php",
+                content = """
+                    |<?php
+                    |${PhpSubTemplates.generatorInfo}
+                    |
+                    |namespace ${packagePrefix.toNamespaceName()}\Exception;
+                    |
+                    |use GuzzleHttp\Exception\ServerException;
+                    |use Psr\Http\Message\RequestInterface;
+                    |use Psr\Http\Message\ResponseInterface;
+                    |use ${packagePrefix.toNamespaceName()}\Base\JsonObject;
+                    |
+                    |class ApiServerException extends ServerException
+                    |{
+                    |    /**
+                    |     * @var ?JsonObject
+                    |     */
+                    |    private $!result;
+                    |    
+                    |    /**
+                    |     * @param string $!message
+                    |     * @param ?JsonObject $!result
+                    |     */
+                    |    public function __construct($!message, $!result, RequestInterface $!request, ResponseInterface $!response = null, \Exception $!previous = null, array $!handlerContext = [])
+                    |    {
+                    |        $!this->result = $!result;
+                    |        parent::__construct($!message, $!request, $!response, $!previous, $!handlerContext);
+                    |    }
+                    |
+                    |    /**
+                    |     * @return ?JsonObject
+                    |     */
+                    |    public function getResult()
+                    |    {
+                    |        return $!this->result;
+                    |    }
+                    |}
+                """.trimMargin().forcedLiteralEscape())
+    }
+
+    private fun apiClientException(): TemplateFile {
+        return TemplateFile(relativePath = "src/Exception/ApiClientException.php",
+                content = """
+                    |<?php
+                    |${PhpSubTemplates.generatorInfo}
+                    |
+                    |namespace ${packagePrefix.toNamespaceName()}\Exception;
+                    |
+                    |use GuzzleHttp\Exception\ClientException;
+                    |use Psr\Http\Message\RequestInterface;
+                    |use Psr\Http\Message\ResponseInterface;
+                    |use ${packagePrefix.toNamespaceName()}\Base\JsonObject;
+                    |
+                    |class ApiClientException extends ClientException
+                    |{
+                    |    /**
+                    |     * @var ?JsonObject
+                    |     */
+                    |    private $!result;
+                    |    
+                    |    /**
+                    |     * @param string $!message
+                    |     * @param ?JsonObject $!result
+                    |     */
+                    |    public function __construct($!message, $!result, RequestInterface $!request, ResponseInterface $!response = null, \Exception $!previous = null, array $!handlerContext = [])
+                    |    {
+                    |        $!this->result = $!result;
+                    |        parent::__construct($!message, $!request, $!response, $!previous, $!handlerContext);
+                    |    }
+                    |    
+                    |    /**
+                    |     * @return ?JsonObject
+                    |     */
+                    |    public function getResult()
+                    |    {
+                    |        return $!this->result;
+                    |    }
+                    |}
+                """.trimMargin().forcedLiteralEscape())
+    }
+
     private fun apiRequest(): TemplateFile {
         return TemplateFile(relativePath = "src/Client/ApiRequest.php",
                 content = """
@@ -1070,7 +1191,6 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |
                     |namespace ${packagePrefix.toNamespaceName()}\Client;
                     |
-                    |use ${packagePrefix.toNamespaceName()}\Base\JsonObject;
                     |use ${packagePrefix.toNamespaceName()}\Exception\InvalidArgumentException;
                     |use GuzzleHttp\Client;
                     |use GuzzleHttp\Psr7;
@@ -1080,8 +1200,6 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |/** @psalm-suppress PropertyNotSetInConstructor */
                     |class ApiRequest extends Request
                     |{
-                    |    const RESULT_TYPE = JsonObject::class;
-                    |
                     |    /** @psalm-var array<string, scalar[]> */
                     |    private $!queryParts;
                     |    /** @psalm-var string */
@@ -1159,7 +1277,7 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |    
                     |    /**
                     |     * @param array $!options
-                    |     * @return ResponseInterface|mixed
+                    |     * @return ResponseInterface
                     |     * @throws InvalidArgumentException
                     |     * @throws \GuzzleHttp\Exception\GuzzleException
                     |     */
@@ -1208,6 +1326,56 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                 """.trimMargin().forcedLiteralEscape())
     }
 
+    private fun jsonObjectCollection(): TemplateFile {
+        return TemplateFile(relativePath = "src/Base/JsonObjectCollection.php",
+                content = """
+                    |<?php
+                    |${PhpSubTemplates.generatorInfo}
+                    |
+                    |namespace ${packagePrefix.toNamespaceName()}\Base;
+                    |
+                    |use ${packagePrefix.toNamespaceName()}\Exception\InvalidArgumentException;
+                    |
+                    |/**
+                    | * @extends MapCollection<JsonObject>
+                    | * @method JsonObject current()
+                    | * @method JsonObject at($!offset)
+                    | */
+                    |class JsonObjectCollection extends MapCollection
+                    |{
+                    |    /**
+                    |     * @psalm-assert JsonObject $!value
+                    |     * @psalm-param JsonObject|object $!value
+                    |     * @return JsonObjectCollection
+                    |     * @throws InvalidArgumentException
+                    |     */
+                    |    public function add($!value)
+                    |    {
+                    |        if (!$!value instanceof JsonObject) {
+                    |            throw new InvalidArgumentException();
+                    |        }
+                    |        $!this->store($!value);
+                    |
+                    |        return $!this;
+                    |    }
+                    |
+                    |    /**
+                    |     * @psalm-return callable(int):?JsonObject
+                    |     */
+                    |    protected function mapper()
+                    |    {
+                    |        return function(int $!index): ?JsonObject {
+                    |            $!data = $!this->get($!index);
+                    |            if (!is_null($!data) && !$!data instanceof JsonObject) {
+                    |                $!data = new JsonObjectModel($!data);
+                    |                $!this->set($!data, $!index);
+                    |            }
+                    |            return $!data;
+                    |        };
+                    |    }
+                    |}
+                """.trimMargin().forcedLiteralEscape())
+    }
     private fun mapCollection(): TemplateFile {
         return TemplateFile(relativePath = "src/Base/MapCollection.php",
                 content = """

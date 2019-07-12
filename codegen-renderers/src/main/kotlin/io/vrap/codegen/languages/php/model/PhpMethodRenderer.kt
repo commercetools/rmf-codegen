@@ -1,5 +1,6 @@
 package io.vrap.codegen.languages.php.model
 
+import com.google.common.net.MediaType
 import com.google.inject.Inject
 import com.google.inject.name.Named
 import io.vrap.codegen.languages.php.PhpSubTemplates
@@ -31,25 +32,38 @@ class PhpMethodRenderer @Inject constructor(override val vrapTypeProvider: VrapT
     override fun render(type: Method): TemplateFile {
         val vrapType = vrapTypeProvider.doSwitch(type as EObject) as VrapObjectType
 
+        val resultTypes = type.responses.asSequence().filter { it.bodies.asSequence().filter { body -> MediaType.JSON_UTF_8.`is`(body.contentMediaType) }.toList().isNotEmpty() };
+        val importTypes = resultTypes.map { response -> "use ${response.bodies.asSequence().filter { body -> MediaType.JSON_UTF_8.`is`(body.contentMediaType) }.first().returnType().returnTypeModelFullClass().escapeAll()};" }
+                .plus(resultTypes.map { response -> "use ${response.bodies.asSequence().filter { body -> MediaType.JSON_UTF_8.`is`(body.contentMediaType) }.first().returnType().returnTypeFullClass().escapeAll()};" })
+                .plus("use ${packagePrefix.toNamespaceName()}\\Base\\JsonObject;".escapeAll())
+                .plus("use ${packagePrefix.toNamespaceName()}\\Base\\JsonObjectModel;".escapeAll())
+                .distinct().sorted()
+        val returnTypes = resultTypes.map { response -> response.bodies.asSequence().filter { body -> MediaType.JSON_UTF_8.`is`(body.contentMediaType) }.first().returnType().returnTypeClass() }
+                .plus("JsonObject")
+                .distinct().sorted()
+
+
         val content = """
             |<?php
             |${PhpSubTemplates.generatorInfo}
             |namespace ${vrapType.`package`.toNamespaceName().escapeAll()}\\$resourcePackage;
             |
             |use GuzzleHttp\\Client;
+            |use GuzzleHttp\\Exception\\ServerException;
+            |use GuzzleHttp\\Exception\\ClientException;
             |use ${packagePrefix.toNamespaceName().escapeAll()}\\Base\\MapperInterface;
             |use ${packagePrefix.toNamespaceName().escapeAll()}\\Base\\ResultMapper;
+            |use ${packagePrefix.toNamespaceName().escapeAll()}\\Exception\\InvalidArgumentException;
+            |use ${packagePrefix.toNamespaceName().escapeAll()}\\Exception\\ApiServerException;
+            |use ${packagePrefix.toNamespaceName().escapeAll()}\\Exception\\ApiClientException;
             |use ${vrapType.`package`.toNamespaceName().escapeAll()}\\ApiRequest;
-            |use ${type.returnTypeFullClass().escapeAll()};
-            |${if (type.returnTypeClass() !== "JsonObject") "use ${type.returnTypeModelFullClass().escapeAll()}" else ""};
+            |${importTypes.joinToString("\n")}
             |${if (type.firstBody()?.type is FileType) "use Psr\\Http\\Message\\UploadedFileInterface;".escapeAll() else ""}
             |use Psr\\Http\\Message\\ResponseInterface;
             |
             |/** @psalm-suppress PropertyNotSetInConstructor */
             |class ${type.toRequestName()} extends ApiRequest
             |{
-            |    const RESULT_TYPE = ${type.returnTypeClass()}::class;
-            |
             |    /**
             |     <<${type.allParams()?.asSequence()?.map { "* @psalm-param scalar $$it" }?.joinToString(separator = "\n") ?: "*"}>>
             |     * @param ${if (type.firstBody()?.type is FileType) "?UploadedFileInterface " else "?object"} $!body
@@ -64,12 +78,44 @@ class PhpMethodRenderer @Inject constructor(override val vrapTypeProvider: VrapT
             |        parent::__construct($!client, '${type.methodName.toUpperCase()}', $!uri, $!headers, ${type.firstBody()?.serialize()?: "!is_null(\$body) ? json_encode(\$body) : null"});
             |    }
             |
-            |    public function mapFromResponse(ResponseInterface $!response, MapperInterface $!mapper = null):  ${type.returnTypeClass()}
+            |    /**
+            |     * @template T of JsonObject
+            |     * @psalm-param ?class-string<T> $!resultType
+            |     * @return ${returnTypes.joinToString("|")}|null
+            |     */
+            |    public function mapFromResponse(?ResponseInterface $!response, string $!resultType = null)
             |    {
-            |        if (is_null($!mapper)) {
-            |            $!mapper = new ResultMapper();
+            |        if (is_null($!response)) {
+            |            return null;
             |        }
-            |        return $!mapper->mapResponseToClass(${type.returnTypeModelClass()}::class, $!response);
+            |        $!mapper = new ResultMapper();
+            |        if (is_null($!resultType)) {
+            |            switch ($!response->getStatusCode()) {
+            |                <<${resultTypes.map { response -> "case \"${response.statusCode}\": $!resultType = ${response.bodies[0].returnType().returnTypeModelClass()}::class; break;" }.joinToString("\n")}>>
+            |                default:
+            |                    $!resultType = JsonObjectModel::class; break;
+            |            }
+            |        }
+            |        return $!mapper->mapResponseToClass($!resultType, $!response);
+            |    }
+            |    
+            |    /**
+            |     * @template T of JsonObject
+            |     * @psalm-param ?class-string<T> $!resultType
+            |     * @return ${returnTypes.joinToString("|")}|null
+            |     */
+            |    public function execute(string $!resultType = null)
+            |    {
+            |        try {
+            |           $!response = $!this->send();
+            |        } catch(ServerException $!e) {
+            |            $!result = $!this->mapFromResponse($!e->getResponse());
+            |            throw new ApiServerException($!e->getMessage(), $!result, $!this, $!e->getResponse(), $!e, []);
+            |        } catch(ClientException $!e) {
+            |            $!result = $!this->mapFromResponse($!e->getResponse());
+            |            throw new ApiClientException($!e->getMessage(), $!result, $!this, $!e->getResponse(), $!e, []);
+            |        }
+            |        return $!this->mapFromResponse($!response, $!resultType);
             |    }
             |
             |   <<${type.queryParameters.map { it.withParam(type) }.joinToString("\n\n")}>>
@@ -264,6 +310,11 @@ class PhpMethodRenderer @Inject constructor(override val vrapTypeProvider: VrapT
 
     fun Response.isSuccessfull(): Boolean = this.statusCode.toInt() in (200..299)
 
+    fun Body.returnType(): AnyType {
+        return this.type
+                ?: TypesFactoryImpl.eINSTANCE.createNilType()
+    }
+
     fun Method.returnType(): AnyType {
         return this.responses
                 .filter { it.isSuccessfull() }
@@ -273,8 +324,8 @@ class PhpMethodRenderer @Inject constructor(override val vrapTypeProvider: VrapT
                 ?: TypesFactoryImpl.eINSTANCE.createNilType()
     }
 
-    fun Method.returnTypeClass(): String {
-        val vrapType = this.returnType().toVrapType()
+    fun AnyType.returnTypeClass(): String {
+        val vrapType = this.toVrapType()
         if (vrapType.isScalar())
             return "JsonObject"
         return when (vrapType) {
@@ -283,13 +334,47 @@ class PhpMethodRenderer @Inject constructor(override val vrapTypeProvider: VrapT
         }
     }
 
+    fun AnyType.returnTypeModelClass(): String {
+        val vrapType = this.toVrapType()
+        if (vrapType.isScalar())
+            return "JsonObjectModel"
+        return when (vrapType) {
+            is VrapObjectType -> vrapType.simpleName() + "Model"
+            else -> "JsonObjectModel"
+        }
+    }
+
+    fun AnyType.returnTypeFullClass(): String {
+        val vrapType = this.toVrapType()
+        if (vrapType.isScalar())
+            return "${packagePrefix.toNamespaceName()}\\Base\\JsonObject"
+        return when (vrapType) {
+            is VrapObjectType -> vrapType.fullClassName()
+            else -> "${packagePrefix.toNamespaceName()}\\Base\\JsonObject"
+        }
+    }
+
+    fun AnyType.returnTypeModelFullClass(): String {
+        val vrapType = this.toVrapType()
+        if (vrapType.isScalar())
+            return "${packagePrefix.toNamespaceName()}\\Base\\JsonObjectModel"
+        return when (vrapType) {
+            is VrapObjectType -> vrapType.fullClassName() + "Model"
+            else -> "${packagePrefix.toNamespaceName()}\\Base\\JsonObjectModel"
+        }
+    }
+
+    fun Method.returnTypeClass(): String {
+        return this.returnType().returnTypeClass();
+    }
+
     fun Method.returnTypeModelClass(): String {
         val vrapType = this.returnType().toVrapType()
         if (vrapType.isScalar())
-            return "JsonObject"
+            return "JsonObjectModel"
         return when (vrapType) {
             is VrapObjectType -> vrapType.simpleName() + "Model"
-            else -> "JsonObject"
+            else -> "JsonObjectModel"
         }
     }
 
@@ -306,10 +391,10 @@ class PhpMethodRenderer @Inject constructor(override val vrapTypeProvider: VrapT
     fun Method.returnTypeModelFullClass(): String {
         val vrapType = this.returnType().toVrapType()
         if (vrapType.isScalar())
-            return "${packagePrefix.toNamespaceName()}\\Base\\JsonObject"
+            return "${packagePrefix.toNamespaceName()}\\Base\\JsonObjectModel"
         return when (vrapType) {
             is VrapObjectType -> vrapType.fullClassName() + "Model"
-            else -> "${packagePrefix.toNamespaceName()}\\Base\\JsonObject"
+            else -> "${packagePrefix.toNamespaceName()}\\Base\\JsonObjectModel"
         }
     }
 

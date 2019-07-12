@@ -12,10 +12,17 @@ use Commercetools\Importer\Client\ClientFactory;
 use Commercetools\Importer\Client\Config;
 use Commercetools\Importer\Client\MiddlewareFactory;
 use Commercetools\Importer\Client\Resource\ResourceByProjectKey;
+use Commercetools\Importer\Models\Cart\Cart;
+use Commercetools\Importer\Models\Cart\CartModel;
 use Commercetools\Importer\Models\Category\CategoryPagedQueryResponseModel;
+use Commercetools\Importer\Models\Error\ErrorResponse;
+use Commercetools\Importer\Models\Error\ErrorResponseModel;
+use Commercetools\Importer\Models\Product\ProductProjectionPagedSearchResponse;
+use Commercetools\Importer\Models\Product\ProductProjectionPagedSearchResponseModel;
 use Commercetools\Importer\Models\Project\ProjectModel;
 use GuzzleHttp\Client;
 use GuzzleHttp\HandlerStack;
+use GuzzleHttp\Psr7\Response;
 use League\Flysystem\Adapter\Local;
 use League\Flysystem\Filesystem;
 use Monolog\Handler\StreamHandler;
@@ -116,8 +123,24 @@ $root = new ApiRoot($client, ['projectKey' => 'phpsphere-90']);
 $t = $root->withProjectKey()->productProjections()->search()->get();
 
 $r = $client->send($t);
-$c = $t->mapFromResponse($r);
+$c = $t->execute();
+
 
 var_dump($c->getResults()->current());
 var_dump($c->getFacets());
 var_dump((string)$r->getBody());
+
+
+$tr = new Response(500, [], '{"foo" : {"bar": "baz"}, "foos": [{"bars": "bazs"}], "bar": [1, 2, 3], "baz": "boz" }');
+$foo = $t->mapFromResponse($tr);
+
+$tr = new Response(200, [], '{"foo" : {"bar": "baz"}, "foos": [{"bars": "bazs"}], "bar": [1, 2, 3], "baz": "boz" }');
+$bar = $t->mapFromResponse($tr, CartModel::class);
+
+var_dump(get_class($foo));
+var_dump(get_class($bar));
+
+var_dump($foo->get('foo')->get("bar"));
+var_dump($foo->get('foos')->current());
+var_dump($foo->get('bar'));
+var_dump($foo->get('baz'));

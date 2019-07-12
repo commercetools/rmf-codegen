@@ -37,7 +37,7 @@ class PhpInterfaceObjectTypeRenderer @Inject constructor(override val vrapTypePr
             |use ${packagePrefix.toNamespaceName().escapeAll()}\\Base\\JsonObject;
             |<<${type.imports()}>>
             |
-            |interface ${vrapType.simpleClassName} ${type.type?.toVrapType()?.simpleName()?.let { "extends $it" } ?: ""}
+            |interface ${vrapType.simpleClassName} ${type.type?.toVrapType()?.simpleName()?.let { "extends $it" } ?: "extends JsonObject"}
             |{
             |    ${if (type.discriminator != null) {"const DISCRIMINATOR_FIELD = '${type.discriminator}';"} else ""}
             |    <<${type.toBeanConstant()}>>
