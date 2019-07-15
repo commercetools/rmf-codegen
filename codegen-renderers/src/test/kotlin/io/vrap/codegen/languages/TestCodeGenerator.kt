@@ -19,10 +19,10 @@ import java.nio.file.Paths
 class TestCodeGenerator {
 
     companion object {
-//        private val userProvidedPath = System.getenv("TEST_RAML_FILE")
-        private val apiPath : Path = Paths.get( "/Users/abeniasaad/IdeaProjects/commercetools-api-reference/update-actions.raml")
+        private val userProvidedPath = System.getenv("TEST_RAML_FILE")
+        private val apiPath : Path = Paths.get(if (userProvidedPath == null) "../api-spec/api.raml" else userProvidedPath)
         val apiProvider: ApiProvider = ApiProvider(apiPath)
-        val generatorConfig = CodeGeneratorConfig(basePackageName = "",outputFolder = Paths.get("/Users/abeniasaad/IdeaProjects/rmf-codegen/typescript_client/src/gen"))
+        val generatorConfig = CodeGeneratorConfig(basePackageName = "com.commercetools.test")
     }
 
     @Test
