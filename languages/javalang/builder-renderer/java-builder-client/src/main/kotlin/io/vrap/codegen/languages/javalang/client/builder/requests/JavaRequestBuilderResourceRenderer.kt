@@ -3,9 +3,9 @@ package io.vrap.codegen.languages.javalang.client.builder.requests
 import com.google.inject.Inject
 import io.vrap.codegen.languages.extensions.getMethodName
 import io.vrap.codegen.languages.extensions.resource
+import io.vrap.codegen.languages.extensions.toParamName
 import io.vrap.codegen.languages.extensions.toRequestName
-import io.vrap.codegen.languages.php.extensions.EObjectTypeExtensions
-import io.vrap.codegen.languages.php.extensions.toParamName
+import io.vrap.codegen.languages.extensions.EObjectTypeExtensions
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.ResourceRenderer
 import io.vrap.rmf.codegen.rendring.utils.keepIndentation
