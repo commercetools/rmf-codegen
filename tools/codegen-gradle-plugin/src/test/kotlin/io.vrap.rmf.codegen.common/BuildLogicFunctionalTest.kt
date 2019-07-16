@@ -31,7 +31,7 @@ class BuildLogicFunctionalTest {
     fun testGenerateEntitiesTask() {
 
         val userProvidedPath = System.getenv("TEST_RAML_FILE")
-        val apiFile : Path = Paths.get(if (userProvidedPath == null) "../../api-spec/api.raml" else userProvidedPath)
+        val apiFile : Path = Paths.get(if (userProvidedPath == null) "../../api-spec/api.raml" else userProvidedPath).toAbsolutePath()
 
         Assertions.assertThat(apiFile).exists()
 

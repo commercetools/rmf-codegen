@@ -7,16 +7,17 @@ import io.vrap.rmf.raml.model.types.util.TypesSwitch
 class AnyTypeProvider @Inject constructor(val packageProvider: PackageProvider, val languageBaseTypes: LanguageBaseTypes) : TypesSwitch<VrapType>() {
 
     override fun caseUnionType(unionType: UnionType): VrapType {
-        if (!unionType.name.isNullOrEmpty()) {
-            return VrapObjectType(`package` = packageProvider.doSwitch(unionType), simpleClassName = unionType.name)
-        }
         val oneOfWithoutNilType = unionType.oneOf
                 .filter { t -> t !is NilType }
                 .toList()
         return if (oneOfWithoutNilType.size == 1) {
             doSwitch(oneOfWithoutNilType[0])
         } else {
-            languageBaseTypes.objectType
+            if( unionType.name !=null){
+                VrapObjectType(`package` = packageProvider.doSwitch(unionType), simpleClassName = unionType.name)
+            }
+            else
+                languageBaseTypes.objectType
         }
     }
 
