@@ -1,6 +1,5 @@
-package io.vrap.codegen.languages
+package io.vrap.codegen.languages.php
 
-import io.vrap.codegen.languages.php.PhpBaseTypes
 import io.vrap.codegen.languages.php.model.PhpModelModule
 import io.vrap.rmf.codegen.CodeGeneratorConfig
 import io.vrap.rmf.codegen.di.ApiProvider
@@ -15,9 +14,9 @@ class TestCodeGenerator {
 
     companion object {
         private val userProvidedPath = System.getenv("TEST_RAML_FILE")
-        private val apiPath : Path = Paths.get( "/Users/abeniasaad/IdeaProjects/commercetools-api-reference/update-actions.raml")
+        private val apiPath : Path = Paths.get(if (userProvidedPath == null) "../../api-spec/api.raml" else userProvidedPath)
         val apiProvider: ApiProvider = ApiProvider(apiPath)
-        val generatorConfig = CodeGeneratorConfig(basePackageName = "",outputFolder = Paths.get("/Users/abeniasaad/IdeaProjects/rmf-codegen/typescript_client/src/gen"))
+        val generatorConfig = CodeGeneratorConfig(basePackageName = "")
     }
 
     @Test
