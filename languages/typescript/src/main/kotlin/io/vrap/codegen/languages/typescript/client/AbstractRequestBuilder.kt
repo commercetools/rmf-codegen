@@ -1,6 +1,6 @@
 package io.vrap.codegen.languages.typescript.client
 
-import io.vrap.codegen.languages.extensions.EObjectTypeExtensions
+import io.vrap.codegen.languages.extensions.EObjectExtensions
 import io.vrap.codegen.languages.extensions.getMethodName
 import io.vrap.codegen.languages.extensions.toResourceName
 
@@ -12,7 +12,7 @@ import io.vrap.rmf.raml.model.resources.ResourceContainer
 abstract class AbstractRequestBuilder constructor(
         val api: Api,
         override val vrapTypeProvider: VrapTypeProvider
-) : EObjectTypeExtensions {
+) : EObjectExtensions {
 
     protected fun ResourceContainer.subResources(): String {
         return this.resources

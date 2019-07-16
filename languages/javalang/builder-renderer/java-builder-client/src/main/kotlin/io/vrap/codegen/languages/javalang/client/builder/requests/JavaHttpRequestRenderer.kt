@@ -1,7 +1,7 @@
 package io.vrap.codegen.languages.javalang.client.builder.requests
 
 import com.google.inject.Inject
-import io.vrap.codegen.languages.extensions.EObjectTypeExtensions
+import io.vrap.codegen.languages.extensions.EObjectExtensions
 import io.vrap.codegen.languages.extensions.resource
 import io.vrap.codegen.languages.extensions.toRequestName
 import io.vrap.rmf.codegen.io.TemplateFile
@@ -13,7 +13,7 @@ import io.vrap.rmf.raml.model.resources.Method
 import org.eclipse.emf.ecore.EObject
 
 
-class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : MethodRenderer, EObjectTypeExtensions {
+class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : MethodRenderer, EObjectExtensions {
     
     override fun render(type: Method): TemplateFile {
         val vrapType = vrapTypeProvider.doSwitch(type as EObject) as VrapObjectType

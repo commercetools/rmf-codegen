@@ -5,7 +5,7 @@ import io.vrap.codegen.languages.extensions.getMethodName
 import io.vrap.codegen.languages.extensions.resource
 import io.vrap.codegen.languages.extensions.toParamName
 import io.vrap.codegen.languages.extensions.toRequestName
-import io.vrap.codegen.languages.extensions.EObjectTypeExtensions
+import io.vrap.codegen.languages.extensions.EObjectExtensions
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.ResourceRenderer
 import io.vrap.rmf.codegen.rendring.utils.keepIndentation
@@ -16,7 +16,7 @@ import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.resources.ResourceContainer
 
-class JavaRequestBuilderResourceRenderer @Inject constructor(val api: Api, override val vrapTypeProvider: VrapTypeProvider) : ResourceRenderer, EObjectTypeExtensions {
+class JavaRequestBuilderResourceRenderer @Inject constructor(val api: Api, override val vrapTypeProvider: VrapTypeProvider) : ResourceRenderer, EObjectExtensions {
 
     override fun render(type: Resource): TemplateFile {
         val vrapType = vrapTypeProvider.doSwitch(type) as VrapObjectType
