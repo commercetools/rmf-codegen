@@ -7,17 +7,12 @@ parameter with is the raml file location, plus targets
 
 A target is a generation target it contains
 
-   **serviceName**: your service name
-   
-   **path**: the path to where the code would be put
-   
-   **models_package**: the package of where the raml types would go to
-   
-   **client_package**: the package of where the raml client stub would go to
-   
-   **target**: can be one of `javaModel`, `javaModelWithInterfaces`, `groovyDsl`, `javaSpringClient`, `typescriptModel`, `joiValidator` depending on your target language
-    
-   **customTypeMapping**: optionally allow you to replace some generated types with hand writen ones
+   * serviceName: your service name
+   * path: the path to where the code would be put
+   * models_package: the package of where the raml types would go to
+   * client_package: the package of where the raml client stub would go to
+   * target: can be one of `javaModel`, `javaModelWithInterfaces`, `groovyDsl`, `javaSpringClient`, `typescriptModel`, `joiValidator` depending on your target language
+   * customTypeMapping: optionally allow you to replace some generated types with hand writen ones
 
 #### building
 
@@ -29,20 +24,20 @@ RamlGenerator {
       uri = file('/path/to/api.raml')
       targets {
           serviceName1 {
-               path = file('service1/build/generated-classes')
-               models_package = 'com.models'
-               client_package = 'com.client'
-               target = 'typescriptModel'
+                path = file('service1/build/generated-classes')
+                models_package = 'com.models'
+                client_package = 'com.client'
+                target = 'typescriptModel'
           }
           serviceName2 {
-                         path = file('service1/build/generated-classes')
-                         models_package = 'com.models'
-                         client_package = 'com.client'
-                         target = 'typescriptModel'
-                         customTypeMapping = [
-                            'Type1': 'com.my.handWrittingType1',
-                            'Type2': 'com.my.handWrittingType2',
-                        ]
+                path = file('service1/build/generated-classes')
+                models_package = 'com.models'
+                client_package = 'com.client'
+                target = 'typescriptModel'
+                customTypeMapping = [
+                    'Type1': 'com.my.handWrittingType1',
+                    'Type2': 'com.my.handWrittingType2',
+                ]
           }
        }
     }
