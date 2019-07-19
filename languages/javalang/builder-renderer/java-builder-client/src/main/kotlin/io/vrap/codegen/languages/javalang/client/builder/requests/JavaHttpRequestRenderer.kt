@@ -72,12 +72,9 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
             constructorAssignments.add(methodBodyAssignment)
         }
         
-        val httpBodyAssignment : String = if(this.bodyObjectName() != null) { "setBody(${this.bodyObjectName()}.toJson());" } else { "" }
-        
         return """
             |public ${this.toRequestName()}(${constructorArguments.joinToString(separator = ", ")}){
             |   <${constructorAssignments.joinToString(separator = "\n")}>
-            |   $httpBodyAssignment
             |}
         """.trimMargin().keepIndentation()
     }
@@ -137,7 +134,7 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
             |   httpRequest.setPath(String.format("$stringFormat", $stringFormatArgs)); 
             |   httpRequest.setMethod(HttpMethod.${this.method.name});
             |   httpRequest.setHeaders(headers);
-            |   ${if(bodyName != null) "httpRequest.setBody($bodyName)" else "" }
+            |   ${if(bodyName != null) "try{httpRequest.setBody(CommercetoolsJsonUtils.toJsonString($bodyName));}catch(Exception e){e.printStackTrace();}" else "" }
             |   return httpRequest;
             |}
         """.trimMargin().keepIndentation()

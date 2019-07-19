@@ -51,7 +51,7 @@ class JavaModelClassFileProducer @Inject constructor(override val vrapTypeProvid
                 |
                 |<${type.toComment().escapeAll()}>
                 |<${JavaSubTemplates.generatedAnnotation}>
-                |public class ${vrapType.simpleClassName}Impl implements ${vrapType.simpleClassName} {
+                |public final class ${vrapType.simpleClassName}Impl implements ${vrapType.simpleClassName} {
                 |
                 |   <${type.beanFields().escapeAll()}>
                 |

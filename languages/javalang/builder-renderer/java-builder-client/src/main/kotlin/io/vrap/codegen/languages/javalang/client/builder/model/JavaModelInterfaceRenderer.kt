@@ -54,12 +54,10 @@ class JavaModelInterfaceRenderer @Inject constructor(override val vrapTypeProvid
             |   <${type.getters().escapeAll()}>
             |
             |   <${type.setters().escapeAll()}>
-            |
-            |   <${type.toJson()}>
             |   
             |   <${type.staticOfMethod()}>
-            |   
-            |   <${type.staticOfJsonMethod()}>
+            |
+            |   <${type.templateMethod()}>
             |
             |}
         """.trimMargin().keepIndentation()
@@ -111,24 +109,6 @@ class JavaModelInterfaceRenderer @Inject constructor(override val vrapTypeProvid
                 |   return new ${vrapType.simpleClassName}Impl();
                 |}
                 |
-             """.trimMargin()
-        }
-    }
-    
-    private fun ObjectType.staticOfJsonMethod() : String {
-        val vrapType = vrapTypeProvider.doSwitch(this) as VrapObjectType
-        return if(this.isAbstract()) {
-            ""
-        }else {
-            """
-                |public static ${vrapType.simpleClassName}Impl of(final String json) {
-                |   try{
-                |       return CommercetoolsJsonUtils.fromJsonString(json, ${vrapType.simpleClassName}Impl.class);
-                |   }catch (IOException e){
-                |       e.printStackTrace();
-                |   }
-                |   return null;
-                |}
              """.trimMargin()
         }
     }
@@ -192,9 +172,32 @@ class JavaModelInterfaceRenderer @Inject constructor(override val vrapTypeProvid
             "@JsonDeserialize(as = ${vrapType.simpleClassName}Impl.class)"    
         }
     }
-    
-    private fun ObjectType.toJson() : String {
-        return "public String toJson();"
+
+    private fun ObjectType.templateMethod(): String {
+        return if(this.isAbstract()) {
+            ""
+        }else {
+            val vrapType = vrapTypeProvider.doSwitch(this) as VrapObjectType
+            val fieldsAssignment : String = this.allProperties
+                    .filter {it.name != this.discriminator()}
+                    .map {
+                        if(!it.isPatternProperty()){
+                            "instance.set${it.name.upperCamelCase()}(template.get${it.name.upperCamelCase()}());"
+                        }else{
+                            "template.values().forEach((s, o) -> instance.setValue(s, o));".escapeAll()
+                            ""
+                        }
+                    }
+                    .joinToString(separator = "\n")
+
+            """
+            |public static ${vrapType.simpleClassName}Impl of(final ${vrapType.simpleClassName} template) {
+            |   ${vrapType.simpleClassName}Impl instance = new ${vrapType.simpleClassName}Impl();
+            |   <$fieldsAssignment>
+            |   return instance;
+            |}
+        """.trimMargin()
+        }
     }
     
     private object CascadeValidationCheck : TypesSwitch<Boolean>() {
