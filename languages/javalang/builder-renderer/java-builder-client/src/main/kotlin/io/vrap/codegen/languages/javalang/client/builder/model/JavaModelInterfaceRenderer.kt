@@ -119,7 +119,7 @@ class JavaModelInterfaceRenderer @Inject constructor(override val vrapTypeProvid
             .joinToString(separator = "\n")
 
     private fun Property.getter(): String {
-        return if(this.isPatternProperty()){
+         return if(this.isPatternProperty()){
             """
             |${this.type.toComment()}
             |${this.validationAnnotations()}
@@ -148,7 +148,17 @@ class JavaModelInterfaceRenderer @Inject constructor(override val vrapTypeProvid
             |public void setValue(String key, ${this.type.toVrapType().simpleName()} value);
             """.trimMargin()
         } else {
-            "public void set${this.name.upperCamelCase()}(final ${this.type.toVrapType().simpleName()} ${this.name.lowerCamelCase()});"
+            return if(this.type is ArrayType){
+                val arrayType = this.type as ArrayType
+                val listItemType : String = arrayType.items.name
+                
+                """
+                    |public void set${this.name.upperCamelCase()}(final ${arrayType.items.toVrapType().simpleName()}... ${listItemType.lowerCamelCase()});
+                    |public void set${this.name.upperCamelCase()}(final ${this.type.toVrapType().simpleName()} ${this.name.lowerCamelCase()});
+                """.trimMargin()
+            }else{
+                "public void set${this.name.upperCamelCase()}(final ${this.type.toVrapType().simpleName()} ${this.name.lowerCamelCase()});"
+            }
         }
     }
 
@@ -197,6 +207,14 @@ class JavaModelInterfaceRenderer @Inject constructor(override val vrapTypeProvid
             |   return instance;
             |}
         """.trimMargin()
+        }
+    }
+
+    private fun Property.packageName() : String {
+        return if(this.type is ObjectType) {
+            "${(this.type.toVrapType() as VrapObjectType).`package`}."
+        } else {
+            ""
         }
     }
     
