@@ -249,6 +249,14 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
             |   this.limit = limit;
             |   return this;
             |}
+            |
+            |public Long getOffset() {
+            |   return offset;
+            |}
+            |
+            |public Long getLimit() {
+            |   return limit;
+            |}
         """.trimMargin().escapeAll()
     }
 }
