@@ -1,3 +1,22 @@
+### Fetching our gradle plugin from bintray
+
+The following configuration eanbles using our grdale plugin from bintray:
+
+```groovy
+buildscript {
+    repositories {
+        mavenCentral()
+        jcenter()
+        maven {
+            url  "https://dl.bintray.com/vrapio/vrapio"
+        }
+    }
+    dependencies {
+        classpath "io.vrap.rmf.codegen:codegen-gradle-plugin:$codegen-version"
+    }
+}
+```
+
 ### VRAP Gradle plugin
 
 In order to make the integration of the code generator in a gradle build easy we created a gradle plugin with id
@@ -14,7 +33,7 @@ A target is a generation target it contains
    * target: can be one of `javaModel`, `javaModelWithInterfaces`, `groovyDsl`, `javaSpringClient`, `typescriptModel`, `joiValidator` depending on your target language
    * customTypeMapping: optionally allow you to replace some generated types with hand writen ones
 
-#### building
+#### Building
 
 If you want to build the plugin from the root component run the following command `./gradlew clean build  :tools:codegen-gradle-plugin:shadowJar`
 

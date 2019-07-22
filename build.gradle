@@ -105,7 +105,7 @@ subprojects { project ->
 
         pkg {
             repo = 'vrapio'
-            name = 'rmf'
+            name = 'rmf-codegen'
             userOrg = 'vrapio'
             licenses = ['MIT']
             vcsUrl = 'https://github.com/vrapio/rmf-codegen'
