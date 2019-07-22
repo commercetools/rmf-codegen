@@ -123,7 +123,7 @@ class JavaModelClassFileProducer @Inject constructor(override val vrapTypeProvid
                 |   this.${this.name.lowerCamelCase()} = ${this.name.lowerCamelCase()};
                 |}
                 """.trimMargin()
-            }else{ 
+            }else{
                 """
                 |public void set${this.name.upperCamelCase()}(final ${this.packageName()}${this.type.toVrapType().simpleName()} ${this.name.lowerCamelCase()}){
                 |   this.${this.name.lowerCamelCase()} = ${this.name.lowerCamelCase()};

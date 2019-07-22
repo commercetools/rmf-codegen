@@ -15,6 +15,10 @@ import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.resources.Method
 import org.eclipse.emf.ecore.EObject
 
+const val TRAIT_EXPANDABLE : String = "expandable"
+const val TRAIT_QUERY : String = "query"
+const val TRAIT_SORTABLE : String = "sortable"
+const val TRAIT_PAGING : String = "paging"
 
 class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : MethodRenderer, ObjectTypeExtensions, EObjectTypeExtensions {
     
@@ -48,6 +52,8 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
             |   <${type.setters()}>
             |   
             |   <${type.helperMethods()}>
+            |   
+            |   <${type.traits()}>
             |}
         """.trimMargin().keepIndentation()
         
@@ -82,13 +88,20 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
     private fun Method.fields(): String? {
         val commandClassFields = mutableListOf<String>()
         commandClassFields.add("private HttpHeaders headers = new HttpHeaders();")
-        commandClassFields.add("private List<String> expansionPath = new ArrayList<>();")
-        commandClassFields.add("private List<String> predicate = new ArrayList<>();")
-        commandClassFields.add("private List<String> sort = new ArrayList<>();")
         commandClassFields.add("private List<String> additionalQueryParams = new ArrayList<>();")
-        commandClassFields.add("private Long offset;")
-        commandClassFields.add("private Long limit;")
-        
+        if(this.hasTrait(TRAIT_EXPANDABLE)){
+            commandClassFields.add("private List<String> expansionPath = new ArrayList<>();")
+        }
+        if(this.hasTrait(TRAIT_QUERY)){
+            commandClassFields.add("private List<String> predicate = new ArrayList<>();")
+        }
+        if(this.hasTrait(TRAIT_SORTABLE)){
+            commandClassFields.add("private List<String> sort = new ArrayList<>();")
+        }
+        if(this.hasTrait(TRAIT_PAGING)){
+            commandClassFields.add("private Long offset;")
+            commandClassFields.add("private Long limit;")
+        }
         this.pathArguments().map { "private String $it;" }.forEach { commandClassFields.add(it) }
         if(this.bodies != null && this.bodies.isNotEmpty()){
             val methodBodyVrapType = this.bodies[0].type.toVrapType() as VrapObjectType
@@ -100,15 +113,6 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
 
     private fun Method.pathArguments() : List<String> {
         return this.resource().fullUri.variables.toList()
-    }
-
-    private fun Method.bodyObjectName() : String? {
-        if(this.bodies != null && this.bodies.isNotEmpty()) {
-            val methodBodyVrapType = this.bodies[0].type.toVrapType() as VrapObjectType
-            return methodBodyVrapType.simpleClassName.decapitalize()
-        }else{
-            return null
-        }
     }
     
     private fun Method.createRequestMethod() : String {
@@ -161,6 +165,96 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
             .map { "public void set${it.capitalize()}(final String $it) {this.$it = $it;}" }
             .joinToString(separator = "\n\n")
     
+    private fun Method.hasTrait(trait: String) : Boolean {
+        return this.`is`.find { it.trait.name.equals(trait) } != null
+    }
+    
+    private fun Method.traits() : String {
+        return this.`is`.map { this.trait(it.trait.name) }.joinToString(separator = "\n\n")
+    }
+    
+    private fun Method.trait(trait: String) : String {
+        return when(trait){
+            TRAIT_EXPANDABLE -> {
+                """
+                |public ${this.toRequestName()} addExpansionPath(final String expansionPath) {
+                    |this.expansionPath.add(expansionPath);
+                |   return this;
+                |}
+                |
+                |public ${this.toRequestName()} withExpansionPath(final List<String> expansionPath) {
+                |   this.expansionPath = expansionPath;
+                |   return this;
+                |}
+                |
+                |public List<String> getExpansionPath() {
+                |   return this.expansionPath;
+                |}
+                |
+                """.trimMargin().escapeAll()
+            }
+            TRAIT_QUERY -> {
+                """
+                    |public ${this.toRequestName()} addPredicate(final String predicate) {
+                    |   this.predicate.add(predicate);
+                    |   return this;
+                    |}
+                    |
+                    |public ${this.toRequestName()} withPredicate(List<String> predicate) {
+                    |   this.predicate = predicate;
+                    |   return this;
+                    |}
+                    |
+                    |public List<String> getPredicate() {
+                    |   return this.predicate;
+                    |}
+                    |
+                """.trimMargin().escapeAll()
+            }
+            TRAIT_SORTABLE -> {
+                """
+                    |public ${this.toRequestName()} addSort(final String sort) {
+                    |   this.sort.add(sort);
+                    |   return this;
+                    |}
+                    |
+                    |public ${this.toRequestName()} withSort(final List<String> sort) {
+                    |   this.sort = sort;
+                    |   return this;
+                    |}
+                    |
+                    |public List<String> getSort() {
+                    |   return this.sort;
+                    |}
+                    |
+                """.trimMargin().escapeAll()
+            }
+            TRAIT_PAGING -> {
+                """
+                    |public ${this.toRequestName()} withOffset(final Long offset){
+                    |   this.offset = offset;
+                    |   return this;
+                    |}
+                    |
+                    |public ${this.toRequestName()} withLimit(final Long limit){
+                    |   this.limit = limit;
+                    |   return this;
+                    |}
+                    |
+                    |public Long getOffset() {
+                    |   return offset;
+                    |}
+                    |
+                    |public Long getLimit() {
+                    |   return limit;
+                    |}
+                    |
+                """.trimMargin().escapeAll()
+            }
+            else -> ""
+        }
+    }
+    
     private fun Method.helperMethods() : String {
         return """
             |public ${this.toRequestName()} addHeader(final String key, final String value) {
@@ -181,48 +275,6 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
             |   return this.headers;
             |}
             |
-            |public ${this.toRequestName()} addExpansionPath(final String expansionPath) {
-            |   this.expansionPath.add(expansionPath);
-            |   return this;
-            |}
-            |
-            |public ${this.toRequestName()} withExpansionPath(final List<String> expansionPath) {
-            |   this.expansionPath = expansionPath;
-            |   return this;
-            |}
-            |
-            |public List<String> getExpansionPath() {
-            |   return this.expansionPath;
-            |}
-            |
-            |public ${this.toRequestName()} addPredicate(final String predicate) {
-            |   this.predicate.add(predicate);
-            |   return this;
-            |}
-            |
-            |public ${this.toRequestName()} withPredicate(List<String> predicate) {
-            |   this.predicate = predicate;
-            |   return this;
-            |}
-            |
-            |public List<String> getPredicate() {
-            |   return this.predicate;
-            |}
-            |
-            |public ${this.toRequestName()} addSort(final String sort) {
-            |   this.sort.add(sort);
-            |   return this;
-            |}
-            |
-            |public ${this.toRequestName()} withSort(final List<String> sort) {
-            |   this.sort = sort;
-            |   return this;
-            |}
-            |
-            |public List<String> getSort() {
-            |   return this.sort;
-            |}
-            |
             |public ${this.toRequestName()} addAdditionalQueryParam(final String additionalQueryParam) {
             |   this.additionalQueryParams.add(additionalQueryParam);
             |   return this;
@@ -235,24 +287,6 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
             |
             |public List<String> getAdditionalQueryParams() {
             |   return this.additionalQueryParams;
-            |}
-            |
-            |public ${this.toRequestName()} withOffset(final Long offset){
-            |   this.offset = offset;
-            |   return this;
-            |}
-            |
-            |public ${this.toRequestName()} withLimit(final Long limit){
-            |   this.limit = limit;
-            |   return this;
-            |}
-            |
-            |public Long getOffset() {
-            |   return offset;
-            |}
-            |
-            |public Long getLimit() {
-            |   return limit;
             |}
         """.trimMargin().escapeAll()
     }
