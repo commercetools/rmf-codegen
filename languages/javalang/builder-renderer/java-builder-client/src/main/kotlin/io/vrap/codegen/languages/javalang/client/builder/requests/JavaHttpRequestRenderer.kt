@@ -3,14 +3,13 @@ package io.vrap.codegen.languages.javalang.client.builder.requests
 import com.google.inject.Inject
 import io.vrap.codegen.languages.extensions.resource
 import io.vrap.codegen.languages.extensions.toRequestName
-import io.vrap.codegen.languages.java.base.extensions.javaReturnType
-import io.vrap.codegen.languages.php.extensions.EObjectTypeExtensions
-import io.vrap.codegen.languages.php.extensions.ObjectTypeExtensions
+import io.vrap.codegen.languages.java.base.extensions.*
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.MethodRenderer
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
 import io.vrap.rmf.codegen.rendring.utils.keepIndentation
 import io.vrap.rmf.codegen.types.VrapObjectType
+import io.vrap.rmf.codegen.types.VrapType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.resources.Method
 import org.eclipse.emf.ecore.EObject
@@ -20,7 +19,7 @@ const val TRAIT_QUERY : String = "query"
 const val TRAIT_SORTABLE : String = "sortable"
 const val TRAIT_PAGING : String = "paging"
 
-class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : MethodRenderer, ObjectTypeExtensions, EObjectTypeExtensions {
+class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : MethodRenderer, JavaObjectTypeExtensions, EObjectTypeExtensions {
     
     override fun render(type: Method): TemplateFile {
         val vrapType = vrapTypeProvider.doSwitch(type as EObject) as VrapObjectType
@@ -31,6 +30,7 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
             |import client.HttpRequest;
             |import client.HttpMethod;
             |import client.HttpHeaders;
+            |import client.HttpResponse;
             |import json.CommercetoolsJsonUtils;
             |import client.CommercetoolsClient;
             |
@@ -145,10 +145,21 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
     }   
     
     private fun Method.executeBlockingMethod() : String {
+        
+        val responseErrorsDeserialization : String = 
+                this.responses
+                        .filter { !it.statusCode.startsWith("2") }
+                        .map { responseErrorsDeserialization(it.statusCode, it.bodies[0].type.toVrapType()) }
+                        .joinToString(separator = "\n\n")
+        
         return """
             |public ${this.javaReturnType(vrapTypeProvider)} executeBlocking() {
+            |   HttpResponse response = CommercetoolsClient.getClient().execute(this.createHttpRequest());
+            |
+            |   $responseErrorsDeserialization
+            |   
             |   try{
-            |       return CommercetoolsJsonUtils.fromJsonString(CommercetoolsClient.getClient().execute(this.createHttpRequest()).getBody(), ${this.javaReturnType(vrapTypeProvider)}.class);
+            |       return CommercetoolsJsonUtils.fromJsonString(response.getBody(), ${this.javaReturnType(vrapTypeProvider)}.class);
             |   }catch(Exception e){
             |       e.printStackTrace();
             |   }
@@ -157,6 +168,20 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
         """.trimMargin().keepIndentation()
     }
 
+    private fun responseErrorsDeserialization(statusCode : String, bodyType: VrapType) : String {
+        return """
+            |if(response.getStatusCode() == $statusCode){
+            |   try{
+            |       ${bodyType.fullClassName()} ${bodyType.simpleName().lowerCamelCase()} = CommercetoolsJsonUtils.fromJsonString(response.getBody(), ${bodyType.fullClassName()}.class);
+            |       throw new RuntimeException(${bodyType.simpleName().lowerCamelCase()}.getMessage());
+            |   }catch(Exception e){
+            |       e.printStackTrace();
+            |       throw new RuntimeException(e.getMessage());
+            |   }
+            |}
+        """.trimMargin().keepIndentation()
+    }
+    
     private fun Method.getters() = this.pathArguments()
             .map { "public String get${it.capitalize()}() {return this.$it;}" }
             .joinToString(separator = "\n")
