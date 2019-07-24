@@ -31,6 +31,7 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
             |
             |import java.util.ArrayList;
             |import java.util.List;
+            |import java.util.stream.Collectors;
             |
             |public class ${type.toRequestName()} {
             |   
@@ -122,16 +123,31 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
             null
         }
         
+        val addingQueryParams : String = this.queryParameters
+                .map { "params.add(this.${it.name}.stream().map(s -> \"${it.name}=\" + s).collect(Collectors.joining(\"&\")));" }
+                .joinToString(separator = "\n")
+        
+        val requestPathGeneration : String = """
+            |List<String> params = new ArrayList<>();
+            |$addingQueryParams
+            |params.removeIf(String::isEmpty);
+            |String httpRequestPath = String.format("$stringFormat", $stringFormatArgs);
+            |if(!params.isEmpty()){
+            |   httpRequestPath += "?" + String.join("&", params);
+            |}
+        """.trimMargin().escapeAll()
+        
         return """
             |public HttpRequest createHttpRequest() {
             |   HttpRequest httpRequest = new HttpRequest();
-            |   httpRequest.setPath(String.format("$stringFormat", $stringFormatArgs)); 
+            |   $requestPathGeneration
+            |   httpRequest.setPath(httpRequestPath); 
             |   httpRequest.setMethod(HttpMethod.${this.method.name});
             |   httpRequest.setHeaders(headers);
             |   ${if(bodyName != null) "try{httpRequest.setBody(CommercetoolsJsonUtils.toJsonString($bodyName));}catch(Exception e){e.printStackTrace();}" else "" }
             |   return httpRequest;
             |}
-        """.trimMargin().keepIndentation()
+        """.trimMargin()
     }   
     
     private fun Method.executeBlockingMethod() : String {
@@ -190,12 +206,14 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
     
     private fun Method.queryParamsSetters() : String = this.queryParameters
             .map { """
-                |public void add${it.name.capitalize()}(final ${it.type.toVrapType().simpleName()} ${it.name}){
+                |public ${this.toRequestName()} add${it.name.capitalize()}(final ${it.type.toVrapType().simpleName()} ${it.name}){
                 |   this.${it.name}.add(${it.name});
+                |   return this;
                 |}
                 |
-                |public void with${it.name.capitalize()}(final List<${it.type.toVrapType().simpleName()}> ${it.name}){
-                |   this.${it.name} = this.${it.name};
+                |public ${this.toRequestName()} with${it.name.capitalize()}(final List<${it.type.toVrapType().simpleName()}> ${it.name}){
+                |   this.${it.name} = ${it.name};
+                |   return this;
                 |}
             """.trimMargin().escapeAll() }
             .joinToString(separator = "\n\n")
