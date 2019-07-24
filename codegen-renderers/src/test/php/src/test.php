@@ -40,29 +40,12 @@ $authConfig = new ClientCredentialsConfig(
         'clientSecret' => ''
     ]
 );
-$config = new Config();
-$cacheDir = $authConfig->getCacheDir();
-$filesystemAdapter = new Local($cacheDir);
-$filesystem        = new Filesystem($filesystemAdapter);
-$cache = new FilesystemCachePool(   $filesystem);
+$logger = new Logger('client', [new StreamHandler('./logs/requests.log')]);
 
 $client = ClientFactory::of()->createGuzzleClient(
-    $config,
-    [
-        'oauth' => MiddlewareFactory::createOAuthMiddlewareForProvider(
-            new CachedTokenProvider(
-                new ClientCredentialTokenProvider(
-                    new Client($authConfig->getClientOptions()),
-                    $authConfig
-                ),
-                $cache
-            )
-        ),
-        'logger' => MiddlewareFactory::createLoggerMiddleware(new Logger('client', [new StreamHandler('./logs/requests.log')]))
-    ]
+    $authConfig,
+    $logger
 );
-
-var_dump($config);
 
 
 $response = $client->get('');

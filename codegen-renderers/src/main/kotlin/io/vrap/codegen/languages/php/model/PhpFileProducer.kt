@@ -375,15 +375,35 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |use GuzzleHttp\Client as HttpClient;
                     |use GuzzleHttp\HandlerStack;
                     |use Psr\Cache\CacheItemPoolInterface;
+                    |use Psr\Log\LoggerInterface;
+                    |use Psr\SimpleCache\CacheInterface;
                     |
                     |class ClientFactory
                     |{
                     |    /**
                     |     * @param Config|array $!config
+                    |     * @psalm-param CacheItemPoolInterface|CacheInterface|null $!cache
+                    |     * @psalm-param array<string, callable> $!middlewares
                     |     * @throws InvalidArgumentException
-                    |     * @return HttpClient
                     |     */
-                    |    public function createGuzzleClient($!config = [], array $!middlewares = []): HttpClient
+                    |    public function createGuzzleClient(AuthConfig $!authConfig, LoggerInterface $!logger, $!cache = null, $!config = [],  array $!middlewares = []): HttpClient
+                    |    {
+                    |        $!config = $!this->createConfig($!config);
+                    |        $!middlewares = array_merge(
+                    |           MiddlewareFactory::createDefaultMiddlewares($!logger, $!authConfig, $!cache),
+                    |           $!middlewares
+                    |        );
+                    |        return $!this->createGuzzle6Client($!config->getOptions(), $!middlewares);
+                    |    }
+                    |
+                    |    /**
+                    |     * @param Config|array $!config
+                    |     * @psalm-param array<string, callable> $!middlewares
+                    |     * @throws InvalidArgumentException
+                    |     */
+                    |    public function createGuzzleClientForMiddlewares(
+                    |       $!config = [],
+                    |       array $!middlewares = []): HttpClient
                     |    {
                     |        $!config = $!this->createConfig($!config);
                     |        return $!this->createGuzzle6Client($!config->getOptions(), $!middlewares);
@@ -464,6 +484,8 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |interface TokenProvider
                     |{
                     |    public function getToken(): Token;
+                    |
+                    |    public function refreshToken(): Token;
                     |}
                 """.trimMargin()
         )
@@ -481,7 +503,7 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |{
                     |    public function getValue(): string;
                     |
-                    |    public function getExpiresIn(): ?int;
+                    |    public function getExpiresIn(): int;
                     |}
                 """.trimMargin()
         )
@@ -510,6 +532,7 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |    "guzzlehttp/psr7": "^1.1",
                     |    "guzzlehttp/guzzle": "^6.0",
                     |    "psr/cache": "^1.0",
+                    |    "psr/simple-cache": "^1.0",
                     |    "psr/log": "^1.0",
                     |    "psr/http-client": "^1.0",
                     |    "psr/http-message": "^1.0",
@@ -609,7 +632,7 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |
                     |namespace ${packagePrefix.toNamespaceName()}\Client;
                     |
-                    |class AuthConfig
+                    |abstract class AuthConfig
                     |{
                     |    const AUTH_URI = '${api.authUri()}';
                     |
@@ -617,7 +640,6 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |    const OPT_AUTH_URI = 'auth_uri';
                     |    const OPT_CLIENT_OPTIONS = 'options';
                     |    const GRANT_TYPE = '';
-                    |    const OPT_CACHE_DIR = 'cacheDir';
                     |
                     |    /** @var string */
                     |    private $!authUri;
@@ -625,17 +647,12 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |    /** @var array */
                     |    private $!clientOptions;
                     |
-                    |    /** @var string */
-                    |    private $!cacheDir;
-                    |
                     |    public function __construct(array $!config = [])
                     |    {
                     |        /** @var string authUri */
                     |        $!this->authUri = isset($!config[self::OPT_AUTH_URI]) ? $!config[self::OPT_AUTH_URI] : static::AUTH_URI;
                     |        $!this->clientOptions = isset($!config[self::OPT_CLIENT_OPTIONS]) && is_array($!config[self::OPT_CLIENT_OPTIONS]) ?
                     |            $!config[self::OPT_CLIENT_OPTIONS] : [];
-                    |        /** @var string authUri */
-                    |        $!this->cacheDir = isset($!config[self::OPT_CACHE_DIR]) ? $!config[self::OPT_CACHE_DIR] : getcwd();
                     |    }
                     |
                     |    public function getGrantType(): string
@@ -673,17 +690,8 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |            $!this->clientOptions
                     |        );
                     |    }
-                    |
-                    |    public function getCacheDir(): string
-                    |    {
-                    |        return $!this->cacheDir;
-                    |    }
-                    |
-                    |    public function setCacheDir(string $!cacheDir): AuthConfig
-                    |    {
-                    |        $!this->cacheDir = $!cacheDir;
-                    |        return $!this;
-                    |    }
+                    |    
+                    |    abstract function getCacheKey(): string;
                     |}
                 """.trimMargin().forcedLiteralEscape())
     }
@@ -696,45 +704,102 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |
                     |namespace ${packagePrefix.toNamespaceName()}\Client;
                     |
+                    |use ${packagePrefix.toNamespaceName()}\Exception\InvalidArgumentException;
                     |use GuzzleHttp\Client;
                     |use Psr\Cache\CacheItemPoolInterface;
                     |use Psr\Cache\CacheItemInterface;
+                    |use Psr\SimpleCache\CacheInterface;
                     |
                     |class CachedTokenProvider implements TokenProvider
                     |{
+                    |    const TOKEN_CACHE_KEY = 'access_token';
+                    |    
                     |    /** @var TokenProvider */
                     |    private $!provider;
                     |
-                    |    /** @var CacheItemPoolInterface */
+                    |    /** @var CacheItemPoolInterface|CacheInterface */
                     |    private $!cache;
+                    |    
+                    |    /** @var string */
+                    |    private $!cacheKey;
                     |
-                    |    public function __construct(TokenProvider $!provider, CacheItemPoolInterface $!cache)
+                    |    /**
+                    |     * @psalm-param CacheItemPoolInterface|CacheInterface|mixed $!cache
+                    |     */
+                    |    public function __construct(TokenProvider $!provider, $!cache, string $!cacheKey = null)
                     |    {
+                    |       $!this->validateCache($!cache);
                     |       $!this->cache = $!cache;
                     |       $!this->provider = $!provider;
+                    |       $!this->cacheKey = self::TOKEN_CACHE_KEY . "_" . ($!cacheKey ?? sha1(self::TOKEN_CACHE_KEY));
                     |    }
                     |
+                    |    /**
+                    |     * @psalm-assert CacheItemPoolInterface|CacheInterface $!cache
+                    |     * @psalm-param CacheItemPoolInterface|CacheInterface|mixed $!cache
+                    |     */
+                    |    private function validateCache($!cache) : void
+                    |    {
+                    |       if (!$!cache instanceof CacheInterface && !$!cache instanceof CacheItemPoolInterface) {
+                    |           throw new InvalidArgumentException();
+                    |       }
+                    |    }
+                    |    
+                    |    /**
+                    |     * @inheritDoc
+                    |     */
                     |    public function getToken(): Token
                     |    {
-                    |        $!item = $!this->cache->getItem(sha1('access_token'));
-                    |        if ($!item->isHit()) {
-                    |            return new TokenModel((string)$!item->get());
+                    |        $!item = null;
+                    |
+                    |        $!token = $!this->getCacheToken();
+                    |        if (!is_null($!token)) {
+                    |            return new TokenModel($!token);
                     |        }
                     |
-                    |        $!token = $!this->provider->getToken();
+                    |        return $!this->refreshToken();
+                    |    }
+                    |
+                    |    /**
+                    |     * @inheritDoc
+                    |     */
+                    |    public function refreshToken(): Token
+                    |    {
+                    |        $!token = $!this->provider->refreshToken();
                     |        // ensure token to be invalidated in cache before TTL
-                    |        $!expiresIn = $!token->getExpiresIn() ?? 0;
-                    |        $!ttl = max(1, $!expiresIn - 300);
-                    |        $!this->saveToken($!token->getValue(), $!item, (int)$!ttl);
+                    |        $!ttl = max(1, ($!token->getExpiresIn() - 300));
+                    |
+                    |        $!this->cache($!token, $!ttl);
                     |
                     |        return $!token;
                     |    }
                     |
-                    |    private function saveToken(string $!token, CacheItemInterface $!item, int $!ttl): void
+                    |    private function getCacheToken(): ?string
                     |    {
-                    |        $!item->set($!token);
-                    |        $!item->expiresAfter($!ttl);
-                    |        $!this->cache->save($!item);
+                    |        $!cache = $!this->cache;
+                    |        if ($!cache instanceof CacheInterface) {
+                    |            /** @var ?string $!var */
+                    |            $!var = $!cache->get($!this->cacheKey, null);
+                    |            return $!var;
+                    |        }
+                    |        
+                    |        $!item = $!cache->getItem($!this->cacheKey);
+                    |        if ($!item->isHit()) {
+                    |            return (string)$!item->get();
+                    |        }
+                    |        
+                    |        return null;
+                    |    }
+                    |
+                    |    private function cache(Token $!token, int $!ttl): void
+                    |    {
+                    |        $!cache = $!this->cache;
+                    |        if ($!cache instanceof CacheInterface) {
+                    |            $!cache->set($!this->cacheKey, $!token->getValue(), $!ttl);
+                    |        } else {
+                    |            $!item = $!cache->getItem($!this->cacheKey)->set($!token->getValue())->expiresAfter($!ttl);
+                    |            $!cache->save($!item);
+                    |        }
                     |    }
                     |}
                 """.trimMargin().forcedLiteralEscape())
@@ -790,6 +855,14 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |        $!body = json_decode((string)$!result->getBody(), true);
                     |        return new TokenModel((string)$!body[self::ACCESS_TOKEN], (int)$!body[self::EXPIRES_IN]);
                     |    }
+                    |    
+                    |    /**
+                    |     * @return Token
+                    |     */
+                    |    public function refreshToken(): Token
+                    |    {
+                    |        return $!this->getToken();
+                    |    }
                     |}
                 """.trimMargin().forcedLiteralEscape())
     }
@@ -829,6 +902,11 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |    {
                     |        return 'Bearer ' . $!this->provider->getToken()->getValue();
                     |    }
+                    |    
+                    |    public function refreshToken(): Token
+                    |    {
+                    |        return $!this->provider->refreshToken();
+                    |    }
                     |}
                 """.trimMargin().forcedLiteralEscape())
     }
@@ -843,16 +921,46 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |
                     |use GuzzleHttp\MessageFormatter;
                     |use GuzzleHttp\Middleware;
+                    |use GuzzleHttp\Promise\PromiseInterface;
                     |use Psr\Cache\CacheItemPoolInterface;
+                    |use Psr\SimpleCache\CacheInterface;
                     |use Psr\Log\LoggerInterface;
                     |use Psr\Log\LogLevel;
+                    |use Psr\Http\Message\RequestInterface;
+                    |use Psr\Http\Message\ResponseInterface;
                     |
                     |class MiddlewareFactory
                     |{
                     |    /**
+                    |     * @psalm-return array<string, callable>
+                    |     * @psalm-param CacheItemPoolInterface|CacheInterface|null $!cache
+                    |     */
+                    |    public static function createDefaultMiddlewares(
+                    |        LoggerInterface $!logger,
+                    |        AuthConfig $!authConfig,
+                    |        $!cache = null
+                    |    ) {
+                    |        $!handler = OAuthHandlerFactory::ofAuthConfig($!authConfig, $!cache);
+                    |        return [
+                    |            'oauth' => self::createMiddlewareForOAuthHandler($!handler),
+                    |            'reauth' => self::createReauthenticateMiddleware($!handler),
+                    |            'logger' => self::createLoggerMiddleware($!logger)
+                    |        ];
+                    |    }
+                    |
+                    |    /**
                     |     * @psalm-return callable()
                     |     */
-                    |    public static function createOAuthMiddleware(AuthConfig $!authConfig, CacheItemPoolInterface $!cache = null)
+                    |    public static function createMiddlewareForOAuthHandler(OAuth2Handler $!handler)
+                    |    {
+                    |        return Middleware::mapRequest($!handler);
+                    |    }
+                    |
+                    |    /**
+                    |     * @psalm-param CacheItemPoolInterface|CacheInterface|null $!cache
+                    |     * @psalm-return callable()
+                    |     */
+                    |    public static function createOAuthMiddleware(AuthConfig $!authConfig, $!cache = null)
                     |    {
                     |        $!handler = OAuthHandlerFactory::ofAuthConfig($!authConfig, $!cache);
                     |        return Middleware::mapRequest($!handler);
@@ -873,6 +981,55 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |    public static function createLoggerMiddleware(LoggerInterface $!logger, string $!logLevel = LogLevel::INFO, string $!template = MessageFormatter::CLF)
                     |    {
                     |        return Middleware::log($!logger, new MessageFormatter($!template), $!logLevel);
+                    |    }
+                    |    
+                    |    /**
+                    |     * Middleware that reauthenticates on invalid token error
+                    |     *
+                    |     * @return callable Returns a function that accepts the next handler.
+                    |     */
+                    |    public static function createReauthenticateMiddleware(OAuth2Handler $!oauthHandler, int $!maxRetries = 1)
+                    |    {
+                    |        return
+                    |            /**
+                    |             * @psalm-param callable(RequestInterface, array{reauth: int}): PromiseInterface $!handler 
+                    |             * @psalm-return callable(RequestInterface, array{reauth: int})
+                    |             */
+                    |            function (callable $!handler) use ($!oauthHandler, $!maxRetries) {
+                    |                return
+                    |                    /**
+                    |                     * @psalm-return PromiseInterface
+                    |                     * @psalm-param array{reauth: int} $!options
+                    |                     */
+                    |                    function (RequestInterface $!request, array $!options) use ($!handler, $!oauthHandler, $!maxRetries) {
+                    |                        return $!handler($!request, $!options)->then(
+                    |                            function (ResponseInterface $!response) use (
+                    |                                $!request,
+                    |                                $!handler,
+                    |                                $!oauthHandler,
+                    |                                $!options,
+                    |                                $!maxRetries
+                    |                            ) {
+                    |                                if ($!response->getStatusCode() == 401) {
+                    |                                    if (!isset($!options['reauth'])) {
+                    |                                        $!options['reauth'] = 0;
+                    |                                    }
+                    |                                    if ($!options['reauth'] < $!maxRetries) {
+                    |                                        $!options['reauth']++;
+                    |                                        $!token = $!oauthHandler->refreshToken();
+                    |                                        $!request = $!request->withHeader(
+                    |                                            'Authorization',
+                    |                                            'Bearer ' . $!token->getValue()
+                    |                                        );
+                    |                                        return $!handler($!request, $!options);
+                    |                                    }
+                    |                                }
+                    |                                return $!response;
+                    |                            }
+                    |                        );
+                    |                        return $!result;
+                    |                    };
+                    |            };
                     |    }
                     |}
                 """.trimMargin().forcedLiteralEscape()
@@ -948,6 +1105,11 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |        $!this->clientSecret = $!clientSecret;
                     |        return $!this;
                     |    }
+                    |    
+                    |    public function getCacheKey(): string
+                    |    {
+                    |        return sha1($!this->clientId . (string)$!this->scope);
+                    |    }
                     |}
                 """.trimMargin().forcedLiteralEscape()
         )
@@ -977,6 +1139,11 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |    {
                     |        return $!this->token;
                     |    }
+                    |
+                    |    public function refreshToken(): Token
+                    |    {
+                    |        return $!this->token;
+                    |    }
                     |}
                 """.trimMargin().forcedLiteralEscape()
         )
@@ -992,16 +1159,16 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |
                     |class TokenModel implements Token
                     |{
-                    |    /** @return string */
+                    |    /** @var string */
                     |    private $!value;
                     |
-                    |    /** @return int */
+                    |    /** @var int */
                     |    private $!expiresIn;
                     |
                     |    public function __construct(string $!value, int $!expiresIn = null)
                     |    {
                     |        $!this->value = $!value;
-                    |        $!this->expiresIn = $!expiresIn;
+                    |        $!this->expiresIn = $!expiresIn ?? 0;
                     |    }
                     |
                     |    public function getValue(): string
@@ -1009,7 +1176,7 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |        return $!this->value;
                     |    }
                     |
-                    |    public function getExpiresIn(): ?int
+                    |    public function getExpiresIn(): int
                     |    {
                     |        return $!this->expiresIn;
                     |    }
@@ -1032,17 +1199,33 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |use League\Flysystem\Adapter\Local;
                     |use League\Flysystem\Filesystem;
                     |use Psr\Cache\CacheItemPoolInterface;
+                    |use Psr\SimpleCache\CacheInterface;
                     |
                     |class OAuthHandlerFactory
                     |{
-                    |    public static function ofAuthConfig(AuthConfig $!authConfig, CacheItemPoolInterface $!cache = null): OAuth2Handler
+                    |    /**
+                    |     * @psalm-param CacheItemPoolInterface|CacheInterface|null $!cache
+                    |     * @psalm-return CacheItemPoolInterface|CacheInterface
+                    |     */
+                    |    private static function validateCache($!cache = null)
                     |    {
-                    |        if (is_null($!cache)) {
-                    |            $!cacheDir = $!authConfig->getCacheDir();
-                    |            $!filesystemAdapter = new Local($!cacheDir);
-                    |            $!filesystem        = new Filesystem($!filesystemAdapter);
-                    |            $!cache = new FilesystemCachePool($!filesystem);
+                    |        if ($!cache instanceof CacheItemPoolInterface || $!cache instanceof CacheInterface) {
+                    |            return $!cache;
                     |        }
+                    |
+                    |        $!filesystemAdapter = new Local(getcwd());
+                    |        $!filesystem        = new Filesystem($!filesystemAdapter);
+                    |        $!cache = new FilesystemCachePool($!filesystem);
+                    |        
+                    |        return $!cache;
+                    |    }
+                    |
+                    |    /**
+                    |     * @psalm-param CacheItemPoolInterface|CacheInterface|null $!cache
+                    |     */
+                    |    public static function ofAuthConfig(AuthConfig $!authConfig, $!cache = null): OAuth2Handler
+                    |    {
+                    |        $!cache = self::validateCache($!cache);
                     |        switch(true) {
                     |           case $!authConfig instanceof ClientCredentialsConfig:
                     |               $!provider = new CachedTokenProvider(
@@ -1050,7 +1233,8 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |                       new Client($!authConfig->getClientOptions()),
                     |                       $!authConfig
                     |                   ),
-                    |                   $!cache
+                    |                   $!cache,
+                    |                   $!authConfig->getCacheKey()
                     |               );
                     |               break;
                     |           default:
