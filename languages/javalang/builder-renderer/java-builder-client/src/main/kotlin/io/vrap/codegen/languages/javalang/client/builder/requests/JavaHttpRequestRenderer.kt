@@ -31,6 +31,8 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
             |
             |import java.util.ArrayList;
             |import java.util.List;
+            |import java.util.Map;
+            |import java.util.HashMap;
             |import java.util.stream.Collectors;
             |
             |public class ${type.toRequestName()} {
@@ -87,7 +89,7 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
     private fun Method.fields(): String? {
         val commandClassFields = mutableListOf<String>()
         commandClassFields.add("private HttpHeaders headers = new HttpHeaders();")
-        commandClassFields.add("private List<String> additionalQueryParams = new ArrayList<>();")
+        commandClassFields.add("private Map<String, String> additionalQueryParams = new HashMap<>();")
         val parameterFields : String = 
                 this.queryParameters.map { "private List<${it.type.toVrapType().simpleName()}> ${it.name} = new ArrayList<>();" }
                         .joinToString(separator = "\n\n")
@@ -238,17 +240,17 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
             |   return this.headers;
             |}
             |
-            |public ${this.toRequestName()} addAdditionalQueryParam(final String additionalQueryParam) {
-            |   this.additionalQueryParams.add(additionalQueryParam);
+            |public ${this.toRequestName()} addAdditionalQueryParam(final String additionalQueryParamKey, final String additionalQueryParamValue) {
+            |   this.additionalQueryParams.put(additionalQueryParamKey, additionalQueryParamValue);
             |   return this;
             |}
             |
-            |public ${this.toRequestName()} setAdditionalQueryParams(final List<String> additionalQueryParams) {
+            |public ${this.toRequestName()} setAdditionalQueryParams(final Map<String, String> additionalQueryParams) {
             |   this.additionalQueryParams = additionalQueryParams;
             |   return this;
             |}
             |
-            |public List<String> getAdditionalQueryParams() {
+            |public Map<String, String> getAdditionalQueryParams() {
             |   return this.additionalQueryParams;
             |}
         """.trimMargin().escapeAll()
