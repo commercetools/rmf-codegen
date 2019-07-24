@@ -129,9 +129,12 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
                 .map { "params.add(this.${it.name}.stream().map(s -> \"${it.name}=\" + s).collect(Collectors.joining(\"&\")));" }
                 .joinToString(separator = "\n")
         
+        val addingAdditionalQueryParams : String = "params.add(additionalQueryParams.entrySet().stream().map(entry -> entry.getKey() + \"=\" + entry.getValue()).collect(Collectors.joining(\"&\")));"
+        
         val requestPathGeneration : String = """
             |List<String> params = new ArrayList<>();
             |$addingQueryParams
+            |$addingAdditionalQueryParams
             |params.removeIf(String::isEmpty);
             |String httpRequestPath = String.format("$stringFormat", $stringFormatArgs);
             |if(!params.isEmpty()){
