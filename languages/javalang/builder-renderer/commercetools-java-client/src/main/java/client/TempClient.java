@@ -1,8 +1,8 @@
 package client;
 
-public class TempClient implements HttpClient {
+public class TempClient implements ApiHttpClient {
     
-    public HttpResponse execute(final HttpRequest httpRequest) {
-        return new HttpResponse(200, null, "{}");
+    public ApiHttpResponse execute(final ApiHttpRequest httpRequest) {
+        return new ApiHttpResponse(200, null, "{}");
     }
 }

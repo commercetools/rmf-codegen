@@ -22,10 +22,10 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
         val content = """
             |package ${vrapType.`package`};
             |
-            |import client.HttpRequest;
-            |import client.HttpMethod;
-            |import client.HttpHeaders;
-            |import client.HttpResponse;
+            |import client.ApiHttpRequest;
+            |import client.ApiHttpMethod;
+            |import client.ApiHttpHeaders;
+            |import client.ApiHttpResponse;
             |import json.CommercetoolsJsonUtils;
             |import client.CommercetoolsClient;
             |
@@ -88,7 +88,7 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
     
     private fun Method.fields(): String? {
         val commandClassFields = mutableListOf<String>()
-        commandClassFields.add("private HttpHeaders headers = new HttpHeaders();")
+        commandClassFields.add("private ApiHttpHeaders headers = new ApiHttpHeaders();")
         commandClassFields.add("private Map<String, String> additionalQueryParams = new HashMap<>();")
         val parameterFields : String = 
                 this.queryParameters.map { "private List<${it.type.toVrapType().simpleName()}> ${it.name} = new ArrayList<>();" }
@@ -143,11 +143,11 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
         """.trimMargin().escapeAll()
         
         return """
-            |public HttpRequest createHttpRequest() {
-            |   HttpRequest httpRequest = new HttpRequest();
+            |public ApiHttpRequest createHttpRequest() {
+            |   ApiHttpRequest httpRequest = new ApiHttpRequest();
             |   $requestPathGeneration
             |   httpRequest.setPath(httpRequestPath); 
-            |   httpRequest.setMethod(HttpMethod.${this.method.name});
+            |   httpRequest.setMethod(ApiHttpMethod.${this.method.name});
             |   httpRequest.setHeaders(headers);
             |   ${if(bodyName != null) "try{httpRequest.setBody(CommercetoolsJsonUtils.toJsonString($bodyName));}catch(Exception e){e.printStackTrace();}" else "" }
             |   return httpRequest;
@@ -165,7 +165,7 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
         
         return """
             |public ${this.javaReturnType(vrapTypeProvider)} executeBlocking() {
-            |   HttpResponse response = CommercetoolsClient.getClient().execute(this.createHttpRequest());
+            |   ApiHttpResponse response = CommercetoolsClient.getClient().execute(this.createHttpRequest());
             |
             |   $responseErrorsDeserialization
             |   
@@ -230,7 +230,7 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
             |   return this;
             |}
             |
-            |public ${this.toRequestName()} withHeaders(final HttpHeaders headers) {
+            |public ${this.toRequestName()} withHeaders(final ApiHttpHeaders headers) {
             |   this.headers = headers;
             |   return this;
             |}
@@ -239,7 +239,7 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
             |   return this.headers.getHeaderValue(key);
             |}
             |
-            |public HttpHeaders getHeaders() {
+            |public ApiHttpHeaders getHeaders() {
             |   return this.headers;
             |}
             |

@@ -3,7 +3,7 @@ package client;
 import java.util.HashMap;
 import java.util.Map;
 
-public class HttpHeaders {
+public class ApiHttpHeaders {
 
     public static final String ACCEPT_ENCODING = "Accept-Encoding";
     public static final String AUTHORIZATION = "Authorization";
@@ -15,11 +15,11 @@ public class HttpHeaders {
     
     private Map<String, String> headers;
 
-    public HttpHeaders() {
+    public ApiHttpHeaders() {
         this.headers = new HashMap<>();
     }
 
-    public HttpHeaders(Map<String, String> headers) {
+    public ApiHttpHeaders(Map<String, String> headers) {
         this.headers = headers;
     }
     

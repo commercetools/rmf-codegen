@@ -22,7 +22,7 @@ class JavaApiRootFileProducer @Inject constructor(@ClientPackageName val clientP
         val content =  """
             |package $clientPackage;
             |
-            |import client.HttpClient;
+            |import client.ApiHttpClient;
             |
             |public class ApiRoot {
             |   
@@ -62,7 +62,7 @@ class JavaApiRootFileProducer @Inject constructor(@ClientPackageName val clientP
     
     private fun withClient() : String {
         return """
-            |public ApiRoot withClient(final HttpClient httpClient) {
+            |public ApiRoot withClient(final ApiHttpClient apiHttpClient) {
             |   return this;
             |}
         """.trimMargin().keepIndentation()
