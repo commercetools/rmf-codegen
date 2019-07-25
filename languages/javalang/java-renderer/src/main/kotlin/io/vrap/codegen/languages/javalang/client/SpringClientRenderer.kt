@@ -137,14 +137,14 @@ class SpringClientRenderer @Inject constructor(val packageProvider: PackageProvi
         paramsList.addAll(parameters)
         paramsList.addAll(queryParameters)
 
-        if (method.bodies?.isNotEmpty() ?: false) {
+        if (method.bodies?.isNotEmpty() == true && method.bodies[0].type !=null) {
             paramsList.add("${method.bodies[0].type.toVrapType().fullClassName()} body")
         }
         return paramsList.joinToString(separator = ", ")
     }
 
     fun Method.mediaType(): String {
-        if (this.bodies?.isNotEmpty() ?: false) {
+        if (this.bodies?.isNotEmpty() == true && this.bodies[0].type !=null) {
             val result = """
                 |final HttpHeaders headers = new HttpHeaders();
                 |headers.setContentType(MediaType.parseMediaType(("${this.bodies[0].contentType}")));

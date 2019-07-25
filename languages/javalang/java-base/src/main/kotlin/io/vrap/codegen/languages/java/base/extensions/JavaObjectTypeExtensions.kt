@@ -1,6 +1,6 @@
 package io.vrap.codegen.languages.java.base.extensions
 
-import io.vrap.codegen.languages.ExtensionsBase
+import io.vrap.codegen.languages.extensions.ExtensionsBase
 import io.vrap.codegen.languages.extensions.discriminatorProperty
 import io.vrap.codegen.languages.extensions.namedSubTypes
 import io.vrap.rmf.codegen.types.VrapArrayType

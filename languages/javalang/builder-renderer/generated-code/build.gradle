@@ -1,4 +1,10 @@
-
+publishing {
+    publications {
+        Maven(MavenPublication) {
+            from components.java
+        }
+    }
+}
 
 dependencies {
     compile project(':languages:javalang:builder-renderer:commercetools-java-client')
