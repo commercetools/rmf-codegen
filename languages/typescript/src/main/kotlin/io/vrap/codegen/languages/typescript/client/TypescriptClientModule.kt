@@ -7,7 +7,7 @@ import io.vrap.codegen.languages.typescript.client.files_producers.ClientFilePro
 import io.vrap.rmf.codegen.rendring.FileProducer
 import io.vrap.rmf.codegen.rendring.ResourceRenderer
 
-class TypescriptClientModule : AbstractModule() {
+object TypescriptClientModule : AbstractModule() {
     override fun configure() {
 
         Multibinder.newSetBinder(binder(), ResourceRenderer::class.java).addBinding().to(RequestBuilder::class.java)

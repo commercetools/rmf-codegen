@@ -50,6 +50,12 @@ class BuildLogicFunctionalTest {
         |               client_package = 'com.commercetools.client'
         |               target = 'typescriptModel'
         |          }
+        |          serviceName2 {
+        |               path = file('import-api/build/generated-classes')
+        |               models_package = 'com.commercetools.models'
+        |               client_package = 'com.commercetools.client'
+        |               target = 'typescriptClient'
+        |          }
         |          importApi_groovy_dsl {
         |               path = file('import-api/build/generated-classes')
         |               models_package = 'com.commercetools.models'
