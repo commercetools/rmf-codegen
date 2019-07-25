@@ -57,7 +57,7 @@ class JavaModelInterfaceRenderer @Inject constructor(override val vrapTypeProvid
             |   
             |   <${type.staticOfMethod()}>
             |
-            |   <${type.templateMethod()}>
+            |   <${type.templateMethodBody()}>
             |
             |}
         """.trimMargin().keepIndentation()
@@ -183,7 +183,7 @@ class JavaModelInterfaceRenderer @Inject constructor(override val vrapTypeProvid
         }
     }
 
-    private fun ObjectType.templateMethod(): String {
+    private fun ObjectType.templateMethodBody(): String {
         return if(this.isAbstract()) {
             ""
         }else {
@@ -207,14 +207,6 @@ class JavaModelInterfaceRenderer @Inject constructor(override val vrapTypeProvid
             |   return instance;
             |}
         """.trimMargin()
-        }
-    }
-
-    private fun Property.packageName() : String {
-        return if(this.type is ObjectType) {
-            "${(this.type.toVrapType() as VrapObjectType).`package`}."
-        } else {
-            ""
         }
     }
     
