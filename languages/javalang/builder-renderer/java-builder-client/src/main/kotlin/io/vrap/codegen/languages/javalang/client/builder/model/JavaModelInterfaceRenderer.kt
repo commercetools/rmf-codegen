@@ -148,8 +148,9 @@ class JavaModelInterfaceRenderer @Inject constructor(override val vrapTypeProvid
             |public void setValue(String key, ${this.type.toVrapType().simpleName()} value);
             """.trimMargin()
         } else {
-            return if(this.type is ArrayType){
-                val arrayType = this.type as ArrayType
+            val type = this.type
+            return if(type is ArrayType){
+                val arrayType : ArrayType = type
                 val listItemType : String = arrayType.items.name
                 
                 """
