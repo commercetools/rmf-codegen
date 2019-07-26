@@ -1,28 +1,28 @@
 package client;
 
-public class HttpRequest {
+public class ApiHttpRequest {
     
-    private HttpMethod method;
+    private ApiHttpMethod method;
     private String path;
-    private HttpHeaders headers;
+    private ApiHttpHeaders headers;
     private String body;
 
-    public HttpRequest() {
+    public ApiHttpRequest() {
         
     }
     
-    public HttpRequest(HttpMethod method, String path, HttpHeaders headers, String body) {
+    public ApiHttpRequest(ApiHttpMethod method, String path, ApiHttpHeaders headers, String body) {
         this.method = method;
         this.path = path;
         this.headers = headers;
         this.body = body;
     }
 
-    public HttpMethod getMethod() {
+    public ApiHttpMethod getMethod() {
         return method;
     }
 
-    public void setMethod(HttpMethod method) {
+    public void setMethod(ApiHttpMethod method) {
         this.method = method;
     }
 
@@ -34,11 +34,11 @@ public class HttpRequest {
         this.path = path;
     }
 
-    public HttpHeaders getHeaders() {
+    public ApiHttpHeaders getHeaders() {
         return headers;
     }
 
-    public void setHeaders(HttpHeaders headers) {
+    public void setHeaders(ApiHttpHeaders headers) {
         this.headers = headers;
     }
 

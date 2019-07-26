@@ -1,5 +1,5 @@
 package client;
 
-public enum HttpMethod {
+public enum ApiHttpMethod {
     GET, POST, DELETE, HEAD, PUT, TRACE, OPTIONS
 }

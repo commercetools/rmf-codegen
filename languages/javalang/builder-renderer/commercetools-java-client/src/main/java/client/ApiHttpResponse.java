@@ -1,12 +1,12 @@
 package client;
 
-public class HttpResponse {
+public class ApiHttpResponse {
     
     private int statusCode;
-    private HttpHeaders headers;
+    private ApiHttpHeaders headers;
     private String body;
 
-    public HttpResponse(int statusCode, HttpHeaders headers, String body) {
+    public ApiHttpResponse(int statusCode, ApiHttpHeaders headers, String body) {
         this.statusCode = statusCode;
         this.headers = headers;
         this.body = body;
@@ -20,11 +20,11 @@ public class HttpResponse {
         this.statusCode = statusCode;
     }
 
-    public HttpHeaders getHeaders() {
+    public ApiHttpHeaders getHeaders() {
         return headers;
     }
 
-    public void setHeaders(HttpHeaders headers) {
+    public void setHeaders(ApiHttpHeaders headers) {
         this.headers = headers;
     }
 

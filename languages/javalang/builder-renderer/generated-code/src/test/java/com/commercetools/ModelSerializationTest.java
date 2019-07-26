@@ -3,6 +3,8 @@ package com.commercetools;
 import com.commercetools.models.Category.*;
 import com.commercetools.models.Common.*;
 import com.commercetools.models.Type.*;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import json.CommercetoolsJsonUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -58,7 +60,12 @@ public class ModelSerializationTest {
                 .slug(localizedString)
                 .build();
         
-        String categoryDraftJson = categoryDraft.toJson();
+        String categoryDraftJson = "";
+        try{
+            categoryDraftJson = CommercetoolsJsonUtils.toJsonString(categoryDraft);
+        }catch (JsonProcessingException e){
+            e.printStackTrace();
+        }
         
         try{
             final URL url = Thread.currentThread().getContextClassLoader().getResource("json_examples/category-draft-example.json");
@@ -130,8 +137,8 @@ public class ModelSerializationTest {
         try{
             final URL url = Thread.currentThread().getContextClassLoader().getResource("json_examples/category-example.json");
             String categoryExampleJsonString = new String(Files.readAllBytes(Paths.get(url.getPath())));
-            Category exampleCategory = Category.of(categoryExampleJsonString);
-            Assert.assertEquals(category.toJson(), exampleCategory.toJson());
+            Category exampleCategory = CommercetoolsJsonUtils.fromJsonString(categoryExampleJsonString, Category.class);
+            Assert.assertEquals(CommercetoolsJsonUtils.toJsonString(category), CommercetoolsJsonUtils.toJsonString(exampleCategory));
         }catch (IOException e){
             e.printStackTrace();
             Assert.fail();

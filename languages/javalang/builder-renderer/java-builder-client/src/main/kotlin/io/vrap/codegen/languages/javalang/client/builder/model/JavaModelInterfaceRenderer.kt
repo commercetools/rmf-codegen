@@ -54,12 +54,10 @@ class JavaModelInterfaceRenderer @Inject constructor(override val vrapTypeProvid
             |   <${type.getters().escapeAll()}>
             |
             |   <${type.setters().escapeAll()}>
-            |
-            |   <${type.toJson()}>
             |   
             |   <${type.staticOfMethod()}>
-            |   
-            |   <${type.staticOfJsonMethod()}>
+            |
+            |   <${type.templateMethodBody()}>
             |
             |}
         """.trimMargin().keepIndentation()
@@ -115,31 +113,13 @@ class JavaModelInterfaceRenderer @Inject constructor(override val vrapTypeProvid
         }
     }
     
-    private fun ObjectType.staticOfJsonMethod() : String {
-        val vrapType = vrapTypeProvider.doSwitch(this) as VrapObjectType
-        return if(this.isAbstract()) {
-            ""
-        }else {
-            """
-                |public static ${vrapType.simpleClassName}Impl of(final String json) {
-                |   try{
-                |       return CommercetoolsJsonUtils.fromJsonString(json, ${vrapType.simpleClassName}Impl.class);
-                |   }catch (IOException e){
-                |       e.printStackTrace();
-                |   }
-                |   return null;
-                |}
-             """.trimMargin()
-        }
-    }
-    
     private fun ObjectType.getters() = this.properties
             .filter { it.name != this.discriminator() }
             .map { it.getter() }
             .joinToString(separator = "\n")
 
     private fun Property.getter(): String {
-        return if(this.isPatternProperty()){
+         return if(this.isPatternProperty()){
             """
             |${this.type.toComment()}
             |${this.validationAnnotations()}
@@ -168,7 +148,18 @@ class JavaModelInterfaceRenderer @Inject constructor(override val vrapTypeProvid
             |public void setValue(String key, ${this.type.toVrapType().simpleName()} value);
             """.trimMargin()
         } else {
-            "public void set${this.name.upperCamelCase()}(final ${this.type.toVrapType().simpleName()} ${this.name.lowerCamelCase()});"
+            val type = this.type
+            return if(type is ArrayType){
+                val arrayType : ArrayType = type
+                val listItemType : String = arrayType.items.name
+                
+                """
+                    |public void set${this.name.upperCamelCase()}(final ${arrayType.items.toVrapType().simpleName()}... ${listItemType.lowerCamelCase()});
+                    |public void set${this.name.upperCamelCase()}(final ${this.type.toVrapType().simpleName()} ${this.name.lowerCamelCase()});
+                """.trimMargin()
+            }else{
+                "public void set${this.name.upperCamelCase()}(final ${this.type.toVrapType().simpleName()} ${this.name.lowerCamelCase()});"
+            }
         }
     }
 
@@ -192,9 +183,32 @@ class JavaModelInterfaceRenderer @Inject constructor(override val vrapTypeProvid
             "@JsonDeserialize(as = ${vrapType.simpleClassName}Impl.class)"    
         }
     }
-    
-    private fun ObjectType.toJson() : String {
-        return "public String toJson();"
+
+    private fun ObjectType.templateMethodBody(): String {
+        return if(this.isAbstract()) {
+            ""
+        }else {
+            val vrapType = vrapTypeProvider.doSwitch(this) as VrapObjectType
+            val fieldsAssignment : String = this.allProperties
+                    .filter {it.name != this.discriminator()}
+                    .map {
+                        if(!it.isPatternProperty()){
+                            "instance.set${it.name.upperCamelCase()}(template.get${it.name.upperCamelCase()}());"
+                        }else{
+                            "template.values().forEach((s, o) -> instance.setValue(s, o));".escapeAll()
+                            ""
+                        }
+                    }
+                    .joinToString(separator = "\n")
+
+            """
+            |public static ${vrapType.simpleClassName}Impl of(final ${vrapType.simpleClassName} template) {
+            |   ${vrapType.simpleClassName}Impl instance = new ${vrapType.simpleClassName}Impl();
+            |   <$fieldsAssignment>
+            |   return instance;
+            |}
+        """.trimMargin()
+        }
     }
     
     private object CascadeValidationCheck : TypesSwitch<Boolean>() {

@@ -22,9 +22,13 @@ class JavaApiRootFileProducer @Inject constructor(@ClientPackageName val clientP
         val content =  """
             |package $clientPackage;
             |
+            |import client.ApiHttpClient;
+            |
             |public class ApiRoot {
             |   
             |   <${api.subResources()}>
+            |   
+            |   <${withClient()}>
             |}
         """.trimMargin().keepIndentation()
 
@@ -54,5 +58,14 @@ class JavaApiRootFileProducer @Inject constructor(@ClientPackageName val clientP
             |}
         """.trimMargin()
         }.joinToString(separator = "\n")
+    }
+    
+    private fun withClient() : String {
+        return """
+            |public ApiRoot withClient(final ApiHttpClient apiHttpClient) {
+            |   return this;
+            |}
+        """.trimMargin().keepIndentation()
+        
     }
 }
