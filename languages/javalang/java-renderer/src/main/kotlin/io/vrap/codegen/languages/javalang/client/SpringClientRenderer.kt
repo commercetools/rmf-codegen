@@ -22,7 +22,7 @@ import io.vrap.rmf.raml.model.responses.Response
 import io.vrap.rmf.raml.model.types.AnyType
 import io.vrap.rmf.raml.model.types.impl.TypesFactoryImpl
 
-class SpringClientRenderer @Inject constructor(val packageProvider: PackageProvider, override val vrapTypeProvider: VrapTypeProvider) : ResourceCollectionRenderer, JavaEObjectTypeExtensions {
+class SpringClientRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : ResourceCollectionRenderer, JavaEObjectTypeExtensions {
 
 
     override fun render(type: ResourceCollection): TemplateFile {
@@ -80,7 +80,7 @@ class SpringClientRenderer @Inject constructor(val packageProvider: PackageProvi
 
     fun javaBody(resource: Resource, method: Method): String {
 
-        val methodReturnType = vrapTypeProvider.doSwitch(method.retyurnType())
+        val methodReturnType = vrapTypeProvider.doSwitch(method.retyurnType()).toJavaVType()
         val returnIsEmpty = methodReturnType is VrapNilType
 
         val body = """

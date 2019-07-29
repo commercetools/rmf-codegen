@@ -25,10 +25,13 @@ fun VrapType.fullClassName():String{
 fun VrapType.toJavaVType():VrapType {
     return when(this){
         is VrapObjectType -> {
-            return VrapObjectType(`package` = this.`package`.toJavaPackage(), simpleClassName = this.simpleClassName)
+             VrapObjectType(`package` = this.`package`.toJavaPackage(), simpleClassName = this.simpleClassName)
         }
         is VrapEnumType -> {
-            return VrapEnumType(`package` = this.`package`.toJavaPackage(), simpleClassName = this.simpleClassName)
+             VrapEnumType(`package` = this.`package`.toJavaPackage(), simpleClassName = this.simpleClassName)
+        }
+        is VrapArrayType -> {
+            VrapArrayType(this.itemType.toJavaVType())
         }
         else -> {
             this
