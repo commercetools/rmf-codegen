@@ -15,7 +15,6 @@ import io.vrap.rmf.codegen.rendring.utils.escapeAll
 import io.vrap.rmf.codegen.rendring.utils.keepIndentation
 import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
-import io.vrap.rmf.raml.model.types.ArrayType
 import io.vrap.rmf.raml.model.types.ObjectType
 import io.vrap.rmf.raml.model.types.Property
 
@@ -112,24 +111,11 @@ class JavaModelClassFileProducer @Inject constructor(override val vrapTypeProvid
             |}
             """.trimMargin()
         } else {
-            return if(this.type is ArrayType){
-                val arrayType = this.type as ArrayType
-                """
-                |public void set${this.name.upperCamelCase()}(final ${this.packageName()}${arrayType.items.toVrapType().simpleName()}... ${this.name.lowerCamelCase()}){
-                |   this.${this.name.lowerCamelCase()} = Arrays.asList(${this.name.lowerCamelCase()});
-                |}
-                |
-                |public void set${this.name.upperCamelCase()}(final ${this.packageName()}${this.type.toVrapType().simpleName()} ${this.name.lowerCamelCase()}){
-                |   this.${this.name.lowerCamelCase()} = ${this.name.lowerCamelCase()};
-                |}
-                """.trimMargin()
-            }else{
-                """
-                |public void set${this.name.upperCamelCase()}(final ${this.packageName()}${this.type.toVrapType().simpleName()} ${this.name.lowerCamelCase()}){
-                |   this.${this.name.lowerCamelCase()} = ${this.name.lowerCamelCase()};
-                |}
-                """.trimMargin()
-            }
+            """
+            |public void set${this.name.upperCamelCase()}(final ${this.packageName()}${this.type.toVrapType().simpleName()} ${this.name.lowerCamelCase()}){
+            |   this.${this.name.lowerCamelCase()} = ${this.name.lowerCamelCase()};
+            |}
+            """.trimMargin()
         }
     }
 

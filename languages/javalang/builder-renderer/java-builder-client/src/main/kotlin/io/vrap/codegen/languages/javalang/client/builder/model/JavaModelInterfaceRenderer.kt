@@ -148,18 +148,7 @@ class JavaModelInterfaceRenderer @Inject constructor(override val vrapTypeProvid
             |public void setValue(String key, ${this.type.toVrapType().simpleName()} value);
             """.trimMargin()
         } else {
-            val type = this.type
-            return if(type is ArrayType){
-                val arrayType : ArrayType = type
-                val listItemType : String = arrayType.items.name
-                
-                """
-                    |public void set${this.name.upperCamelCase()}(final ${arrayType.items.toVrapType().simpleName()}... ${listItemType.lowerCamelCase()});
-                    |public void set${this.name.upperCamelCase()}(final ${this.type.toVrapType().simpleName()} ${this.name.lowerCamelCase()});
-                """.trimMargin()
-            }else{
-                "public void set${this.name.upperCamelCase()}(final ${this.type.toVrapType().simpleName()} ${this.name.lowerCamelCase()});"
-            }
+            "public void set${this.name.upperCamelCase()}(final ${this.type.toVrapType().simpleName()} ${this.name.lowerCamelCase()});"
         }
     }
 

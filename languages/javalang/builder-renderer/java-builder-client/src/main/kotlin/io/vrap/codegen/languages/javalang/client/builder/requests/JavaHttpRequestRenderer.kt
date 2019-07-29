@@ -29,6 +29,8 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
             |import json.CommercetoolsJsonUtils;
             |import client.CommercetoolsClient;
             |
+            |import java.io.IOException;
+            |
             |import java.util.ArrayList;
             |import java.util.List;
             |import java.util.Map;
@@ -165,7 +167,12 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
         
         return """
             |public ${this.javaReturnType(vrapTypeProvider)} executeBlocking() {
-            |   ApiHttpResponse response = CommercetoolsClient.getClient().execute(this.createHttpRequest());
+            |   ApiHttpResponse response;
+            |   try{
+            |       response = CommercetoolsClient.getClient().execute(this.createHttpRequest());
+            |   }catch(IOException e){
+            |       throw new RuntimeException(e.getMessage());
+            |   }
             |
             |   $responseErrorsDeserialization
             |   
