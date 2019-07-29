@@ -15,13 +15,14 @@ public class TempClient implements ApiHttpClient {
     private static final String AUTH_US_BASE_URL = "https://auth.commercetools.co";
     private static final String API_EUROPE_BASE_URL = "https://api.sphere.io";
     private static final String AUTH_PATH = "/oauth/token";
+    private static final String INTROSPECT_PATH = "/oauth/introspect";
     
     private static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
     private static final OkHttpClient client = new OkHttpClient();
     private String token = "";
     
     public ApiHttpResponse execute(final ApiHttpRequest apiHttpRequest) throws IOException {
-        if(token.isEmpty()){
+        if(token.isEmpty() || !isTokenActive()){
             token = obtainAccessToken();
         }
         //set path
@@ -92,5 +93,25 @@ public class TempClient implements ApiHttpClient {
         String accessToken = authenticationToken.getAccessToken();
         System.out.println("Access token : " + accessToken);
         return accessToken;
+    }
+    
+    private boolean isTokenActive() throws IOException {
+        System.out.println("introspecting token");
+        String clientId = System.getenv("JVM_SDK_IT_CLIENT_ID");
+        String clientSecret = System.getenv("JVM_SDK_IT_CLIENT_SECRET");
+
+        String auth = Base64.getEncoder().encodeToString((clientId + ":" + clientSecret).getBytes(StandardCharsets.UTF_8));
+        RequestBody formBody = new FormBody.Builder()
+                .add("token", token).build();
+        Request request = new Request.Builder()
+                .url(AUTH_EUROPE_BASE_URL + INTROSPECT_PATH)
+                .header("Authorization", "Basic " + auth)
+                .post(formBody).build();
+        Response response = client.newCall(request).execute();
+        String responseString = response.body().string();
+        System.out.println("Token introspection response status code : " + response.code());
+        System.out.println("Token introspection response body : " + responseString);
+        TokenIntrospection tokenIntrospection = CommercetoolsJsonUtils.fromJsonString(responseString, TokenIntrospection.class);
+        return tokenIntrospection.isActive();
     }
 }
