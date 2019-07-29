@@ -24,13 +24,13 @@ class BuilderTestCodeGenerator {
         private val userProvidedPath = System.getenv("TEST_RAML_FILE")
         private val apiPath : Path = Paths.get(if (userProvidedPath == null) "../api-spec/api.raml" else userProvidedPath)
         val apiProvider: ApiProvider = ApiProvider(apiPath)
-        val generatorConfig = CodeGeneratorConfig(basePackageName = "com.commercetools.test")
+        val generatorConfig = CodeGeneratorConfig(basePackageName = "com/commercetools/test")
     }
     
     @Ignore
     @Test
     fun generateJavaModelsWithInterfacesModule() {
-        val generatorConfig = CodeGeneratorConfig(basePackageName = "com.commercetools.importer", outputFolder = Paths.get("build/gensrc/java"))
+        val generatorConfig = CodeGeneratorConfig(basePackageName = "com/commercetools/importer", outputFolder = Paths.get("build/gensrc/java"))
         val generatorModule = GeneratorModule(apiProvider, generatorConfig, JavaBaseTypes)
         val generatorComponent = GeneratorComponent(generatorModule, JavaCompleteModule())
         generatorComponent.generateFiles()

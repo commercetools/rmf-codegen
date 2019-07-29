@@ -25,7 +25,6 @@ class ApiRootFileProducer @Inject constructor(
     }
 
     fun produceApiRoot(type: Api): TemplateFile {
-        println(client_package)
         val moduleName = "$client_package/ApiRoot"
         return TemplateFile(
                 relativePath = moduleName.replace(".", "/") + ".ts",

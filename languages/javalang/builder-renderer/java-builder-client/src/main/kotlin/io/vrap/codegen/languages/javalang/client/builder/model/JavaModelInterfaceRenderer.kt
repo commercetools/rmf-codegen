@@ -1,15 +1,11 @@
 package io.vrap.codegen.languages.javalang.client.builder.model
 
 import com.google.inject.Inject
-import io.vrap.codegen.languages.extensions.EObjectExtensions
 import io.vrap.codegen.languages.extensions.hasSubtypes
 import io.vrap.codegen.languages.extensions.isPatternProperty
 import io.vrap.codegen.languages.extensions.toComment
 import io.vrap.codegen.languages.java.base.JavaSubTemplates
-import io.vrap.codegen.languages.java.base.extensions.JavaObjectTypeExtensions
-import io.vrap.codegen.languages.java.base.extensions.lowerCamelCase
-import io.vrap.codegen.languages.java.base.extensions.simpleName
-import io.vrap.codegen.languages.java.base.extensions.upperCamelCase
+import io.vrap.codegen.languages.java.base.extensions.*
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.ObjectTypeRenderer
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
@@ -22,10 +18,10 @@ import io.vrap.rmf.raml.model.types.Property
 import io.vrap.rmf.raml.model.types.util.TypesSwitch
 import org.eclipse.emf.ecore.EObject
 
-class JavaModelInterfaceRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : JavaObjectTypeExtensions, EObjectExtensions, ObjectTypeRenderer {
+class JavaModelInterfaceRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : JavaObjectTypeExtensions, JavaEObjectTypeExtensions, ObjectTypeRenderer {
 
     override fun render(type: ObjectType): TemplateFile {
-        val vrapType = vrapTypeProvider.doSwitch(type) as VrapObjectType
+        val vrapType = vrapTypeProvider.doSwitch(type).toJavaVType() as VrapObjectType
 
         val content= """
             |package ${vrapType.`package`};

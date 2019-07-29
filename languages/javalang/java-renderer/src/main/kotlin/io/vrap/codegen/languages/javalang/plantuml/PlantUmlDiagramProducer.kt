@@ -1,7 +1,7 @@
 package io.vrap.codegen.languages.javalang.plantuml
 
 import com.google.inject.Inject
-import io.vrap.codegen.languages.extensions.EObjectExtensions
+import io.vrap.codegen.languages.java.base.extensions.JavaEObjectTypeExtensions
 import io.vrap.codegen.languages.java.base.extensions.JavaObjectTypeExtensions
 import io.vrap.codegen.languages.java.base.extensions.simpleName
 import io.vrap.rmf.codegen.io.TemplateFile
@@ -14,7 +14,7 @@ import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.types.*
 import io.vrap.rmf.raml.model.util.StringCaseFormat
 
-class PlantUmlDiagramProducer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : JavaObjectTypeExtensions, EObjectExtensions, FileProducer {
+class PlantUmlDiagramProducer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : JavaObjectTypeExtensions, JavaEObjectTypeExtensions, FileProducer {
 
     @Inject
     lateinit var allObjectTypes: MutableList<ObjectType>

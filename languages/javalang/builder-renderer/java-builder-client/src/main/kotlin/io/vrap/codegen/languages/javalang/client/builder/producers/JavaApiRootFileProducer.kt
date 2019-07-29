@@ -3,6 +3,7 @@ package io.vrap.codegen.languages.javalang.client.builder.producers
 import com.google.inject.Inject
 import io.vrap.codegen.languages.extensions.getMethodName
 import io.vrap.codegen.languages.extensions.toResourceName
+import io.vrap.codegen.languages.java.base.extensions.toJavaPackage
 import io.vrap.rmf.codegen.di.ClientPackageName
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.FileProducer
@@ -11,7 +12,7 @@ import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.modules.Api
 import io.vrap.rmf.raml.model.resources.ResourceContainer
 
-class JavaApiRootFileProducer @Inject constructor(@ClientPackageName val clientPackage: String, val api: Api, val vrapTypeProvider: VrapTypeProvider) : FileProducer {
+class JavaApiRootFileProducer @Inject constructor(@ClientPackageName val clientPackage: String, val api: Api) : FileProducer {
 
     override fun produceFiles(): List<TemplateFile> {
         return listOf(generateApiRoot(api))
@@ -20,7 +21,7 @@ class JavaApiRootFileProducer @Inject constructor(@ClientPackageName val clientP
     private fun generateApiRoot(api: Api) : TemplateFile {
         
         val content =  """
-            |package $clientPackage;
+            |package ${clientPackage.toJavaPackage()};
             |
             |import client.ApiHttpClient;
             |

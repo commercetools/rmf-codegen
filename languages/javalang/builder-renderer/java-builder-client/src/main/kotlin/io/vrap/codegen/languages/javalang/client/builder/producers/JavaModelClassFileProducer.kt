@@ -5,10 +5,7 @@ import io.vrap.codegen.languages.extensions.EObjectExtensions
 import io.vrap.codegen.languages.extensions.isPatternProperty
 import io.vrap.codegen.languages.extensions.toComment
 import io.vrap.codegen.languages.java.base.JavaSubTemplates
-import io.vrap.codegen.languages.java.base.extensions.JavaObjectTypeExtensions
-import io.vrap.codegen.languages.java.base.extensions.lowerCamelCase
-import io.vrap.codegen.languages.java.base.extensions.simpleName
-import io.vrap.codegen.languages.java.base.extensions.upperCamelCase
+import io.vrap.codegen.languages.java.base.extensions.*
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.FileProducer
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
@@ -20,7 +17,7 @@ import io.vrap.rmf.raml.model.types.ObjectType
 import io.vrap.rmf.raml.model.types.Property
 
 
-class JavaModelClassFileProducer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider, private val allObjectTypes: MutableList<ObjectType>) : JavaObjectTypeExtensions, EObjectExtensions, FileProducer {
+class JavaModelClassFileProducer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider, private val allObjectTypes: MutableList<ObjectType>) : JavaObjectTypeExtensions, JavaEObjectTypeExtensions, FileProducer {
     
     override fun produceFiles(): List<TemplateFile> {
         return allObjectTypes.filter { !it.isAbstract() }.map { render(it) }
@@ -28,7 +25,7 @@ class JavaModelClassFileProducer @Inject constructor(override val vrapTypeProvid
 
     fun render(type: ObjectType): TemplateFile {
 
-        val vrapType = vrapTypeProvider.doSwitch(type) as VrapObjectType
+        val vrapType = vrapTypeProvider.doSwitch(type).toJavaVType() as VrapObjectType
         
         val content = """
                 |package ${vrapType.`package`};
@@ -152,7 +149,7 @@ class JavaModelClassFileProducer @Inject constructor(override val vrapTypeProvid
     }
     
     private fun ObjectType.constructors(): String {
-        val vrapType = vrapTypeProvider.doSwitch(this) as VrapObjectType
+        val vrapType = vrapTypeProvider.doSwitch(this).toJavaVType() as VrapObjectType
         val constructorArguments = this.allProperties
                 .filter { it.name != this.discriminator() }
                 .map { if(it.isPatternProperty()) "@JsonProperty(\"values\") final Map<String, ${it.packageName()}${it.type.toVrapType().simpleName()}> values" else "@JsonProperty(\"${it.name.lowerCamelCase()}\") final ${it.packageName()}${it.type.toVrapType().simpleName()} ${it.name.lowerCamelCase()}" }
