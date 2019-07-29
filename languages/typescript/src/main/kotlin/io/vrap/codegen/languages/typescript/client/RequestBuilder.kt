@@ -13,13 +13,12 @@ import io.vrap.codegen.languages.typescript.tsRequestModuleName
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.ResourceRenderer
 import io.vrap.rmf.codegen.rendring.utils.keepIndentation
-import io.vrap.rmf.codegen.types.VrapLibraryType
-import io.vrap.rmf.codegen.types.VrapObjectType
-import io.vrap.rmf.codegen.types.VrapTypeProvider
+import io.vrap.rmf.codegen.types.*
 import io.vrap.rmf.raml.model.modules.Api
 import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.types.StringType
+import java.lang.Error
 
 
 class RequestBuilder @Inject constructor(
@@ -172,27 +171,17 @@ class RequestBuilder @Inject constructor(
                                 .flatMap { it.bodies }
                                 .filter { it.type != null }
                                 .map { it.type.toVrapType() }
-                                .filter { it is VrapObjectType }
-                                .map { it as VrapObjectType }
+                                .filter { it is VrapObjectType || (it is VrapArrayType && it.itemType is VrapObjectType) }
                                 .map {
-                                    when(it){
-                                        is VrapLibraryType -> "import { ${it.simpleClassName} } from '${it.`package`}'"
-                                        else -> {
-                                            val relativePath = relativizePaths(moduleName, it.`package`)
-                                            "import { ${it.simpleTSName()} } from '$relativePath'"
-
-                                        }
-                                    }
+                                    it.toImportStatement(moduleName)
                                 }
                 )
                 .plus(
                         this.methods
                                 .map { it.returnType().toVrapType() }
-                                .filter { it is VrapObjectType }
-                                .map { it as VrapObjectType }
+                                .filter {it is VrapObjectType || (it is VrapArrayType && it.itemType is VrapObjectType)  }
                                 .map {
-                                    val relativePath = relativizePaths(moduleName, it.`package`)
-                                    "import { ${it.simpleTSName()} } from '$relativePath'"
+                                    it.toImportStatement(moduleName)
                                 }
                 )
                 .plus(
@@ -204,6 +193,22 @@ class RequestBuilder @Inject constructor(
 
     override fun hasPathArgs(): Boolean = true
 
+    private fun VrapType.toImportStatement(moduleName:String):String {
+        return when (this) {
+            is VrapLibraryType -> "import { ${this.simpleClassName} } from '${this.`package`}'"
+            is VrapObjectType -> {
+                val relativePath = relativizePaths(moduleName, this.`package`)
+                "import { ${this.simpleTSName()} } from '$relativePath'"
+
+            }
+            is VrapArrayType -> {
+                val objType = this.itemType as VrapObjectType
+                val relativePath = relativizePaths(moduleName, objType.`package`)
+                return "import { ${objType.simpleTSName()} } from '$relativePath'"
+            }
+            else -> throw Error("not supposed to arrive here")
+        }
+    }
 }
 
 
