@@ -32,7 +32,7 @@ class BuilderTestCodeGenerator {
     fun generateJavaModelsWithInterfacesModule() {
         val generatorConfig = CodeGeneratorConfig(basePackageName = "com/commercetools/importer", outputFolder = Paths.get("build/gensrc/java"))
         val generatorModule = GeneratorModule(apiProvider, generatorConfig, JavaBaseTypes)
-        val generatorComponent = GeneratorComponent(generatorModule, JavaCompleteModule())
+        val generatorComponent = GeneratorComponent(generatorModule, JavaCompleteModule)
         generatorComponent.generateFiles()
 
         File("build/compiled").deleteRecursively()
@@ -62,7 +62,7 @@ class BuilderTestCodeGenerator {
     fun generateJavaCompleteModule() {
         val generatorConfig = CodeGeneratorConfig(basePackageName = "com.commercetools", outputFolder = Paths.get("../generated-code/src/main/java"))
         val generatorModule = GeneratorModule(apiProvider, generatorConfig, JavaBaseTypes)
-        val generatorComponent = GeneratorComponent(generatorModule, JavaCompleteModule())
+        val generatorComponent = GeneratorComponent(generatorModule, JavaCompleteModule)
         generatorComponent.generateFiles()
     }
 
@@ -76,7 +76,7 @@ class BuilderTestCodeGenerator {
         val testApiProvider = ApiProvider(Paths.get("src/test/resources/java/ramlTestFiles/test-api.raml"))
         val generatorConfig = CodeGeneratorConfig(basePackageName = "com.commercetools.test", outputFolder = Paths.get("build/gensrc/java"))
         val generatorModule = GeneratorModule(testApiProvider, generatorConfig, JavaBaseTypes)
-        val generatorComponent = GeneratorComponent(generatorModule, JavaCompleteModule())
+        val generatorComponent = GeneratorComponent(generatorModule, JavaCompleteModule)
         generatorComponent.generateFiles()
 
         val generatedSimpleTypeInterface = String(Files.readAllBytes(Paths.get("build/gensrc/java/com/commercetools/test/models/simpleTypes/SimpleType.java")))

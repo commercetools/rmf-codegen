@@ -12,7 +12,7 @@ import io.vrap.codegen.languages.javalang.client.builder.requests.JavaRequestBui
 
 import io.vrap.rmf.codegen.rendring.*
 
-class JavaCompleteModule: AbstractModule() {
+object JavaCompleteModule: AbstractModule() {
     override fun configure() {
         val objectTypeBinder = Multibinder.newSetBinder(binder(), ObjectTypeRenderer::class.java)
         objectTypeBinder.addBinding().to(JavaModelInterfaceRenderer::class.java)
