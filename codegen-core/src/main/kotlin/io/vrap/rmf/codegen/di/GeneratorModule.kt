@@ -30,7 +30,7 @@ class GeneratorModule constructor(
         private val apiProvider: ApiProvider,
         @get:Provides @get:Singleton val generatorConfig: io.vrap.rmf.codegen.CodeGeneratorConfig,
         @get:Provides @get:Singleton val languageBaseTypes: LanguageBaseTypes,
-        private val defaultPackage: String = "io.vrap.rmf"
+        private val defaultPackage: String = "io/vrap/rmf"
 
 
 ) : AbstractModule() {
@@ -69,23 +69,23 @@ class GeneratorModule constructor(
             api: Api
     ): String {
         if (generatorConfig.basePackageName == null && api.baseUri == null) {
-            io.vrap.rmf.codegen.di.GeneratorModule.Companion.LOGGER.warn("Could not find proper package name configuration. Using default $defaultPackage")
+            LOGGER.warn("Could not find proper package name configuration. Using default $defaultPackage")
             return defaultPackage
         }
-        return generatorConfig.basePackageName ?: URI(api.baseUri.expand()).host.split(".").reversed().joinToString(".")
+        return generatorConfig.basePackageName ?: URI(api.baseUri.expand()).host.split(".").reversed().joinToString("/")
     }
 
     @Provides
     @Singleton
     @ModelPackageName
     fun provideModelPackageName(@BasePackageName basePackageName: String): String = generatorConfig.modelPackage
-            ?: if (basePackageName.isBlank()) "models" else "$basePackageName.models"
+            ?: if (basePackageName.isBlank()) "models" else "$basePackageName/models"
 
     @Provides
     @Singleton
     @ClientPackageName
     fun provideClientPackageName(@BasePackageName basePackageName: String): String = generatorConfig.clientPackage
-            ?: if (basePackageName.isBlank()) "client" else "$basePackageName.client"
+            ?: if (basePackageName.isBlank()) "client" else "$basePackageName/client"
 
     @Provides
     @Singleton
