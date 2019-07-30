@@ -41,7 +41,7 @@ class PackageProvider @Inject constructor(
                 if (annotation != null) {
                     return annotation.let { it.value }
                             ?.let { it.value }
-                            ?.let { "$localModelPackage.$it" }
+                            ?.let { "$localModelPackage/$it" }
                             ?: localModelPackage
                 }
                 if (currentType.eContainer() is Library && (currentType.eContainer() as Library).getAnnotation("package") != null) {
