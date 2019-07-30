@@ -20,26 +20,26 @@ class ApiRootFileProducer @Inject constructor(api: Api, vrapTypeProvider: VrapTy
     fun produceApiRoot(type: Api): TemplateFile {
         return TemplateFile(relativePath = "src/Client/ApiRoot.php",
                 content = """
-                        |<?php
-                        |${PhpSubTemplates.generatorInfo}
-                        |
-                        |namespace ${packagePrefix.toNamespaceName().escapeAll()}\\Client;
-                        |
-                        |<<${type.imports()}>>
-                        |use GuzzleHttp\\Client;
-                        |
-                        |class ApiRoot extends ApiResource
-                        |{
-                        |   /**
-                        |    * @psalm-param array<string, scalar> $!args
-                        |    */
-                        |   public function __construct(Client $!client = null, array $!args = [])
-                        |   {
-                        |       parent::__construct('', $!args, $!client);
-                        |   }
-                        |
-                        |   <<${type.subResources()}>>
-                        |}
-                    """.trimMargin().keepIndentation("<<", ">>").forcedLiteralEscape())
+                    |<?php
+                    |${PhpSubTemplates.generatorInfo}
+                    |
+                    |namespace ${packagePrefix.toNamespaceName().escapeAll()}\\Client;
+                    |
+                    |<<${type.imports()}>>
+                    |use GuzzleHttp\\Client;
+                    |
+                    |class ApiRoot extends ApiResource
+                    |{
+                    |   /**
+                    |    * @psalm-param array<string, scalar> $!args
+                    |    */
+                    |   public function __construct(Client $!client = null, array $!args = [])
+                    |   {
+                    |       parent::__construct('', $!args, $!client);
+                    |   }
+                    |
+                    |   <<${type.subResources()}>>
+                    |}
+                """.trimMargin().keepIndentation("<<", ">>").forcedLiteralEscape())
     }
 }
