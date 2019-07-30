@@ -32,10 +32,10 @@ interface JavaObjectTypeExtensions : ExtensionsBase {
 }
 
 fun getImportsForType(vrapType: VrapType): String? {
-    return when (vrapType) {
-        is VrapObjectType -> "${vrapType.`package`}.${vrapType.simpleClassName}"
-        is VrapArrayType -> getImportsForType(vrapType.itemType)
-        is VrapEnumType -> "${vrapType.`package`}.${vrapType.simpleClassName}"
+    return when (val javaVTypes = vrapType.toJavaVType()) {
+        is VrapObjectType -> "${javaVTypes.`package`}.${javaVTypes.simpleClassName}"
+        is VrapArrayType -> getImportsForType(javaVTypes.itemType)
+        is VrapEnumType -> "${javaVTypes.`package`}.${javaVTypes.simpleClassName}"
         else -> null
 
     }

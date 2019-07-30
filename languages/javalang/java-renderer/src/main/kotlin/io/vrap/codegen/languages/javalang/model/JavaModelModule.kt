@@ -5,7 +5,7 @@ import com.google.inject.multibindings.Multibinder
 import io.vrap.rmf.codegen.rendring.ObjectTypeRenderer
 import io.vrap.rmf.codegen.rendring.StringTypeRenderer
 
-class JavaModelModule: AbstractModule() {
+object JavaModelModule: AbstractModule() {
     override fun configure() {
         val objectTypeBinder = Multibinder.newSetBinder(binder(), ObjectTypeRenderer::class.java)
         objectTypeBinder.addBinding().to(JavaObjectTypeRenderer::class.java)

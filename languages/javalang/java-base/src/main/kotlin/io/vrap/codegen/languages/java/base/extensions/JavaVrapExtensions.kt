@@ -21,3 +21,23 @@ fun VrapType.fullClassName():String{
         is VrapNilType -> "void"
     }
 }
+
+fun VrapType.toJavaVType():VrapType {
+    return when(this){
+        is VrapObjectType -> {
+             VrapObjectType(`package` = this.`package`.toJavaPackage(), simpleClassName = this.simpleClassName)
+        }
+        is VrapEnumType -> {
+             VrapEnumType(`package` = this.`package`.toJavaPackage(), simpleClassName = this.simpleClassName)
+        }
+        is VrapArrayType -> {
+            VrapArrayType(this.itemType.toJavaVType())
+        }
+        else -> {
+            this
+        }
+
+    }
+}
+
+fun String.toJavaPackage() = this.replace("/",".")

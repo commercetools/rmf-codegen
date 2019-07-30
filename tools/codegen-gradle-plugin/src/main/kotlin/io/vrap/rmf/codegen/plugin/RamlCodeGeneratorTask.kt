@@ -58,19 +58,19 @@ open class RamlCodeGeneratorTask : DefaultTask() {
 
             TargetType.JAVA_MODEL -> {
                 val generatorModule = GeneratorModule(apiProvider, generatorConfig, JavaBaseTypes)
-                GeneratorComponent(generatorModule, JavaModelModule())
+                GeneratorComponent(generatorModule, JavaModelModule)
             }
             TargetType.JAVA_MODEL_WITH_INTERFACES -> {
                 val generatorModule = GeneratorModule(apiProvider, generatorConfig, JavaBaseTypes)
-                GeneratorComponent(generatorModule, JavaCompleteModule())
+                GeneratorComponent(generatorModule, JavaCompleteModule)
             }
             TargetType.JAVA_SPRING_CLIENT -> {
                 val generatorModule = GeneratorModule(apiProvider, generatorConfig, JavaBaseTypes)
-                GeneratorComponent(generatorModule, SpringClientModule())
+                GeneratorComponent(generatorModule, SpringClientModule)
             }
             TargetType.GROOVY_DSL -> {
                 val generatorModule = GeneratorModule(apiProvider, generatorConfig, JavaBaseTypes)
-                GeneratorComponent(generatorModule, GroovyDslModule())
+                GeneratorComponent(generatorModule, GroovyDslModule)
             }
             TargetType.TYPESCRIPT_MODEL -> {
                 val generatorModule = GeneratorModule(apiProvider, generatorConfig, TypeScriptBaseTypes)

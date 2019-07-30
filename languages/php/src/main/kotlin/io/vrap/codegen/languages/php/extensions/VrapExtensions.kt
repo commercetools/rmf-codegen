@@ -13,12 +13,12 @@ import io.vrap.rmf.raml.model.util.StringCaseFormat
 import java.util.stream.Collectors
 
 fun String.toNamespaceName():String{
-    val `package` = this.split(".")
+    val `package` = this.split("/")
     return `package`.takeLast(maxOf(`package`.size - 1, 1)).map { s -> s.capitalize() }.joinToString("\\")
 }
 
 fun String.toNamespaceDir():String{
-    val `package` = this.split(".")
+    val `package` = this.split("/")
     return `package`.takeLast(maxOf(`package`.size - 1, 1)).map { s -> s.capitalize() }.joinToString("/")
 }
 

@@ -51,10 +51,10 @@ fun String.tsRemoveRegexp():String {
     return this
 }
 
-fun Resource.tsRequestModuleName(clientPackageName: String):String = "$clientPackageName.${this.resourcePathName}.${this.toResourceName()}RequestBuilder"
+fun Resource.tsRequestModuleName(clientPackageName: String):String = "$clientPackageName/${this.resourcePathName}/${this.toResourceName()}RequestBuilder"
 
 fun relativizePaths(currentModule: String, targetModule: String): String {
-    val currentRelative: Path = Paths.get(currentModule.replace(".", "/"))
-    val targetRelative: Path = Paths.get(targetModule.replace(".", "/"))
+    val currentRelative: Path = Paths.get(currentModule)
+    val targetRelative: Path = Paths.get(targetModule)
     return "./" + currentRelative.relativize(targetRelative).toString().replaceFirst("../", "")
 }

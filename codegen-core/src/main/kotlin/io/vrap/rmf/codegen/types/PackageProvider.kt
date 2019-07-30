@@ -17,7 +17,7 @@ import org.eclipse.emf.ecore.util.ComposedSwitch
 
 class PackageProvider @Inject constructor(
         @BasePackageName val basePackage: String,
-        @ModelPackageName val modelPackage: String,
+        @ModelPackageName val localModelPackage: String,
         @ClientPackageName val clientPackage: String
 ) : ComposedSwitch<String>() {
 
@@ -31,7 +31,7 @@ class PackageProvider @Inject constructor(
     }
 
     private inner class TypePackageSwitch : TypesSwitch<String>() {
-        override fun defaultCase(`object`: EObject?): String = modelPackage
+        override fun defaultCase(`object`: EObject?): String = localModelPackage
 
         override fun caseAnyType(type: AnyType?): String {
             var currentType = type
@@ -41,8 +41,8 @@ class PackageProvider @Inject constructor(
                 if (annotation != null) {
                     return annotation.let { it.value }
                             ?.let { it.value }
-                            ?.let { "$modelPackage.$it" }
-                            ?: modelPackage
+                            ?.let { "$localModelPackage.$it" }
+                            ?: localModelPackage
                 }
                 if (currentType.eContainer() is Library && (currentType.eContainer() as Library).getAnnotation("package") != null) {
 
@@ -51,8 +51,8 @@ class PackageProvider @Inject constructor(
                         if (eContainer is AnnotationsFacet) {
                             return eContainer.let { it.getAnnotation("package") }
                                     ?.let { it.value?.value }
-                                    ?.let { "$modelPackage.$it" }
-                                    ?: modelPackage
+                                    ?.let { "$localModelPackage/$it" }
+                                    ?: localModelPackage
                         }
                         eContainer = eContainer.eContainer()
 
@@ -61,18 +61,18 @@ class PackageProvider @Inject constructor(
                 currentType = currentType.type
             }
 
-            return modelPackage
+            return localModelPackage
         }
 
     }
 
     private inner class ResourcePackageSwitch : ResourcesSwitch<String>() {
         override fun caseMethod(`object`: Method): String {
-            return "$clientPackage"
+            return clientPackage
         }
 
         override fun caseResource(`object`: Resource?): String {
-            return "$clientPackage"
+            return clientPackage
         }
 
         override fun defaultCase(`object`: EObject): String {
