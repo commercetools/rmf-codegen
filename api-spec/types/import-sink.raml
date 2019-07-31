@@ -28,9 +28,9 @@ types:
         type: number
         format: int64
       skipPredicate?:
-        description: |
-          The optional skip predicate is evaluated against the current state of the corresponding CTP resource.
-          If it evaluates to true, the import will be skipped.
+#        description: |
+#          The optional skip predicate is evaluated against the current state of the corresponding CTP resource.
+#          If it evaluates to true, the import will be skipped.
         type: Predicate
       createdAt:
         description: The creation time of this import sink.
@@ -51,9 +51,9 @@ types:
         description: The type of the import resource sent to this import sink.
         type: common.ResourceType
       skipPredicate?:
-        description: |
-          The optional skip predicate is evaluated against the current state of the corresponding CTP resource.
-          If it evaluates to true, the import will be skipped.
+#        description: |
+#          The optional skip predicate is evaluated against the current state of the corresponding CTP resource.
+#          If it evaluates to true, the import will be skipped.
         type: Predicate
     examples:
       minimal: !include ../examples/import-sink-draft-minimal.json
