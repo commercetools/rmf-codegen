@@ -74,7 +74,7 @@ open class RamlCodeGeneratorTask : DefaultTask() {
             }
             TargetType.TYPESCRIPT_MODEL -> {
                 val generatorModule = GeneratorModule(apiProvider, generatorConfig, TypeScriptBaseTypes)
-                GeneratorComponent(generatorModule, TypeScriptModelModule())
+                GeneratorComponent(generatorModule, TypeScriptModelModule)
             }
             TargetType.TYPESCRIPT_CLIENT -> {
                 val generatorModule = GeneratorModule(apiProvider, generatorConfig, TypeScriptBaseTypes)
