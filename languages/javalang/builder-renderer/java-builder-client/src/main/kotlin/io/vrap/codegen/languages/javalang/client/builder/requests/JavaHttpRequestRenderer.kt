@@ -37,6 +37,9 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
             |import java.util.HashMap;
             |import java.util.stream.Collectors;
             |
+            |import java.io.UnsupportedEncodingException;
+            |import java.net.URLEncoder;
+            |
             |public class ${type.toRequestName()} {
             |   
             |   <${type.fields()}>
@@ -128,7 +131,7 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
         }
         
         val addingQueryParams : String = this.queryParameters
-                .map { "params.add(this.${it.name}.stream().map(s -> \"${it.name}=\" + s).collect(Collectors.joining(\"&\")));" }
+                .map { "params.add(this.${it.name}.stream().map(s -> \"${it.name}=\" + ${if(it.type.name.equals("string")) "urlEncode(s)" else "s"}).collect(Collectors.joining(\"&\")));" }
                 .joinToString(separator = "\n")
         
         val addingAdditionalQueryParams : String = "params.add(additionalQueryParams.entrySet().stream().map(entry -> entry.getKey() + \"=\" + entry.getValue()).collect(Collectors.joining(\"&\")));"
@@ -262,6 +265,15 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
             |
             |public Map<String, String> getAdditionalQueryParams() {
             |   return this.additionalQueryParams;
+            |}
+            |
+            |private String urlEncode(final String s){
+            |   try{
+            |        return URLEncoder.encode(s, "UTF-8");
+            |    }catch (UnsupportedEncodingException e) {
+            |        e.printStackTrace();
+            |        return null;
+            |    }
             |}
         """.trimMargin().escapeAll()
     }

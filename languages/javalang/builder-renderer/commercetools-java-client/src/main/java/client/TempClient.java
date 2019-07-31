@@ -52,9 +52,11 @@ public class TempClient implements ApiHttpClient {
             default:
                 throw new RuntimeException("Non supported HTTP Method : " + apiHttpRequest.getMethod().toString());
         }
-        
+
+        System.out.println("<====NEW REQUEST====>");
         Request httpRequest = httpRequestBuilder.build();
         System.out.println("Request : " + httpRequest.toString());
+        System.out.println("Request body : " + apiHttpRequest.getBody());
         Response response = client.newCall(httpRequest).execute();
         String responseString = response.body() == null ? "" : response.body().string();
         System.out.println("Response status code : " + response.code());
@@ -68,7 +70,8 @@ public class TempClient implements ApiHttpClient {
     }
     
     private String obtainAccessToken() throws IOException {
-        System.out.println("obtaining new token");
+        System.out.println("<====OBTAINING NEW ACCESS TOKEN====>");
+
         String clientId = System.getenv("JVM_SDK_IT_CLIENT_ID");
         String clientSecret = System.getenv("JVM_SDK_IT_CLIENT_SECRET");
         String projectKey = System.getenv("JVM_SDK_IT_PROJECT_KEY");
@@ -96,7 +99,7 @@ public class TempClient implements ApiHttpClient {
     }
     
     private boolean isTokenActive() throws IOException {
-        System.out.println("introspecting token");
+        System.out.println("<====TOKEN INTROSPECTION====>");
         String clientId = System.getenv("JVM_SDK_IT_CLIENT_ID");
         String clientSecret = System.getenv("JVM_SDK_IT_CLIENT_SECRET");
 

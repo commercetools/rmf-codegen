@@ -24,4 +24,8 @@ public class CommercetoolsTestUtils {
         localizedString.setValue(randomString(), randomString());
         return localizedString;
     }
+
+    public static String getProjectKey() {
+        return System.getenv("JVM_SDK_IT_PROJECT_KEY");
+    }
 }
