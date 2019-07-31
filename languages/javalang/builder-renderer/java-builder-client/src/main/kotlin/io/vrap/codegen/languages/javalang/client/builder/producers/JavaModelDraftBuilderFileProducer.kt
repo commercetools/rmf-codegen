@@ -4,7 +4,7 @@ import com.google.inject.Inject
 import io.vrap.codegen.languages.extensions.EObjectExtensions
 import io.vrap.codegen.languages.extensions.isPatternProperty
 import io.vrap.codegen.languages.java.base.extensions.JavaObjectTypeExtensions
-import io.vrap.codegen.languages.java.base.extensions.simpleName
+import io.vrap.codegen.languages.java.base.extensions.fullClassName
 import io.vrap.codegen.languages.java.base.extensions.upperCamelCase
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.FileProducer
@@ -68,12 +68,12 @@ class JavaModelDraftBuilderFileProducer @Inject constructor(override val vrapTyp
         return if(this.isPatternProperty()){
             """
                 |${if(!this.required) "@Nullable" else ""}
-                |private Map<String, ${this.packageName()}${this.type.toVrapType().simpleName()}> values;
+                |private Map<String, ${this.type.toVrapType().fullClassName()}> values;
             """.escapeAll().trimMargin().keepIndentation()
         }else{
             """
             |${if(!this.required) "@Nullable" else ""}
-            |private ${this.packageName()}${this.type.toVrapType().simpleName()} ${this.name};
+            |private ${this.type.toVrapType().fullClassName()} ${this.name};
         """.escapeAll().trimMargin().keepIndentation()
         }
     }
@@ -87,14 +87,14 @@ class JavaModelDraftBuilderFileProducer @Inject constructor(override val vrapTyp
     private fun assignment(property: Property, type: VrapObjectType) : String {
         return if(property.isPatternProperty()){
             """
-                |public ${type.simpleClassName}Builder values(${if(!property.required) "@Nullable" else ""} final Map<String, ${property.packageName()}${property.type.toVrapType().simpleName()}> values){
+                |public ${type.simpleClassName}Builder values(${if(!property.required) "@Nullable" else ""} final Map<String, ${property.type.toVrapType().fullClassName()}> values){
                 |   this.values = values;
                 |   return this;
                 |}
             """.escapeAll().trimMargin().keepIndentation()
         }else { 
             """
-            |public ${type.simpleClassName}Builder ${property.name}(${if(!property.required) "@Nullable" else ""} final ${property.packageName()}${property.type.toVrapType().simpleName()} ${property.name}) {
+            |public ${type.simpleClassName}Builder ${property.name}(${if(!property.required) "@Nullable" else ""} final ${property.type.toVrapType().fullClassName()} ${property.name}) {
             |   this.${property.name} = ${property.name};
             |   return this;
             |}
@@ -111,14 +111,14 @@ class JavaModelDraftBuilderFileProducer @Inject constructor(override val vrapTyp
         return if(this.isPatternProperty()){
             """
                 |${if(!this.required) "@Nullable" else ""}
-                |public Map<String, ${this.packageName()}${this.type.toVrapType().simpleName()}> getValues(){
+                |public Map<String, ${this.type.toVrapType().fullClassName()}> getValues(){
                 |   return this.values;
                 |}
             """.escapeAll().trimMargin().keepIndentation()
         }else{
             """
                 |${if(!this.required) "@Nullable" else ""}
-                |public ${this.packageName()}${this.type.toVrapType().simpleName()} get${this.name.capitalize()}(){
+                |public ${this.type.toVrapType().fullClassName()} get${this.name.capitalize()}(){
                 |   return this.${this.name};
                 |}
             """.escapeAll().trimMargin().keepIndentation()
@@ -164,13 +164,5 @@ class JavaModelDraftBuilderFileProducer @Inject constructor(override val vrapTyp
             |   return builder;
             |}
         """.escapeAll().trimMargin().keepIndentation()
-    }
-
-    private fun Property.packageName() : String {
-        return if(this.type is ObjectType) {
-            "${(this.type.toVrapType() as VrapObjectType).`package`}."
-        } else {
-            ""
-        }
     }
 }

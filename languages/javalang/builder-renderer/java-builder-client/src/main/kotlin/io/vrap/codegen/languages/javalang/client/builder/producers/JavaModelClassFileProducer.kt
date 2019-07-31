@@ -6,8 +6,8 @@ import io.vrap.codegen.languages.extensions.isPatternProperty
 import io.vrap.codegen.languages.extensions.toComment
 import io.vrap.codegen.languages.java.base.JavaSubTemplates
 import io.vrap.codegen.languages.java.base.extensions.JavaObjectTypeExtensions
+import io.vrap.codegen.languages.java.base.extensions.fullClassName
 import io.vrap.codegen.languages.java.base.extensions.lowerCamelCase
-import io.vrap.codegen.languages.java.base.extensions.simpleName
 import io.vrap.codegen.languages.java.base.extensions.upperCamelCase
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.FileProducer
@@ -70,19 +70,11 @@ class JavaModelClassFileProducer @Inject constructor(override val vrapTypeProvid
         )
     }
     
-    private fun Property.packageName() : String {
-        return if(this.type is ObjectType) {
-            "${(this.type.toVrapType() as VrapObjectType).`package`}."
-        } else {
-            ""
-        }
-    }
-    
     private fun Property.toJavaField(): String {
         return if (this.isPatternProperty()) {
-            "private Map<String, ${this.packageName()}${this.type.toVrapType().simpleName()}> values;"
+            "private Map<String, ${this.type.toVrapType().fullClassName()}> values;"
         } else {
-            "private ${this.packageName()}${this.type.toVrapType().simpleName()} ${if (this.isPatternProperty()) "values" else this.name.lowerCamelCase()};"
+            "private ${this.type.toVrapType().fullClassName()} ${if (this.isPatternProperty()) "values" else this.name.lowerCamelCase()};"
         }
     }
     
@@ -103,7 +95,7 @@ class JavaModelClassFileProducer @Inject constructor(override val vrapTypeProvid
     private fun Property.setter(): String {
         return if (this.isPatternProperty()) {
             """
-            |public void setValue(String key, ${this.packageName()}${this.type.toVrapType().simpleName()} value) {
+            |public void setValue(String key, ${this.type.toVrapType().fullClassName()} value) {
             |    if (values == null) {
             |        values = new HashMap<>();
             |    }
@@ -112,7 +104,7 @@ class JavaModelClassFileProducer @Inject constructor(override val vrapTypeProvid
             """.trimMargin()
         } else {
             """
-            |public void set${this.name.upperCamelCase()}(final ${this.packageName()}${this.type.toVrapType().simpleName()} ${this.name.lowerCamelCase()}){
+            |public void set${this.name.upperCamelCase()}(final ${this.type.toVrapType().fullClassName()} ${this.name.lowerCamelCase()}){
             |   this.${this.name.lowerCamelCase()} = ${this.name.lowerCamelCase()};
             |}
             """.trimMargin()
@@ -123,14 +115,14 @@ class JavaModelClassFileProducer @Inject constructor(override val vrapTypeProvid
         return if (this.isPatternProperty()) {
             """
             |${this.type.toComment()}
-            |public Map<String, ${this.packageName()}${this.type.toVrapType().simpleName()}> values() {
+            |public Map<String,${this.type.toVrapType().fullClassName()}> values() {
             |    return values;
             |}
             """.trimMargin()
         } else {
             """
             |${this.type.toComment()}
-            |public ${this.packageName()}${this.type.toVrapType().simpleName()} get${this.name.upperCamelCase()}(){
+            |public ${this.type.toVrapType().fullClassName()} get${this.name.upperCamelCase()}(){
             |   return this.${this.name.lowerCamelCase()};
             |}
         """.trimMargin()
@@ -141,7 +133,7 @@ class JavaModelClassFileProducer @Inject constructor(override val vrapTypeProvid
         val vrapType = vrapTypeProvider.doSwitch(this) as VrapObjectType
         val constructorArguments = this.allProperties
                 .filter { it.name != this.discriminator() }
-                .map { if(it.isPatternProperty()) "@JsonProperty(\"values\") final Map<String, ${it.packageName()}${it.type.toVrapType().simpleName()}> values" else "@JsonProperty(\"${it.name.lowerCamelCase()}\") final ${it.packageName()}${it.type.toVrapType().simpleName()} ${it.name.lowerCamelCase()}" }
+                .map { if(it.isPatternProperty()) "@JsonProperty(\"values\") final Map<String, ${it.type.toVrapType().fullClassName()}> values" else "@JsonProperty(\"${it.name.lowerCamelCase()}\") final ${it.type.toVrapType().fullClassName()} ${it.name.lowerCamelCase()}" }
                 .joinToString(separator = ", ")
 
         val propertiesAssignment : String = this.allProperties
