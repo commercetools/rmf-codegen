@@ -2,6 +2,7 @@ package io.vrap.codegen.languages.typescript.server
 
 import com.google.inject.Inject
 import io.vrap.codegen.languages.extensions.EObjectExtensions
+import io.vrap.codegen.languages.extensions.resource
 import io.vrap.codegen.languages.typescript.allMethods
 import io.vrap.codegen.languages.typescript.toImportStatement
 import io.vrap.codegen.languages.typescript.toParamName
@@ -13,6 +14,7 @@ import io.vrap.rmf.codegen.rendring.utils.keepIndentation
 import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.modules.Api
+import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.resources.ResourceContainer
 
@@ -38,11 +40,13 @@ class ServerRenderer @Inject constructor(
             |}
             |
             |export function toResources(apiServer:ApiServer) : Resource[] {
-            |    return []
+            |    return [
+            |               <${resourceArray()}>
+            |           ]
             |}
             """
-        .trimMargin()
-        .keepIndentation()
+                .trimMargin()
+                .keepIndentation()
 
 
         return TemplateFile(
@@ -81,6 +85,39 @@ class ServerRenderer @Inject constructor(
 
     }
 
+    fun resourceArray(): String {
+
+        return api.allMethods()
+                .map {
+                    """ |{
+                        |   uri: '${it.resource().fullUri.template}',
+                        |   method: '${it.methodName.toUpperCase()}',
+                        |   handler: ${it.handlerNavigator()}
+                        |}
+                    """.trimMargin()
+                }.joinToString(separator = ",\n")
+    }
+
+    private fun Method.handlerNavigator(): String = this.resource().fullUri
+            .components
+            .map {
+                it.value
+            }.map {
+                it.replace("/", "")
+            }
+            .filter {
+                it.isNotEmpty()
+            }
+            .map {
+                "'$it'"
+            }
+            .joinToString(
+                    separator = "][",
+                    prefix = "apiServer[",
+                    postfix = "].${this.methodName}"
+            )
+
+
     private fun Resource.relativePath(): String = this.relativeUri.template.replaceFirst("/", "")
 
     private fun imports(moduleName: String): String {
@@ -91,6 +128,9 @@ class ServerRenderer @Inject constructor(
                             VrapObjectType(constantsProvider.parametersModule, it.toResponseName())
                     )
                 }
+                .plus(
+                        constantsProvider.Resource
+                )
                 .map {
                     it.toImportStatement(moduleName)
                 }
