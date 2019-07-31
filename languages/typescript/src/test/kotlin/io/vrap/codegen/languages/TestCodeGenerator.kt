@@ -6,6 +6,7 @@ import io.vrap.codegen.languages.typescript.joi.JoiBaseTypes
 import io.vrap.codegen.languages.typescript.joi.JoiModule
 import io.vrap.codegen.languages.typescript.model.TypeScriptBaseTypes
 import io.vrap.codegen.languages.typescript.model.TypeScriptModelModule
+import io.vrap.codegen.languages.typescript.server.TsServerModule
 import io.vrap.rmf.codegen.CodeGeneratorConfig
 import io.vrap.rmf.codegen.di.ApiProvider
 import io.vrap.rmf.codegen.di.GeneratorComponent
@@ -27,7 +28,14 @@ class TestCodeGenerator {
     @Test
     fun generateTsModels() {
         val generatorModule = GeneratorModule(apiProvider, generatorConfig, TypeScriptBaseTypes)
-        val generatorComponent = GeneratorComponent(generatorModule, TypeScriptModelModule(),TypescriptClientModule)
+        val generatorComponent = GeneratorComponent(generatorModule, TypeScriptModelModule,TypescriptClientModule)
+        generatorComponent.generateFiles()
+    }
+
+    @Test
+    fun generateTsServer() {
+        val generatorModule = GeneratorModule(apiProvider, generatorConfig, TypeScriptBaseTypes)
+        val generatorComponent = GeneratorComponent(generatorModule, TypeScriptModelModule, TsServerModule)
         generatorComponent.generateFiles()
     }
 

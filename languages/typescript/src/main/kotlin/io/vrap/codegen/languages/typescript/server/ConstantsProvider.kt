@@ -21,6 +21,11 @@ class ConstantsProvider @Inject constructor(@ClientPackageName val client_packag
             "HttpResponse"
     )
 
+    val Resource = VrapObjectType(
+            commonModule,
+            "Resource"
+    )
+
     val VariableMap = VrapObjectType(
             commonModule,
             "VariableMap"

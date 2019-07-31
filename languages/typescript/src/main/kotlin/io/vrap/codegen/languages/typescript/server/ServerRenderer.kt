@@ -36,6 +36,10 @@ class ServerRenderer @Inject constructor(
             |export type ApiServer = {
             |    <${serverDef(api)}>
             |}
+            |
+            |export function toResources(apiServer:ApiServer) : Resource[] {
+            |    return []
+            |}
             """
         .trimMargin()
         .keepIndentation()
