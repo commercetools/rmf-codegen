@@ -3,13 +3,10 @@ package io.vrap.codegen.languages.typescript.client
 import com.google.inject.Inject
 import io.vrap.codegen.languages.extensions.resource
 import io.vrap.codegen.languages.extensions.returnType
+import io.vrap.codegen.languages.typescript.*
 import io.vrap.codegen.languages.typescript.client.files_producers.apiRequest
 import io.vrap.codegen.languages.typescript.client.files_producers.middleware
 import io.vrap.codegen.languages.typescript.model.simpleTSName
-import io.vrap.codegen.languages.typescript.relativizePaths
-import io.vrap.codegen.languages.typescript.tsMediaType
-import io.vrap.codegen.languages.typescript.tsRemoveRegexp
-import io.vrap.codegen.languages.typescript.tsRequestModuleName
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.ResourceRenderer
 import io.vrap.rmf.codegen.rendring.utils.keepIndentation
@@ -193,22 +190,7 @@ class RequestBuilder @Inject constructor(
 
     override fun hasPathArgs(): Boolean = true
 
-    private fun VrapType.toImportStatement(moduleName:String):String {
-        return when (this) {
-            is VrapLibraryType -> "import { ${this.simpleClassName} } from '${this.`package`}'"
-            is VrapObjectType -> {
-                val relativePath = relativizePaths(moduleName, this.`package`)
-                "import { ${this.simpleTSName()} } from '$relativePath'"
 
-            }
-            is VrapArrayType -> {
-                val objType = this.itemType as VrapObjectType
-                val relativePath = relativizePaths(moduleName, objType.`package`)
-                return "import { ${objType.simpleTSName()} } from '$relativePath'"
-            }
-            else -> throw Error("not supposed to arrive here")
-        }
-    }
 }
 
 

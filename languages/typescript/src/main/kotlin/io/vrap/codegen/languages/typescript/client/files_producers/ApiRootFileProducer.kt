@@ -27,7 +27,7 @@ class ApiRootFileProducer @Inject constructor(
     fun produceApiRoot(type: Api): TemplateFile {
         val moduleName = "$client_package/ApiRoot"
         return TemplateFile(
-                relativePath = moduleName.replace(".", "/") + ".ts",
+                relativePath = "$moduleName.ts",
                 content = """|
                 |${type.imports(moduleName)}
                 |import { ApiRequest } from '${relativizePaths(moduleName, "base/requests-utils")}'
