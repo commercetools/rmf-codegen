@@ -20,7 +20,7 @@ public class CategoryFixtures {
         Category category = createCategory();
         consumer.accept(category);
         deleteCategory(category.getId(), category.getVersion());
-     }
+    }
     
     public static void withUpdatableCategory(final UnaryOperator<Category> operator){
         Category category = createCategory();
@@ -44,7 +44,6 @@ public class CategoryFixtures {
                         .name(localizedString)
                         .sources(Arrays.asList(assetSource))
                         .build()))
-//                .custom(CustomFieldsDraftBuilder.of().fields(fieldContainer).type().build())
                 .description(localizedString)
                 .externalId(CommercetoolsTestUtils.randomId())
                 .key(CommercetoolsTestUtils.randomKey())
