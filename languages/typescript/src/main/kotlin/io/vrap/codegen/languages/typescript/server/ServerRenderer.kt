@@ -4,9 +4,9 @@ import com.google.inject.Inject
 import io.vrap.codegen.languages.extensions.EObjectExtensions
 import io.vrap.codegen.languages.extensions.resource
 import io.vrap.codegen.languages.typescript.allMethods
+import io.vrap.codegen.languages.typescript.toHandlerName
 import io.vrap.codegen.languages.typescript.toImportStatement
 import io.vrap.codegen.languages.typescript.toParamName
-import io.vrap.codegen.languages.typescript.toResponseName
 import io.vrap.rmf.codegen.di.ClientPackageName
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.FileProducer
@@ -63,7 +63,7 @@ class ServerRenderer @Inject constructor(
                             resourceContainer
                                     .methods
                                     .map {
-                                        "${it.methodName.toLowerCase()}: (input: ${it.toParamName()}) =\\> ${it.toResponseName()}"
+                                        "${it.methodName.toLowerCase()}: ${it.toHandlerName()}"
                                     }
                         } else {
                             emptyList()
@@ -122,11 +122,8 @@ class ServerRenderer @Inject constructor(
 
     private fun imports(moduleName: String): String {
         return api.allMethods()
-                .flatMap {
-                    listOf(
-                            VrapObjectType(constantsProvider.parametersModule, it.toParamName()),
-                            VrapObjectType(constantsProvider.parametersModule, it.toResponseName())
-                    )
+                .map {
+                    VrapObjectType(constantsProvider.parametersModule, it.toHandlerName())
                 }
                 .plus(
                         constantsProvider.Resource

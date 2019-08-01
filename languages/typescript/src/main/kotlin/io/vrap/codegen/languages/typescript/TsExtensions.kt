@@ -71,7 +71,6 @@ fun VrapType.toImportStatement(moduleName:String):String {
         is VrapObjectType -> {
             val relativePath = relativizePaths(moduleName, this.`package`)
             "import { ${this.simpleTSName()} } from '$relativePath'"
-
         }
         is VrapArrayType -> {
             val objType = this.itemType as VrapObjectType
@@ -90,3 +89,4 @@ fun ResourceContainer.allMethods(): List<Method> = this
 
 fun Method.toParamName() = "${this.toRequestName()}Parameter"
 fun Method.toResponseName() = "${this.toRequestName()}Response"
+fun Method.toHandlerName() = "${this.toRequestName()}Handler"

@@ -5,30 +5,22 @@ import com.google.inject.Inject
 import io.vrap.codegen.languages.extensions.EObjectExtensions
 import io.vrap.codegen.languages.extensions.resource
 import io.vrap.codegen.languages.extensions.returnType
-import io.vrap.codegen.languages.extensions.toRequestName
-import io.vrap.codegen.languages.typescript.allMethods
+import io.vrap.codegen.languages.typescript.*
 import io.vrap.codegen.languages.typescript.model.simpleTSName
-import io.vrap.codegen.languages.typescript.toImportStatement
-import io.vrap.codegen.languages.typescript.toParamName
-import io.vrap.codegen.languages.typescript.toResponseName
-import io.vrap.rmf.codegen.di.ClientPackageName
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.FileProducer
 import io.vrap.rmf.codegen.rendring.utils.keepIndentation
-import io.vrap.rmf.codegen.types.VrapArrayType
 import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.modules.Api
 import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.ResourceContainer
 import io.vrap.rmf.raml.model.types.NilType
-import io.vrap.rmf.raml.model.types.ObjectType
 
 class ParameterGenerator @Inject constructor(
         val api: Api,
         val constantsProvider: ConstantsProvider,
-        override val vrapTypeProvider: VrapTypeProvider,
-        @ClientPackageName val client_package: String
+        override val vrapTypeProvider: VrapTypeProvider
 ) : FileProducer, EObjectExtensions {
 
     override fun produceFiles(): List<TemplateFile> = listOf(parametersDef())
@@ -43,6 +35,8 @@ class ParameterGenerator @Inject constructor(
                     |${api.parameters()}
                     |
                     |${api.responses()}
+                    |
+                    |${api.handlers()}
                     |
                     """
                 .trimMargin()
@@ -61,7 +55,7 @@ class ParameterGenerator @Inject constructor(
                 .allMethods()
                 .map {
                     """
-                    |export interface ${it.toParamName()} extends HttpInput {
+                    |export type ${it.toParamName()} = {
                     |   headers: {
                     |       <${it.headers.map { "${it.name}: ${it.type.toVrapType().simpleTSName()}" }.joinToString("\n")}>
                     |       (key:string):string
@@ -88,17 +82,25 @@ class ParameterGenerator @Inject constructor(
     private fun ResourceContainer.responses(): String {
         return this.allMethods()
                 .map {
-                    """|
-                        |export interface ${it.toResponseName()} extends HttpResponse {
+                    """ |export type ${it.toResponseName()} = {
                         |   headers?: {(key:string):string}
                         |   statusCode: number
-                        |   <${if(it !is NilType) "payload: ${it.returnType().toVrapType().simpleTSName()}" else ""}>
+                        |   <${if(it !is NilType) "body: ${it.returnType().toVrapType().simpleTSName()}" else ""}>
                         |}
                         |""".trimMargin()
                 }
-                .joinToString(separator = "\n\n")
+                .joinToString(separator = "\n")
     }
 
+    private fun ResourceContainer.handlers(): String {
+        return this.allMethods()
+                .map {
+                    """ |
+                        |export type ${it.toHandlerName()} = (input: ${it.toParamName()}) =\> ${it.toResponseName()}
+                        |""".trimMargin()
+                }
+                .joinToString(separator = "\n")
+    }
 
 
 
@@ -109,7 +111,14 @@ class ParameterGenerator @Inject constructor(
                             .map {
                                 it.type
                             }
-                            .plus(it.returnType())
+                            .plus(
+                                    it.responses
+                                            .flatMap {
+                                                it.bodies.map {
+                                                    body ->  body.type
+                                                }
+                                            }
+                            )
                 }
                 .map{
                     it.toVrapType()

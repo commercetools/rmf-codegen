@@ -30,13 +30,13 @@ export type MethodType =
 export type VariableMap =  { [key: string]: string | number | boolean | undefined }
 
 export type HttpResponse = {
-    body: any,
+    body?: any,
     headers?: {(key:string):string}
     statusCode: number
 }
 
 export type HttpInput = {
-    payload: any,
+    body: any,
     headers: {(key:string):string}
     pathParams: {(key:string):string}
     queryParams: {(key:string):VariableMap}
