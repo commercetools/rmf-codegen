@@ -70,6 +70,11 @@ class JavaModelDraftBuilderFileProducer @Inject constructor(override val vrapTyp
                 |${if(!this.required) "@Nullable" else ""}
                 |private Map<String, ${this.type.toVrapType().fullClassName()}> values;
             """.escapeAll().trimMargin().keepIndentation()
+        } else if(this.name.equals("interface")) {
+            """
+                |${if(!this.required) "@Nullable" else ""}
+                |private ${this.type.toVrapType().fullClassName()} _interface;
+            """.trimMargin()
         }else{
             """
             |${if(!this.required) "@Nullable" else ""}
@@ -92,6 +97,13 @@ class JavaModelDraftBuilderFileProducer @Inject constructor(override val vrapTyp
                 |   return this;
                 |}
             """.escapeAll().trimMargin().keepIndentation()
+        }else if (property.name.equals("interface")) {
+            """
+                |public ${type.simpleClassName}Builder _interface(${if(!property.required) "@Nullable" else ""} final ${property.type.toVrapType().fullClassName()} _interface) {
+                |   this._interface = _interface;
+                |   return this;
+                |}
+            """.trimMargin()
         }else { 
             """
             |public ${type.simpleClassName}Builder ${property.name}(${if(!property.required) "@Nullable" else ""} final ${property.type.toVrapType().fullClassName()} ${property.name}) {
@@ -115,6 +127,13 @@ class JavaModelDraftBuilderFileProducer @Inject constructor(override val vrapTyp
                 |   return this.values;
                 |}
             """.escapeAll().trimMargin().keepIndentation()
+        } else if(this.name.equals("interface")) {
+            """
+                |${if(!this.required) "@Nullable" else ""}
+                |public ${this.type.toVrapType().fullClassName()} getInterface(){
+                |   return this._interface;
+                |}
+            """.escapeAll().trimMargin().keepIndentation()
         }else{
             """
                 |${if(!this.required) "@Nullable" else ""}
@@ -129,7 +148,15 @@ class JavaModelDraftBuilderFileProducer @Inject constructor(override val vrapTyp
         val vrapType = vrapTypeProvider.doSwitch(this) as VrapObjectType
         val constructorArguments = this.allProperties
                 .filter { it.name != this.discriminator() }
-                .map { if(it.isPatternProperty()) {"values"} else {it.name} }
+                .map {
+                    if(it.isPatternProperty()) {
+                        "values"
+                    } else if(it.name.equals("interface")) { 
+                        "_interface"
+                    } else {
+                        it.name
+                    } 
+                }
                 .joinToString(separator = ", ")
         return "return new ${vrapType.simpleClassName}Impl($constructorArguments);"
     }
@@ -149,10 +176,12 @@ class JavaModelDraftBuilderFileProducer @Inject constructor(override val vrapTyp
         val fieldsAssignment : String = this.allProperties
                 .filter {it.name != this.discriminator()}
                 .map {
-                    if(!it.isPatternProperty()){
-                        "builder.${it.name} = template.get${it.name.upperCamelCase()}();"
-                    }else{
+                    if(it.isPatternProperty()){
                         "builder.values = template.values();"
+                    } else if(it.name.equals("interface")) {
+                        "builder._interface = template.getInterface();"
+                    } else{
+                        "builder.${it.name} = template.get${it.name.upperCamelCase()}();"
                     }
                 }
                 .joinToString(separator = "\n")

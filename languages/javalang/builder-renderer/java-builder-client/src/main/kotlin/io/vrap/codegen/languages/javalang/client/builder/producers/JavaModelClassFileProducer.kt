@@ -74,7 +74,11 @@ class JavaModelClassFileProducer @Inject constructor(override val vrapTypeProvid
         return if (this.isPatternProperty()) {
             "private Map<String, ${this.type.toVrapType().fullClassName()}> values;"
         } else {
-            "private ${this.type.toVrapType().fullClassName()} ${if (this.isPatternProperty()) "values" else this.name.lowerCamelCase()};"
+            if(this.name.equals("interface")){
+                "private ${this.type.toVrapType().fullClassName()} _interface;"
+            }else{
+                "private ${this.type.toVrapType().fullClassName()} ${if (this.isPatternProperty()) "values" else this.name.lowerCamelCase()};"
+            }
         }
     }
     
@@ -102,7 +106,13 @@ class JavaModelClassFileProducer @Inject constructor(override val vrapTypeProvid
             |    values.put(key, value);
             |}
             """.trimMargin()
-        } else {
+        } else if(this.name.equals("interface")) {
+            """
+                |public void setInterface(final ${this.type.toVrapType().fullClassName()} _interface) {
+                |   this._interface = _interface;
+                |}
+            """.trimMargin()
+        }else {
             """
             |public void set${this.name.upperCamelCase()}(final ${this.type.toVrapType().fullClassName()} ${this.name.lowerCamelCase()}){
             |   this.${this.name.lowerCamelCase()} = ${this.name.lowerCamelCase()};
@@ -119,6 +129,12 @@ class JavaModelClassFileProducer @Inject constructor(override val vrapTypeProvid
             |    return values;
             |}
             """.trimMargin()
+        } else if(this.name.equals("interface")) {
+            """
+                |public ${this.type.toVrapType().fullClassName()} getInterface() {
+                |   return this._interface;
+                |}
+            """.trimMargin()
         } else {
             """
             |${this.type.toComment()}
@@ -133,12 +149,28 @@ class JavaModelClassFileProducer @Inject constructor(override val vrapTypeProvid
         val vrapType = vrapTypeProvider.doSwitch(this) as VrapObjectType
         val constructorArguments = this.allProperties
                 .filter { it.name != this.discriminator() }
-                .map { if(it.isPatternProperty()) "@JsonProperty(\"values\") final Map<String, ${it.type.toVrapType().fullClassName()}> values" else "@JsonProperty(\"${it.name.lowerCamelCase()}\") final ${it.type.toVrapType().fullClassName()} ${it.name.lowerCamelCase()}" }
+                .map { 
+                    if(it.isPatternProperty()){
+                        "@JsonProperty(\"values\") final Map<String, ${it.type.toVrapType().fullClassName()}> values"
+                    }else if(it.name.equals("interface")) {
+                        "@JsonProperty(\"${it.name.lowerCamelCase()}\") final ${it.type.toVrapType().fullClassName()} _interface"
+                    } else {
+                        "@JsonProperty(\"${it.name.lowerCamelCase()}\") final ${it.type.toVrapType().fullClassName()} ${it.name.lowerCamelCase()}"
+                    }
+                }
                 .joinToString(separator = ", ")
 
         val propertiesAssignment : String = this.allProperties
                 .filter { it.name != this.discriminator() }
-                .map { if(it.isPatternProperty()) "this.values = values;" else "this.${it.name.lowerCamelCase()} = ${it.name.lowerCamelCase()};" }
+                .map {
+                    if(it.isPatternProperty()){
+                        "this.values = values;"
+                    } else if (it.name.equals("interface")){
+                        "this._interface = _interface;"
+                    }else {
+                        "this.${it.name.lowerCamelCase()} = ${it.name.lowerCamelCase()};"
+                    }
+                }
                 .joinToString(separator = "\n")
 
         val emptyConstructor : String = """

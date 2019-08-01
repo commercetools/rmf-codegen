@@ -147,7 +147,9 @@ class JavaModelInterfaceRenderer @Inject constructor(override val vrapTypeProvid
             |@JsonAnySetter
             |public void setValue(String key, ${this.type.toVrapType().simpleName()} value);
             """.trimMargin()
-        } else {
+        } else if (this.name.equals("interface")) {
+            "public void setInterface(final ${this.type.toVrapType().simpleName()} _interface);"
+        }else {
             "public void set${this.name.upperCamelCase()}(final ${this.type.toVrapType().simpleName()} ${this.name.lowerCamelCase()});"
         }
     }
