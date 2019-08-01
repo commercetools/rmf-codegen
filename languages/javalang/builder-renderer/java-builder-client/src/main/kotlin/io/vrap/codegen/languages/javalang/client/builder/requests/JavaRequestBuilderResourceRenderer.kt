@@ -1,11 +1,7 @@
 package io.vrap.codegen.languages.javalang.client.builder.requests
 
 import com.google.inject.Inject
-import io.vrap.codegen.languages.extensions.getMethodName
-import io.vrap.codegen.languages.extensions.resource
-import io.vrap.codegen.languages.extensions.toParamName
-import io.vrap.codegen.languages.extensions.toRequestName
-import io.vrap.codegen.languages.extensions.EObjectExtensions
+import io.vrap.codegen.languages.extensions.*
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.ResourceRenderer
 import io.vrap.rmf.codegen.rendring.utils.keepIndentation
@@ -81,9 +77,13 @@ class JavaRequestBuilderResourceRenderer @Inject constructor(val api: Api, overr
 
     private fun Method.constructorArguments(): String? {
         return if(this.bodies != null && this.bodies.isNotEmpty()){
-            val methodBodyVrapType = this.bodies[0].type.toVrapType() as VrapObjectType
-            val methodBodyArgument = "${methodBodyVrapType.`package`}.${methodBodyVrapType.simpleClassName} ${methodBodyVrapType.simpleClassName.decapitalize()}"
-            methodBodyArgument
+            if(this.bodies[0].type.toVrapType() is VrapObjectType) {
+                val methodBodyVrapType = this.bodies[0].type.toVrapType() as VrapObjectType
+                val methodBodyArgument = "${methodBodyVrapType.`package`}.${methodBodyVrapType.simpleClassName} ${methodBodyVrapType.simpleClassName.decapitalize()}"
+                methodBodyArgument
+            }else {
+                "com.fasterxml.jackson.databind.JsonNode jsonNode"
+            }
         }else {
             ""
         }
@@ -94,10 +94,13 @@ class JavaRequestBuilderResourceRenderer @Inject constructor(val api: Api, overr
         this.pathArguments().forEach { requestArguments.add(it) }
 
         if(this.bodies != null && this.bodies.isNotEmpty()){
-            val methodBodyVrapType = this.bodies[0].type.toVrapType() as VrapObjectType
-            requestArguments.add(methodBodyVrapType.simpleClassName.decapitalize())
+            if(this.bodies[0].type.toVrapType() is VrapObjectType) {
+                val methodBodyVrapType = this.bodies[0].type.toVrapType() as VrapObjectType
+                requestArguments.add(methodBodyVrapType.simpleClassName.decapitalize())
+            }else {
+                requestArguments.add("jsonNode")
+            }
         }
-
         return requestArguments.joinToString(separator = ", ")
     }
 
