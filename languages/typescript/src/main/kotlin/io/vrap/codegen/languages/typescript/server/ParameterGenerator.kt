@@ -4,7 +4,6 @@ package io.vrap.codegen.languages.typescript.server
 import com.google.inject.Inject
 import io.vrap.codegen.languages.extensions.EObjectExtensions
 import io.vrap.codegen.languages.extensions.resource
-import io.vrap.codegen.languages.extensions.returnType
 import io.vrap.codegen.languages.typescript.*
 import io.vrap.codegen.languages.typescript.model.simpleTSName
 import io.vrap.rmf.codegen.io.TemplateFile
@@ -15,7 +14,6 @@ import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.modules.Api
 import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.ResourceContainer
-import io.vrap.rmf.raml.model.types.NilType
 
 class ParameterGenerator @Inject constructor(
         val api: Api,
@@ -82,14 +80,33 @@ class ParameterGenerator @Inject constructor(
     private fun ResourceContainer.responses(): String {
         return this.allMethods()
                 .map {
-                    """ |export type ${it.toResponseName()} = {
-                        |   headers?: {(key:string):string}
-                        |   statusCode: number
-                        |   <${if(it !is NilType) "body: ${it.returnType().toVrapType().simpleTSName()}" else ""}>
-                        |}
+                    """ |export type ${it.toResponseName()} = 
+                        |${it.returnRenderer()}
                         |""".trimMargin()
                 }
                 .joinToString(separator = "\n")
+    }
+
+    private fun Method.returnRenderer():String{
+
+        return this.responses
+                .map {
+                   """
+                    |{
+                    |   headers?: {(key:string):string}
+                    |   statusCode: ${it.statusCode?:"number"}
+                    |   body: ${it.bodies.map {it.type.toVrapType().simpleTSName()}.joinToString(separator = " | ").ifEmpty { "void" }}
+                    |}
+                   """.trimMargin()
+                }.joinToString(separator = "\n\\|")
+                .ifBlank {
+                    """
+                    |{
+                    |   headers?: {(key:string):string}
+                    |   statusCode: number
+                    |}
+                    """.trimMargin()
+                }
     }
 
     private fun ResourceContainer.handlers(): String {

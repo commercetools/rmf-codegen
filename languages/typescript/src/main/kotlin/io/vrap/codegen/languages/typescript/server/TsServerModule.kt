@@ -8,6 +8,6 @@ object TsServerModule : AbstractModule() {
         val objectTypeBinder = Multibinder.newSetBinder(binder(), FileProducer::class.java)
         objectTypeBinder.addBinding().to(ParameterGenerator::class.java)
         objectTypeBinder.addBinding().to(ServerHelpers::class.java)
-        objectTypeBinder.addBinding().to(ServerRenderer::class.java)
+        objectTypeBinder.addBinding().to(JoiServerRenderer::class.java)
     }
 }

@@ -1,11 +1,11 @@
 package io.vrap.codegen.languages.typescript.server
 
 import io.vrap.rmf.codegen.di.ClientPackageName
+import io.vrap.rmf.codegen.types.VrapLibraryType
 import io.vrap.rmf.codegen.types.VrapObjectType
 import javax.inject.Inject
 
 class ConstantsProvider @Inject constructor(@ClientPackageName val client_package: String){
-
 
     val parametersModule = "$client_package/parameters"
 
@@ -29,6 +29,15 @@ class ConstantsProvider @Inject constructor(@ClientPackageName val client_packag
     val VariableMap = VrapObjectType(
             commonModule,
             "VariableMap"
+    )
+
+    val ServerRoute = VrapLibraryType(
+            "@hapi/hapi",
+            "ServerRoute"
+    )
+    val ResponseToolkit = VrapLibraryType(
+            "@hapi/hapi",
+            "ResponseToolkit"
     )
 }
 

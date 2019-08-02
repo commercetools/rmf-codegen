@@ -2,6 +2,7 @@ package io.vrap.codegen.languages.extensions
 
 import com.damnhandy.uri.template.Expression
 import com.damnhandy.uri.template.UriTemplate
+import io.vrap.rmf.codegen.types.VrapType
 import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.responses.Response
@@ -39,6 +40,8 @@ fun Method.returnType(): AnyType {
             ?.let { it.bodies[0].type }
             ?: TypesFactoryImpl.eINSTANCE.createNilType()
 }
+
+fun Method.hasBody(): Boolean = this.bodies.filter { it.type != null }.isNotEmpty()
 
 fun Response.isSuccessfull(): Boolean = this.statusCode.toInt() in (200..299)
 
