@@ -17,19 +17,22 @@ import java.util.function.UnaryOperator;
 public class ProductFixtures {
     
     public static void withProduct(final Consumer<Product> consumer) {
-        Product product = createProduct();
-        consumer.accept(product);
-        deleteProductById(product.getId(), product.getVersion());
+        ProductTypeFixtures.withProductType(productType -> {
+            Product product = createProduct(productType);
+            consumer.accept(product);
+            deleteProductById(product.getId(), product.getVersion());
+        });
     }
     
     public static void withUpdateableProduct(final UnaryOperator<Product> operator) {
-        Product product = createProduct();
-        product = operator.apply(product);
-        deleteProductById(product.getId(), product.getVersion());
+        ProductTypeFixtures.withProductType(productType -> {
+            Product product = createProduct(productType);
+            product = operator.apply(product);
+            deleteProductById(product.getId(), product.getVersion());
+        });
     }
     
-    public static Product createProduct() {
-        ProductType productType = ProductTypeFixtures.createProductType();
+    public static Product createProduct(final ProductType productType) {
         ProductDraft productDraft = ProductDraftBuilder.of()
                 .key(CommercetoolsTestUtils.randomKey())
                 .name(CommercetoolsTestUtils.randomLocalizedString())
