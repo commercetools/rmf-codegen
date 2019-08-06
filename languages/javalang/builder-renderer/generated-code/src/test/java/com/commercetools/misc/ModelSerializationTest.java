@@ -1,4 +1,4 @@
-package com.commercetools;
+package com.commercetools.misc;
 
 import com.commercetools.models.Category.*;
 import com.commercetools.models.Common.*;

@@ -1,4 +1,4 @@
-package com.commercetools;
+package com.commercetools.utils;
 
 import com.commercetools.models.Common.LocalizedString;
 import com.commercetools.models.Common.LocalizedStringImpl;

@@ -1,5 +1,6 @@
-package com.commercetools;
+package com.commercetools.category;
 
+import com.commercetools.utils.CommercetoolsTestUtils;
 import com.commercetools.client.ApiRoot;
 import com.commercetools.models.Category.Category;
 import com.commercetools.models.Category.CategoryDraft;
@@ -22,7 +23,7 @@ public class CategoryFixtures {
         deleteCategory(category.getId(), category.getVersion());
     }
     
-    public static void withUpdatableCategory(final UnaryOperator<Category> operator){
+    public static void withUpdateableCategory(final UnaryOperator<Category> operator){
         Category category = createCategory();
         category = operator.apply(category);
         deleteCategory(category.getId(), category.getVersion());

@@ -1,5 +1,6 @@
-package com.commercetools;
+package com.commercetools.project;
 
+import com.commercetools.utils.CommercetoolsTestUtils;
 import com.commercetools.client.ApiRoot;
 import com.commercetools.models.Project.*;
 import org.junit.Assert;

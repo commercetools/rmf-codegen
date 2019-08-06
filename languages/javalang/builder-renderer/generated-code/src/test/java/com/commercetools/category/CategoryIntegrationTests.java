@@ -1,5 +1,6 @@
-package com.commercetools;
+package com.commercetools.category;
 
+import com.commercetools.utils.CommercetoolsTestUtils;
 import com.commercetools.client.ApiRoot;
 import com.commercetools.models.Category.*;
 import com.commercetools.models.Common.LocalizedString;
@@ -13,13 +14,7 @@ public class CategoryIntegrationTests {
     
     @Test
     public void create() {
-        Category category = ApiRoot.withProjectKeyValue(CommercetoolsTestUtils.getProjectKey())
-                .categories()
-                .post(CategoryDraftBuilder.of()
-                        .name(CommercetoolsTestUtils.randomLocalizedString())
-                        .slug(CommercetoolsTestUtils.randomLocalizedString())
-                        .build())
-                .executeBlocking();
+        Category category = CategoryFixtures.createCategory();
         Assert.assertNotNull(category);
         Category deletedCategory = CategoryFixtures.deleteCategory(category.getId(), category.getVersion());
         Assert.assertEquals(category.getId(), deletedCategory.getId());
@@ -89,7 +84,7 @@ public class CategoryIntegrationTests {
 
     @Test
     public void updateCategory() {
-        CategoryFixtures.withUpdatableCategory(category -> {
+        CategoryFixtures.withUpdateableCategory(category -> {
             List<CategoryUpdateAction> updateActions = new ArrayList<>();
             LocalizedString newName = LocalizedString.of();
             newName.setValue("key-Temp", "value-Temp");
