@@ -3,9 +3,9 @@
 package io.vrap.rmf.codegen.cli
 
 import io.airlift.airline.*
-import io.vrap.codegen.languages.java.JavaBaseTypes
-import io.vrap.codegen.languages.java.client.SpringClientModule
-import io.vrap.codegen.languages.java.model.JavaModelModule
+import io.vrap.codegen.languages.java.base.JavaBaseTypes
+import io.vrap.codegen.languages.javalang.client.SpringClientModule
+import io.vrap.codegen.languages.javalang.model.JavaModelModule
 import io.vrap.codegen.languages.php.PhpBaseTypes
 import io.vrap.codegen.languages.php.model.PhpModelModule
 import io.vrap.codegen.languages.typescript.model.TypeScriptBaseTypes
@@ -87,11 +87,11 @@ class GeneratorTask : Runnable {
 
             javaModel -> {
                 val generatorModule = GeneratorModule(apiProvider, generatorConfig, JavaBaseTypes)
-                GeneratorComponent(generatorModule, JavaModelModule())
+                GeneratorComponent(generatorModule, JavaModelModule)
             }
             springClient -> {
                 val generatorModule = GeneratorModule(apiProvider, generatorConfig, JavaBaseTypes)
-                GeneratorComponent(generatorModule, SpringClientModule())
+                GeneratorComponent(generatorModule, SpringClientModule)
             }
             typescriptModel -> {
                 val generatorModule = GeneratorModule(apiProvider, generatorConfig, TypeScriptBaseTypes)
