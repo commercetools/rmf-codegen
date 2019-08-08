@@ -37,8 +37,14 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
     override fun produceFiles(): List<TemplateFile> {
         return listOf(
                 template(api),
-                collection(api)
+                collection(api),
+                readmeMd()
         )
+    }
+
+    private fun readmeMd(): TemplateFile {
+        return TemplateFile(relativePath = "README.md",
+                content = readme())
     }
 
     private fun template(api: Api): TemplateFile {
