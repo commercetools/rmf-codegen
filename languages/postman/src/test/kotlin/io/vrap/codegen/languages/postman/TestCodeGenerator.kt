@@ -22,7 +22,7 @@ class TestCodeGenerator {
     fun generatePostmanModels() {
         val generatorConfig = CodeGeneratorConfig(
                 basePackageName = "com/commercetools/importer",
-                outputFolder = Paths.get("build/gensrc/commercetools-raml-sdk")
+                outputFolder = Paths.get("build/gensrc/postman")
         )
 
         val generatorModule = GeneratorModule(apiProvider, generatorConfig, PostmanBaseTypes)

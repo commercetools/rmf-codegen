@@ -4,16 +4,16 @@ import io.vrap.rmf.codegen.types.LanguageBaseTypes
 import io.vrap.rmf.codegen.types.VrapScalarType
 
 object PostmanBaseTypes : LanguageBaseTypes(
-        objectType = nativeTypeScriptType("object"),
-        integerType = nativeTypeScriptType("number"),
-        longType = nativeTypeScriptType("number"),
-        doubleType = nativeTypeScriptType("number"),
-        stringType = nativeTypeScriptType("string"),
-        booleanType = nativeTypeScriptType("boolean"),
-        dateTimeType = nativeTypeScriptType("string"),
-        dateOnlyType = nativeTypeScriptType("string"),
-        timeOnlyType = nativeTypeScriptType("string"),
-        file =  nativeTypeScriptType("Buffer")
+        objectType = nativePostmanType("object"),
+        integerType = nativePostmanType("number"),
+        longType = nativePostmanType("number"),
+        doubleType = nativePostmanType("number"),
+        stringType = nativePostmanType("string"),
+        booleanType = nativePostmanType("boolean"),
+        dateTimeType = nativePostmanType("string"),
+        dateOnlyType = nativePostmanType("string"),
+        timeOnlyType = nativePostmanType("string"),
+        file =  nativePostmanType("Buffer")
 )
 
-fun nativeTypeScriptType(typeName: String): VrapScalarType = VrapScalarType(typeName)
+fun nativePostmanType(typeName: String): VrapScalarType = VrapScalarType(typeName)

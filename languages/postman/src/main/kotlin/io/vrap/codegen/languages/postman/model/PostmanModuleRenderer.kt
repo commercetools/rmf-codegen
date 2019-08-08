@@ -30,7 +30,7 @@ import org.eclipse.emf.ecore.EObject
 import java.io.IOException
 import java.net.URI
 import java.util.*
-import kotlin.reflect.KFunction2
+import kotlin.reflect.KFunction1
 
 class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapTypeProvider: VrapTypeProvider) : EObjectExtensions, FileProducer {
 
@@ -98,19 +98,19 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
                     |        <<${auth()}>>,
                     |    "item": [
                     |        <<${authorization(api.oauth())}>>,
-                    |        <<${api.resources().joinToString(",") { folder(api.oauth(), it) }}>>
+                    |        <<${api.resources().joinToString(",") { folder(it) }}>>
                     |    ]
                     |}
                 """.trimMargin().keepIndentation("<<",">>"))
     }
 
-    private fun folder(oauth: OAuth20Settings, resource: ResourceModel): String {
+    private fun folder(resource: ResourceModel): String {
         return """
             |{
             |    "name": "${resource.name()}",
             |    "description": "${resource.description()?.escapeJson()?.escapeAll()}",
             |    "item": [
-            |        <<${resource.items.joinToString(",") { it.template(oauth, it) } }>>
+            |        <<${resource.items.joinToString(",") { it.template(it) } }>>
             |    ],
             |    "event": [
             |        {
@@ -179,7 +179,7 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
         """.trimMargin().split("\n").map { it.escapeJson().escapeAll() }.joinToString("\",\n\"", "\"", "\"")
     }
 
-    private fun query(oauth: OAuth20Settings, item: ItemGenModel): String {
+    private fun query(item: ItemGenModel): String {
         return """
             |{
             |    "name": "Query ${item.name}",
@@ -228,7 +228,7 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
         """.trimMargin()
     }
 
-    private fun create(oauth: OAuth20Settings, item: ItemGenModel): String {
+    private fun create(item: ItemGenModel): String {
         return """
             |{
             |    "name": "Create ${item.name.singularize()}",
@@ -277,15 +277,15 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
         """.trimMargin()
     }
 
-    private fun getByID(oauth: OAuth20Settings, item: ItemGenModel): String {
-        return getByParam(oauth, item, "", true)
+    private fun getByID(item: ItemGenModel): String {
+        return getByParam(item, "", true)
     }
 
-    private fun getByKey(oauth: OAuth20Settings, item: ItemGenModel): String {
-        return getByParam(oauth, item, "key", true)
+    private fun getByKey(item: ItemGenModel): String {
+        return getByParam(item, "key", true)
     }
 
-    private fun getByParam(oauth: OAuth20Settings, item: ItemGenModel, param: String, by: Boolean): String {
+    private fun getByParam(item: ItemGenModel, param: String, by: Boolean): String {
         return """
             |{
             |    "name": "Get ${item.name.singularize()}${if (by) " by ${if (param.isNotEmpty()) param else "ID"}" else ""}",
@@ -339,15 +339,15 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
         """.trimMargin()
     }
 
-    private fun updateByID(oauth: OAuth20Settings, item: ItemGenModel): String {
-        return updateByParam(oauth, item, "", true)
+    private fun updateByID(item: ItemGenModel): String {
+        return updateByParam(item, "", true)
     }
 
-    private fun updateByKey(oauth: OAuth20Settings, item: ItemGenModel): String {
-        return updateByParam(oauth, item, "key", true)
+    private fun updateByKey(item: ItemGenModel): String {
+        return updateByParam(item, "key", true)
     }
 
-    private fun updateByParam(oauth: OAuth20Settings, item: ItemGenModel, param: String, by: Boolean): String {
+    private fun updateByParam(item: ItemGenModel, param: String, by: Boolean): String {
         return """
             |{
             |    "name": "Update ${item.name.singularize()}${if (by) " by ${if (param.isNotEmpty()) param else "ID"}" else ""}",
@@ -406,15 +406,15 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
         """.trimMargin()
     }
 
-    private fun deleteByID(oauth: OAuth20Settings, item: ItemGenModel): String {
-        return deleteByParam(oauth, item, "", true)
+    private fun deleteByID(item: ItemGenModel): String {
+        return deleteByParam(item, "", true)
     }
 
-    private fun deleteByKey(oauth: OAuth20Settings, item: ItemGenModel): String {
-        return deleteByParam(oauth, item, "key", true)
+    private fun deleteByKey(item: ItemGenModel): String {
+        return deleteByParam(item, "key", true)
     }
 
-    private fun deleteByParam(oauth: OAuth20Settings, item: ItemGenModel, param: String, by: Boolean): String {
+    private fun deleteByParam(item: ItemGenModel, param: String, by: Boolean): String {
         return """
             |{
             |    "name": "Delete ${item.name.singularize()}${if (by) " by ${if (param.isNotEmpty()) param else "ID"}" else ""}",
@@ -508,7 +508,7 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
     }
 
 
-    private fun action(oauth: OAuth20Settings, item: ItemGenModel): String {
+    private fun action(item: ItemGenModel): String {
         if (item is ActionGenModel)
             return """
                 |{
@@ -560,7 +560,7 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
         return ""
     }
 
-    private fun getProject(oauth: OAuth20Settings, item: ItemGenModel): String {
+    private fun getProject(item: ItemGenModel): String {
         return """
             |{
             |    "name": "Get ${item.name.singularize()}",
@@ -608,7 +608,7 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
         """.trimMargin()
     }
 
-    private fun updateProject(oauth: OAuth20Settings, item: ItemGenModel): String {
+    private fun updateProject(item: ItemGenModel): String {
         return """
                 |{
                 |    "name": "Update ${item.name.singularize()}",
@@ -656,7 +656,7 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
             """.trimMargin()
     }
 
-    private fun projectAction(oauth: OAuth20Settings, item: ItemGenModel): String {
+    private fun projectAction(item: ItemGenModel): String {
         if (item is ActionGenModel)
             return """
                 |{
@@ -1040,7 +1040,7 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
         return this.getActionItems(method, ::action)
     }
 
-    fun Resource.getActionItems(method: Method, template: KFunction2<OAuth20Settings, ItemGenModel, String>): List<ActionGenModel> {
+    fun Resource.getActionItems(method: Method, template: KFunction1<ItemGenModel, String>): List<ActionGenModel> {
         val actionItems = Lists.newArrayList<ActionGenModel>()
 
         val body = method.getBody("application/json")
@@ -1075,7 +1075,7 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
     fun String.escapeJson(): String {
         return StringEscapeUtils.escapeJson(this)
     }
-    class ActionGenModel(val type: ObjectType, resource: Resource, template: KFunction2<OAuth20Settings, ItemGenModel, String>, method: Method) : ItemGenModel(resource, template, method) {
+    class ActionGenModel(val type: ObjectType, resource: Resource, template: KFunction1<ItemGenModel, String>, method: Method) : ItemGenModel(resource, template, method) {
         val testScript: String?
         private val example: String?
         val discriminatorValue: String
@@ -1128,7 +1128,7 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
         }
     }
 
-    open class ItemGenModel(val resource: Resource, val template: KFunction2<OAuth20Settings, ItemGenModel, String>, val method: Method) {
+    open class ItemGenModel(val resource: Resource, val template: KFunction1<ItemGenModel, String>, val method: Method) {
 
         val name: String
             get() =
