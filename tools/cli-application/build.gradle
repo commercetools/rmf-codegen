@@ -20,7 +20,6 @@ publishing {
 }
 
 dependencies {
-    compile project(':languages:postman')
     compile project(':languages:javalang:java-renderer')
     compile project(':languages:typescript')
     compile project(':languages:postman')
