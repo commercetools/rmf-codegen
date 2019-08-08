@@ -20,8 +20,11 @@ publishing {
 }
 
 dependencies {
-    compile project(':codegen-renderers')
-    
+    compile project(':languages:javalang:java-renderer')
+    compile project(':languages:typescript')
+    compile project(':languages:postman')
+    compile project(':languages:php')
+
     compile 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
     compile 'com.google.guava:guava:27.0.1-jre'
     compile 'io.airlift:airline:0.8'
@@ -32,4 +35,5 @@ shadowJar {
         attributes 'Main-Class': 'io.vrap.rmf.codegen.cli.MainKt'
     }
     append "plugin.properties"
+    archiveFileName = 'rmf-gen.jar'
 }
