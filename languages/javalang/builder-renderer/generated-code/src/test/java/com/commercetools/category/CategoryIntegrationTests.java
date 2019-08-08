@@ -1,9 +1,9 @@
 package com.commercetools.category;
 
-import com.commercetools.utils.CommercetoolsTestUtils;
 import com.commercetools.client.ApiRoot;
 import com.commercetools.models.Category.*;
 import com.commercetools.models.Common.LocalizedString;
+import com.commercetools.utils.CommercetoolsTestUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -13,7 +13,7 @@ import java.util.List;
 public class CategoryIntegrationTests {
     
     @Test
-    public void create() {
+    public void createAndDelete() {
         Category category = CategoryFixtures.createCategory();
         Assert.assertNotNull(category);
         Category deletedCategory = CategoryFixtures.deleteCategory(category.getId(), category.getVersion());

@@ -1,4 +1,4 @@
-package com.commercetools.product.type;
+package com.commercetools.product_type;
 
 import com.commercetools.utils.CommercetoolsTestUtils;
 import com.commercetools.client.ApiRoot;

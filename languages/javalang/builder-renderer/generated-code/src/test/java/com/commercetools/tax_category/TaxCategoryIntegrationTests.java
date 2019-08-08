@@ -1,4 +1,4 @@
-package com.commercetools.tax.category;
+package com.commercetools.tax_category;
 
 import com.commercetools.client.ApiRoot;
 import com.commercetools.models.TaxCategory.*;

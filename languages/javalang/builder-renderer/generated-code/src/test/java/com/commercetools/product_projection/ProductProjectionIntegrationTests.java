@@ -1,4 +1,4 @@
-package com.commercetools.product.projection;
+package com.commercetools.product_projection;
 
 import com.commercetools.client.ApiRoot;
 import com.commercetools.models.Product.ProductProjection;

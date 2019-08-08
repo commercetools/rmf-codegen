@@ -3,7 +3,7 @@ package com.commercetools.product;
 import com.commercetools.client.ApiRoot;
 import com.commercetools.models.Common.LocalizedString;
 import com.commercetools.models.Product.*;
-import com.commercetools.product.type.ProductTypeFixtures;
+import com.commercetools.product_type.ProductTypeFixtures;
 import com.commercetools.utils.CommercetoolsTestUtils;
 import org.junit.Assert;
 import org.junit.Test;

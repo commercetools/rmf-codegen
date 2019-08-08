@@ -7,7 +7,7 @@ import com.commercetools.models.Product.ProductDraft;
 import com.commercetools.models.Product.ProductDraftBuilder;
 import com.commercetools.models.ProductType.ProductType;
 import com.commercetools.models.ProductType.ProductTypeReferenceBuilder;
-import com.commercetools.product.type.ProductTypeFixtures;
+import com.commercetools.product_type.ProductTypeFixtures;
 import com.commercetools.utils.CommercetoolsTestUtils;
 import org.junit.Assert;
 
