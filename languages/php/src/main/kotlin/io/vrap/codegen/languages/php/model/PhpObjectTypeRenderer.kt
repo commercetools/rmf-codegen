@@ -152,10 +152,7 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
 
     fun Property.setter(): String {
         return """
-            |/**
-            | * @param ${if (this.type.toVrapType().simpleName() != "stdClass") this.type.toVrapType().simpleName() else "JsonObject" }|null $${this.name}
-            | */
-            |final public function set${this.name.capitalize()}($${this.name})
+            |final public function set${this.name.capitalize()}(?$${this.name}): void
             |{
             |    $!this->${this.name} = $${this.name};
             |}

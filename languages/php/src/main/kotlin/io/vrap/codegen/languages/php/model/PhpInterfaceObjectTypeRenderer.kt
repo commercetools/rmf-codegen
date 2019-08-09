@@ -38,8 +38,8 @@ class PhpInterfaceObjectTypeRenderer @Inject constructor(override val vrapTypePr
             |    ${if (type.discriminator != null) {"const DISCRIMINATOR_FIELD = '${type.discriminator}';"} else ""}
             |    <<${type.toBeanConstant()}>>
             |
-            |    <<${type.setters()}>>
             |    <<${type.getters()}>>
+            |    <<${type.setters()}>>
             |}
         """.trimMargin().keepIndentation("<<", ">>").forcedLiteralEscape()
 
@@ -95,10 +95,7 @@ class PhpInterfaceObjectTypeRenderer @Inject constructor(override val vrapTypePr
 
     fun Property.setter(): String {
         return """
-            |/**
-            | * @param ${if (this.type.toVrapType().simpleName() != "stdClass") this.type.toVrapType().simpleName() else "JsonObject" }|null $${this.name}
-            | */
-            |public function set${this.name.capitalize()}($${this.name});
+            |public function set${this.name.capitalize()}(?${if (this.type.toVrapType().simpleName() != "stdClass") this.type.toVrapType().simpleName() else "JsonObject" } $${this.name}): void;
         """.trimMargin()
     }
 
