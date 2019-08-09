@@ -239,9 +239,9 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |class JsonObjectModel extends BaseJsonObject implements JsonObject
                     |{
                     |    /**
-                    |     * @return string|int|float|JsonObject|array<int, mixed>|JsonObjectCollection|bool|null
+                    |     * @psalm-return scalar|array<int, mixed>|JsonObject|JsonObjectCollection|null
                     |     */
-                    |    public function get(string $!field)
+                    |    final public function get(string $!field)
                     |    {
                     |        $!data = $!this->raw($!field);
                     |        if ($!data instanceof \stdClass) {
@@ -286,7 +286,7 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |interface JsonObject extends \JsonSerializable
                     |{
                     |    /**
-                    |     * @return string|int|float|JsonObject|array<int, mixed>|JsonObjectCollection|bool|null
+                    |     * @psalm-return scalar|array<int, mixed>|JsonObject|JsonObjectCollection|null
                     |     */
                     |    public function get(string $!field);
                     |}
@@ -313,7 +313,7 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |    }
                     |
                     |    /**
-                    |     * @return string|int|float|array<int, mixed>|\stdClass|bool|null
+                    |     * @psalm-return scalar|array<int, mixed>|\stdClass|null
                     |     */
                     |    final protected function raw(string $!field)
                     |    {

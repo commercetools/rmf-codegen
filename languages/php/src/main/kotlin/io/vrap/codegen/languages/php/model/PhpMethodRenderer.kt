@@ -102,12 +102,13 @@ class PhpMethodRenderer @Inject constructor(override val vrapTypeProvider: VrapT
             |    /**
             |     * @template T of JsonObject
             |     * @psalm-param ?class-string<T> $!resultType
+            |     * @param array $!options
             |     * @return ${returnTypes.joinToString("|")}|null
             |     */
-            |    public function execute(string $!resultType = null)
+            |    public function execute(array $!options = [], string $!resultType = null)
             |    {
             |        try {
-            |           $!response = $!this->send();
+            |           $!response = $!this->send($!options);
             |        } catch(ServerException $!e) {
             |            $!result = $!this->mapFromResponse($!e->getResponse());
             |            throw new ApiServerException($!e->getMessage(), $!result, $!this, $!e->getResponse(), $!e, []);

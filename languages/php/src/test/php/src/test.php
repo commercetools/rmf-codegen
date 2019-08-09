@@ -121,7 +121,7 @@ namespace Commercetools {
 
     $root = new ApiRoot($client, ['projectKey' => 'phpsphere-90']);
 
-    $t = $root->withProjectKey()->productProjections()->search()->get();
+    $t = $root->withProjectKey()->productProjections()->search()->get()->withFacet("categories.id");
 
     $r = $client->send($t);
     $c = $t->execute();
@@ -155,6 +155,7 @@ namespace Commercetools {
 
     $t = new ProductDataModel();
 
-    allVariants($t);
+//    allVariants($t);
 
+//    var_dump((new CartModel())->use());
 }
