@@ -1818,10 +1818,6 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |            <directory name="vendor" />
                     |        </ignoreFiles>
                     |    </projectFiles>
-                    |
-                    |    <issueHandlers>
-                    |        <LessSpecificReturnType errorLevel="info" />
-                    |    </issueHandlers>
                     |</psalm>
                 """.trimMargin()
         )
