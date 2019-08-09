@@ -46,6 +46,7 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
             |    <<${type.toBeanFields()}>>
             |
             |    <<${type.getters()}>>
+            |    <<${type.setters()}>>
             |    <<${type.patternGetter()}>>
             |    <<${type.serializer()}>>
             |    
@@ -115,24 +116,19 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
     }
 
     fun ObjectType.toBeanConstant() = this.properties
-//            .filter { it.name != this.discriminator }
             .map { it.toPhpConstant() }.joinToString(separator = "\n")
 
     fun ObjectType.toBeanFields() = this.allProperties
-//            .filter { it.name != this.discriminator }
             .filter { !it.isPatternProperty() }
             .map { it.toPhpField() }.joinToString(separator = "\n\n")
 
-    fun ObjectType.setters() = this.properties
-            //Filter the discriminators because they don't make much sense the generated bean
-            .filter { it.name != this.discriminator }
+    fun ObjectType.setters() = this.allProperties
+            .filter { !it.isPatternProperty() }
             .map { it.setter() }
             .joinToString(separator = "\n\n")
 
 
     fun ObjectType.getters() = this.allProperties
-            //Filter the discriminators because they don't make much sense the generated bean
-//            .filter { it.name != this.discriminator }
             .filter { !it.isPatternProperty() }
             .map { it.getter() }
             .joinToString(separator = "\n\n")
@@ -155,25 +151,15 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
     }
 
     fun Property.setter(): String {
-        return if (this.isPatternProperty()) {
-            """
-                |@JsonAnySetter
-                |public void setValue(String key, ${this.type.toVrapType().simpleName()} value)
-                |{
-                |    if (values == null) {
-                |        values = new HashMap<>();
-                |    }
-                |    values.put(key, value);
-                |}
-            """.trimMargin()
-        } else {
-            """
-                |public void set${this.name.capitalize()}(final ${this.type.toVrapType().simpleName()} ${this.name})
-                |{
-                |   this.${this.name} = ${this.name};
-                |}
-            """.trimMargin()
-        }
+        return """
+            |/**
+            | * @param ${if (this.type.toVrapType().simpleName() != "stdClass") this.type.toVrapType().simpleName() else "JsonObject" }|null $${this.name}
+            | */
+            |final public function set${this.name.capitalize()}($${this.name})
+            |{
+            |    $!this->${this.name} = $${this.name};
+            |}
+        """.trimMargin()
     }
 
     fun Property.getter(): String {

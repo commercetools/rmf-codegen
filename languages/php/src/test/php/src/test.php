@@ -119,6 +119,8 @@ namespace Commercetools {
     var_dump($c1->getName());
     var_dump($c1->getName()->by('en'));
 
+    $c1->setCreatedAt(new \DateTimeImmutable());
+
     $root = new ApiRoot($client, ['projectKey' => 'phpsphere-90']);
 
     $t = $root->withProjectKey()->productProjections()->search()->get()->withFacet("categories.id");
@@ -155,6 +157,7 @@ namespace Commercetools {
 
     $t = new ProductDataModel();
 
+    $t->setDescription(new LocalizedStringModel());
 //    allVariants($t);
 
 //    var_dump((new CartModel())->use());
