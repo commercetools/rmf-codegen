@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 public class TempClient implements ApiHttpClient {
+    private static final boolean LOG = true;
     
     private static final String AUTH_EUROPE_BASE_URL = "https://auth.sphere.io";
     private static final String AUTH_US_BASE_URL = "https://auth.commercetools.co";
@@ -53,14 +54,14 @@ public class TempClient implements ApiHttpClient {
                 throw new RuntimeException("Non supported HTTP Method : " + apiHttpRequest.getMethod().toString());
         }
 
-        System.out.println("<====NEW REQUEST====>");
+        print("<====NEW REQUEST====>");
         Request httpRequest = httpRequestBuilder.build();
-        System.out.println("Request : " + httpRequest.toString());
-        System.out.println("Request body : " + apiHttpRequest.getBody());
+        print("Request : " + httpRequest.toString());
+        print("Request body : " + apiHttpRequest.getBody());
         Response response = client.newCall(httpRequest).execute();
         String responseString = response.body() == null ? "" : response.body().string();
-        System.out.println("Response status code : " + response.code());
-        System.out.println("Response body : " + responseString);
+        print("Response status code : " + response.code());
+        print("Response body : " + responseString);
         
         ApiHttpHeaders apiHttpHeaders = new ApiHttpHeaders();
         for(Map.Entry<String, List<String>> entry : response.headers().toMultimap().entrySet()){
@@ -70,7 +71,7 @@ public class TempClient implements ApiHttpClient {
     }
     
     private String obtainAccessToken() throws IOException {
-        System.out.println("<====OBTAINING NEW ACCESS TOKEN====>");
+        print("<====OBTAINING NEW ACCESS TOKEN====>");
 
         String clientId = System.getenv("JVM_SDK_IT_CLIENT_ID");
         String clientSecret = System.getenv("JVM_SDK_IT_CLIENT_SECRET");
@@ -90,16 +91,16 @@ public class TempClient implements ApiHttpClient {
 
         Response response = client.newCall(request).execute();
         String responseString = response.body().string();
-        System.out.println("Token obtaining response status code : " + response.code());
-        System.out.println("Token obtaining response body : " + responseString);
+        print("Token obtaining response status code : " + response.code());
+        print("Token obtaining response body : " + responseString);
         AuthenticationToken authenticationToken = CommercetoolsJsonUtils.fromJsonString(responseString, AuthenticationToken.class);
         String accessToken = authenticationToken.getAccessToken();
-        System.out.println("Access token : " + accessToken);
+        print("Access token : " + accessToken);
         return accessToken;
     }
     
     private boolean isTokenActive() throws IOException {
-        System.out.println("<====TOKEN INTROSPECTION====>");
+        print("<====TOKEN INTROSPECTION====>");
         String clientId = System.getenv("JVM_SDK_IT_CLIENT_ID");
         String clientSecret = System.getenv("JVM_SDK_IT_CLIENT_SECRET");
 
@@ -112,9 +113,15 @@ public class TempClient implements ApiHttpClient {
                 .post(formBody).build();
         Response response = client.newCall(request).execute();
         String responseString = response.body().string();
-        System.out.println("Token introspection response status code : " + response.code());
-        System.out.println("Token introspection response body : " + responseString);
+        print("Token introspection response status code : " + response.code());
+        print("Token introspection response body : " + responseString);
         TokenIntrospection tokenIntrospection = CommercetoolsJsonUtils.fromJsonString(responseString, TokenIntrospection.class);
         return tokenIntrospection.isActive();
+    }
+    
+    private void print(String msg) {
+        if(LOG){
+            System.out.println(msg);
+        }
     }
 }
