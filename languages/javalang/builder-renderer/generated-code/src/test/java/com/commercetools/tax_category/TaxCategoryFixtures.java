@@ -5,7 +5,7 @@ import com.commercetools.models.TaxCategory.TaxCategory;
 import com.commercetools.models.TaxCategory.TaxCategoryDraft;
 import com.commercetools.models.TaxCategory.TaxCategoryDraftBuilder;
 import com.commercetools.utils.CommercetoolsTestUtils;
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 
 import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
@@ -35,9 +35,9 @@ public class TaxCategoryFixtures {
                 .post(taxCategoryDraft)
                 .executeBlocking();
 
-        Assert.assertNotNull(taxCategory);
-        Assert.assertEquals(taxCategoryDraft.getName(), taxCategory.getName());
-        Assert.assertEquals(taxCategoryDraft.getKey(), taxCategory.getKey());
+        Assertions.assertNotNull(taxCategory);
+        Assertions.assertEquals(taxCategoryDraft.getName(), taxCategory.getName());
+        Assertions.assertEquals(taxCategoryDraft.getKey(), taxCategory.getKey());
         
         return taxCategory;
     }
@@ -50,8 +50,8 @@ public class TaxCategoryFixtures {
                 .addVersion(version)
                 .executeBlocking();
 
-        Assert.assertNotNull(deletedTaxCategory);
-        Assert.assertEquals(deletedTaxCategory.getId(), id);
+        Assertions.assertNotNull(deletedTaxCategory);
+        Assertions.assertEquals(deletedTaxCategory.getId(), id);
         
         return deletedTaxCategory;
     }

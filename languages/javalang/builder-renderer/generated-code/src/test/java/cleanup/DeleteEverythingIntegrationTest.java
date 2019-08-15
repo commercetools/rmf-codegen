@@ -20,7 +20,7 @@ import com.commercetools.product_type.ProductTypeFixtures;
 import com.commercetools.review.ReviewFixtures;
 import com.commercetools.tax_category.TaxCategoryFixtures;
 import com.commercetools.utils.CommercetoolsTestUtils;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class DeleteEverythingIntegrationTest {
     

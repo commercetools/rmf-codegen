@@ -5,8 +5,8 @@ import com.commercetools.models.Product.ProductProjection;
 import com.commercetools.models.Product.ProductProjectionPagedQueryResponse;
 import com.commercetools.product.ProductFixtures;
 import com.commercetools.utils.CommercetoolsTestUtils;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class ProductProjectionIntegrationTests {
     
@@ -20,7 +20,7 @@ public class ProductProjectionIntegrationTests {
                     .addStaged(true)
                     .executeBlocking();
 
-            Assert.assertEquals(productProjection.getId(), product.getId());
+            Assertions.assertEquals(productProjection.getId(), product.getId());
         });
     }
 
@@ -34,7 +34,7 @@ public class ProductProjectionIntegrationTests {
                     .addStaged(true)
                     .executeBlocking();
 
-            Assert.assertEquals(productProjection.getKey(), product.getKey());
+            Assertions.assertEquals(productProjection.getKey(), product.getKey());
         });
     }
     
@@ -47,8 +47,8 @@ public class ProductProjectionIntegrationTests {
                     .addStaged(true)
                     .addWhere("id=" + "\"" + product.getId() +  "\"")
                     .executeBlocking();
-            
-            Assert.assertEquals(productProjectionPagedQueryResponse.getResults().get(0).getId(), product.getId());
+
+            Assertions.assertEquals(productProjectionPagedQueryResponse.getResults().get(0).getId(), product.getId());
         });
     }
 }

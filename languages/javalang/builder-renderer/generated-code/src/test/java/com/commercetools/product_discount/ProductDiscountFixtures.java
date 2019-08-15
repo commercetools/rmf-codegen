@@ -6,7 +6,7 @@ import com.commercetools.models.ProductDiscount.ProductDiscountDraft;
 import com.commercetools.models.ProductDiscount.ProductDiscountDraftBuilder;
 import com.commercetools.models.ProductDiscount.ProductDiscountValueExternalBuilder;
 import com.commercetools.utils.CommercetoolsTestUtils;
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 
 import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
@@ -40,8 +40,8 @@ public class ProductDiscountFixtures {
                 .post(productDiscountDraft)
                 .executeBlocking();
 
-        Assert.assertNotNull(productDiscount);
-        Assert.assertEquals(productDiscount.getKey(), productDiscountDraft.getKey());
+        Assertions.assertNotNull(productDiscount);
+        Assertions.assertEquals(productDiscount.getKey(), productDiscountDraft.getKey());
         
         return productDiscount;
     }
@@ -54,8 +54,8 @@ public class ProductDiscountFixtures {
                 .addVersion(version)
                 .executeBlocking();
 
-        Assert.assertNotNull(deletedProductDiscount);
-        Assert.assertEquals(deletedProductDiscount.getId(), id);
+        Assertions.assertNotNull(deletedProductDiscount);
+        Assertions.assertEquals(deletedProductDiscount.getId(), id);
         
         return deletedProductDiscount;
     }

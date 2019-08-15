@@ -1,10 +1,10 @@
 package com.commercetools.product_type;
 
-import com.commercetools.utils.CommercetoolsTestUtils;
 import com.commercetools.client.ApiRoot;
 import com.commercetools.models.ProductType.*;
-import org.junit.Assert;
-import org.junit.Test;
+import com.commercetools.utils.CommercetoolsTestUtils;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,13 +23,13 @@ public class ProductTypeIntegrationTests {
                 .post(productTypeDraft)
                 .executeBlocking();
 
-        Assert.assertNotNull(productType);
-        Assert.assertEquals(productType.getName(), productTypeDraft.getName());
-        Assert.assertEquals(productType.getDescription(), productTypeDraft.getDescription());
+        Assertions.assertNotNull(productType);
+        Assertions.assertEquals(productType.getName(), productTypeDraft.getName());
+        Assertions.assertEquals(productType.getDescription(), productTypeDraft.getDescription());
         
         ProductType deletedProductType = ProductTypeFixtures.deleteProductType(productType.getId(), productType.getVersion());
-        Assert.assertNotNull(deletedProductType);
-        Assert.assertEquals(deletedProductType.getId(), productType.getId());
+        Assertions.assertNotNull(deletedProductType);
+        Assertions.assertEquals(deletedProductType.getId(), productType.getId());
     }
     
     @Test
@@ -40,8 +40,8 @@ public class ProductTypeIntegrationTests {
                     .withId(productType.getId())
                     .get()
                     .executeBlocking();
-            Assert.assertNotNull(queriedProductType);
-            Assert.assertEquals(queriedProductType.getId(), productType.getId());
+            Assertions.assertNotNull(queriedProductType);
+            Assertions.assertEquals(queriedProductType.getId(), productType.getId());
         });
     }
 
@@ -53,8 +53,8 @@ public class ProductTypeIntegrationTests {
                     .withKey(productType.getKey())
                     .get()
                     .executeBlocking();
-            Assert.assertNotNull(queriedProductType);
-            Assert.assertEquals(queriedProductType.getId(), productType.getId());
+            Assertions.assertNotNull(queriedProductType);
+            Assertions.assertEquals(queriedProductType.getId(), productType.getId());
         });
     }
     
@@ -66,8 +66,8 @@ public class ProductTypeIntegrationTests {
                     .get()
                     .addWhere("id=" + "\"" + productType.getId() + "\"")
                     .executeBlocking();
-            Assert.assertNotNull(response);
-            Assert.assertEquals(response.getResults().get(0).getId(), productType.getId());
+            Assertions.assertNotNull(response);
+            Assertions.assertEquals(response.getResults().get(0).getId(), productType.getId());
         });
     }
     
@@ -85,8 +85,8 @@ public class ProductTypeIntegrationTests {
                             .version(productType.getVersion())
                             .actions(updateActions).build())
                     .executeBlocking();
-            Assert.assertNotNull(updatedProductType);
-            Assert.assertEquals(updatedProductType.getName(), newName);
+            Assertions.assertNotNull(updatedProductType);
+            Assertions.assertEquals(updatedProductType.getName(), newName);
             return updatedProductType;
         });
     }
@@ -105,8 +105,8 @@ public class ProductTypeIntegrationTests {
                             .version(productType.getVersion())
                             .actions(updateActions).build())
                     .executeBlocking();
-            Assert.assertNotNull(updatedProductType);
-            Assert.assertEquals(updatedProductType.getName(), newName);
+            Assertions.assertNotNull(updatedProductType);
+            Assertions.assertEquals(updatedProductType.getName(), newName);
             return updatedProductType;
         });
     }

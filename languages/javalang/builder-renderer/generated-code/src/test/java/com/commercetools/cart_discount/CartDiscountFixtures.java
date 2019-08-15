@@ -3,7 +3,7 @@ package com.commercetools.cart_discount;
 import com.commercetools.client.ApiRoot;
 import com.commercetools.models.CartDiscount.*;
 import com.commercetools.utils.CommercetoolsTestUtils;
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 
 import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
@@ -42,8 +42,8 @@ public class CartDiscountFixtures {
                 .post(cartDiscountDraft)
                 .executeBlocking();
 
-        Assert.assertNotNull(cartDiscount);
-        Assert.assertEquals(cartDiscountDraft.getKey(), cartDiscount.getKey());
+        Assertions.assertNotNull(cartDiscount);
+        Assertions.assertEquals(cartDiscountDraft.getKey(), cartDiscount.getKey());
         
         return cartDiscount;
     }
@@ -56,7 +56,7 @@ public class CartDiscountFixtures {
                 .addVersion(version)
                 .executeBlocking();
 
-        Assert.assertNotNull(deletedCartDiscount);
+        Assertions.assertNotNull(deletedCartDiscount);
         
         return deletedCartDiscount;
     }

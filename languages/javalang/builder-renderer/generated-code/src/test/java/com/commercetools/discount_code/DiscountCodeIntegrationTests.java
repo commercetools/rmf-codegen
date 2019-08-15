@@ -3,12 +3,15 @@ package com.commercetools.discount_code;
 import com.commercetools.client.ApiRoot;
 import com.commercetools.models.DiscountCode.*;
 import com.commercetools.utils.CommercetoolsTestUtils;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Execution(ExecutionMode.CONCURRENT)
 public class DiscountCodeIntegrationTests {
     
     @Test
@@ -26,8 +29,8 @@ public class DiscountCodeIntegrationTests {
                     .get()
                     .executeBlocking();
 
-            Assert.assertNotNull(queriedDiscountCode);
-            Assert.assertEquals(queriedDiscountCode.getId(), discountCode.getId());
+            Assertions.assertNotNull(queriedDiscountCode);
+            Assertions.assertEquals(queriedDiscountCode.getId(), discountCode.getId());
         });
     }
     
@@ -40,8 +43,8 @@ public class DiscountCodeIntegrationTests {
                     .addWhere("id=" + "\"" + discountCode.getId() + "\"")
                     .executeBlocking();
 
-            Assert.assertNotNull(response);
-            Assert.assertEquals(response.getResults().get(0).getId(), discountCode.getId());
+            Assertions.assertNotNull(response);
+            Assertions.assertEquals(response.getResults().get(0).getId(), discountCode.getId());
         });
     }
     
@@ -59,8 +62,8 @@ public class DiscountCodeIntegrationTests {
                         .build())
                     .executeBlocking();
 
-            Assert.assertNotNull(updatedDiscountCode);
-            Assert.assertEquals(updatedDiscountCode.getMaxApplications(), Long.valueOf(10));
+            Assertions.assertNotNull(updatedDiscountCode);
+            Assertions.assertEquals(updatedDiscountCode.getMaxApplications(), Long.valueOf(10));
             
             return updatedDiscountCode;
         });

@@ -5,7 +5,7 @@ import com.commercetools.models.Zone.Zone;
 import com.commercetools.models.Zone.ZoneDraft;
 import com.commercetools.models.Zone.ZoneDraftBuilder;
 import com.commercetools.utils.CommercetoolsTestUtils;
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 
 import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
@@ -35,8 +35,8 @@ public class ZoneFixtures {
                 .post(zoneDraft)
                 .executeBlocking();
 
-        Assert.assertNotNull(zone);
-        Assert.assertEquals(zoneDraft.getKey(), zone.getKey());
+        Assertions.assertNotNull(zone);
+        Assertions.assertEquals(zoneDraft.getKey(), zone.getKey());
         
         return zone;
     }
@@ -49,8 +49,8 @@ public class ZoneFixtures {
                 .addVersion(version)
                 .executeBlocking();
 
-        Assert.assertNotNull(zone);
-        Assert.assertEquals(zone.getId(), id);
+        Assertions.assertNotNull(zone);
+        Assertions.assertEquals(zone.getId(), id);
         
         return zone;
     }

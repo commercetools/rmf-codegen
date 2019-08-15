@@ -1,11 +1,11 @@
 package com.commercetools.product_type;
 
-import com.commercetools.utils.CommercetoolsTestUtils;
 import com.commercetools.client.ApiRoot;
 import com.commercetools.models.ProductType.ProductType;
 import com.commercetools.models.ProductType.ProductTypeDraft;
 import com.commercetools.models.ProductType.ProductTypeDraftBuilder;
-import org.junit.Assert;
+import com.commercetools.utils.CommercetoolsTestUtils;
+import org.junit.jupiter.api.Assertions;
 
 import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
@@ -36,9 +36,9 @@ public class ProductTypeFixtures {
                 .post(productTypeDraft)
                 .executeBlocking();
 
-        Assert.assertNotNull(productType);
-        Assert.assertEquals(productType.getName(), productTypeDraft.getName());
-        Assert.assertEquals(productType.getDescription(), productTypeDraft.getDescription());
+        Assertions.assertNotNull(productType);
+        Assertions.assertEquals(productType.getName(), productTypeDraft.getName());
+        Assertions.assertEquals(productType.getDescription(), productTypeDraft.getDescription());
         
         return productType;
     }
@@ -50,9 +50,9 @@ public class ProductTypeFixtures {
                 .delete()
                 .addVersion(version)
                 .executeBlocking();
-        
-        Assert.assertNotNull(deletedProductType);
-        Assert.assertEquals(deletedProductType.getId(), id);
+
+        Assertions.assertNotNull(deletedProductType);
+        Assertions.assertEquals(deletedProductType.getId(), id);
         return deletedProductType;
     }
     

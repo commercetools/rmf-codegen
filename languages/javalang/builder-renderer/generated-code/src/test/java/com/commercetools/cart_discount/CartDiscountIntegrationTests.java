@@ -3,8 +3,8 @@ package com.commercetools.cart_discount;
 import com.commercetools.client.ApiRoot;
 import com.commercetools.models.CartDiscount.*;
 import com.commercetools.utils.CommercetoolsTestUtils;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,8 +31,8 @@ public class CartDiscountIntegrationTests {
                 .post(cartDiscountDraft)
                 .executeBlocking();
 
-        Assert.assertNotNull(cartDiscount);
-        Assert.assertEquals(cartDiscountDraft.getKey(), cartDiscount.getKey());
+        Assertions.assertNotNull(cartDiscount);
+        Assertions.assertEquals(cartDiscountDraft.getKey(), cartDiscount.getKey());
         
         CartDiscount deletedCartDiscount = ApiRoot.withProjectKeyValue(CommercetoolsTestUtils.getProjectKey())
                 .cartDiscounts()
@@ -41,7 +41,7 @@ public class CartDiscountIntegrationTests {
                 .addVersion(cartDiscount.getVersion())
                 .executeBlocking();
 
-        Assert.assertNotNull(deletedCartDiscount);
+        Assertions.assertNotNull(deletedCartDiscount);
     }
     
     @Test
@@ -53,8 +53,8 @@ public class CartDiscountIntegrationTests {
                     .get()
                     .executeBlocking();
 
-            Assert.assertNotNull(queriedCartDiscount);
-            Assert.assertEquals(queriedCartDiscount.getId(), cartDiscount.getId());
+            Assertions.assertNotNull(queriedCartDiscount);
+            Assertions.assertEquals(queriedCartDiscount.getId(), cartDiscount.getId());
         });
     }
 
@@ -67,8 +67,8 @@ public class CartDiscountIntegrationTests {
                     .get()
                     .executeBlocking();
 
-            Assert.assertNotNull(queriedCartDiscount);
-            Assert.assertEquals(queriedCartDiscount.getId(), cartDiscount.getId());
+            Assertions.assertNotNull(queriedCartDiscount);
+            Assertions.assertEquals(queriedCartDiscount.getId(), cartDiscount.getId());
         });
     }
 
@@ -81,8 +81,8 @@ public class CartDiscountIntegrationTests {
                     .addWhere("id=" + "\"" + cartDiscount.getId() + "\"")
                     .executeBlocking();
 
-            Assert.assertNotNull(response);
-            Assert.assertEquals(response.getResults().get(0).getId(), cartDiscount.getId());
+            Assertions.assertNotNull(response);
+            Assertions.assertEquals(response.getResults().get(0).getId(), cartDiscount.getId());
         });
     }
 
@@ -101,8 +101,8 @@ public class CartDiscountIntegrationTests {
                             .build())
                     .executeBlocking();
 
-            Assert.assertNotNull(updatedCartDiscount);
-            Assert.assertEquals(updatedCartDiscount.getKey(), newKey);
+            Assertions.assertNotNull(updatedCartDiscount);
+            Assertions.assertEquals(updatedCartDiscount.getKey(), newKey);
             
             return updatedCartDiscount;
         });
@@ -123,8 +123,8 @@ public class CartDiscountIntegrationTests {
                             .build())
                     .executeBlocking();
 
-            Assert.assertNotNull(updatedCartDiscount);
-            Assert.assertEquals(updatedCartDiscount.getKey(), newKey);
+            Assertions.assertNotNull(updatedCartDiscount);
+            Assertions.assertEquals(updatedCartDiscount.getKey(), newKey);
 
             return updatedCartDiscount;
         });

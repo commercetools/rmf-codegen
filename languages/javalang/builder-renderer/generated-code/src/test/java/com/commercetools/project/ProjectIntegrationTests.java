@@ -1,10 +1,13 @@
 package com.commercetools.project;
 
-import com.commercetools.utils.CommercetoolsTestUtils;
 import com.commercetools.client.ApiRoot;
-import com.commercetools.models.Project.*;
-import org.junit.Assert;
-import org.junit.Test;
+import com.commercetools.models.Project.Project;
+import com.commercetools.models.Project.ProjectChangeCountriesActionBuilder;
+import com.commercetools.models.Project.ProjectUpdateAction;
+import com.commercetools.models.Project.ProjectUpdateBuilder;
+import com.commercetools.utils.CommercetoolsTestUtils;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -18,8 +21,8 @@ public class ProjectIntegrationTests {
         Project project = ApiRoot.withProjectKeyValue(projectKey)
                 .get()
                 .executeBlocking();
-        Assert.assertNotNull(project);
-        Assert.assertEquals(projectKey, project.getKey());
+        Assertions.assertNotNull(project);
+        Assertions.assertEquals(projectKey, project.getKey());
     }
     
     @Test
