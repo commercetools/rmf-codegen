@@ -30,6 +30,11 @@ namespace Commercetools {
     use Commercetools\Importer\Models\Common\LocalizedStringModel;
     use Commercetools\Importer\Models\Error\ErrorResponse;
     use Commercetools\Importer\Models\Error\ErrorResponseModel;
+    use Commercetools\Importer\Models\Product\ProductDraftModel;
+    use Commercetools\Importer\Models\Product\ProductVariantCollection;
+    use Commercetools\Importer\Models\Product\ProductVariantDraftCollection;
+    use Commercetools\Importer\Models\Product\ProductVariantDraftModel;
+    use Commercetools\Importer\Models\Product\ProductVariantModel;
     use function Commercetools\Importer\Models\Product\allVariants;
     use Commercetools\Importer\Models\Product\ProductDataModel;
     use Commercetools\Importer\Models\Product\ProductProjectionPagedSearchResponse;
@@ -117,7 +122,7 @@ namespace Commercetools {
     var_dump($t->current());
     var_dump($categories);
     var_dump($c1->getName());
-    var_dump($c1->getName()->by('en'));
+    var_dump($c1->getName()->at('en'));
 
     $c1->setCreatedAt(new \DateTimeImmutable());
 
@@ -153,11 +158,22 @@ namespace Commercetools {
 
     $tr = new Response(200, [], '{"de-DE" : "test" }');
     $l = $t->mapFromResponse($tr, LocalizedStringModel::class);
-    var_dump($l->by("de-DE"));
 
-    $t = new ProductDataModel();
+    $mapper = new ResultMapper();
 
-    $t->setDescription(new LocalizedStringModel());
+    $ls = $mapper->mapResponseToClass(LocalizedStringModel::class, $tr);
+    var_dump($l->at("de-DE"));
+
+    $t = new ProductDraftModel();
+
+    $v = new ProductVariantDraftModel();
+    $v->setSku("123");
+
+    $t->setDescription((new LocalizedStringModel())->put('en', 'test'));
+    $t->setVariants((
+        new ProductVariantDraftCollection())->add($v)
+    );
+    var_dump(json_encode($t));
 //    allVariants($t);
 
 //    var_dump((new CartModel())->use());

@@ -11,6 +11,8 @@ import io.vrap.rmf.codegen.rendring.utils.escapeAll
 import io.vrap.rmf.codegen.rendring.utils.keepIndentation
 import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
+import io.vrap.rmf.raml.model.types.Annotation
+import io.vrap.rmf.raml.model.types.AnyAnnotationType
 import io.vrap.rmf.raml.model.types.ObjectType
 import io.vrap.rmf.raml.model.types.Property
 import io.vrap.rmf.raml.model.util.StringCaseFormat
@@ -25,7 +27,41 @@ class PhpInterfaceObjectTypeRenderer @Inject constructor(override val vrapTypePr
 
         val vrapType = vrapTypeProvider.doSwitch(type) as VrapObjectType
 
-        val content = """
+        val mapAnnotation = type.getAnnotation("asMap")
+
+
+        val content = when (mapAnnotation) {
+            is Annotation -> mapContent(type, mapAnnotation.type)
+            else -> content(type)
+        }
+
+
+        return TemplateFile(
+                relativePath = "src/" + vrapType.fullClassName().replace(packagePrefix.toNamespaceName(), "").replace("\\", "/") + ".php",
+                content = content
+        )
+    }
+
+    fun mapContent(type: ObjectType, anno: AnyAnnotationType): String {
+        val vrapType = vrapTypeProvider.doSwitch(type) as VrapObjectType
+
+        return """
+            |<?php
+            |${PhpSubTemplates.generatorInfo}
+            |namespace ${vrapType.namespaceName().escapeAll()};
+            |
+            |use ${packagePrefix.toNamespaceName().escapeAll()}\\Base\\Collection;
+            |
+            |interface ${vrapType.simpleClassName} extends Collection
+            |{
+            |}
+        """.trimMargin().keepIndentation("<<", ">>").forcedLiteralEscape()
+    }
+
+    fun content(type: ObjectType): String {
+        val vrapType = vrapTypeProvider.doSwitch(type) as VrapObjectType
+
+        return """
             |<?php
             |${PhpSubTemplates.generatorInfo}
             |namespace ${vrapType.namespaceName().escapeAll()};
@@ -42,12 +78,6 @@ class PhpInterfaceObjectTypeRenderer @Inject constructor(override val vrapTypePr
             |    <<${type.setters()}>>
             |}
         """.trimMargin().keepIndentation("<<", ">>").forcedLiteralEscape()
-
-
-        return TemplateFile(
-                relativePath = "src/" + vrapType.fullClassName().replace(packagePrefix.toNamespaceName(), "").replace("\\", "/") + ".php",
-                content = content
-        )
     }
 
     fun ObjectType.imports() = this.getImports().map { "use ${it.escapeAll()};" }.joinToString(separator = "\n")

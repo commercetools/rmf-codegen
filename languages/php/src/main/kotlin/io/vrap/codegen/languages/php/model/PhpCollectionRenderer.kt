@@ -34,15 +34,15 @@ class PhpCollectionRenderer @Inject constructor(override val vrapTypeProvider: V
             |${PhpSubTemplates.generatorInfo}
             |namespace ${vrapType.namespaceName()};
             |
-            |use ${type.type?.toVrapType()?.fullClassName()?.let { "${it}Collection" } ?: "${packagePrefix.toNamespaceName()}\\Base\\MapCollection"};
+            |use ${type.type?.toVrapType()?.fullClassName()?.let { "${it}Collection" } ?: "${packagePrefix.toNamespaceName()}\\Base\\MapperSequence"};
             |use ${packagePrefix.toNamespaceName()}\Exception\InvalidArgumentException;
             |
             |/**
-            | * ${type.type?.toVrapType()?.simpleName()?.let { "" } ?: "@extends MapCollection<${ vrapType.simpleClassName }>"}
+            | * ${type.type?.toVrapType()?.simpleName()?.let { "" } ?: "@extends MapperSequence<${ vrapType.simpleClassName }>"}
             | * @method ${vrapType.simpleClassName} current()
             | * @method ${vrapType.simpleClassName} at($!offset)
             | */
-            |class ${vrapType.simpleClassName}Collection extends ${type.type?.toVrapType()?.simpleName()?.let { it } ?: "Map"}Collection
+            |class ${vrapType.simpleClassName}Collection extends ${type.type?.toVrapType()?.simpleName()?.let { "${it}Collection" } ?: "MapperSequence"}
             |{
             |    /**
             |     * @psalm-assert ${vrapType.simpleClassName} $!value

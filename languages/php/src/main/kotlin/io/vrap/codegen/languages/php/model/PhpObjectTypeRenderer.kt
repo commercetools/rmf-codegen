@@ -12,6 +12,7 @@ import io.vrap.rmf.codegen.rendring.utils.escapeAll
 import io.vrap.rmf.codegen.rendring.utils.keepIndentation
 import io.vrap.rmf.codegen.types.*
 import io.vrap.rmf.raml.model.types.*
+import io.vrap.rmf.raml.model.types.Annotation
 import io.vrap.rmf.raml.model.types.util.TypesSwitch
 import io.vrap.rmf.raml.model.util.StringCaseFormat
 import org.eclipse.emf.ecore.EObject
@@ -27,7 +28,47 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
 
         val vrapType = vrapTypeProvider.doSwitch(type) as VrapObjectType
 
-        val content = """
+        val mapAnnotation = type.getAnnotation("asMap")
+
+
+        val content = when (mapAnnotation) {
+            is Annotation -> mapContent(type, mapAnnotation.type)
+            else -> content(type)
+        }
+
+
+        return TemplateFile(
+                relativePath = "src/" + vrapType.fullClassName().replace(packagePrefix.toNamespaceName(), "").replace("\\", "/") + "Model.php",
+                content = content
+        )
+    }
+
+    fun mapContent(type: ObjectType, anno: AnyAnnotationType): String {
+        val vrapType = vrapTypeProvider.doSwitch(type) as VrapObjectType
+
+        return """
+            |<?php
+            |${PhpSubTemplates.generatorInfo}
+            |namespace ${vrapType.namespaceName().escapeAll()};
+            |
+            |use ${packagePrefix.toNamespaceName().escapeAll()}\\Base\\MapperMap;
+            |
+            |final class ${vrapType.simpleClassName}Model extends MapperMap implements ${vrapType.simpleClassName}
+            |{
+            |    protected function mapper()
+            |    {
+            |        return function(string $!key) {
+            |            return $!this->get($!key);
+            |        };
+            |    }
+            |}
+        """.trimMargin().keepIndentation("<<", ">>").forcedLiteralEscape()
+    }
+
+    fun content(type: ObjectType): String {
+        val vrapType = vrapTypeProvider.doSwitch(type) as VrapObjectType
+
+        return """
             |<?php
             |${PhpSubTemplates.generatorInfo}
             |namespace ${vrapType.namespaceName().escapeAll()};
@@ -54,12 +95,6 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
             |    <<${type.discriminatorResolver()}>>
             |}
         """.trimMargin().keepIndentation("<<", ">>").forcedLiteralEscape()
-
-
-        return TemplateFile(
-                relativePath = "src/" + vrapType.fullClassName().replace(packagePrefix.toNamespaceName(), "").replace("\\", "/") + "Model.php",
-                content = content
-        )
     }
 
 
@@ -69,7 +104,7 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
                 |/**
                 | * @param ?object $!data
                 | */
-                |public function __construct(object $!data = null)
+                |public function __construct(\stdClass $!data = null)
                 |{
                 |    parent::__construct($!data);
                 |    /** @var string $!this->${this.discriminator} */
@@ -461,7 +496,7 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
             |/**
             | * @psalm-return class-string<${this.toVrapType().simpleName()}>
             | */
-            |public static function resolveDiscriminatorClass(object $!value): string
+            |public static function resolveDiscriminatorClass(\stdClass $!value): string
             |{
             |   $!fieldName = ${this.toVrapType().simpleName()}::DISCRIMINATOR_FIELD;
             |   if (isset($!value->$!fieldName)) {
