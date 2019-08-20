@@ -81,7 +81,7 @@ public class TempClient implements ApiHttpClient {
 
         RequestBody formBody = new FormBody.Builder()
                 .add("grant_type", "client_credentials")
-                .add("scope", "manage_project:" + projectKey).build();
+                .add("scope", "manage_project:" + projectKey + " manage_api_clients:" + projectKey).build();
         
         Request request = new Request.Builder()
                 .url(AUTH_EUROPE_BASE_URL + AUTH_PATH)
