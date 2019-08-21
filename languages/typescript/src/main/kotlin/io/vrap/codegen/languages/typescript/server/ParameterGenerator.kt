@@ -6,29 +6,37 @@ import io.vrap.codegen.languages.extensions.EObjectExtensions
 import io.vrap.codegen.languages.extensions.resource
 import io.vrap.codegen.languages.typescript.*
 import io.vrap.codegen.languages.typescript.model.simpleTSName
+import io.vrap.rmf.codegen.di.ClientPackageName
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.FileProducer
 import io.vrap.rmf.codegen.rendring.utils.keepIndentation
-import io.vrap.rmf.codegen.types.VrapObjectType
-import io.vrap.rmf.codegen.types.VrapTypeProvider
+import io.vrap.rmf.codegen.types.*
 import io.vrap.rmf.raml.model.modules.Api
 import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.ResourceContainer
+import java.lang.Error
+import java.nio.file.Paths
 
 class ParameterGenerator @Inject constructor(
         val api: Api,
         val constantsProvider: ConstantsProvider,
+        @ClientPackageName val clientPackageName: String,
         override val vrapTypeProvider: VrapTypeProvider
 ) : FileProducer, EObjectExtensions {
 
     override fun produceFiles(): List<TemplateFile> = listOf(parametersDef())
 
+    val modelsLocation = "../models"
+
+    val moduleFileName = "${constantsProvider.parametersModule}.ts"
+    val moduleFilePath = Paths.get("${constantsProvider.parametersModule}.ts")
 
     fun parametersDef(): TemplateFile {
-        val moduleName = constantsProvider.parametersModule
+
+
 
         val content = """
-                    |${imports(moduleName)}
+                    |${imports(moduleFileName)}
                     |
                     |${api.parameters()}
                     |
@@ -42,7 +50,7 @@ class ParameterGenerator @Inject constructor(
 
 
         return TemplateFile(
-                relativePath = "$moduleName.ts",
+                relativePath = moduleFileName,
                 content = content
         )
     }
@@ -56,15 +64,15 @@ class ParameterGenerator @Inject constructor(
                     |export type ${it.toParamName()} = {
                     |   headers: {
                     |       <${it.headers.map { "${it.name}: ${it.type.toVrapType().simpleTSName()}" }.joinToString("\n")}>
-                    |       (key:string):string
+                    |       [key:string]:string
                     |   },
                     |   queryParams: {
                     |       <${it.queryParameters.map { "${it.name}: ${it.type.toVrapType().simpleTSName()}" }.joinToString("\n")}>
-                    |       (key:string):VariableMap
+                    |       [key:string]: ScalarValue | ScalarValue[]
                     |   }
                     |   pathParams: {
                     |       <${it.resource().fullUri.variables.map{ "$it: string" }.joinToString("\n")}>
-                    |       (key:string):string
+                    |       [key:string]:string
                     |   }
                     |   <${if(it.bodies.isNotEmpty()) "body: ${it.bodyDefinition()}" else ""}>
                     |}
@@ -93,7 +101,7 @@ class ParameterGenerator @Inject constructor(
                 .map {
                    """
                     |{
-                    |   headers?: {(key:string):string}
+                    |   headers?: {[key:string]:string}
                     |   statusCode: ${it.statusCode?:"number"}
                     |   body: ${it.bodies.map {it.type.toVrapType().simpleTSName()}.joinToString(separator = " | ").ifEmpty { "void" }}
                     |}
@@ -102,7 +110,7 @@ class ParameterGenerator @Inject constructor(
                 .ifBlank {
                     """
                     |{
-                    |   headers?: {(key:string):string}
+                    |   headers?: {[key:string]:string}
                     |   statusCode: number
                     |}
                     """.trimMargin()
@@ -132,7 +140,7 @@ class ParameterGenerator @Inject constructor(
                                     it.responses
                                             .flatMap {
                                                 it.bodies.map {
-                                                    body ->  body.type
+                                                    body -> body.type
                                                 }
                                             }
                             )
@@ -140,19 +148,30 @@ class ParameterGenerator @Inject constructor(
                 .map{
                     it.toVrapType()
                 }
-                .plus(
-                        listOf(
-                                constantsProvider.HttpInput,
-                                constantsProvider.HttpResponse,
-                                constantsProvider.VariableMap
-                        )
-                )
                 .filter { it is VrapObjectType }
                 .distinct()
                 .map {
-                    it.toImportStatement(moduleName)
+                    it.importModelsStatements(moduleName)
                 }
+                .plus(
+                        constantsProvider.ScalarValue.toImportStatement(moduleName)
+                )
                 .joinToString(separator = "\n")
 
+    }
+
+    private fun VrapType.importModelsStatements(moduleName:String):String {
+        return when (this) {
+            is VrapObjectType -> {
+                val relativePath = relativizePaths("./${moduleFilePath.parent}", "$modelsLocation${this.`package`}")
+                "import { ${this.simpleTSName()} } from '$relativePath'"
+            }
+            is VrapArrayType -> {
+                val objType = this.itemType as VrapObjectType
+                val relativePath = relativizePaths(moduleName, objType.`package`)
+                return "import { ${objType.simpleTSName()} } from '$relativePath'"
+            }
+            else -> throw Error("not supposed to arrive here")
+        }
     }
 }

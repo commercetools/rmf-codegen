@@ -2,21 +2,25 @@ package io.vrap.codegen.languages.typescript.server
 
 import com.google.inject.Inject
 import io.vrap.codegen.languages.extensions.EObjectExtensions
+import io.vrap.codegen.languages.extensions.hasBody
 import io.vrap.codegen.languages.extensions.resource
-import io.vrap.codegen.languages.typescript.allMethods
-import io.vrap.codegen.languages.typescript.toHandlerName
-import io.vrap.codegen.languages.typescript.toImportStatement
-import io.vrap.codegen.languages.typescript.toParamName
+import io.vrap.codegen.languages.typescript.*
+import io.vrap.codegen.languages.typescript.joi.simpleJoiName
+import io.vrap.codegen.languages.typescript.model.simpleTSName
 import io.vrap.rmf.codegen.di.ClientPackageName
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.FileProducer
 import io.vrap.rmf.codegen.rendring.utils.keepIndentation
+import io.vrap.rmf.codegen.types.VrapArrayType
 import io.vrap.rmf.codegen.types.VrapObjectType
+import io.vrap.rmf.codegen.types.VrapType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.modules.Api
 import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.resources.ResourceContainer
+import java.lang.Error
+import java.nio.file.Paths
 
 class ServerRenderer @Inject constructor(
         val api: Api,
@@ -27,19 +31,33 @@ class ServerRenderer @Inject constructor(
 
     override fun produceFiles(): List<TemplateFile> = listOf(apiServer())
 
+    val joiValidatorLocation = "../joi"
+
+    val moduleFileName = "${constantsProvider.serverModule}.ts"
+    val moduleFilePath = Paths.get("$moduleFileName.ts")
+
 
     fun apiServer(): TemplateFile {
-        val moduleName = "$client_package/api-server"
+        val moduleName = "$client_package/joi-server"
 
         val content = """
-            |${imports(moduleName)}
+            |import * as Joi from 'joi'
+            |<${handlerImports(moduleName)}>
+            |<${joiValidatorImports(moduleName)}>
             |
+            |const requiredString = Joi.string().required()
             |
             |export type ApiServer = {
             |    <${serverDef(api)}>
             |}
             |
-            |export function toResources(apiServer:ApiServer) : Resource[] {
+            |export function toJoiServerRoutes(
+            |   arg: {
+            |       apiServer: ApiServer;
+            |       failAction: Lifecycle.FailAction;
+            |   }
+            |) : ServerRoute[] {
+            |    const { apiServer, failAction } = arg
             |    return [
             |               <${resourceArray()}>
             |           ]
@@ -50,7 +68,7 @@ class ServerRenderer @Inject constructor(
 
 
         return TemplateFile(
-                relativePath = "$moduleName.ts",
+                relativePath = moduleFileName,
                 content = content)
 
 
@@ -87,12 +105,30 @@ class ServerRenderer @Inject constructor(
 
     fun resourceArray(): String {
 
+        // the old code for handeler navigator ${it.handlerNavigator()
         return api.allMethods()
                 .map {
                     """ |{
-                        |   uri: '${it.resource().fullUri.template}',
+                        |   path: '${it.resource().fullUri.template}',
                         |   method: '${it.methodName.toUpperCase()}',
-                        |   handler: ${it.handlerNavigator()}
+                        |   handler: (request: Request, h: ResponseToolkit, err?: Error) =\> {
+                        |       const method = ${it.handlerNavigator()}
+                        |       method({
+                        |           headers: request.headers,
+                        |           pathParams: request.params as any,
+                        |           queryParams: request.query as any,
+                        |           <${if(it.bodies.isNotEmpty() && it.bodies[0].type != null) "body: request.payload as any" else ""}>
+                        |       })
+                        |   },
+                        |   options: {
+                        |      validate: {
+                        |        <${if(it.hasBody()) "payload: ${it.bodies[0].type.toVrapType().simpleJoiName()}()," else ""}>
+                        |        params: {
+                        |          <${it.resource().fullUri.variables.map { "$it: requiredString" }.joinToString(separator = ",\n")}>
+                        |        },
+                        |        failAction,
+                        |      },
+                        |    }
                         |}
                     """.trimMargin()
                 }.joinToString(separator = ",\n")
@@ -120,13 +156,19 @@ class ServerRenderer @Inject constructor(
 
     private fun Resource.relativePath(): String = this.relativeUri.template.replaceFirst("/", "")
 
-    private fun imports(moduleName: String): String {
+    private fun handlerImports(moduleName: String): String {
         return api.allMethods()
                 .map {
                     VrapObjectType(constantsProvider.parametersModule, it.toHandlerName())
                 }
                 .plus(
-                        constantsProvider.Resource
+                        listOf(
+                                constantsProvider.Resource,
+                                constantsProvider.ServerRoute,
+                                constantsProvider.Lifecycle,
+                                constantsProvider.Request,
+                                constantsProvider.ResponseToolkit
+                        )
                 )
                 .map {
                     it.toImportStatement(moduleName)
@@ -134,8 +176,33 @@ class ServerRenderer @Inject constructor(
                 .joinToString(separator = "\n")
 
     }
+
+    private fun joiValidatorImports(moduleName: String): String {
+        return api.allMethods()
+                .filter { it.bodies.isNotEmpty() }
+                .map { it.bodies[0] }
+                .filter { it.type != null }
+                .map { it.type.toVrapType() }
+                .distinct()
+                .map {
+                    it.joiImportStatement(moduleName)
+                }
+                .joinToString(separator = "\n")
+
+    }
+
+    private fun VrapType.joiImportStatement(moduleName:String):String {
+        return when (this) {
+            is VrapObjectType -> {
+                val joiType = this.toJoiVrapType()
+                val relativePath = relativizePaths("./${moduleFilePath.parent}", "$joiValidatorLocation${joiType.`package`}")
+                "import { ${joiType.simpleClassName} } from '$relativePath'"
+            }
+            is VrapArrayType -> {
+                return this.itemType.joiImportStatement(moduleName)
+            }
+            else -> throw Error("not supposed to arrive here")
+        }
+    }
+
 }
-
-
-
-

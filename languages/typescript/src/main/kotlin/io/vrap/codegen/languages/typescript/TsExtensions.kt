@@ -4,6 +4,7 @@ package io.vrap.codegen.languages.typescript
 import io.vrap.codegen.languages.extensions.resource
 import io.vrap.codegen.languages.extensions.toRequestName
 import io.vrap.codegen.languages.extensions.toResourceName
+import io.vrap.codegen.languages.typescript.joi.simpleJoiName
 import io.vrap.codegen.languages.typescript.model.simpleTSName
 import io.vrap.rmf.codegen.types.VrapArrayType
 import io.vrap.rmf.codegen.types.VrapLibraryType
@@ -90,3 +91,6 @@ fun ResourceContainer.allMethods(): List<Method> = this
 fun Method.toParamName() = "${this.toRequestName()}Parameter"
 fun Method.toResponseName() = "${this.toRequestName()}Response"
 fun Method.toHandlerName() = "${this.toRequestName()}Handler"
+
+fun String.toJoiPackageName() = "${this}-types"
+fun VrapObjectType.toJoiVrapType(): VrapObjectType = VrapObjectType(`package`= this.`package`.toJoiPackageName(), simpleClassName = this.simpleJoiName())

@@ -27,19 +27,22 @@ export type MethodType =
   | "OPTIONS"
   | "TRACE";
 
-export type VariableMap =  { [key: string]: string | number | boolean | undefined }
+export type ScalarValue =  string | number | boolean | undefined 
+
 
 export type HttpResponse = {
     body?: any,
-    headers?: {(key:string):string}
+    headers?: {[key:string]:string}
     statusCode: number
 }
 
 export type HttpInput = {
     body: any,
-    headers: {(key:string):string}
-    pathParams: {(key:string):string}
-    queryParams: {(key:string):VariableMap}
+    headers: {[key:string]:string}
+    pathParams: {[key:string]:string}
+    queryParams: {
+        [key:string]: string | string[] 
+    }
 }
 
 export type Resource = {

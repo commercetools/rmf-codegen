@@ -1,5 +1,6 @@
 package io.vrap.codegen.languages.typescript.server
 
+import com.google.inject.BindingAnnotation
 import io.vrap.rmf.codegen.di.ClientPackageName
 import io.vrap.rmf.codegen.types.VrapLibraryType
 import io.vrap.rmf.codegen.types.VrapObjectType
@@ -8,6 +9,8 @@ import javax.inject.Inject
 class ConstantsProvider @Inject constructor(@ClientPackageName val client_package: String){
 
     val parametersModule = "$client_package/parameters"
+
+    val serverModule = "$client_package/server"
 
     val commonModule = "$client_package/common"
 
@@ -26,19 +29,28 @@ class ConstantsProvider @Inject constructor(@ClientPackageName val client_packag
             "Resource"
     )
 
-    val VariableMap = VrapObjectType(
+    val ScalarValue = VrapObjectType(
             commonModule,
-            "VariableMap"
+            "ScalarValue"
     )
 
     val ServerRoute = VrapLibraryType(
             "@hapi/hapi",
             "ServerRoute"
     )
+
+    val Lifecycle = VrapLibraryType(
+            "@hapi/hapi",
+            "Lifecycle"
+    )
+
     val ResponseToolkit = VrapLibraryType(
             "@hapi/hapi",
             "ResponseToolkit"
     )
+
+    val Request = VrapLibraryType(
+            "@hapi/hapi",
+            "Request"
+    )
 }
-
-

@@ -20,9 +20,9 @@ class TestCodeGenerator {
 
     companion object {
         private val userProvidedPath = System.getenv("TEST_RAML_FILE")
-        private val apiPath : Path = Paths.get(if (userProvidedPath == null) "../../api-spec/api.raml" else userProvidedPath)
+        private val apiPath : Path = Paths.get(if (userProvidedPath == null) "/Users/abeniasaad/IdeaProjects/commercetools-importer/api-spec/import-storage-api.raml" else userProvidedPath)
         val apiProvider: ApiProvider = ApiProvider(apiPath)
-        val generatorConfig = CodeGeneratorConfig(basePackageName = "")
+        val generatorConfig = CodeGeneratorConfig(basePackageName = "",outputFolder = Paths.get("/Users/abeniasaad/IdeaProjects/newTsSdk/src/gen"))
     }
 
     @Test
@@ -34,9 +34,26 @@ class TestCodeGenerator {
 
     @Test
     fun generateTsServer() {
-        val generatorModule = GeneratorModule(apiProvider, generatorConfig, TypeScriptBaseTypes)
-        val generatorComponent = GeneratorComponent(generatorModule, TypeScriptModelModule, TsServerModule)
-        generatorComponent.generateFiles()
+
+        // Generate joi validators
+        val joiGeneratorConfig = CodeGeneratorConfig(modelPackage = "",outputFolder = Paths.get("/Users/abeniasaad/IdeaProjects/newTsSdk/src/joi"))
+        val joigeneratorModule = GeneratorModule(apiProvider, joiGeneratorConfig, TypeScriptBaseTypes)
+        val joigeneratorComponent = GeneratorComponent(joigeneratorModule, JoiModule)
+        joigeneratorComponent.generateFiles()
+
+        // Generate ts models
+        val modelGeneratorConfig = CodeGeneratorConfig(modelPackage = "",outputFolder = Paths.get("/Users/abeniasaad/IdeaProjects/newTsSdk/src/models"))
+        val modelGeneratorModule = GeneratorModule(apiProvider, modelGeneratorConfig, TypeScriptBaseTypes)
+        val modelGeneratorComponent = GeneratorComponent(modelGeneratorModule, TypeScriptModelModule)
+        modelGeneratorComponent.generateFiles()
+
+        // Generate the server code 
+        val serverGeneratorConfig = CodeGeneratorConfig(modelPackage = "",clientPackage = "",outputFolder = Paths.get("/Users/abeniasaad/IdeaProjects/newTsSdk/src/server"))
+        val serverGeneratorModule = GeneratorModule(apiProvider, serverGeneratorConfig, TypeScriptBaseTypes)
+        val serverGeneratorComponent = GeneratorComponent(serverGeneratorModule, TsServerModule)
+        serverGeneratorComponent.generateFiles()
+        
+
     }
 
 
