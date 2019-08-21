@@ -12,24 +12,11 @@ import java.util.List;
 public class ProductTypeIntegrationTests {
     
     @Test
-    public void createAndDelete() {
-        ProductTypeDraft productTypeDraft = ProductTypeDraftBuilder.of()
-                .name(CommercetoolsTestUtils.randomString())
-                .description(CommercetoolsTestUtils.randomString())
-                .build();
+    public void createAndDeleteById() {
+        ProductType productType = ProductTypeFixtures.createProductType();
+        ProductType deleteProductType = ProductTypeFixtures.deleteProductType(productType.getId(), productType.getVersion());
 
-        ProductType productType = ApiRoot.withProjectKeyValue(CommercetoolsTestUtils.getProjectKey())
-                .productTypes()
-                .post(productTypeDraft)
-                .executeBlocking();
-
-        Assertions.assertNotNull(productType);
-        Assertions.assertEquals(productType.getName(), productTypeDraft.getName());
-        Assertions.assertEquals(productType.getDescription(), productTypeDraft.getDescription());
-        
-        ProductType deletedProductType = ProductTypeFixtures.deleteProductType(productType.getId(), productType.getVersion());
-        Assertions.assertNotNull(deletedProductType);
-        Assertions.assertEquals(deletedProductType.getId(), productType.getId());
+        Assertions.assertEquals(productType.getId(), deleteProductType.getId());
     }
     
     @Test
@@ -40,6 +27,7 @@ public class ProductTypeIntegrationTests {
                     .withId(productType.getId())
                     .get()
                     .executeBlocking();
+            
             Assertions.assertNotNull(queriedProductType);
             Assertions.assertEquals(queriedProductType.getId(), productType.getId());
         });
@@ -53,6 +41,7 @@ public class ProductTypeIntegrationTests {
                     .withKey(productType.getKey())
                     .get()
                     .executeBlocking();
+
             Assertions.assertNotNull(queriedProductType);
             Assertions.assertEquals(queriedProductType.getId(), productType.getId());
         });
@@ -66,6 +55,7 @@ public class ProductTypeIntegrationTests {
                     .get()
                     .addWhere("id=" + "\"" + productType.getId() + "\"")
                     .executeBlocking();
+
             Assertions.assertNotNull(response);
             Assertions.assertEquals(response.getResults().get(0).getId(), productType.getId());
         });
@@ -73,42 +63,59 @@ public class ProductTypeIntegrationTests {
     
     @Test
     public void updateById() {
-        List<ProductTypeUpdateAction> updateActions = new ArrayList<>();
-        String newName = CommercetoolsTestUtils.randomString();
-        updateActions.add(ProductTypeChangeNameActionBuilder.of().name(newName).build());
-        
         ProductTypeFixtures.withUpdateableProductType(productType -> {
+            List<ProductTypeUpdateAction> updateActions = new ArrayList<>();
+            String newKey = CommercetoolsTestUtils.randomKey();
+            updateActions.add(ProductTypeSetKeyActionBuilder.of().key(newKey).build());
             ProductType updatedProductType = ApiRoot.withProjectKeyValue(CommercetoolsTestUtils.getProjectKey())
                     .productTypes()
                     .withId(productType.getId())
                     .post(ProductTypeUpdateBuilder.of()
+                            .actions(updateActions)
                             .version(productType.getVersion())
-                            .actions(updateActions).build())
+                            .build())
                     .executeBlocking();
+
             Assertions.assertNotNull(updatedProductType);
-            Assertions.assertEquals(updatedProductType.getName(), newName);
+            Assertions.assertEquals(updatedProductType.getKey(), newKey);
+            
             return updatedProductType;
         });
     }
 
     @Test
     public void updateByKey() {
-        List<ProductTypeUpdateAction> updateActions = new ArrayList<>();
-        String newName = CommercetoolsTestUtils.randomString();
-        updateActions.add(ProductTypeChangeNameActionBuilder.of().name(newName).build());
-
         ProductTypeFixtures.withUpdateableProductType(productType -> {
+            List<ProductTypeUpdateAction> updateActions = new ArrayList<>();
+            String newKey = CommercetoolsTestUtils.randomKey();
+            updateActions.add(ProductTypeSetKeyActionBuilder.of().key(newKey).build());
             ProductType updatedProductType = ApiRoot.withProjectKeyValue(CommercetoolsTestUtils.getProjectKey())
                     .productTypes()
                     .withKey(productType.getKey())
                     .post(ProductTypeUpdateBuilder.of()
+                            .actions(updateActions)
                             .version(productType.getVersion())
-                            .actions(updateActions).build())
+                            .build())
                     .executeBlocking();
+
             Assertions.assertNotNull(updatedProductType);
-            Assertions.assertEquals(updatedProductType.getName(), newName);
+            Assertions.assertEquals(updatedProductType.getKey(), newKey);
+
             return updatedProductType;
         });
+    }
+    
+    @Test
+    public void deleteByKey() {
+        ProductType productType = ProductTypeFixtures.createProductType();
+        ProductType deletedProductType = ApiRoot.withProjectKeyValue(CommercetoolsTestUtils.getProjectKey())
+                .productTypes()
+                .withKey(productType.getKey())
+                .delete()
+                .addVersion(productType.getVersion())
+                .executeBlocking();
+        
+        Assertions.assertNotNull(deletedProductType);
     }
     
 }
