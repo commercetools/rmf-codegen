@@ -56,10 +56,10 @@ class ServerRenderer @Inject constructor(
             |   arg: {
             |       apiServer: ApiServer,
             |       failAction: Lifecycle.FailAction,
-            |       errorHandler: ErrorHandler
+            |       handleError: ErrorHandler
             |   }
             |) : ServerRoute[] {
-            |    const { apiServer, failAction, errorHandler } = arg
+            |    const { apiServer, failAction, handleError } = arg
             |    return [
             |               <${resourceArray()}>
             |           ]
@@ -133,7 +133,7 @@ class ServerRenderer @Inject constructor(
                         |
                         |          return response;
                         |         } catch (error) {
-                        |          return errorHandler({
+                        |          return handleError({
                         |            request,
                         |            responseToolkit,
                         |            error
