@@ -130,7 +130,6 @@ class ServerRenderer @Inject constructor(
                         |          for (const header in result.headers) {
                         |            response.header(header, result.headers[header]);
                         |          }
-                        |
                         |          return response;
                         |         } catch (error) {
                         |          return handleError({

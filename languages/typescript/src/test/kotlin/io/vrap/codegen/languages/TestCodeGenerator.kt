@@ -36,19 +36,19 @@ class TestCodeGenerator {
     fun generateTsServer() {
 
         // Generate joi validators
-        val joiGeneratorConfig = CodeGeneratorConfig(modelPackage = "",outputFolder = Paths.get("/Users/abeniasaad/IdeaProjects/newTsSdk/src/joi"))
+        val joiGeneratorConfig = CodeGeneratorConfig(modelPackage = "")
         val joigeneratorModule = GeneratorModule(apiProvider, joiGeneratorConfig, TypeScriptBaseTypes)
         val joigeneratorComponent = GeneratorComponent(joigeneratorModule, JoiModule)
         joigeneratorComponent.generateFiles()
 
         // Generate ts models
-        val modelGeneratorConfig = CodeGeneratorConfig(modelPackage = "",outputFolder = Paths.get("/Users/abeniasaad/IdeaProjects/newTsSdk/src/models"))
+        val modelGeneratorConfig = CodeGeneratorConfig(modelPackage = "")
         val modelGeneratorModule = GeneratorModule(apiProvider, modelGeneratorConfig, TypeScriptBaseTypes)
         val modelGeneratorComponent = GeneratorComponent(modelGeneratorModule, TypeScriptModelModule)
         modelGeneratorComponent.generateFiles()
 
         // Generate the server code 
-        val serverGeneratorConfig = CodeGeneratorConfig(modelPackage = "",clientPackage = "",outputFolder = Paths.get("/Users/abeniasaad/IdeaProjects/newTsSdk/src/server"))
+        val serverGeneratorConfig = CodeGeneratorConfig(modelPackage = "",clientPackage = "")
         val serverGeneratorModule = GeneratorModule(apiProvider, serverGeneratorConfig, TypeScriptBaseTypes)
         val serverGeneratorComponent = GeneratorComponent(serverGeneratorModule, TsServerModule)
         serverGeneratorComponent.generateFiles()
