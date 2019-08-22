@@ -14,14 +14,9 @@ class ConstantsProvider @Inject constructor(@ClientPackageName val client_packag
 
     val commonModule = "$client_package/common"
 
-    val HttpResponse = VrapObjectType(
+    val ErrorHandler = VrapObjectType(
             commonModule,
-            "HttpInput"
-    )
-
-    val HttpInput = VrapObjectType(
-            commonModule,
-            "HttpResponse"
+            "ErrorHandler"
     )
 
     val Resource = VrapObjectType(

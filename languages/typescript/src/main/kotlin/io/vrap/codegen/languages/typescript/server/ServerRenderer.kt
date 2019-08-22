@@ -3,6 +3,7 @@ package io.vrap.codegen.languages.typescript.server
 import com.google.inject.Inject
 import io.vrap.codegen.languages.extensions.EObjectExtensions
 import io.vrap.codegen.languages.extensions.hasBody
+import io.vrap.codegen.languages.extensions.hasReturnPayload
 import io.vrap.codegen.languages.extensions.resource
 import io.vrap.codegen.languages.typescript.*
 import io.vrap.codegen.languages.typescript.joi.simpleJoiName
@@ -53,11 +54,12 @@ class ServerRenderer @Inject constructor(
             |
             |export function toJoiServerRoutes(
             |   arg: {
-            |       apiServer: ApiServer;
-            |       failAction: Lifecycle.FailAction;
+            |       apiServer: ApiServer,
+            |       failAction: Lifecycle.FailAction,
+            |       errorHandler: ErrorHandler
             |   }
             |) : ServerRoute[] {
-            |    const { apiServer, failAction } = arg
+            |    const { apiServer, failAction, errorHandler } = arg
             |    return [
             |               <${resourceArray()}>
             |           ]
@@ -111,14 +113,32 @@ class ServerRenderer @Inject constructor(
                     """ |{
                         |   path: '${it.resource().fullUri.template}',
                         |   method: '${it.methodName.toUpperCase()}',
-                        |   handler: (request: Request, h: ResponseToolkit, err?: Error) =\> {
-                        |       const method = ${it.handlerNavigator()}
-                        |       method({
-                        |           headers: request.headers,
-                        |           pathParams: request.params as any,
-                        |           queryParams: request.query as any,
-                        |           <${if(it.bodies.isNotEmpty() && it.bodies[0].type != null) "body: request.payload as any" else ""}>
-                        |       })
+                        |   handler: async (request: Request, responseToolkit: ResponseToolkit, err?: Error) =\> {
+                        |        const method =
+                        |          ${it.handlerNavigator()}
+                        |        try {
+                        |          const result = await method({
+                        |            headers: request.headers,
+                        |            pathParams: request.params as any,
+                        |            queryParams: request.query as any,
+                        |            <${if(it.hasBody()) "body: request.payload as any" else ""}>
+                        |          });
+                        |          const response = responseToolkit
+                        |            .response(${if(it.hasReturnPayload()) "result.body" else ""})
+                        |            .code(result.statusCode);
+                        |          // Add headers to response
+                        |          for (const header in result.headers) {
+                        |            response.header(header, result.headers[header]);
+                        |          }
+                        |
+                        |          return response;
+                        |         } catch (error) {
+                        |          return errorHandler({
+                        |            request,
+                        |            responseToolkit,
+                        |            error
+                        |          })
+                        |         }
                         |   },
                         |   options: {
                         |      validate: {
@@ -167,7 +187,8 @@ class ServerRenderer @Inject constructor(
                                 constantsProvider.ServerRoute,
                                 constantsProvider.Lifecycle,
                                 constantsProvider.Request,
-                                constantsProvider.ResponseToolkit
+                                constantsProvider.ResponseToolkit,
+                                constantsProvider.ErrorHandler
                         )
                 )
                 .map {
