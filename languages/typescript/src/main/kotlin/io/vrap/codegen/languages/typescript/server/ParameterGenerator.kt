@@ -26,7 +26,7 @@ class ParameterGenerator @Inject constructor(
 
     override fun produceFiles(): List<TemplateFile> = listOf(parametersDef())
 
-    val modelsLocation = "../models"
+    val modelsLocation = "../model"
 
     val moduleFileName = "${constantsProvider.parametersModule}.ts"
     val moduleFilePath = Paths.get("${constantsProvider.parametersModule}.ts")
@@ -121,7 +121,7 @@ class ParameterGenerator @Inject constructor(
         return this.allMethods()
                 .map {
                     """ |
-                        |export type ${it.toHandlerName()} = (input: ${it.toParamName()}) =\> ${it.toResponseName()}
+                        |export type ${it.toHandlerName()} = (input: ${it.toParamName()}) =\> Promise\<${it.toResponseName()}\>
                         |""".trimMargin()
                 }
                 .joinToString(separator = "\n")

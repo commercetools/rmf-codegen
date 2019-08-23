@@ -6,7 +6,7 @@ import io.vrap.codegen.languages.typescript.joi.JoiBaseTypes
 import io.vrap.codegen.languages.typescript.joi.JoiModule
 import io.vrap.codegen.languages.typescript.model.TypeScriptBaseTypes
 import io.vrap.codegen.languages.typescript.model.TypeScriptModelModule
-import io.vrap.codegen.languages.typescript.server.TsServerModule
+import io.vrap.codegen.languages.typescript.server.TypescriptServerModule
 import io.vrap.rmf.codegen.CodeGeneratorConfig
 import io.vrap.rmf.codegen.di.ApiProvider
 import io.vrap.rmf.codegen.di.GeneratorComponent
@@ -50,7 +50,7 @@ class TestCodeGenerator {
         // Generate the server code 
         val serverGeneratorConfig = CodeGeneratorConfig(modelPackage = "",clientPackage = "")
         val serverGeneratorModule = GeneratorModule(apiProvider, serverGeneratorConfig, TypeScriptBaseTypes)
-        val serverGeneratorComponent = GeneratorComponent(serverGeneratorModule, TsServerModule)
+        val serverGeneratorComponent = GeneratorComponent(serverGeneratorModule, TypescriptServerModule)
         serverGeneratorComponent.generateFiles()
         
 

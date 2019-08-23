@@ -52,7 +52,7 @@ class ServerRenderer @Inject constructor(
             |    <${serverDef(api)}>
             |}
             |
-            |export function toJoiServerRoutes(
+            |export function toHapiServerRoutes(
             |   arg: {
             |       apiServer: ApiServer,
             |       failAction: Lifecycle.FailAction,
