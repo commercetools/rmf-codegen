@@ -5,10 +5,7 @@ import io.vrap.codegen.languages.extensions.EObjectExtensions
 import io.vrap.codegen.languages.extensions.isPatternProperty
 import io.vrap.codegen.languages.extensions.toComment
 import io.vrap.codegen.languages.java.base.JavaSubTemplates
-import io.vrap.codegen.languages.java.base.extensions.JavaObjectTypeExtensions
-import io.vrap.codegen.languages.java.base.extensions.fullClassName
-import io.vrap.codegen.languages.java.base.extensions.lowerCamelCase
-import io.vrap.codegen.languages.java.base.extensions.upperCamelCase
+import io.vrap.codegen.languages.java.base.extensions.*
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.FileProducer
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
@@ -83,7 +80,6 @@ class JavaModelClassFileProducer @Inject constructor(override val vrapTypeProvid
     }
     
     private fun ObjectType.beanFields() = this.allProperties
-            .filter { it.name != this.discriminator() }
             .map { it.toJavaField() }.joinToString(separator = "\n\n")
 
     private fun ObjectType.setters() = this.allProperties
@@ -92,7 +88,6 @@ class JavaModelClassFileProducer @Inject constructor(override val vrapTypeProvid
             .joinToString(separator = "\n\n")
 
     private fun ObjectType.getters() = this.allProperties
-            .filter { it.name != this.discriminator() }
             .map { it.getter() }
             .joinToString(separator = "\n\n")
 
@@ -159,7 +154,7 @@ class JavaModelClassFileProducer @Inject constructor(override val vrapTypeProvid
                     }
                 }
                 .joinToString(separator = ", ")
-
+        
         val propertiesAssignment : String = this.allProperties
                 .filter { it.name != this.discriminator() }
                 .map {
@@ -173,6 +168,18 @@ class JavaModelClassFileProducer @Inject constructor(override val vrapTypeProvid
                 }
                 .joinToString(separator = "\n")
 
+        val discriminatorAssignment : String =
+                if(this.discriminator() != null) {
+                     val enumName : String = this.allProperties.filter { it.name == this.discriminator() }.get(0).type.toVrapType().simpleName()
+                    if(enumName != "String"){
+                        "this.${this.discriminator()} = $enumName.findEnumViaJsonName(\"${this.discriminatorValue}\").get();"
+                    }else{
+                        "this.${this.discriminator()} = \"${this.discriminatorValue}\";"
+                    }
+                } else {
+                    ""
+                }
+        
         val emptyConstructor : String = """
             |public ${vrapType.simpleClassName}Impl() {
             |   
@@ -183,6 +190,7 @@ class JavaModelClassFileProducer @Inject constructor(override val vrapTypeProvid
             |@JsonCreator
             |${vrapType.simpleClassName}Impl(${constructorArguments.escapeAll()}) {
             |   <$propertiesAssignment>
+            |   <$discriminatorAssignment>
             |}
             |${if(constructorArguments.isEmpty()) "" else emptyConstructor }
         """.trimMargin().keepIndentation()

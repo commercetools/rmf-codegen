@@ -39,7 +39,7 @@ public class ModelSerializationTest {
                 .name(localizedString)
                 .custom(CustomFieldsDraftBuilder.of()
                         .fields(fieldContainer)
-                        .type("string type")
+                        .type(TypeResourceIdentifierBuilder.of().key("string type").build())
                         .build())
                 .sources(Arrays.asList(AssetSourceBuilder.of().contentType("application/json").dimensions(AssetDimensionsBuilder.of().h(10).w(5).build()).build()))
                 .tags(Arrays.asList("tag 1", "tag 2"))
@@ -48,7 +48,7 @@ public class ModelSerializationTest {
         CategoryDraft categoryDraft = CategoryDraftBuilder.of()
                 .parent(CategoryResourceIdentifierBuilder.of().id(id).key(key).build())
                 .assets(Arrays.asList(assetDraft))
-                .custom(CustomFieldsDraftBuilder.of().type("string type").fields(fieldContainer).build())
+                .custom(CustomFieldsDraftBuilder.of().type(TypeResourceIdentifierBuilder.of().key("string type").build()).fields(fieldContainer).build())
                 .description(localizedString)
                 .externalId(id)
                 .key(key)
@@ -96,7 +96,7 @@ public class ModelSerializationTest {
 
         CustomFields customFields = CustomFieldsBuilder.of()
                 .fields(fieldContainer)
-                .type(TypeReferenceBuilder.of().key(key).obj(Type.of()).build())
+                .type(TypeReferenceBuilder.of().id(id).obj(Type.of()).build())
                 .build();
 
         
@@ -111,7 +111,6 @@ public class ModelSerializationTest {
                 .build();
         
         CategoryReference reference = CategoryReferenceBuilder.of()
-                .key(key)
                 .id(id)
                 .obj(Category.of())
                 .build();

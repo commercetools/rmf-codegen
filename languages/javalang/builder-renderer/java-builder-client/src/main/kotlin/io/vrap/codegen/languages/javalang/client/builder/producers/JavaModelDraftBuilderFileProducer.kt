@@ -61,6 +61,7 @@ class JavaModelDraftBuilderFileProducer @Inject constructor(override val vrapTyp
     }
     
     private fun ObjectType.fields() = this.allProperties
+            .filter { it.name != this.discriminator() }
             .map { it.toField() }
             .joinToString(separator = "\n\n")
     
@@ -86,7 +87,9 @@ class JavaModelDraftBuilderFileProducer @Inject constructor(override val vrapTyp
     private fun ObjectType.assignments() : String {
         val vrapType = vrapTypeProvider.doSwitch(this) as VrapObjectType
         
-        return this.allProperties.map { assignment(it, vrapType) }.joinToString(separator = "\n\n")
+        return this.allProperties
+                .filter { it.name != this.discriminator() }
+                .map { assignment(it, vrapType) }.joinToString(separator = "\n\n")
     }
     
     private fun assignment(property: Property, type: VrapObjectType) : String {
@@ -115,7 +118,7 @@ class JavaModelDraftBuilderFileProducer @Inject constructor(override val vrapTyp
     }
     
     private fun ObjectType.getters() : String {
-        return this.allProperties.map { it.getter() }.joinToString(separator = "\n\n")
+        return this.allProperties.filter { it.name != this.discriminator() }.map { it.getter() }.joinToString(separator = "\n\n")
     }
     
     private fun Property.getter() : String {

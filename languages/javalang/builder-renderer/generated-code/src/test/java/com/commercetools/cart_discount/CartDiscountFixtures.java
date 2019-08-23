@@ -32,12 +32,12 @@ public class CartDiscountFixtures {
                 .key(CommercetoolsTestUtils.randomKey())
                 .value(cartDiscountValue)
                 .cartPredicate("country=\"DE\"")
-                .target(CartDiscountShippingCostTargetBuilder.of().type("shipping").build())
+                .target(CartDiscountShippingCostTargetBuilder.of().build())
                 .sortOrder("0.41")
                 .requiresDiscountCode(true)
                 .build();
 
-        CartDiscount cartDiscount = ApiRoot.withProjectKeyValue(CommercetoolsTestUtils.getProjectKey())
+        CartDiscount cartDiscount = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
                 .cartDiscounts()
                 .post(cartDiscountDraft)
                 .executeBlocking();
@@ -49,7 +49,7 @@ public class CartDiscountFixtures {
     }
     
     public static CartDiscount deleteCartDiscount(final String id, final Long version) {
-        CartDiscount deletedCartDiscount = ApiRoot.withProjectKeyValue(CommercetoolsTestUtils.getProjectKey())
+        CartDiscount deletedCartDiscount = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
                 .cartDiscounts()
                 .withId(id)
                 .delete()

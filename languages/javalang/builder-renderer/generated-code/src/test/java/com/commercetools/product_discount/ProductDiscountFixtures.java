@@ -31,11 +31,11 @@ public class ProductDiscountFixtures {
                 .key(CommercetoolsTestUtils.randomKey())
                 .sortOrder("0.3")
                 .predicate("product.key=\"random-key\"")
-                .value(ProductDiscountValueExternalBuilder.of().type("external").build())
+                .value(ProductDiscountValueExternalBuilder.of().build())
                 .isActive(false)
                 .build();
 
-        ProductDiscount productDiscount = ApiRoot.withProjectKeyValue(CommercetoolsTestUtils.getProjectKey())
+        ProductDiscount productDiscount = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
                 .productDiscounts()
                 .post(productDiscountDraft)
                 .executeBlocking();
@@ -47,7 +47,7 @@ public class ProductDiscountFixtures {
     }
     
     public static ProductDiscount deleteProductDiscount(final String id, final Long version) {
-        ProductDiscount deletedProductDiscount = ApiRoot.withProjectKeyValue(CommercetoolsTestUtils.getProjectKey())
+        ProductDiscount deletedProductDiscount = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
                 .productDiscounts()
                 .withId(id)
                 .delete()

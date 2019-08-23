@@ -30,7 +30,7 @@ public class ShoppingListFixtures {
                 .name(CommercetoolsTestUtils.randomLocalizedString())
                 .build();
 
-        ShoppingList shoppingList = ApiRoot.withProjectKeyValue(CommercetoolsTestUtils.getProjectKey())
+        ShoppingList shoppingList = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
                 .shoppingLists()
                 .post(shoppingListDraft)
                 .executeBlocking();
@@ -42,7 +42,7 @@ public class ShoppingListFixtures {
     }
     
     public static ShoppingList deleteShoppingList(final String id, final Long version) {
-        ShoppingList shoppingList = ApiRoot.withProjectKeyValue(CommercetoolsTestUtils.getProjectKey())
+        ShoppingList shoppingList = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
                 .shoppingLists()
                 .withId(id)
                 .delete()

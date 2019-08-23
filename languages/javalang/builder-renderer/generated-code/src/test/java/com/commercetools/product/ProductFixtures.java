@@ -1,12 +1,11 @@
 package com.commercetools.product;
 
 import com.commercetools.client.ApiRoot;
-import com.commercetools.models.Common.ReferenceTypeId;
 import com.commercetools.models.Product.Product;
 import com.commercetools.models.Product.ProductDraft;
 import com.commercetools.models.Product.ProductDraftBuilder;
 import com.commercetools.models.ProductType.ProductType;
-import com.commercetools.models.ProductType.ProductTypeReferenceBuilder;
+import com.commercetools.models.ProductType.ProductTypeResourceIdentifierBuilder;
 import com.commercetools.product_type.ProductTypeFixtures;
 import com.commercetools.utils.CommercetoolsTestUtils;
 import org.junit.jupiter.api.Assertions;
@@ -37,14 +36,12 @@ public class ProductFixtures {
                 .key(CommercetoolsTestUtils.randomKey())
                 .name(CommercetoolsTestUtils.randomLocalizedString())
                 .slug(CommercetoolsTestUtils.randomLocalizedString())
-                .productType(ProductTypeReferenceBuilder.of()
-                        .typeId(ReferenceTypeId.PRODUCT_TYPE)
+                .productType(ProductTypeResourceIdentifierBuilder.of()
                         .id(productType.getId())
-                        .obj(productType)
                         .build())
                 .build();
         
-        Product product = ApiRoot.withProjectKeyValue(CommercetoolsTestUtils.getProjectKey())
+        Product product = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
                 .products()
                 .post(productDraft)
                 .executeBlocking();
@@ -55,7 +52,7 @@ public class ProductFixtures {
     }
     
     public static Product deleteProductById(final String id, final Long version) {
-        Product product = ApiRoot.withProjectKeyValue(CommercetoolsTestUtils.getProjectKey())
+        Product product = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
                 .products()
                 .withId(id)
                 .delete()
@@ -67,7 +64,7 @@ public class ProductFixtures {
     }
     
     public static Product deleteProductByKey(final String key, final Long version) {
-        Product product = ApiRoot.withProjectKeyValue(CommercetoolsTestUtils.getProjectKey())
+        Product product = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
                 .products()
                 .withKey(key)
                 .delete()

@@ -33,7 +33,7 @@ public class ExtensionFixtures {
                         .build()))
                 .build();
         
-        Extension extension = ApiRoot.withProjectKeyValue(CommercetoolsTestUtils.getProjectKey())
+        Extension extension = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
                 .extensions()
                 .post(extensionDraft)
                 .executeBlocking();
@@ -45,7 +45,7 @@ public class ExtensionFixtures {
     }
     
     public static Extension deleteExtension(final String id, final Long version) {
-        Extension extension = ApiRoot.withProjectKeyValue(CommercetoolsTestUtils.getProjectKey())
+        Extension extension = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
                 .extensions()
                 .withId(id)
                 .delete()

@@ -30,7 +30,7 @@ public class StoreFixtures {
                 .key(CommercetoolsTestUtils.randomKey())
                 .build();
         
-        Store store = ApiRoot.withProjectKeyValue(CommercetoolsTestUtils.getProjectKey())
+        Store store = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
                 .stores()
                 .post(storeDraft)
                 .executeBlocking();
@@ -42,7 +42,7 @@ public class StoreFixtures {
     }
     
     public static Store deleteStore(final String id, final Long version) {
-        Store store = ApiRoot.withProjectKeyValue(CommercetoolsTestUtils.getProjectKey())
+        Store store = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
                 .stores()
                 .withId(id)
                 .delete()

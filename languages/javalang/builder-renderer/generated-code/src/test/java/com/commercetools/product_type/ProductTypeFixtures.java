@@ -31,7 +31,7 @@ public class ProductTypeFixtures {
                 .description(CommercetoolsTestUtils.randomString())
                 .build();
 
-        ProductType productType = ApiRoot.withProjectKeyValue(CommercetoolsTestUtils.getProjectKey())
+        ProductType productType = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
                 .productTypes()
                 .post(productTypeDraft)
                 .executeBlocking();
@@ -44,7 +44,7 @@ public class ProductTypeFixtures {
     }
     
     public static ProductType deleteProductType(final String id, final Long version) {
-        ProductType deletedProductType = ApiRoot.withProjectKeyValue(CommercetoolsTestUtils.getProjectKey())
+        ProductType deletedProductType = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
                 .productTypes()
                 .withId(id)
                 .delete()

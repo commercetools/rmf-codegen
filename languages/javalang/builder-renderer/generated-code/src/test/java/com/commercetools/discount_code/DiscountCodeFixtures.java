@@ -2,9 +2,7 @@ package com.commercetools.discount_code;
 
 import com.commercetools.cart_discount.CartDiscountFixtures;
 import com.commercetools.client.ApiRoot;
-import com.commercetools.models.CartDiscount.CartDiscount;
-import com.commercetools.models.CartDiscount.CartDiscountReference;
-import com.commercetools.models.CartDiscount.CartDiscountReferenceBuilder;
+import com.commercetools.models.CartDiscount.*;
 import com.commercetools.models.DiscountCode.DiscountCode;
 import com.commercetools.models.DiscountCode.DiscountCodeDraft;
 import com.commercetools.models.DiscountCode.DiscountCodeDraftBuilder;
@@ -31,9 +29,8 @@ public class DiscountCodeFixtures {
     
     public static DiscountCode createDiscountCode() {
         CartDiscount cartDiscount = CartDiscountFixtures.createCartDiscount();
-        CartDiscountReference cartDiscountReference = CartDiscountReferenceBuilder.of()
+        CartDiscountResourceIdentifier cartDiscountReference = CartDiscountResourceIdentifierBuilder.of()
                 .id(cartDiscount.getId())
-                .obj(cartDiscount)
                 .build();
         
         DiscountCodeDraft discountCodeDraft = DiscountCodeDraftBuilder.of()
@@ -42,7 +39,7 @@ public class DiscountCodeFixtures {
                 .cartDiscounts(Arrays.asList(cartDiscountReference))
                 .build();
 
-        DiscountCode discountCode = ApiRoot.withProjectKeyValue(CommercetoolsTestUtils.getProjectKey())
+        DiscountCode discountCode = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
                 .discountCodes()
                 .post(discountCodeDraft)
                 .executeBlocking();
@@ -54,7 +51,7 @@ public class DiscountCodeFixtures {
     }
     
     public static DiscountCode deleteDiscountCode(final String id, final Long version) {
-        DiscountCode discountCode = ApiRoot.withProjectKeyValue(CommercetoolsTestUtils.getProjectKey())
+        DiscountCode discountCode = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
                 .discountCodes()
                 .withId(id)
                 .delete()

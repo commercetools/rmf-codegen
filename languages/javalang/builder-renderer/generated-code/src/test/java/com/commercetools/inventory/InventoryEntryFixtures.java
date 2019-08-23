@@ -30,7 +30,7 @@ public class InventoryEntryFixtures {
                 .quantityOnStock(10L)
                 .build();
         
-        InventoryEntry inventoryEntry = ApiRoot.withProjectKeyValue(CommercetoolsTestUtils.getProjectKey())
+        InventoryEntry inventoryEntry = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
                 .inventory()
                 .post(inventoryEntryDraft)
                 .executeBlocking();
@@ -43,7 +43,7 @@ public class InventoryEntryFixtures {
     }
     
     public static InventoryEntry delete(final String id) {
-        InventoryEntry inventoryEntry = ApiRoot.withProjectKeyValue(CommercetoolsTestUtils.getProjectKey())
+        InventoryEntry inventoryEntry = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
                 .inventory()
                 .withId(id)
                 .delete()

@@ -31,7 +31,7 @@ public class StateFixtures {
                 .key(CommercetoolsTestUtils.randomKey())
                 .build();
 
-        State state = ApiRoot.withProjectKeyValue(CommercetoolsTestUtils.getProjectKey())
+        State state = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
                 .states()
                 .post(stateDraft)
                 .executeBlocking();
@@ -43,7 +43,7 @@ public class StateFixtures {
     }
     
     public static State deleteState(final String id, final Long version) {
-        State state =  ApiRoot.withProjectKeyValue(CommercetoolsTestUtils.getProjectKey())
+        State state =  ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
                 .states()
                 .withId(id)
                 .delete()

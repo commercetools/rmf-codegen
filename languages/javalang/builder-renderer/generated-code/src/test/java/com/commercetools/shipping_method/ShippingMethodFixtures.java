@@ -5,7 +5,7 @@ import com.commercetools.models.ShippingMethod.ShippingMethod;
 import com.commercetools.models.ShippingMethod.ShippingMethodDraft;
 import com.commercetools.models.ShippingMethod.ShippingMethodDraftBuilder;
 import com.commercetools.models.TaxCategory.TaxCategory;
-import com.commercetools.models.TaxCategory.TaxCategoryReferenceBuilder;
+import com.commercetools.models.TaxCategory.TaxCategoryResourceIdentifierBuilder;
 import com.commercetools.tax_category.TaxCategoryFixtures;
 import com.commercetools.utils.CommercetoolsTestUtils;
 import org.junit.jupiter.api.Assertions;
@@ -32,13 +32,12 @@ public class ShippingMethodFixtures {
         ShippingMethodDraft shippingMethodDraft = ShippingMethodDraftBuilder.of()
                 .name(CommercetoolsTestUtils.randomString())
                 .key(CommercetoolsTestUtils.randomKey())
-                .taxCategory(TaxCategoryReferenceBuilder.of()
+                .taxCategory(TaxCategoryResourceIdentifierBuilder.of()
                     .id(taxCategory.getId())
-                    .obj(taxCategory)
                     .build())
                 .build();
 
-        ShippingMethod shippingMethod = ApiRoot.withProjectKeyValue(CommercetoolsTestUtils.getProjectKey())
+        ShippingMethod shippingMethod = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
                 .shippingMethods()
                 .post(shippingMethodDraft)
                 .executeBlocking();
@@ -50,7 +49,7 @@ public class ShippingMethodFixtures {
     }
     
     public static ShippingMethod deleteShippingMethod(final String id, final Long version) {
-        ShippingMethod shippingMethod = ApiRoot.withProjectKeyValue(CommercetoolsTestUtils.getProjectKey())
+        ShippingMethod shippingMethod = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
                 .shippingMethods()
                 .withId(id)
                 .delete()

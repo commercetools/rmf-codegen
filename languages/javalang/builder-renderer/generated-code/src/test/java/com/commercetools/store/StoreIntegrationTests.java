@@ -23,7 +23,7 @@ public class StoreIntegrationTests {
     @Test
     public void getById() {
         StoreFixtures.withStore(store -> {
-            Store queriedStore = ApiRoot.withProjectKeyValue(CommercetoolsTestUtils.getProjectKey())
+            Store queriedStore = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
                     .stores()
                     .withId(store.getId())
                     .get()
@@ -37,7 +37,7 @@ public class StoreIntegrationTests {
     @Test
     public void getByKey() {
         StoreFixtures.withStore(store -> {
-            Store queriedStore = ApiRoot.withProjectKeyValue(CommercetoolsTestUtils.getProjectKey())
+            Store queriedStore = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
                     .stores()
                     .withKey(store.getKey())
                     .get()
@@ -51,7 +51,7 @@ public class StoreIntegrationTests {
     @Test
     public void query() {
         StoreFixtures.withStore(store -> {
-            StorePagedQueryResponse response = ApiRoot.withProjectKeyValue(CommercetoolsTestUtils.getProjectKey())
+            StorePagedQueryResponse response = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
                     .stores()
                     .get()
                     .addWhere("id=" + "\"" + store.getId() + "\"")
@@ -69,7 +69,7 @@ public class StoreIntegrationTests {
             LocalizedString newName = CommercetoolsTestUtils.randomLocalizedString();
             updateActions.add(StoreSetNameActionBuilder.of().name(newName).build());
             
-            Store updatedStore = ApiRoot.withProjectKeyValue(CommercetoolsTestUtils.getProjectKey())
+            Store updatedStore = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
                     .stores()
                     .withId(store.getId())
                     .post(StoreUpdateBuilder.of()
@@ -91,7 +91,7 @@ public class StoreIntegrationTests {
             LocalizedString newName = CommercetoolsTestUtils.randomLocalizedString();
             updateActions.add(StoreSetNameActionBuilder.of().name(newName).build());
 
-            Store updatedStore = ApiRoot.withProjectKeyValue(CommercetoolsTestUtils.getProjectKey())
+            Store updatedStore = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
                     .stores()
                     .withKey(store.getKey())
                     .post(StoreUpdateBuilder.of()
@@ -109,7 +109,7 @@ public class StoreIntegrationTests {
     @Test
     public void deleteByKey() {
         Store store = StoreFixtures.createStore();
-        Store deletedStore = ApiRoot.withProjectKeyValue(CommercetoolsTestUtils.getProjectKey())
+        Store deletedStore = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
                 .stores()
                 .withKey(store.getKey())
                 .delete()

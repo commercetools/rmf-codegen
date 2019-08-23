@@ -23,7 +23,7 @@ public class ZoneIntegrationTests {
     @Test
     public void getById() {
         ZoneFixtures.withZone(zone -> {
-            Zone queriedZone = ApiRoot.withProjectKeyValue(CommercetoolsTestUtils.getProjectKey())
+            Zone queriedZone = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
                     .zones()
                     .withId(zone.getId())
                     .get()
@@ -37,7 +37,7 @@ public class ZoneIntegrationTests {
     @Test
     public void getByKey() {
         ZoneFixtures.withZone(zone -> {
-            Zone queriedZone = ApiRoot.withProjectKeyValue(CommercetoolsTestUtils.getProjectKey())
+            Zone queriedZone = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
                     .zones()
                     .withKey(zone.getKey())
                     .get()
@@ -51,7 +51,7 @@ public class ZoneIntegrationTests {
     @Test
     public void query() {
         ZoneFixtures.withZone(zone -> {
-            ZonePagedQueryResponse response = ApiRoot.withProjectKeyValue(CommercetoolsTestUtils.getProjectKey())
+            ZonePagedQueryResponse response = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
                     .zones()
                     .get()
                     .addWhere("id=" + "\"" + zone.getId() + "\"")
@@ -69,7 +69,7 @@ public class ZoneIntegrationTests {
             String newKey = CommercetoolsTestUtils.randomKey();
             updateActions.add(ZoneSetKeyActionBuilder.of().key(newKey).build());
             
-            Zone updatedZone = ApiRoot.withProjectKeyValue(CommercetoolsTestUtils.getProjectKey())
+            Zone updatedZone = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
                     .zones()
                     .withId(zone.getId())
                     .post(ZoneUpdateBuilder.of()
@@ -92,7 +92,7 @@ public class ZoneIntegrationTests {
             String newKey = CommercetoolsTestUtils.randomKey();
             updateActions.add(ZoneSetKeyActionBuilder.of().key(newKey).build());
 
-            Zone updatedZone = ApiRoot.withProjectKeyValue(CommercetoolsTestUtils.getProjectKey())
+            Zone updatedZone = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
                     .zones()
                     .withKey(zone.getKey())
                     .post(ZoneUpdateBuilder.of()

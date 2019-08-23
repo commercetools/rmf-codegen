@@ -31,7 +31,7 @@ public class CustomerFixtures {
                 .password(CommercetoolsTestUtils.randomString())
                 .build();
         
-        Customer customer = ApiRoot.withProjectKeyValue(CommercetoolsTestUtils.getProjectKey())
+        Customer customer = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
                 .customers()
                 .post(customerDraft)
                 .executeBlocking()
@@ -44,7 +44,7 @@ public class CustomerFixtures {
     }
     
     public static Customer deleteCustomer(final String id, final Long version) {
-        Customer customer = ApiRoot.withProjectKeyValue(CommercetoolsTestUtils.getProjectKey())
+        Customer customer = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
                 .customers()
                 .withId(id)
                 .delete()
