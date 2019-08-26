@@ -237,6 +237,8 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |
                     |namespace ${packagePrefix.toNamespaceName()}\Base;
                     |
+                    |use stdClass;
+                    |
                     |class JsonObjectModel extends BaseJsonObject implements JsonObject
                     |{
                     |    /**
@@ -245,11 +247,11 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |    final public function get(string $!field)
                     |    {
                     |        $!data = $!this->raw($!field);
-                    |        if ($!data instanceof \stdClass) {
+                    |        if ($!data instanceof stdClass) {
                     |            return new JsonObjectModel($!data);
                     |        }
-                    |        if (is_array($!data) && isset($!data[0]) && $!data[0] instanceof \stdClass) {
-                    |            /** @psalm-var ?array<int, object> $!data */
+                    |        if (is_array($!data) && isset($!data[0]) && $!data[0] instanceof stdClass) {
+                    |            /** @psalm-var ?array<int, stdClass> $!data */
                     |            return new JsonObjectCollection($!data);
                     |        }
                     |        return $!data;
@@ -1381,6 +1383,7 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |
                     |use ${packagePrefix.toNamespaceName()}\Exception\InvalidArgumentException;
                     |use GuzzleHttp\Client;
+                    |use GuzzleHttp\Exception\GuzzleException;
                     |use GuzzleHttp\Psr7;
                     |use GuzzleHttp\Psr7\Request;
                     |use Psr\Http\Message\ResponseInterface;
@@ -1467,7 +1470,8 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |     * @param array $!options
                     |     * @return ResponseInterface
                     |     * @throws InvalidArgumentException
-                    |     * @throws \GuzzleHttp\Exception\GuzzleException
+                    |     * @throws GuzzleException
+                    |     * @psalm-suppress InvalidThrow
                     |     */
                     |    public function send(array $!options = [])
                     |    {
@@ -1573,12 +1577,14 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |
                     |namespace ${packagePrefix.toNamespaceName()}\Base;
                     |
+                    |use stdClass;
+                    |
                     |/**
                     | * @template T
                     | */
                     |abstract class MapperSequence implements Collection, \ArrayAccess, \JsonSerializable, \IteratorAggregate
                     |{
-                    |    /** @psalm-var ?array<int, T|object> */
+                    |    /** @psalm-var ?array<int, T|stdClass> */
                     |    private $!data;
                     |    /** @var array<string, array<string, int>> */
                     |    private $!indexes = [];
@@ -1586,7 +1592,7 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |    private $!iterator;
                     |
                     |    /**
-                    |     * @psalm-param ?array<int, T|object> $!data
+                    |     * @psalm-param ?array<int, T|stdClass> $!data
                     |     * @param array|null $!data
                     |     */
                     |    public function __construct(array $!data = null)
@@ -1609,7 +1615,7 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |    }
                     |
                     |    /**
-                    |     * @psalm-param array<int, T|object> $!data
+                    |     * @psalm-param array<int, T|stdClass> $!data
                     |     * @return static
                     |     */
                     |    public static function fromArray(array $!data)
@@ -1625,7 +1631,7 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |    }
                     |
                     |    /**
-                    |     * @psalm-return T|object|null
+                    |     * @psalm-return T|stdClass|null
                     |     */
                     |    final protected function get(int $!index)
                     |    {
@@ -1636,7 +1642,7 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |    }
                     |
                     |    /**
-                    |     * @psalm-param T|object $!data
+                    |     * @psalm-param T|stdClass $!data
                     |     */
                     |    final protected function set($!data, ?int $!index): void
                     |    {
@@ -1648,7 +1654,7 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |    }
                     |
                     |    /**
-                    |     * @psalm-param T|object $!value
+                    |     * @psalm-param T|stdClass $!value
                     |     * @param $!value
                     |     * @return Collection
                     |     */
@@ -1658,7 +1664,7 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |    }
                     |
                     |    /**
-                    |     * @psalm-param T|object $!value
+                    |     * @psalm-param T|stdClass $!value
                     |     * @param $!value
                     |     * @return Collection
                     |     */
@@ -1776,7 +1782,7 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |
                     |    /**
                     |     * @param int $!offset
-                    |     * @psalm-param T|object $!value
+                    |     * @psalm-param T|stdClass $!value
                     |     * @param mixed $!value
                     |     * @return void
                     |     */
@@ -1810,25 +1816,28 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |
                     |namespace ${packagePrefix.toNamespaceName()}\Base;
                     |
+                    |use stdClass;
+                    |
                     |/**
                     | * @template T
                     | */
                     |abstract class MapperMap implements Collection, \ArrayAccess, \JsonSerializable, \IteratorAggregate
                     |{
-                    |    /** @psalm-var ?array<int, T|object> */
+                    |    /** @psalm-var ?array<string, T|stdClass> */
                     |    private $!data;
-                    |    /** @var array<string, array<string, int>> */
+                    |    /** @var array<string, array<string, string>> */
                     |    private $!indexes = [];
                     |    /** @var MapperIterator */
                     |    private $!iterator;
                     |
                     |    /**
-                    |     * @psalm-param ?array<string, T|object>|object $!data
+                    |     * @psalm-param ?array<string, T|stdClass>|stdClass $!data
                     |     * @param array|null $!data
                     |     */
                     |    public function __construct($!data = null)
                     |    {
-                    |        if (is_object($!data)) {
+                    |        if ($!data instanceof stdClass) {
+                    |            /** @psalm-var array<string, T|stdClass> $!data */
                     |            $!data = (array)$!data;
                     |        }
                     |        if (!is_null($!data)) {
@@ -1849,7 +1858,7 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |    }
                     |
                     |    /**
-                    |     * @psalm-param array<string, T|object> $!data
+                    |     * @psalm-param array<string, T|stdClass> $!data
                     |     * @return static
                     |     */
                     |    public static function fromArray(array $!data)
@@ -1865,7 +1874,7 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |    }
                     |
                     |    /**
-                    |     * @psalm-return T|object|null
+                    |     * @psalm-return T|stdClass|null
                     |     */
                     |    final protected function get(string $!key)
                     |    {
@@ -1876,7 +1885,7 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |    }
                     |
                     |    /**
-                    |     * @psalm-param T|object $!data
+                    |     * @psalm-param T|stdClass $!data
                     |     */
                     |    final protected function set($!data, string $!key): void
                     |    {
@@ -1884,7 +1893,7 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |    }
                     |
                     |    /**
-                    |     * @psalm-param T|object $!value
+                    |     * @psalm-param T|stdClass $!value
                     |     * @param $!value
                     |     * @return $!this
                     |     */
@@ -1894,7 +1903,7 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |    }
                     |
                     |    /**
-                    |     * @psalm-param T|object $!value
+                    |     * @psalm-param T|stdClass $!value
                     |     * @param string $!key
                     |     * @param $!value
                     |     * @return $!this
@@ -1916,12 +1925,12 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |    }
                     |
                     |    /**
-                    |     * @psalm-return callable(int): ?T
+                    |     * @psalm-return callable(string): ?T
                     |     */
                     |    abstract protected function mapper();
                     |
                     |    /**
-                    |     * @psalm-param T|object $!value
+                    |     * @psalm-param T|stdClass $!value
                     |     */
                     |    final protected function addToIndex(string $!field, string $!key, string $!indexKey): void
                     |    {
@@ -2013,7 +2022,7 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |
                     |    /**
                     |     * @param string $!offset
-                    |     * @psalm-param T|object $!value
+                    |     * @psalm-param T|stdClass $!value
                     |     * @param mixed $!value
                     |     * @return void
                     |     */

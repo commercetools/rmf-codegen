@@ -55,11 +55,18 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
             |
             |final class ${vrapType.simpleClassName}Model extends MapperMap implements ${vrapType.simpleClassName}
             |{
+            |    /**
+            |     * @psalm-return callable(string):?mixed
+            |     */
             |    protected function mapper()
             |    {
-            |        return function(string $!key) {
-            |            return $!this->get($!key);
-            |        };
+            |        return
+            |            /**
+            |             * @psalm-return ?mixed
+            |             */
+            |            function(string $!key) {
+            |               return $!this->get($!key);
+            |            };
             |    }
             |}
         """.trimMargin().keepIndentation("<<", ">>").forcedLiteralEscape()
@@ -76,6 +83,7 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
             |use ${packagePrefix.toNamespaceName().escapeAll()}\\Base\\JsonObject;
             |use ${packagePrefix.toNamespaceName().escapeAll()}\\Base\\JsonObjectModel;
             |use ${packagePrefix.toNamespaceName().escapeAll()}\\Base\\MapperFactory;
+            |use stdClass;
             |
             |<<${type.imports()}>>
             |
@@ -102,9 +110,9 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
         return if (this.discriminator != null)
             """
                 |/**
-                | * @param ?object $!data
+                | * @param ?stdClass $!data
                 | */
-                |public function __construct(\stdClass $!data = null)
+                |public function __construct(stdClass $!data = null)
                 |{
                 |    parent::__construct($!data);
                 |    /** @var string $!this->${this.discriminator} */
@@ -286,12 +294,12 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
             is ObjectType ->
                 if (type.toVrapType().isScalar()) {
                     """
-                        |/** @psalm-var \\stdClass $!data */
+                        |/** @psalm-var stdClass $!data */
                         |return new JsonObjectModel($!data);
                     """.trimMargin()
                 } else {
                     """
-                        |/** @psalm-var \\stdClass $!data */
+                        |/** @psalm-var stdClass $!data */
                         |${if (type.discriminator.isNullOrBlank()) "" else "$!className = ${type.toVrapType().simpleName()}Model::resolveDiscriminatorClass($!data);"}
                         |return new ${if (type.discriminator.isNullOrBlank()) "${this.type.toVrapType().simpleName()}Model" else "$!className"}($!data);
                     """.trimMargin()
@@ -299,12 +307,12 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
             is ArrayType ->
                 if (type.toVrapType().isScalar()) {
                     """
-                        |/** @psalm-var array<int, object> $!data */
+                        |/** @psalm-var array<int, stdClass> $!data */
                         |return $!data;
                     """.trimMargin()
                 } else {
                     """
-                        |/** @psalm-var array<int, object> $!data */
+                        |/** @psalm-var array<int, stdClass> $!data */
                         |return ${if (type.items?.isScalar() != true) "new ${this.type.toVrapType().simpleName()}($!data)" else "$!data"};
                     """.trimMargin()
                 }
@@ -339,7 +347,7 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
                         |return $!data;
                     """.trimMargin()
                     else -> """
-                        |/** @psalm-var \\stdClass $!data */
+                        |/** @psalm-var stdClass $!data */
                         |return new JsonObjectModel($!data);
                     """.trimMargin()
                 }
@@ -353,7 +361,7 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
             is ObjectType ->
                 if (type.toVrapType().isScalar()) {
                     """
-                        |/** @psalm-var ?\\stdClass $!data */
+                        |/** @psalm-var ?stdClass $!data */
                         |$!data = $!this->raw(${defineObject.simpleName()}::${this.toPhpConstantName()});
                         |if (is_null($!data)) {
                         |    return null;
@@ -362,7 +370,7 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
                     """.trimMargin()
                 } else {
                     """
-                        |/** @psalm-var ?\\stdClass $!data */
+                        |/** @psalm-var ?stdClass $!data */
                         |$!data = $!this->raw(${defineObject.simpleName()}::${this.toPhpConstantName()});
                         |if (is_null($!data)) {
                         |    return null;
@@ -383,7 +391,7 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
                     """.trimMargin()
                 } else {
                     """
-                        |/** @psalm-var ?array<int, object> $!data */
+                        |/** @psalm-var ?array<int, stdClass> $!data */
                         |$!data = $!this->raw(${defineObject.simpleName()}::${this.toPhpConstantName()});
                         |if (is_null($!data)) {
                         |    return null;
@@ -446,7 +454,7 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
                        |$!this->${this.name} = $!data;
                     """.trimMargin()
                     else -> """
-                        |/** @psalm-var ?\\stdClass $!data */
+                        |/** @psalm-var ?stdClass $!data */
                         |$!data = $!this->raw(${defineObject.simpleName()}::${this.toPhpConstantName()});
                         |if (is_null($!data)) {
                         |    return null;
@@ -481,7 +489,10 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
             return ""
         }
         return """
-            |/** @var array<string, class-string<${this.toVrapType().simpleName()}> > */
+            |/**
+            | * @psalm-var array<string, class-string<${this.toVrapType().simpleName()}> >
+            | * ${if (this.namedSubTypes().filterIsInstance<ObjectType>().count() > 50) "@psalm-suppress InvalidPropertyAssignmentValue" else ""}
+            | */
             |private static $!discriminatorClasses = [
             |   <<${this.namedSubTypes().filterIsInstance<ObjectType>().map { "'${it.discriminatorValue}' => ${it.toVrapType().simpleName()}Model::class," }.joinToString(separator = "\n")}>>
             |];
@@ -496,7 +507,7 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
             |/**
             | * @psalm-return class-string<${this.toVrapType().simpleName()}>
             | */
-            |public static function resolveDiscriminatorClass(\stdClass $!value): string
+            |public static function resolveDiscriminatorClass(stdClass $!value): string
             |{
             |   $!fieldName = ${this.toVrapType().simpleName()}::DISCRIMINATOR_FIELD;
             |   if (isset($!value->$!fieldName)) {

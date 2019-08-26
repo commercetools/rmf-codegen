@@ -34,19 +34,20 @@ class PhpCollectionRenderer @Inject constructor(override val vrapTypeProvider: V
             |${PhpSubTemplates.generatorInfo}
             |namespace ${vrapType.namespaceName()};
             |
-            |use ${type.type?.toVrapType()?.fullClassName()?.let { "${it}Collection" } ?: "${packagePrefix.toNamespaceName()}\\Base\\MapperSequence"};
+            |use ${packagePrefix.toNamespaceName()}\Base\MapperSequence;
             |use ${packagePrefix.toNamespaceName()}\Exception\InvalidArgumentException;
+            |use stdClass;
             |
             |/**
-            | * ${type.type?.toVrapType()?.simpleName()?.let { "" } ?: "@extends MapperSequence<${ vrapType.simpleClassName }>"}
+            | * @extends MapperSequence<${ vrapType.simpleClassName }>
             | * @method ${vrapType.simpleClassName} current()
             | * @method ${vrapType.simpleClassName} at($!offset)
             | */
-            |class ${vrapType.simpleClassName}Collection extends ${type.type?.toVrapType()?.simpleName()?.let { "${it}Collection" } ?: "MapperSequence"}
+            |class ${vrapType.simpleClassName}Collection extends MapperSequence
             |{
             |    /**
             |     * @psalm-assert ${vrapType.simpleClassName} $!value
-            |     * @psalm-param ${vrapType.simpleClassName}|object $!value
+            |     * @psalm-param ${vrapType.simpleClassName}|stdClass $!value
             |     * @return ${vrapType.simpleClassName}Collection
             |     * @throws InvalidArgumentException
             |     */
@@ -67,7 +68,7 @@ class PhpCollectionRenderer @Inject constructor(override val vrapTypeProvider: V
             |    {
             |        return function(int $!index): ?${vrapType.simpleClassName} {
             |            $!data = $!this->get($!index);
-            |            if (!is_null($!data) && !$!data instanceof ${vrapType.simpleClassName}) {
+            |            if ($!data instanceof stdClass) {
             |                $!data = new ${vrapType.simpleName()}Model($!data);
             |                $!this->set($!data, $!index);
             |            }
