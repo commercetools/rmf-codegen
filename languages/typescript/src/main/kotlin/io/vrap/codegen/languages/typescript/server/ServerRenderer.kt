@@ -1,10 +1,7 @@
 package io.vrap.codegen.languages.typescript.server
 
 import com.google.inject.Inject
-import io.vrap.codegen.languages.extensions.EObjectExtensions
-import io.vrap.codegen.languages.extensions.hasBody
-import io.vrap.codegen.languages.extensions.hasReturnPayload
-import io.vrap.codegen.languages.extensions.resource
+import io.vrap.codegen.languages.extensions.*
 import io.vrap.codegen.languages.typescript.*
 import io.vrap.codegen.languages.typescript.joi.simpleJoiName
 import io.vrap.codegen.languages.typescript.model.simpleTSName
@@ -119,8 +116,8 @@ class ServerRenderer @Inject constructor(
                         |        try {
                         |          const result = await method({
                         |            headers: request.headers,
-                        |            pathParams: request.params as any,
-                        |            queryParams: request.query as any,
+                        |            ${if(it.hasPathParams()) "pathParams: request.params as any," else ""}
+                        |            ${if(it.hasQueryParams()) "queryParams: request.query as any," else ""}
                         |            <${if(it.hasBody()) "body: request.payload as any" else ""}>
                         |          });
                         |          const response = responseToolkit

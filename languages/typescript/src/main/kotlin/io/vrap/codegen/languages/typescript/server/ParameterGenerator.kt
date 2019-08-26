@@ -2,8 +2,7 @@ package io.vrap.codegen.languages.typescript.server
 
 
 import com.google.inject.Inject
-import io.vrap.codegen.languages.extensions.EObjectExtensions
-import io.vrap.codegen.languages.extensions.resource
+import io.vrap.codegen.languages.extensions.*
 import io.vrap.codegen.languages.typescript.*
 import io.vrap.codegen.languages.typescript.model.simpleTSName
 import io.vrap.rmf.codegen.di.ClientPackageName
@@ -66,20 +65,28 @@ class ParameterGenerator @Inject constructor(
                     |       <${it.headers.map { "${it.name}: ${it.type.toVrapType().simpleTSName()}" }.joinToString("\n")}>
                     |       [key:string]:string
                     |   },
-                    |   queryParams: {
-                    |       <${it.queryParameters.map { "${it.name}: ${it.type.toVrapType().simpleTSName()}" }.joinToString("\n")}>
-                    |       [key:string]: ScalarValue | ScalarValue[]
-                    |   }
-                    |   pathParams: {
-                    |       <${it.resource().fullUri.variables.map{ "$it: string" }.joinToString("\n")}>
-                    |       [key:string]:string
-                    |   }
+                    |   <${if(it.hasQueryParams()) it.queryParams() else "" }>
+                    |   <${if(it.hasPathParams()) it.pathParams() else "" }>
+                    |  
                     |   <${if(it.bodies.isNotEmpty()) "body: ${it.bodyDefinition()}" else ""}>
                     |}
                     """.trimMargin()
                 }
                 .joinToString(separator = "\n\n")
     }
+
+    private fun Method.queryParams() = """|
+        |queryParams: {
+        |       <${this.queryParameters.map { "${it.name}: ${it.type.toVrapType().simpleTSName()}" }.joinToString("\n")}>
+        |}
+    """.trimMargin()
+
+    private fun Method.pathParams() = """|
+        |pathParams: {
+        |       <${this.resource().fullUri.variables.map{ "$it: string" }.joinToString("\n")}>
+        |}
+    """.trimMargin()
+    
 
     private fun Method.bodyDefinition(): String = this.bodies
             .map { it.type.toVrapType().simpleTSName() }

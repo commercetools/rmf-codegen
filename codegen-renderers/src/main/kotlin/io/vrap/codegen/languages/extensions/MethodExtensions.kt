@@ -46,6 +46,10 @@ fun Method.hasReturnPayload(): Boolean = this.returnType() !is NilType
 
 fun Method.hasBody(): Boolean = this.bodies.filter { it.type != null }.isNotEmpty()
 
+fun Method.hasQueryParams() = this.queryParameters.isNotEmpty()
+
+fun Method.hasPathParams() = this.resource().fullUri.variables.isNotEmpty()
+
 fun Response.isSuccessfull(): Boolean = this.statusCode.toInt() in (200..299)
 
 
