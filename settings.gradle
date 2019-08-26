@@ -10,6 +10,5 @@ include 'languages:javalang:java-renderer'
 include 'languages:php'
 include 'languages:typescript'
 
-//include 'tools:cli-application'
 include 'tools:codegen-gradle-plugin'
 

@@ -9,7 +9,7 @@ import io.vrap.codegen.languages.java.model.JavaModelModule
 import io.vrap.codegen.languages.php.PhpBaseTypes
 import io.vrap.codegen.languages.php.model.PhpModelModule
 import io.vrap.codegen.languages.typescript.model.TypeScriptBaseTypes
-import io.vrap.codegen.languages.typescript.model.TypeScriptModelModule
+import io.vrap.codegen.languages.typescript.model.TypescriptModelModule
 import io.vrap.rmf.codegen.CodeGeneratorConfig
 import io.vrap.rmf.codegen.di.ApiProvider
 import io.vrap.rmf.codegen.di.GeneratorComponent
@@ -92,7 +92,7 @@ class GeneratorTask : Runnable {
             }
             typescriptModel -> {
                 val generatorModule = GeneratorModule(apiProvider, generatorConfig, TypeScriptBaseTypes)
-                GeneratorComponent(generatorModule, TypeScriptModelModule())
+                    GeneratorComponent(generatorModule, TypescriptModelModule)
             }
             php -> {
                 val generatorModule = GeneratorModule(apiProvider, generatorConfig, PhpBaseTypes)
