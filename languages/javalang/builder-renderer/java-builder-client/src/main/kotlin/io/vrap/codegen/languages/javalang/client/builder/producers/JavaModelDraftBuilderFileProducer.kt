@@ -1,11 +1,8 @@
 package io.vrap.codegen.languages.javalang.client.builder.producers
 
 import com.google.inject.Inject
-import io.vrap.codegen.languages.extensions.EObjectExtensions
 import io.vrap.codegen.languages.extensions.isPatternProperty
-import io.vrap.codegen.languages.java.base.extensions.JavaObjectTypeExtensions
-import io.vrap.codegen.languages.java.base.extensions.fullClassName
-import io.vrap.codegen.languages.java.base.extensions.upperCamelCase
+import io.vrap.codegen.languages.java.base.extensions.*
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.FileProducer
 import io.vrap.rmf.codegen.rendring.utils.escapeAll

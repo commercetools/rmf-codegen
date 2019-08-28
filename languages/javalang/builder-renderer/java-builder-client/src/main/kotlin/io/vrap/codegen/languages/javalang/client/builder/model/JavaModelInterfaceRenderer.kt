@@ -69,7 +69,7 @@ class JavaModelInterfaceRenderer @Inject constructor(override val vrapTypeProvid
         return if(this.isAbstract()){
             ""
         }else {
-            "import ${vrapType.`package`}.${vrapType.simpleClassName}Impl;"    
+            "import ${vrapType.`package`.toJavaPackage()}.${vrapType.simpleClassName}Impl;"    
         }
     }
     
@@ -81,7 +81,7 @@ class JavaModelInterfaceRenderer @Inject constructor(override val vrapTypeProvid
                     .filter { (it as ObjectType).discriminatorValue != null }
                     .map {
                         val vrapType = vrapTypeProvider.doSwitch(it) as VrapObjectType
-                        "@JsonSubTypes.Type(value = ${vrapType.`package`}.${vrapType.simpleClassName}Impl.class, name = \"${(it as ObjectType).discriminatorValue}\")" 
+                        "@JsonSubTypes.Type(value = ${vrapType.`package`.toJavaPackage()}.${vrapType.simpleClassName}Impl.class, name = \"${(it as ObjectType).discriminatorValue}\")" 
                     }
                     .joinToString(separator = ",\n")}>
             |})

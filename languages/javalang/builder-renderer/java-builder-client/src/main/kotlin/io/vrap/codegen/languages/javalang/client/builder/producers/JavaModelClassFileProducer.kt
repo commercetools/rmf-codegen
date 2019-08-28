@@ -1,7 +1,6 @@
 package io.vrap.codegen.languages.javalang.client.builder.producers
 
 import com.google.inject.Inject
-import io.vrap.codegen.languages.extensions.EObjectExtensions
 import io.vrap.codegen.languages.extensions.isPatternProperty
 import io.vrap.codegen.languages.extensions.toComment
 import io.vrap.codegen.languages.java.base.JavaSubTemplates
@@ -27,7 +26,7 @@ class JavaModelClassFileProducer @Inject constructor(override val vrapTypeProvid
         val vrapType = vrapTypeProvider.doSwitch(type).toJavaVType() as VrapObjectType
         
         val content = """
-                |package ${vrapType.`package`};
+                |package ${vrapType.`package`.toJavaPackage()};
                 |
                 |${type.imports()}
                 |import javax.annotation.Generated;

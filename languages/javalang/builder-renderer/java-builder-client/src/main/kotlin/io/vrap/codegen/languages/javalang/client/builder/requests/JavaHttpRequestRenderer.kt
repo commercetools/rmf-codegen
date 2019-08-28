@@ -24,7 +24,7 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
         val vrapType = vrapTypeProvider.doSwitch(type as EObject) as VrapObjectType
         
         val content = """
-            |package ${vrapType.`package`};
+            |package ${vrapType.`package`.toJavaPackage()};
             |
             |import client.ApiHttpRequest;
             |import client.ApiHttpMethod;
@@ -83,7 +83,7 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
         if(this.bodies != null && this.bodies.isNotEmpty()){
             if(this.bodies[0].type.toVrapType() is VrapObjectType) {
                 val methodBodyVrapType = this.bodies[0].type.toVrapType() as VrapObjectType
-                val methodBodyArgument = "${methodBodyVrapType.`package`}.${methodBodyVrapType.simpleClassName} ${methodBodyVrapType.simpleClassName.decapitalize()}"
+                val methodBodyArgument = "${methodBodyVrapType.`package`.toJavaPackage()}.${methodBodyVrapType.simpleClassName} ${methodBodyVrapType.simpleClassName.decapitalize()}"
                 constructorArguments.add(methodBodyArgument)
                 val methodBodyAssignment = "this.${methodBodyVrapType.simpleClassName.decapitalize()} = ${methodBodyVrapType.simpleClassName.decapitalize()};"
                 constructorAssignments.add(methodBodyAssignment)
@@ -115,7 +115,7 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
         if(this.bodies != null && this.bodies.isNotEmpty()){
             if(this.bodies[0].type.toVrapType() is VrapObjectType){
                 val methodBodyVrapType = this.bodies[0].type.toVrapType() as VrapObjectType
-                commandClassFields.add("private ${methodBodyVrapType.`package`}.${methodBodyVrapType.simpleClassName} ${methodBodyVrapType.simpleClassName.decapitalize()};")
+                commandClassFields.add("private ${methodBodyVrapType.`package`.toJavaPackage()}.${methodBodyVrapType.simpleClassName} ${methodBodyVrapType.simpleClassName.decapitalize()};")
             }else {
                 commandClassFields.add("private com.fasterxml.jackson.databind.JsonNode jsonNode;");
             }
