@@ -18,6 +18,7 @@ class PhpModelModule: AbstractModule() {
 
         val fileBinder = Multibinder.newSetBinder(binder(), FileProducer::class.java)
         fileBinder.addBinding().to(PhpFileProducer::class.java)
+        fileBinder.addBinding().to(ApiRootFileProducer::class.java)
 
         val methodBinder = Multibinder.newSetBinder(binder(), MethodRenderer::class.java)
         methodBinder.addBinding().to(PhpMethodRenderer::class.java)

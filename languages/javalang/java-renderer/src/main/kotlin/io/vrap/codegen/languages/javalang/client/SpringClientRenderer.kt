@@ -4,7 +4,9 @@ import com.google.inject.Inject
 import io.vrap.codegen.languages.extensions.EObjectExtensions
 import io.vrap.codegen.languages.extensions.toComment
 import io.vrap.codegen.languages.java.base.JavaSubTemplates
+import io.vrap.codegen.languages.java.base.extensions.JavaEObjectTypeExtensions
 import io.vrap.codegen.languages.java.base.extensions.fullClassName
+import io.vrap.codegen.languages.java.base.extensions.toJavaVType
 import io.vrap.rmf.codegen.common.generator.core.ResourceCollection
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.ResourceCollectionRenderer
@@ -20,12 +22,12 @@ import io.vrap.rmf.raml.model.responses.Response
 import io.vrap.rmf.raml.model.types.AnyType
 import io.vrap.rmf.raml.model.types.impl.TypesFactoryImpl
 
-class SpringClientRenderer @Inject constructor(val packageProvider: PackageProvider, override val vrapTypeProvider: VrapTypeProvider) : ResourceCollectionRenderer, EObjectExtensions {
+class SpringClientRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : ResourceCollectionRenderer, JavaEObjectTypeExtensions {
 
 
     override fun render(type: ResourceCollection): TemplateFile {
 
-        val vrapType = vrapTypeProvider.doSwitch(type.sample) as VrapObjectType
+        val vrapType = vrapTypeProvider.doSwitch(type.sample).toJavaVType() as VrapObjectType
 
         val content = """
             |package ${vrapType.`package`};
@@ -78,7 +80,7 @@ class SpringClientRenderer @Inject constructor(val packageProvider: PackageProvi
 
     fun javaBody(resource: Resource, method: Method): String {
 
-        val methodReturnType = vrapTypeProvider.doSwitch(method.retyurnType())
+        val methodReturnType = vrapTypeProvider.doSwitch(method.retyurnType()).toJavaVType()
         val returnIsEmpty = methodReturnType is VrapNilType
 
         val body = """

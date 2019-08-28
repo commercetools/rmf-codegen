@@ -2,7 +2,6 @@ package io.vrap.codegen.languages.php.model
 
 import com.damnhandy.uri.template.UriTemplate
 import com.google.inject.Inject
-import com.google.inject.name.Named
 import io.vrap.codegen.languages.php.PhpSubTemplates
 import io.vrap.codegen.languages.php.extensions.*
 import io.vrap.rmf.codegen.di.BasePackageName
@@ -13,14 +12,11 @@ import io.vrap.rmf.codegen.rendring.utils.keepIndentation
 import io.vrap.rmf.raml.model.modules.Api
 import io.vrap.rmf.raml.model.util.StringCaseFormat
 
-class PhpFileProducer @Inject constructor() : FileProducer {
+class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
 
     @Inject
     @BasePackageName
     lateinit var packagePrefix:String
-
-    @Inject
-    lateinit var api:Api
 
     override fun produceFiles(): List<TemplateFile> = listOf(
             collection(),
@@ -29,227 +25,327 @@ class PhpFileProducer @Inject constructor() : FileProducer {
             tokenProvider(),
             token(),
             composerJson(),
-            config(),
+            config(api),
             credentialTokenProvider(),
             cachedProvider(),
             rawTokenProvider(),
             oauth2Handler(),
             middlewareFactory(),
-            authConfig(),
-            clientCredentialsConfig(),
+            authConfig(api),
+            clientCredentialsConfig(api),
             tokenModel(),
             oauthHandlerFactory(),
             baseException(),
             invalidArgumentException(),
             apiRequest(),
             mapperFactory(),
+            jsonObjectModel(),
             jsonObject(),
             baseJsonObject(),
             mapperIterator(),
             mapCollection(),
             psalm(),
-            resource()
+            resource(),
+            resultMapper(),
+            mapperInterface(),
+            jsonObjectCollection(),
+            apiClientException(),
+            apiServerException()
     )
 
     private fun collection(): TemplateFile {
         return TemplateFile(relativePath = "src/Base/Collection.php",
                 content = """
-                        |<?php
-                        |${PhpSubTemplates.generatorInfo}
-                        |
-                        |namespace ${packagePrefix.toNamespaceName()}\Base;
-                        |
-                        |interface Collection
-                        |{
-                        |}
-                    """.trimMargin()
+                    |<?php
+                    |${PhpSubTemplates.generatorInfo}
+                    |
+                    |namespace ${packagePrefix.toNamespaceName()}\Base;
+                    |
+                    |interface Collection
+                    |{
+                    |}
+                """.trimMargin()
         )
+    }
+
+    private fun resultMapper(): TemplateFile {
+        return TemplateFile(relativePath = "src/Base/ResultMapper.php",
+                content = """
+                    |<?php
+                    |${PhpSubTemplates.generatorInfo}
+                    |
+                    |namespace ${packagePrefix.toNamespaceName()}\Base;
+                    |
+                    |use ${packagePrefix.toNamespaceName()}\Exception\InvalidArgumentException;
+                    |use Psr\Http\Message\ResponseInterface;
+                    |
+                    |class ResultMapper implements MapperInterface
+                    |{
+                    |    /**
+                    |     * @template T
+                    |     * @psalm-param class-string<T> $!type
+                    |     * @psalm-return T
+                    |     */
+                    |    public function mapResponseToClass($!type, ResponseInterface $!response)
+                    |    {
+                    |        return new $!type($!this->responseData($!response));
+                    |    }
+                    |
+                    |    /**
+                    |     * @psalm-return scalar
+                    |     */
+                    |    private function responseData(ResponseInterface $!response)
+                    |    {
+                    |        $!body = (string)$!response->getBody();
+                    |        /** @psalm-var ?scalar $!data */
+                    |        $!data = json_decode($!body);
+                    |        if (is_null($!data)) {
+                    |           throw new InvalidArgumentException();
+                    |        }
+                    |        return $!data;
+                    |    }
+                    |}
+                """.trimMargin().forcedLiteralEscape())
+    }
+
+    private fun mapperInterface(): TemplateFile {
+        return TemplateFile(relativePath = "src/Base/MapperInterface.php",
+                content = """
+                    |<?php
+                    |${PhpSubTemplates.generatorInfo}
+                    |
+                    |namespace ${packagePrefix.toNamespaceName()}\Base;
+                    |
+                    |use Psr\Http\Message\ResponseInterface;
+                    |
+                    |interface MapperInterface
+                    |{
+                    |    /**
+                    |     * @template T
+                    |     * @psalm-param class-string<T> $!type
+                    |     * @psalm-return T
+                    |     */
+                    |    public function mapResponseToClass($!type, ResponseInterface $!response);
+                    |}
+                """.trimMargin().forcedLiteralEscape())
     }
 
     private fun mapperFactory(): TemplateFile {
         return TemplateFile(relativePath = "src/Base/MapperFactory.php",
                 content = """
-                        |<?php
-                        |${PhpSubTemplates.generatorInfo}
-                        |
-                        |namespace ${packagePrefix.toNamespaceName()}\Base;
-                        |
-                        |use DateTime;
-                        |use DateTimeImmutable;
-                        |
-                        |class MapperFactory
-                        |{
-                        |    const DATETIME_FORMAT = "Y-m-d?H:i:s.uT";
-                        |
-                        |    /**
-                        |     * @psalm-return callable(mixed): ?string
-                        |     */
-                        |    public static function stringMapper() {
-                        |       return
-                        |           /** @psalm-param ?mixed $!data */
-                        |           function ($!data): ?string {
-                        |               if (is_null($!data)) {
-                        |                   return null;
-                        |               }
-                        |               return (string)$!data;
-                        |           };
-                        |    }
-                        |
-                        |    /**
-                        |     * @psalm-return callable(?mixed): ?float
-                        |     */
-                        |    public static function numberMapper() {
-                        |       return
-                        |           /** @psalm-param ?mixed $!data */
-                        |           function ($!data): ?float {
-                        |               if (is_null($!data)) {
-                        |                   return null;
-                        |               }
-                        |               return (float)$!data;
-                        |           };
-                        |    }
-                        |
-                        |    /**
-                        |     * @psalm-return callable(?mixed): ?int
-                        |     */
-                        |    public static function integerMapper() {
-                        |       return
-                        |           /** @psalm-param ?mixed $!data */
-                        |           function ($!data): ?int {
-                        |               if (is_null($!data)) {
-                        |                   return null;
-                        |               }
-                        |               return (int)$!data;
-                        |           };
-                        |    }
-                        |
-                        |    /**
-                        |     * @psalm-return callable(?string): ?DateTimeImmutable
-                        |     */
-                        |    public static function dateTimeMapper(string $!format = self::DATETIME_FORMAT) {
-                        |       return
-                        |           /** @psalm-param ?string $!data */
-                        |           function ($!data) use ($!format): ?DateTimeImmutable {
-                        |               if (is_null($!data)) {
-                        |                   return null;
-                        |               }
-                        |               $!date = DateTimeImmutable::createFromFormat($!format, $!data);
-                        |               if ($!date === false) {
-                        |                   return null;
-                        |               }
-                        |               return $!date;
-                        |           };
-                        |    }
-                        |
-                        |    /**
-                        |     * @psalm-return callable(?mixed): ?object
-                        |     * @psalm-param class-string $!className
-                        |     */
-                        |    public static function classMapper(string $!className) {
-                        |       return
-                        |           /** @psalm-param ?mixed $!data */
-                        |           function ($!data) use ($!className): ?object {
-                        |               if (is_null($!data)) {
-                        |                   return null;
-                        |               }
-                        |               return (new \ReflectionClass($!className))->newInstanceArgs([$!data]);
-                        |           };
-                        |    }
-                        |}
-                    """.trimMargin().forcedLiteralEscape()
+                    |<?php
+                    |${PhpSubTemplates.generatorInfo}
+                    |
+                    |namespace ${packagePrefix.toNamespaceName()}\Base;
+                    |
+                    |use DateTime;
+                    |use DateTimeImmutable;
+                    |
+                    |class MapperFactory
+                    |{
+                    |    const DATETIME_FORMAT = "Y-m-d?H:i:s.uT";
+                    |
+                    |    /**
+                    |     * @psalm-return callable(mixed): ?string
+                    |     */
+                    |    public static function stringMapper() {
+                    |       return
+                    |           /** @psalm-param ?mixed $!data */
+                    |           function ($!data): ?string {
+                    |               if (is_null($!data)) {
+                    |                   return null;
+                    |               }
+                    |               return (string)$!data;
+                    |           };
+                    |    }
+                    |
+                    |    /**
+                    |     * @psalm-return callable(?mixed): ?float
+                    |     */
+                    |    public static function numberMapper() {
+                    |       return
+                    |           /** @psalm-param ?mixed $!data */
+                    |           function ($!data): ?float {
+                    |               if (is_null($!data)) {
+                    |                   return null;
+                    |               }
+                    |               return (float)$!data;
+                    |           };
+                    |    }
+                    |
+                    |    /**
+                    |     * @psalm-return callable(?mixed): ?int
+                    |     */
+                    |    public static function integerMapper() {
+                    |       return
+                    |           /** @psalm-param ?mixed $!data */
+                    |           function ($!data): ?int {
+                    |               if (is_null($!data)) {
+                    |                   return null;
+                    |               }
+                    |               return (int)$!data;
+                    |           };
+                    |    }
+                    |
+                    |    /**
+                    |     * @psalm-return callable(?string): ?DateTimeImmutable
+                    |     */
+                    |    public static function dateTimeMapper(string $!format = self::DATETIME_FORMAT) {
+                    |       return
+                    |           /** @psalm-param ?string $!data */
+                    |           function ($!data) use ($!format): ?DateTimeImmutable {
+                    |               if (is_null($!data)) {
+                    |                   return null;
+                    |               }
+                    |               $!date = DateTimeImmutable::createFromFormat($!format, $!data);
+                    |               if ($!date === false) {
+                    |                   return null;
+                    |               }
+                    |               return $!date;
+                    |           };
+                    |    }
+                    |
+                    |    /**
+                    |     * @template T
+                    |     * @psalm-return callable(?mixed): ?T
+                    |     * @psalm-param class-string<T> $!className
+                    |     */
+                    |    public static function classMapper(string $!className) {
+                    |       return
+                    |           /**
+                    |            * @psalm-param ?mixed $!data
+                    |            * @psalm-return ?T
+                    |            */
+                    |           function ($!data) use ($!className): ?object {
+                    |               if (is_null($!data)) {
+                    |                   return null;
+                    |               }
+                    |               return new $!className($!data);
+                    |           };
+                    |    }
+                    |}
+                """.trimMargin().forcedLiteralEscape()
+        )
+    }
+
+    private fun jsonObjectModel(): TemplateFile {
+        return TemplateFile(relativePath = "src/Base/JsonObjectModel.php",
+                content = """
+                    |<?php
+                    |${PhpSubTemplates.generatorInfo}
+                    |
+                    |namespace ${packagePrefix.toNamespaceName()}\Base;
+                    |
+                    |class JsonObjectModel extends BaseJsonObject implements JsonObject
+                    |{
+                    |    /**
+                    |     * @return string|int|float|JsonObject|array<int, mixed>|JsonObjectCollection|bool|null
+                    |     */
+                    |    public function get(string $!field)
+                    |    {
+                    |        $!data = $!this->raw($!field);
+                    |        if ($!data instanceof \stdClass) {
+                    |            return new JsonObjectModel($!data);
+                    |        }
+                    |        if (is_array($!data) && isset($!data[0]) && $!data[0] instanceof \stdClass) {
+                    |            /** @psalm-var ?array<int, object> $!data */
+                    |            return new JsonObjectCollection($!data);
+                    |        }
+                    |        return $!data;
+                    |    }
+                    |
+                    |    final protected function toArray(): array
+                    |    {
+                    |        $!data = array_filter(
+                    |            get_object_vars($!this),
+                    |            /**
+                    |             * @psalm-param mixed|null $!value
+                    |             * @return bool
+                    |             */
+                    |            function($!value) {
+                    |                return !is_null($!value);
+                    |            },
+                    |            ARRAY_FILTER_USE_BOTH
+                    |        );
+                    |        $!data = array_merge($!this->getRawDataArray(), $!data);
+                    |        return $!data;
+                    |    }
+                    |}
+                """.trimMargin().forcedLiteralEscape()
         )
     }
 
     private fun jsonObject(): TemplateFile {
         return TemplateFile(relativePath = "src/Base/JsonObject.php",
                 content = """
-                        |<?php
-                        |${PhpSubTemplates.generatorInfo}
-                        |
-                        |namespace ${packagePrefix.toNamespaceName()}\Base;
-                        |
-                        |class JsonObject extends BaseJsonObject
-                        |{
-                        |    protected function toArray(): array
-                        |    {
-                        |        $!data = array_filter(
-                        |            get_object_vars($!this),
-                        |            /**
-                        |             * @psalm-param mixed|null $!value
-                        |             */
-                        |            function($!value, string $!key) {
-                        |                return !is_null($!value);
-                        |            },
-                        |            ARRAY_FILTER_USE_BOTH
-                        |        );
-                        |        $!data = array_merge($!this->getRawDataArray(), $!data);
-                        |        return $!data;
-                        |    }
-                        |}
-                    """.trimMargin().forcedLiteralEscape()
+                    |<?php
+                    |${PhpSubTemplates.generatorInfo}
+                    |
+                    |namespace ${packagePrefix.toNamespaceName()}\Base;
+                    |
+                    |interface JsonObject extends \JsonSerializable
+                    |{
+                    |    /**
+                    |     * @return string|int|float|JsonObject|array<int, mixed>|JsonObjectCollection|bool|null
+                    |     */
+                    |    public function get(string $!field);
+                    |}
+                """.trimMargin().forcedLiteralEscape()
         )
     }
 
     private fun baseJsonObject(): TemplateFile {
         return TemplateFile(relativePath = "src/Base/BaseJsonObject.php",
                 content = """
-                        |<?php
-                        |${PhpSubTemplates.generatorInfo}
-                        |
-                        |namespace ${packagePrefix.toNamespaceName()}\Base;
-                        |
-                        |abstract class BaseJsonObject implements \JsonSerializable
-                        |{
-                        |    /** @var ?object */
-                        |    private $!rawData;
-                        |
-                        |    public function __construct(object $!data = null)
-                        |    {
-                        |        $!this->rawData = $!data;
-                        |    }
-                        |
-                        |    /**
-                        |     * @return mixed|null
-                        |     */
-                        |    public function map(string $!field, callable $!mapper)
-                        |    {
-                        |        return call_user_func($!mapper, $!this->get($!field));
-                        |    }
-                        |
-                        |    /**
-                        |     * @return string|int|float|array<int, mixed>|\stdClass|bool|null
-                        |     */
-                        |    public function get(string $!field)
-                        |    {
-                        |        if (isset($!this->rawData->$!field)) {
-                        |            /** @psalm-suppress PossiblyNullPropertyFetch */
-                        |            return $!this->rawData->$!field;
-                        |        }
-                        |        return null;
-                        |    }
-                        |
-                        |    public function jsonSerialize(): array
-                        |    {
-                        |        return $!this->toArray();
-                        |    }
-                        |
-                        |    /**
-                        |     * @return array
-                        |     */
-                        |    protected function getRawDataArray(): array
-                        |    {
-                        |        if (is_null($!this->rawData)) {
-                        |            return [];
-                        |        }
-                        |        return get_object_vars($!this->rawData);
-                        |    }
-                        |
-                        |    /**
-                        |     * @return array
-                        |     */
-                        |    abstract protected function toArray(): array;
-                        |}
-                    """.trimMargin().forcedLiteralEscape()
+                    |<?php
+                    |${PhpSubTemplates.generatorInfo}
+                    |
+                    |namespace ${packagePrefix.toNamespaceName()}\Base;
+                    |
+                    |abstract class BaseJsonObject implements JsonObject
+                    |{
+                    |    /** @var ?object */
+                    |    private $!rawData;
+                    |
+                    |    public function __construct(object $!data = null)
+                    |    {
+                    |        $!this->rawData = $!data;
+                    |    }
+                    |
+                    |    /**
+                    |     * @return string|int|float|array<int, mixed>|\stdClass|bool|null
+                    |     */
+                    |    final protected function raw(string $!field)
+                    |    {
+                    |        if (isset($!this->rawData->$!field)) {
+                    |            /** @psalm-suppress PossiblyNullPropertyFetch */
+                    |            return $!this->rawData->$!field;
+                    |        }
+                    |        return null;
+                    |    }
+                    |
+                    |    public function jsonSerialize()
+                    |    {
+                    |        return (object)$!this->toArray();
+                    |    }
+                    |
+                    |    /**
+                    |     * @return array
+                    |     */
+                    |    final protected function getRawDataArray(): array
+                    |    {
+                    |        if (is_null($!this->rawData)) {
+                    |            return [];
+                    |        }
+                    |        return get_object_vars($!this->rawData);
+                    |    }
+                    |
+                    |    /**
+                    |     * @return array
+                    |     */
+                    |    abstract protected function toArray(): array;
+                    |}
+                """.trimMargin().forcedLiteralEscape()
         )
     }
 
@@ -280,15 +376,35 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |use GuzzleHttp\Client as HttpClient;
                     |use GuzzleHttp\HandlerStack;
                     |use Psr\Cache\CacheItemPoolInterface;
+                    |use Psr\Log\LoggerInterface;
+                    |use Psr\SimpleCache\CacheInterface;
                     |
                     |class ClientFactory
                     |{
                     |    /**
                     |     * @param Config|array $!config
+                    |     * @psalm-param CacheItemPoolInterface|CacheInterface|null $!cache
+                    |     * @psalm-param array<string, callable> $!middlewares
                     |     * @throws InvalidArgumentException
-                    |     * @return HttpClient
                     |     */
-                    |    public function createGuzzleClient($!config = [], array $!middlewares = []): HttpClient
+                    |    public function createGuzzleClient(AuthConfig $!authConfig, LoggerInterface $!logger, $!cache = null, $!config = [],  array $!middlewares = []): HttpClient
+                    |    {
+                    |        $!config = $!this->createConfig($!config);
+                    |        $!middlewares = array_merge(
+                    |           MiddlewareFactory::createDefaultMiddlewares($!logger, $!authConfig, $!cache),
+                    |           $!middlewares
+                    |        );
+                    |        return $!this->createGuzzle6Client($!config->getOptions(), $!middlewares);
+                    |    }
+                    |
+                    |    /**
+                    |     * @param Config|array $!config
+                    |     * @psalm-param array<string, callable> $!middlewares
+                    |     * @throws InvalidArgumentException
+                    |     */
+                    |    public function createGuzzleClientForMiddlewares(
+                    |       $!config = [],
+                    |       array $!middlewares = []): HttpClient
                     |    {
                     |        $!config = $!this->createConfig($!config);
                     |        return $!this->createGuzzle6Client($!config->getOptions(), $!middlewares);
@@ -369,6 +485,8 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |interface TokenProvider
                     |{
                     |    public function getToken(): Token;
+                    |
+                    |    public function refreshToken(): Token;
                     |}
                 """.trimMargin()
         )
@@ -386,7 +504,7 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |{
                     |    public function getValue(): string;
                     |
-                    |    public function getExpiresIn(): ?int;
+                    |    public function getExpiresIn(): int;
                     |}
                 """.trimMargin()
         )
@@ -415,20 +533,24 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |    "guzzlehttp/psr7": "^1.1",
                     |    "guzzlehttp/guzzle": "^6.0",
                     |    "psr/cache": "^1.0",
+                    |    "psr/simple-cache": "^1.0",
                     |    "psr/log": "^1.0",
+                    |    "psr/http-client": "^1.0",
+                    |    "psr/http-message": "^1.0",
                     |    "cache/filesystem-adapter": "^1.0"
                     |  },
                     |  "require-dev": {
                     |    "monolog/monolog": "^1.3",
                     |    "phpunit/phpunit": "^8.0",
                     |    "vimeo/psalm": "^3.4",
-                    |    "cache/array-adapter": "^1.0"
+                    |    "cache/array-adapter": "^1.0",
+                    |    "squizlabs/php_codesniffer": "^3.0"
                     |  }
                     |}
                 """.trimMargin())
     }
     
-    private fun config(): TemplateFile {
+    private fun config(api: Api): TemplateFile {
         return TemplateFile(relativePath = "src/Client/Config.php",
                 content = """
                     |<?php
@@ -504,7 +626,7 @@ class PhpFileProducer @Inject constructor() : FileProducer {
             .map { "const OPT_${StringCaseFormat.UPPER_UNDERSCORE_CASE.apply(it)}= '$it';" }
             .joinToString(separator = "\n")
 
-    private fun authConfig(): TemplateFile {
+    private fun authConfig(api: Api): TemplateFile {
         return TemplateFile(relativePath = "src/Client/AuthConfig.php",
                 content = """
                     |<?php
@@ -512,7 +634,7 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |
                     |namespace ${packagePrefix.toNamespaceName()}\Client;
                     |
-                    |class AuthConfig
+                    |abstract class AuthConfig
                     |{
                     |    const AUTH_URI = '${api.authUri()}';
                     |
@@ -520,7 +642,6 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |    const OPT_AUTH_URI = 'auth_uri';
                     |    const OPT_CLIENT_OPTIONS = 'options';
                     |    const GRANT_TYPE = '';
-                    |    const OPT_CACHE_DIR = 'cacheDir';
                     |
                     |    /** @var string */
                     |    private $!authUri;
@@ -528,17 +649,12 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |    /** @var array */
                     |    private $!clientOptions;
                     |
-                    |    /** @var string */
-                    |    private $!cacheDir;
-                    |
                     |    public function __construct(array $!config = [])
                     |    {
                     |        /** @var string authUri */
                     |        $!this->authUri = isset($!config[self::OPT_AUTH_URI]) ? $!config[self::OPT_AUTH_URI] : static::AUTH_URI;
                     |        $!this->clientOptions = isset($!config[self::OPT_CLIENT_OPTIONS]) && is_array($!config[self::OPT_CLIENT_OPTIONS]) ?
                     |            $!config[self::OPT_CLIENT_OPTIONS] : [];
-                    |        /** @var string authUri */
-                    |        $!this->cacheDir = isset($!config[self::OPT_CACHE_DIR]) ? $!config[self::OPT_CACHE_DIR] : getcwd();
                     |    }
                     |
                     |    public function getGrantType(): string
@@ -576,17 +692,8 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |            $!this->clientOptions
                     |        );
                     |    }
-                    |
-                    |    public function getCacheDir(): string
-                    |    {
-                    |        return $!this->cacheDir;
-                    |    }
-                    |
-                    |    public function setCacheDir(string $!cacheDir): AuthConfig
-                    |    {
-                    |        $!this->cacheDir = $!cacheDir;
-                    |        return $!this;
-                    |    }
+                    |    
+                    |    abstract function getCacheKey(): string;
                     |}
                 """.trimMargin().forcedLiteralEscape())
     }
@@ -599,45 +706,102 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |
                     |namespace ${packagePrefix.toNamespaceName()}\Client;
                     |
+                    |use ${packagePrefix.toNamespaceName()}\Exception\InvalidArgumentException;
                     |use GuzzleHttp\Client;
                     |use Psr\Cache\CacheItemPoolInterface;
                     |use Psr\Cache\CacheItemInterface;
+                    |use Psr\SimpleCache\CacheInterface;
                     |
                     |class CachedTokenProvider implements TokenProvider
                     |{
+                    |    const TOKEN_CACHE_KEY = 'access_token';
+                    |    
                     |    /** @var TokenProvider */
                     |    private $!provider;
                     |
-                    |    /** @var CacheItemPoolInterface */
+                    |    /** @var CacheItemPoolInterface|CacheInterface */
                     |    private $!cache;
+                    |    
+                    |    /** @var string */
+                    |    private $!cacheKey;
                     |
-                    |    public function __construct(TokenProvider $!provider, CacheItemPoolInterface $!cache)
+                    |    /**
+                    |     * @psalm-param CacheItemPoolInterface|CacheInterface|mixed $!cache
+                    |     */
+                    |    public function __construct(TokenProvider $!provider, $!cache, string $!cacheKey = null)
                     |    {
+                    |       $!this->validateCache($!cache);
                     |       $!this->cache = $!cache;
                     |       $!this->provider = $!provider;
+                    |       $!this->cacheKey = self::TOKEN_CACHE_KEY . "_" . ($!cacheKey ?? sha1(self::TOKEN_CACHE_KEY));
                     |    }
                     |
+                    |    /**
+                    |     * @psalm-assert CacheItemPoolInterface|CacheInterface $!cache
+                    |     * @psalm-param CacheItemPoolInterface|CacheInterface|mixed $!cache
+                    |     */
+                    |    private function validateCache($!cache) : void
+                    |    {
+                    |       if (!$!cache instanceof CacheInterface && !$!cache instanceof CacheItemPoolInterface) {
+                    |           throw new InvalidArgumentException();
+                    |       }
+                    |    }
+                    |
+                    |    /**
+                    |     * @inheritDoc
+                    |     */
                     |    public function getToken(): Token
                     |    {
-                    |        $!item = $!this->cache->getItem(sha1('access_token'));
-                    |        if ($!item->isHit()) {
-                    |            return new TokenModel((string)$!item->get());
+                    |        $!item = null;
+                    |
+                    |        $!token = $!this->getCacheToken();
+                    |        if (!is_null($!token)) {
+                    |            return new TokenModel($!token);
                     |        }
                     |
-                    |        $!token = $!this->provider->getToken();
+                    |        return $!this->refreshToken();
+                    |    }
+                    |
+                    |    /**
+                    |     * @inheritDoc
+                    |     */
+                    |    public function refreshToken(): Token
+                    |    {
+                    |        $!token = $!this->provider->refreshToken();
                     |        // ensure token to be invalidated in cache before TTL
-                    |        $!expiresIn = $!token->getExpiresIn() ?? 0;
-                    |        $!ttl = max(1, $!expiresIn - 300);
-                    |        $!this->saveToken($!token->getValue(), $!item, (int)$!ttl);
+                    |        $!ttl = max(1, ($!token->getExpiresIn() - 300));
+                    |
+                    |        $!this->cache($!token, $!ttl);
                     |
                     |        return $!token;
                     |    }
                     |
-                    |    private function saveToken(string $!token, CacheItemInterface $!item, int $!ttl): void
+                    |    private function getCacheToken(): ?string
                     |    {
-                    |        $!item->set($!token);
-                    |        $!item->expiresAfter($!ttl);
-                    |        $!this->cache->save($!item);
+                    |        $!cache = $!this->cache;
+                    |        if ($!cache instanceof CacheInterface) {
+                    |            /** @var ?string $!var */
+                    |            $!var = $!cache->get($!this->cacheKey, null);
+                    |            return $!var;
+                    |        }
+                    |        
+                    |        $!item = $!cache->getItem($!this->cacheKey);
+                    |        if ($!item->isHit()) {
+                    |            return (string)$!item->get();
+                    |        }
+                    |        
+                    |        return null;
+                    |    }
+                    |
+                    |    private function cache(Token $!token, int $!ttl): void
+                    |    {
+                    |        $!cache = $!this->cache;
+                    |        if ($!cache instanceof CacheInterface) {
+                    |            $!cache->set($!this->cacheKey, $!token->getValue(), $!ttl);
+                    |        } else {
+                    |            $!item = $!cache->getItem($!this->cacheKey)->set($!token->getValue())->expiresAfter($!ttl);
+                    |            $!cache->save($!item);
+                    |        }
                     |    }
                     |}
                 """.trimMargin().forcedLiteralEscape())
@@ -693,6 +857,14 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |        $!body = json_decode((string)$!result->getBody(), true);
                     |        return new TokenModel((string)$!body[self::ACCESS_TOKEN], (int)$!body[self::EXPIRES_IN]);
                     |    }
+                    |
+                    |    /**
+                    |     * @return Token
+                    |     */
+                    |    public function refreshToken(): Token
+                    |    {
+                    |        return $!this->getToken();
+                    |    }
                     |}
                 """.trimMargin().forcedLiteralEscape())
     }
@@ -732,6 +904,11 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |    {
                     |        return 'Bearer ' . $!this->provider->getToken()->getValue();
                     |    }
+                    |
+                    |    public function refreshToken(): Token
+                    |    {
+                    |        return $!this->provider->refreshToken();
+                    |    }
                     |}
                 """.trimMargin().forcedLiteralEscape())
     }
@@ -746,16 +923,46 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |
                     |use GuzzleHttp\MessageFormatter;
                     |use GuzzleHttp\Middleware;
+                    |use GuzzleHttp\Promise\PromiseInterface;
                     |use Psr\Cache\CacheItemPoolInterface;
+                    |use Psr\SimpleCache\CacheInterface;
                     |use Psr\Log\LoggerInterface;
                     |use Psr\Log\LogLevel;
+                    |use Psr\Http\Message\RequestInterface;
+                    |use Psr\Http\Message\ResponseInterface;
                     |
                     |class MiddlewareFactory
                     |{
                     |    /**
+                    |     * @psalm-return array<string, callable>
+                    |     * @psalm-param CacheItemPoolInterface|CacheInterface|null $!cache
+                    |     */
+                    |    public static function createDefaultMiddlewares(
+                    |        LoggerInterface $!logger,
+                    |        AuthConfig $!authConfig,
+                    |        $!cache = null
+                    |    ) {
+                    |        $!handler = OAuthHandlerFactory::ofAuthConfig($!authConfig, $!cache);
+                    |        return [
+                    |            'oauth' => self::createMiddlewareForOAuthHandler($!handler),
+                    |            'reauth' => self::createReauthenticateMiddleware($!handler),
+                    |            'logger' => self::createLoggerMiddleware($!logger)
+                    |        ];
+                    |    }
+                    |
+                    |    /**
                     |     * @psalm-return callable()
                     |     */
-                    |    public static function createOAuthMiddleware(AuthConfig $!authConfig, CacheItemPoolInterface $!cache = null)
+                    |    public static function createMiddlewareForOAuthHandler(OAuth2Handler $!handler)
+                    |    {
+                    |        return Middleware::mapRequest($!handler);
+                    |    }
+                    |
+                    |    /**
+                    |     * @psalm-param CacheItemPoolInterface|CacheInterface|null $!cache
+                    |     * @psalm-return callable()
+                    |     */
+                    |    public static function createOAuthMiddleware(AuthConfig $!authConfig, $!cache = null)
                     |    {
                     |        $!handler = OAuthHandlerFactory::ofAuthConfig($!authConfig, $!cache);
                     |        return Middleware::mapRequest($!handler);
@@ -777,12 +984,61 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |    {
                     |        return Middleware::log($!logger, new MessageFormatter($!template), $!logLevel);
                     |    }
+                    |
+                    |    /**
+                    |     * Middleware that reauthenticates on invalid token error
+                    |     *
+                    |     * @return callable Returns a function that accepts the next handler.
+                    |     */
+                    |    public static function createReauthenticateMiddleware(OAuth2Handler $!oauthHandler, int $!maxRetries = 1)
+                    |    {
+                    |        return
+                    |            /**
+                    |             * @psalm-param callable(RequestInterface, array{reauth: int}): PromiseInterface $!handler 
+                    |             * @psalm-return callable(RequestInterface, array{reauth: int})
+                    |             */
+                    |            function (callable $!handler) use ($!oauthHandler, $!maxRetries) {
+                    |                return
+                    |                    /**
+                    |                     * @psalm-return PromiseInterface
+                    |                     * @psalm-param array{reauth: int} $!options
+                    |                     */
+                    |                    function (RequestInterface $!request, array $!options) use ($!handler, $!oauthHandler, $!maxRetries) {
+                    |                        return $!handler($!request, $!options)->then(
+                    |                            function (ResponseInterface $!response) use (
+                    |                                $!request,
+                    |                                $!handler,
+                    |                                $!oauthHandler,
+                    |                                $!options,
+                    |                                $!maxRetries
+                    |                            ) {
+                    |                                if ($!response->getStatusCode() == 401) {
+                    |                                    if (!isset($!options['reauth'])) {
+                    |                                        $!options['reauth'] = 0;
+                    |                                    }
+                    |                                    if ($!options['reauth'] < $!maxRetries) {
+                    |                                        $!options['reauth']++;
+                    |                                        $!token = $!oauthHandler->refreshToken();
+                    |                                        $!request = $!request->withHeader(
+                    |                                            'Authorization',
+                    |                                            'Bearer ' . $!token->getValue()
+                    |                                        );
+                    |                                        return $!handler($!request, $!options);
+                    |                                    }
+                    |                                }
+                    |                                return $!response;
+                    |                            }
+                    |                        );
+                    |                        return $!result;
+                    |                    };
+                    |            };
+                    |    }
                     |}
                 """.trimMargin().forcedLiteralEscape()
         )
     }
 
-    private fun clientCredentialsConfig(): TemplateFile {
+    private fun clientCredentialsConfig(api: Api): TemplateFile {
         return TemplateFile(relativePath = "src/Client/ClientCredentialsConfig.php",
                 content = """
                     |<?php
@@ -851,6 +1107,11 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |        $!this->clientSecret = $!clientSecret;
                     |        return $!this;
                     |    }
+                    |
+                    |    public function getCacheKey(): string
+                    |    {
+                    |        return sha1($!this->clientId . (string)$!this->scope);
+                    |    }
                     |}
                 """.trimMargin().forcedLiteralEscape()
         )
@@ -880,6 +1141,11 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |    {
                     |        return $!this->token;
                     |    }
+                    |
+                    |    public function refreshToken(): Token
+                    |    {
+                    |        return $!this->token;
+                    |    }
                     |}
                 """.trimMargin().forcedLiteralEscape()
         )
@@ -895,16 +1161,16 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |
                     |class TokenModel implements Token
                     |{
-                    |    /** @return string */
+                    |    /** @var string */
                     |    private $!value;
                     |
-                    |    /** @return int */
+                    |    /** @var int */
                     |    private $!expiresIn;
                     |
                     |    public function __construct(string $!value, int $!expiresIn = null)
                     |    {
                     |        $!this->value = $!value;
-                    |        $!this->expiresIn = $!expiresIn;
+                    |        $!this->expiresIn = $!expiresIn ?? 0;
                     |    }
                     |
                     |    public function getValue(): string
@@ -912,7 +1178,7 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |        return $!this->value;
                     |    }
                     |
-                    |    public function getExpiresIn(): ?int
+                    |    public function getExpiresIn(): int
                     |    {
                     |        return $!this->expiresIn;
                     |    }
@@ -935,17 +1201,33 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |use League\Flysystem\Adapter\Local;
                     |use League\Flysystem\Filesystem;
                     |use Psr\Cache\CacheItemPoolInterface;
+                    |use Psr\SimpleCache\CacheInterface;
                     |
                     |class OAuthHandlerFactory
                     |{
-                    |    public static function ofAuthConfig(AuthConfig $!authConfig, CacheItemPoolInterface $!cache = null): OAuth2Handler
+                    |    /**
+                    |     * @psalm-param CacheItemPoolInterface|CacheInterface|null $!cache
+                    |     * @psalm-return CacheItemPoolInterface|CacheInterface
+                    |     */
+                    |    private static function validateCache($!cache = null)
                     |    {
-                    |        if (is_null($!cache)) {
-                    |            $!cacheDir = $!authConfig->getCacheDir();
-                    |            $!filesystemAdapter = new Local($!cacheDir);
-                    |            $!filesystem        = new Filesystem($!filesystemAdapter);
-                    |            $!cache = new FilesystemCachePool($!filesystem);
+                    |        if ($!cache instanceof CacheItemPoolInterface || $!cache instanceof CacheInterface) {
+                    |            return $!cache;
                     |        }
+                    |
+                    |        $!filesystemAdapter = new Local(getcwd());
+                    |        $!filesystem        = new Filesystem($!filesystemAdapter);
+                    |        $!cache = new FilesystemCachePool($!filesystem);
+                    |        
+                    |        return $!cache;
+                    |    }
+                    |
+                    |    /**
+                    |     * @psalm-param CacheItemPoolInterface|CacheInterface|null $!cache
+                    |     */
+                    |    public static function ofAuthConfig(AuthConfig $!authConfig, $!cache = null): OAuth2Handler
+                    |    {
+                    |        $!cache = self::validateCache($!cache);
                     |        switch(true) {
                     |           case $!authConfig instanceof ClientCredentialsConfig:
                     |               $!provider = new CachedTokenProvider(
@@ -953,7 +1235,8 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |                       new Client($!authConfig->getClientOptions()),
                     |                       $!authConfig
                     |                   ),
-                    |                   $!cache
+                    |                   $!cache,
+                    |                   $!authConfig->getCacheKey()
                     |               );
                     |               break;
                     |           default:
@@ -1004,6 +1287,88 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                 """.trimMargin())
     }
 
+    private fun apiServerException(): TemplateFile {
+        return TemplateFile(relativePath = "src/Exception/ApiServerException.php",
+                content = """
+                    |<?php
+                    |${PhpSubTemplates.generatorInfo}
+                    |
+                    |namespace ${packagePrefix.toNamespaceName()}\Exception;
+                    |
+                    |use GuzzleHttp\Exception\ServerException;
+                    |use Psr\Http\Message\RequestInterface;
+                    |use Psr\Http\Message\ResponseInterface;
+                    |use ${packagePrefix.toNamespaceName()}\Base\JsonObject;
+                    |
+                    |class ApiServerException extends ServerException
+                    |{
+                    |    /**
+                    |     * @var ?JsonObject
+                    |     */
+                    |    private $!result;
+                    |    
+                    |    /**
+                    |     * @param string $!message
+                    |     * @param ?JsonObject $!result
+                    |     */
+                    |    public function __construct($!message, $!result, RequestInterface $!request, ResponseInterface $!response = null, \Exception $!previous = null, array $!handlerContext = [])
+                    |    {
+                    |        $!this->result = $!result;
+                    |        parent::__construct($!message, $!request, $!response, $!previous, $!handlerContext);
+                    |    }
+                    |
+                    |    /**
+                    |     * @return ?JsonObject
+                    |     */
+                    |    public function getResult()
+                    |    {
+                    |        return $!this->result;
+                    |    }
+                    |}
+                """.trimMargin().forcedLiteralEscape())
+    }
+
+    private fun apiClientException(): TemplateFile {
+        return TemplateFile(relativePath = "src/Exception/ApiClientException.php",
+                content = """
+                    |<?php
+                    |${PhpSubTemplates.generatorInfo}
+                    |
+                    |namespace ${packagePrefix.toNamespaceName()}\Exception;
+                    |
+                    |use GuzzleHttp\Exception\ClientException;
+                    |use Psr\Http\Message\RequestInterface;
+                    |use Psr\Http\Message\ResponseInterface;
+                    |use ${packagePrefix.toNamespaceName()}\Base\JsonObject;
+                    |
+                    |class ApiClientException extends ClientException
+                    |{
+                    |    /**
+                    |     * @var ?JsonObject
+                    |     */
+                    |    private $!result;
+                    |    
+                    |    /**
+                    |     * @param string $!message
+                    |     * @param ?JsonObject $!result
+                    |     */
+                    |    public function __construct($!message, $!result, RequestInterface $!request, ResponseInterface $!response = null, \Exception $!previous = null, array $!handlerContext = [])
+                    |    {
+                    |        $!this->result = $!result;
+                    |        parent::__construct($!message, $!request, $!response, $!previous, $!handlerContext);
+                    |    }
+                    |    
+                    |    /**
+                    |     * @return ?JsonObject
+                    |     */
+                    |    public function getResult()
+                    |    {
+                    |        return $!this->result;
+                    |    }
+                    |}
+                """.trimMargin().forcedLiteralEscape())
+    }
+
     private fun apiRequest(): TemplateFile {
         return TemplateFile(relativePath = "src/Client/ApiRequest.php",
                 content = """
@@ -1012,27 +1377,29 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |
                     |namespace ${packagePrefix.toNamespaceName()}\Client;
                     |
-                    |use ${packagePrefix.toNamespaceName()}\Base\JsonObject;
+                    |use ${packagePrefix.toNamespaceName()}\Exception\InvalidArgumentException;
+                    |use GuzzleHttp\Client;
+                    |use GuzzleHttp\Psr7;
                     |use GuzzleHttp\Psr7\Request;
                     |use Psr\Http\Message\ResponseInterface;
-                    |use GuzzleHttp\Psr7;
                     |
                     |/** @psalm-suppress PropertyNotSetInConstructor */
                     |class ApiRequest extends Request
                     |{
-                    |    const RESULT_TYPE = JsonObject::class;
-                    |
                     |    /** @psalm-var array<string, scalar[]> */
                     |    private $!queryParts;
                     |    /** @psalm-var string */
                     |    private $!query;
+                    |    /** @var Client|null */
+                    |    private $!client;
                     |
                     |    /**
                     |     * @psalm-param array<string, scalar|scalar[]> $!headers
                     |     * @param string|null|resource|\Psr\Http\Message\StreamInterface $!body
                     |     */
-                    |    public function __construct(string $!method, string $!uri, array $!headers = [], $!body = null, string $!version = '1.1')
+                    |    public function __construct(?Client $!client, string $!method, string $!uri, array $!headers = [], $!body = null, string $!version = '1.1')
                     |    {
+                    |        $!this->client = $!client;
                     |        $!headers = $!this->ensureHeader($!headers, 'Content-Type', 'application/json');
                     |
                     |        parent::__construct($!method, $!uri, $!headers, $!body, $!version);
@@ -1093,6 +1460,25 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |
                     |        return $!this->withUri($!this->getUri()->withQuery($!this->query));
                     |    }
+                    |    
+                    |    /**
+                    |     * @param array $!options
+                    |     * @return ResponseInterface
+                    |     * @throws InvalidArgumentException
+                    |     * @throws \GuzzleHttp\Exception\GuzzleException
+                    |     */
+                    |    public function send(array $!options = [])
+                    |    {
+                    |        if (is_null($!this->client)) {
+                    |           throw new InvalidArgumentException();
+                    |        }
+                    |        return $!this->client->send($!this, $!options);
+                    |    }
+                    |    
+                    |    public function getClient(): ?Client
+                    |    {
+                    |       return $!this->client;
+                    |    }
                     |}
                 """.trimMargin().forcedLiteralEscape())
     }
@@ -1126,6 +1512,56 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                 """.trimMargin().forcedLiteralEscape())
     }
 
+    private fun jsonObjectCollection(): TemplateFile {
+        return TemplateFile(relativePath = "src/Base/JsonObjectCollection.php",
+                content = """
+                    |<?php
+                    |${PhpSubTemplates.generatorInfo}
+                    |
+                    |namespace ${packagePrefix.toNamespaceName()}\Base;
+                    |
+                    |use ${packagePrefix.toNamespaceName()}\Exception\InvalidArgumentException;
+                    |
+                    |/**
+                    | * @extends MapCollection<JsonObject>
+                    | * @method JsonObject current()
+                    | * @method JsonObject at($!offset)
+                    | */
+                    |class JsonObjectCollection extends MapCollection
+                    |{
+                    |    /**
+                    |     * @psalm-assert JsonObject $!value
+                    |     * @psalm-param JsonObject|object $!value
+                    |     * @return JsonObjectCollection
+                    |     * @throws InvalidArgumentException
+                    |     */
+                    |    public function add($!value)
+                    |    {
+                    |        if (!$!value instanceof JsonObject) {
+                    |            throw new InvalidArgumentException();
+                    |        }
+                    |        $!this->store($!value);
+                    |
+                    |        return $!this;
+                    |    }
+                    |
+                    |    /**
+                    |     * @psalm-return callable(int):?JsonObject
+                    |     */
+                    |    protected function mapper()
+                    |    {
+                    |        return function(int $!index): ?JsonObject {
+                    |            $!data = $!this->get($!index);
+                    |            if (!is_null($!data) && !$!data instanceof JsonObject) {
+                    |                $!data = new JsonObjectModel($!data);
+                    |                $!this->set($!data, $!index);
+                    |            }
+                    |            return $!data;
+                    |        };
+                    |    }
+                    |}
+                """.trimMargin().forcedLiteralEscape())
+    }
     private fun mapCollection(): TemplateFile {
         return TemplateFile(relativePath = "src/Base/MapCollection.php",
                 content = """
@@ -1137,7 +1573,7 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |/**
                     | * @template T
                     | */
-                    |abstract class MapCollection implements Collection, \ArrayAccess, \JsonSerializable
+                    |abstract class MapCollection implements Collection, \ArrayAccess, \JsonSerializable, \IteratorAggregate
                     |{
                     |    /** @psalm-var ?array<int, T|object> */
                     |    private $!data;
@@ -1366,27 +1802,27 @@ class PhpFileProducer @Inject constructor() : FileProducer {
     private fun psalm(): TemplateFile {
         return TemplateFile(relativePath = "psalm.xml",
                 content = """
-                        |<?xml version="1.0"?>
-                        |<psalm
-                        |    totallyTyped="true"
-                        |    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                        |    xmlns="https://getpsalm.org/schema/config"
-                        |    xsi:schemaLocation="https://getpsalm.org/schema/config vendor/vimeo/psalm/config.xsd"
-                        |
-                        |    strictBinaryOperands="true"
-                        |>
-                        |    <projectFiles>
-                        |        <directory name="src" />
-                        |        <ignoreFiles>
-                        |            <directory name="vendor" />
-                        |        </ignoreFiles>
-                        |    </projectFiles>
-                        |
-                        |    <issueHandlers>
-                        |        <LessSpecificReturnType errorLevel="info" />
-                        |    </issueHandlers>
-                        |</psalm>
-                    """.trimMargin()
+                    |<?xml version="1.0"?>
+                    |<psalm
+                    |    totallyTyped="true"
+                    |    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                    |    xmlns="https://getpsalm.org/schema/config"
+                    |    xsi:schemaLocation="https://getpsalm.org/schema/config vendor/vimeo/psalm/config.xsd"
+                    |
+                    |    strictBinaryOperands="true"
+                    |>
+                    |    <projectFiles>
+                    |        <directory name="src" />
+                    |        <ignoreFiles>
+                    |            <directory name="vendor" />
+                    |        </ignoreFiles>
+                    |    </projectFiles>
+                    |
+                    |    <issueHandlers>
+                    |        <LessSpecificReturnType errorLevel="info" />
+                    |    </issueHandlers>
+                    |</psalm>
+                """.trimMargin()
         )
     }
 
@@ -1397,6 +1833,8 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |${PhpSubTemplates.generatorInfo}
                     |
                     |namespace ${packagePrefix.toNamespaceName()}\Client;
+                    |
+                    |use GuzzleHttp\Client;
                     |
                     |class ApiResource
                     |{
@@ -1411,13 +1849,19 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |    private $!args = [];
                     |
                     |    /**
+                    |     * @var ?Client
+                    |     */
+                    |    private $!client;
+                    |
+                    |    /**
                     |     * @param string $!uri
                     |     * @psalm-param array<string, scalar> $!args
                     |     */
-                    |    public function __construct(string $!uri = '', array $!args = [])
+                    |    public function __construct(string $!uri = '', array $!args = [], Client $!client = null)
                     |    {
                     |        $!this->uri = $!uri;
                     |        $!this->args = $!args;
+                    |        $!this->client = $!client;
                     |    }
                     |
                     |    /**
@@ -1434,6 +1878,11 @@ class PhpFileProducer @Inject constructor() : FileProducer {
                     |    final protected function getArgs(): array
                     |    {
                     |        return $!this->args;
+                    |    }
+                    |
+                    |    public function getClient(): ?Client
+                    |    {
+                    |       return $!this->client;
                     |    }
                     |}
                 """.trimMargin().forcedLiteralEscape()

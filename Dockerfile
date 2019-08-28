@@ -1,7 +1,17 @@
+FROM openjdk:8 as builder
+
+WORKDIR /rmf
+COPY . /rmf
+
+RUN ./gradlew clean shadowJar
+
 FROM openjdk:8-jre-alpine
 
-WORKDIR /out
+WORKDIR /app
 
-ADD raml-generic-generator/build/libs/raml-generic-generator-1.0-SNAPSHOT-all.jar /app/rmf-generator.jar
+COPY --from=builder /rmf/tools/cli-application/build/libs/rmf-gen.jar /app/rmf-gen.jar
+ADD rmf-gen.sh /app/rmf-gen.sh
 
-ENTRYPOINT ["java", "-jar", "/app/rmf-generator.jar"]
+ENV JAVA_OPTS ""
+EXPOSE 5005
+ENTRYPOINT ["./rmf-gen.sh"]

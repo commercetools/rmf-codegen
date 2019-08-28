@@ -21,40 +21,39 @@ class TestCodeGenerator {
         private val userProvidedPath = System.getenv("TEST_RAML_FILE")
         private val apiPath : Path = Paths.get(if (userProvidedPath == null) "../../../api-spec/api.raml" else userProvidedPath)
         val apiProvider: ApiProvider = ApiProvider(apiPath)
-        val generatorConfig = CodeGeneratorConfig(basePackageName = "com.commercetools.test")
     }
 
 
     @Test
     fun generateJavaModels() {
-        val generatorConfig = CodeGeneratorConfig(basePackageName = "com.commercetools.importer")
+        val generatorConfig = CodeGeneratorConfig(basePackageName = "com/commercetools/importer")
         val generatorModule = GeneratorModule(apiProvider, generatorConfig, JavaBaseTypes)
-        val generatorComponent = GeneratorComponent(generatorModule, JavaModelModule())
+        val generatorComponent = GeneratorComponent(generatorModule, JavaModelModule)
         generatorComponent.generateFiles()
     }
     
     
     @Test
     fun generateGroovyDsl() {
-        val generatorConfig = CodeGeneratorConfig(basePackageName = "com.commercetools.importer")
+        val generatorConfig = CodeGeneratorConfig(basePackageName = "com/commercetools/importer")
         val generatorModule = GeneratorModule(apiProvider, generatorConfig, JavaBaseTypes)
-        val generatorComponent = GeneratorComponent(generatorModule, GroovyDslModule())
+        val generatorComponent = GeneratorComponent(generatorModule, GroovyDslModule)
         generatorComponent.generateFiles()
     }
 
     @Test
     fun generateSpringClient() {
-        val generatorConfig = CodeGeneratorConfig(basePackageName = "com.commercetools.importer")
+        val generatorConfig = CodeGeneratorConfig(basePackageName = "com/commercetools/importer")
         val generatorModule = GeneratorModule(apiProvider, generatorConfig, JavaBaseTypes)
-        val generatorComponent = GeneratorComponent(generatorModule, SpringClientModule())
+        val generatorComponent = GeneratorComponent(generatorModule, SpringClientModule)
         generatorComponent.generateFiles()
     }
 
     @Test
     fun generatePlantUmlDiagram() {
-        val generatorConfig = CodeGeneratorConfig(basePackageName = "com.commercetools.importer")
+        val generatorConfig = CodeGeneratorConfig(basePackageName = "com/commercetools/importer")
         val generatorModule = GeneratorModule(apiProvider, generatorConfig, JavaBaseTypes)
-        val generatorComponent = GeneratorComponent(generatorModule, PlantUmlModule())
+        val generatorComponent = GeneratorComponent(generatorModule, PlantUmlModule)
         generatorComponent.generateFiles()
     }
     

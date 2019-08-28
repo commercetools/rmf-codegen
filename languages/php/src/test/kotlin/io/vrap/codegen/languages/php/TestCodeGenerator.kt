@@ -22,7 +22,7 @@ class TestCodeGenerator {
     @Test
     fun generatePHPModels() {
         val generatorConfig = CodeGeneratorConfig(
-                basePackageName = "com.commercetools.importer",
+                basePackageName = "com/commercetools/importer",
                 outputFolder = Paths.get("build/gensrc/commercetools-raml-sdk")
         )
 

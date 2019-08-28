@@ -2,6 +2,7 @@ package io.vrap.codegen.languages.typescript.joi
 
 import com.google.inject.Inject
 import io.vrap.codegen.languages.extensions.EObjectExtensions
+import io.vrap.codegen.languages.extensions.discriminatorProperty
 import io.vrap.codegen.languages.extensions.hasSubtypes
 import io.vrap.codegen.languages.typescript.model.simpleTSName
 import io.vrap.rmf.codegen.io.TemplateFile
@@ -100,7 +101,7 @@ class JoiValidatorModuleRenderer @Inject constructor(override val vrapTypeProvid
         val nonPatternProperties = this.allProperties
                 .filter { !it.isPatternProperty() }
                 .sortedWith(PropertiesComparator)
-                .map {it.renderPropertyTypeSchema() }
+                .map { it.renderPropertyTypeSchema(this) }
                 .joinToString(separator = ",\n")
         val patternProperties = this.allProperties
                 .filter { it.isPatternProperty() }
@@ -127,12 +128,11 @@ class JoiValidatorModuleRenderer @Inject constructor(override val vrapTypeProvid
         }
     }
 
-    fun Property.renderPropertyTypeSchema(): String {
-        val owner: ObjectType = eContainer() as ObjectType
+    fun Property.renderPropertyTypeSchema(current : ObjectType): String {
         val vrapType: VrapType = this.type.toVrapType()
-        val constraint = if (this.required) "required()" else "optional()" +
-                if (name == owner.discriminator()) ".only('${owner.discriminatorValue}')" else ""
-        return "${name}: ${vrapType.renderTypeRef()}.${constraint}"
+        val discriminatorConstraint = if (this == current.discriminatorProperty()) ".only('${current.discriminatorValue}')" else ""
+        val requiredConstraint = if (this.required) ".required()" else ".optional()"
+        return "${name}: ${vrapType.renderTypeRef()}${discriminatorConstraint}${requiredConstraint}"
     }
 
     fun VrapType.renderTypeRef(): String {

@@ -1,7 +1,7 @@
 package io.vrap.codegen.languages.php.model;
 
 import com.google.inject.Inject
-import com.google.inject.name.Named
+import io.vrap.codegen.languages.extensions.isPatternProperty
 import io.vrap.codegen.languages.php.PhpSubTemplates
 import io.vrap.codegen.languages.php.extensions.*
 import io.vrap.rmf.codegen.di.BasePackageName
@@ -11,13 +11,9 @@ import io.vrap.rmf.codegen.rendring.utils.escapeAll
 import io.vrap.rmf.codegen.rendring.utils.keepIndentation
 import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
-import io.vrap.rmf.raml.model.types.ArrayType
 import io.vrap.rmf.raml.model.types.ObjectType
 import io.vrap.rmf.raml.model.types.Property
-import io.vrap.rmf.raml.model.types.util.TypesSwitch
 import io.vrap.rmf.raml.model.util.StringCaseFormat
-import org.eclipse.emf.ecore.EObject
-import java.util.*
 
 class PhpInterfaceObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : ObjectTypeExtensions, EObjectTypeExtensions, ObjectTypeRenderer {
 
@@ -37,7 +33,7 @@ class PhpInterfaceObjectTypeRenderer @Inject constructor(override val vrapTypePr
             |use ${packagePrefix.toNamespaceName().escapeAll()}\\Base\\JsonObject;
             |<<${type.imports()}>>
             |
-            |interface ${vrapType.simpleClassName} ${type.type?.toVrapType()?.simpleName()?.let { "extends $it" } ?: ""}
+            |interface ${vrapType.simpleClassName} ${type.type?.toVrapType()?.simpleName()?.let { "extends $it" } ?: "extends JsonObject"}
             |{
             |    ${if (type.discriminator != null) {"const DISCRIMINATOR_FIELD = '${type.discriminator}';"} else ""}
             |    <<${type.toBeanConstant()}>>
@@ -58,7 +54,7 @@ class PhpInterfaceObjectTypeRenderer @Inject constructor(override val vrapTypePr
     fun Property.toPhpConstant(): String {
 
         return """
-            |const FIELD_${if (this.isPatternProperty()) "VALUES" else StringCaseFormat.UPPER_UNDERSCORE_CASE.apply(this.name)} = '${if (this.isPatternProperty()) "values" else this.name}';
+            |const FIELD_${StringCaseFormat.UPPER_UNDERSCORE_CASE.apply(this.patternName())} = '${this.name}';
         """.trimMargin();
     }
 
@@ -73,6 +69,18 @@ class PhpInterfaceObjectTypeRenderer @Inject constructor(override val vrapTypePr
                 .map { it.toPhpConstant() }.joinToString(separator = "\n")
     }
 
+    private fun ObjectType.patternGetter(): String {
+        if (this.properties.none { it.isPatternProperty() }) {
+            return ""
+        }
+        return """
+            |/**
+            | * @return mixed
+            | */
+            |public function by(string $!key);
+        """.trimMargin()
+    }
+
     fun ObjectType.setters() = this.properties
             //Filter the discriminators because they don't make much sense the generated bean
             .filter { it.name != this.discriminator }
@@ -83,49 +91,44 @@ class PhpInterfaceObjectTypeRenderer @Inject constructor(override val vrapTypePr
     fun ObjectType.getters() = this.properties
             //Filter the discriminators because they don't make much sense the generated bean
 //            .filter { it.name != this.discriminator }
+            .filter { !it.isPatternProperty() }
             .map { it.getter() }
             .joinToString(separator = "\n\n")
 
-    fun Property.isPatternProperty() = this.name.startsWith("/") && this.name.endsWith("/")
-
     fun Property.setter(): String {
         return if (this.isPatternProperty()) {
-
             """
-        |@JsonAnySetter
-        |public void setValue(String key, ${this.type.toVrapType().simpleName()} value) {
-        |    if (values == null) {
-        |        values = new HashMap<>();
-        |    }
-        |    values.put(key, value);
-        |}
-        """.trimMargin()
+                |@JsonAnySetter
+                |public void setValue(String key, ${this.type.toVrapType().simpleName()} value) {
+                |    if (values == null) {
+                |        values = new HashMap<>();
+                |    }
+                |    values.put(key, value);
+                |}
+            """.trimMargin()
         } else {
             """
-        |public void set${this.name.capitalize()}(final ${this.type.toVrapType().simpleName()} ${this.name}){
-        |   this.${this.name} = ${this.name};
-        |}
-        """.trimMargin()
+                |public void set${this.name.capitalize()}(final ${this.type.toVrapType().simpleName()} ${this.name}){
+                |   this.${this.name} = ${this.name};
+                |}
+            """.trimMargin()
         }
     }
 
     fun Property.getter(): String {
-        return if (this.isPatternProperty()) {
-
-            """
+        return """
             |/**
             | ${this.type.toPhpComment()}
-            | */
-            |public function values();
-        """.trimMargin()
-        } else {
-            """
-            |/**
-            | ${this.type.toPhpComment()}
-            | * @return ?${if (this.type.toVrapType().simpleName() != "stdClass") this.type.toVrapType().simpleName() else "JsonObject" }
+            | * @return ${if (this.type.toVrapType().simpleName() != "stdClass") this.type.toVrapType().simpleName() else "JsonObject" }|null
             | */
             |public function get${this.name.capitalize()}();
-    """.trimMargin()
-        }
+        """.trimMargin()
+    }
+
+    private fun Property.patternName(): String {
+        return if (this.isPatternProperty())
+            "pattern" + (this.eContainer() as ObjectType).properties.indexOf(this)
+        else
+            this.name
     }
 }

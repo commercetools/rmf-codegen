@@ -16,7 +16,7 @@ import io.vrap.rmf.raml.model.types.ObjectType
 import io.vrap.rmf.raml.model.types.Property
 
 
-class JavaModelClassFileProducer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider, private val allObjectTypes: MutableList<ObjectType>) : JavaObjectTypeExtensions, EObjectExtensions, FileProducer {
+class JavaModelClassFileProducer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider, private val allObjectTypes: MutableList<ObjectType>) : JavaObjectTypeExtensions, JavaEObjectTypeExtensions, FileProducer {
     
     override fun produceFiles(): List<TemplateFile> {
         return allObjectTypes.filter { !it.isAbstract() }.map { render(it) }
@@ -24,7 +24,7 @@ class JavaModelClassFileProducer @Inject constructor(override val vrapTypeProvid
 
     fun render(type: ObjectType): TemplateFile {
 
-        val vrapType = vrapTypeProvider.doSwitch(type) as VrapObjectType
+        val vrapType = vrapTypeProvider.doSwitch(type).toJavaVType() as VrapObjectType
         
         val content = """
                 |package ${vrapType.`package`};
@@ -141,7 +141,7 @@ class JavaModelClassFileProducer @Inject constructor(override val vrapTypeProvid
     }
     
     private fun ObjectType.constructors(): String {
-        val vrapType = vrapTypeProvider.doSwitch(this) as VrapObjectType
+        val vrapType = vrapTypeProvider.doSwitch(this).toJavaVType() as VrapObjectType
         val constructorArguments = this.allProperties
                 .filter { it.name != this.discriminator() }
                 .map { 

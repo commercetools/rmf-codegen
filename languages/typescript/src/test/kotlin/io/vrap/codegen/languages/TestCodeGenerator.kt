@@ -27,7 +27,7 @@ class TestCodeGenerator {
     @Test
     fun generateTsModels() {
         val generatorModule = GeneratorModule(apiProvider, generatorConfig, TypeScriptBaseTypes)
-        val generatorComponent = GeneratorComponent(generatorModule, TypeScriptModelModule(),TypescriptClientModule())
+        val generatorComponent = GeneratorComponent(generatorModule, TypeScriptModelModule(),TypescriptClientModule)
         generatorComponent.generateFiles()
     }
 

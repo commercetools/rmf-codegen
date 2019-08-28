@@ -3,13 +3,15 @@
 package io.vrap.rmf.codegen.cli
 
 import io.airlift.airline.*
-import io.vrap.codegen.languages.java.JavaBaseTypes
-import io.vrap.codegen.languages.java.client.SpringClientModule
-import io.vrap.codegen.languages.java.model.JavaModelModule
+import io.vrap.codegen.languages.java.base.JavaBaseTypes
+import io.vrap.codegen.languages.javalang.client.SpringClientModule
+import io.vrap.codegen.languages.javalang.model.JavaModelModule
 import io.vrap.codegen.languages.php.PhpBaseTypes
 import io.vrap.codegen.languages.php.model.PhpModelModule
 import io.vrap.codegen.languages.typescript.model.TypeScriptBaseTypes
 import io.vrap.codegen.languages.typescript.model.TypeScriptModelModule
+import io.vrap.codegen.languages.postman.model.PostmanBaseTypes
+import io.vrap.codegen.languages.postman.model.PostmanModelModule
 import io.vrap.rmf.codegen.CodeGeneratorConfig
 import io.vrap.rmf.codegen.di.ApiProvider
 import io.vrap.rmf.codegen.di.GeneratorComponent
@@ -36,6 +38,7 @@ const val javaModel = "java-model"
 const val springClient = "spring-client"
 const val typescriptModel = "typescript-model"
 const val php = "php"
+const val postman = "postman"
 
 
 @Command(name = "generate", description = "Generate source code from a RAML specification.")
@@ -53,7 +56,7 @@ class GeneratorTask : Runnable {
     @Option(name = ["-o", "--output-folder"], description = "Output folder for generated files.", required = true)
     lateinit var outputFolder: File
 
-    @Option(name = ["-t", "--target"], allowedValues = [javaModel, springClient, typescriptModel, php], description = "the generation target can be one of the following: $javaModel, $springClient, $typescriptModel,$php", required = true)
+    @Option(name = ["-t", "--target"], allowedValues = [javaModel, springClient, typescriptModel, php, postman], description = "the generation target can be one of the following: $javaModel, $springClient, $typescriptModel, $php, $postman", required = true)
     lateinit var target: String
 
 
@@ -84,11 +87,11 @@ class GeneratorTask : Runnable {
 
             javaModel -> {
                 val generatorModule = GeneratorModule(apiProvider, generatorConfig, JavaBaseTypes)
-                GeneratorComponent(generatorModule, JavaModelModule())
+                GeneratorComponent(generatorModule, JavaModelModule)
             }
             springClient -> {
                 val generatorModule = GeneratorModule(apiProvider, generatorConfig, JavaBaseTypes)
-                GeneratorComponent(generatorModule, SpringClientModule())
+                GeneratorComponent(generatorModule, SpringClientModule)
             }
             typescriptModel -> {
                 val generatorModule = GeneratorModule(apiProvider, generatorConfig, TypeScriptBaseTypes)
@@ -97,6 +100,10 @@ class GeneratorTask : Runnable {
             php -> {
                 val generatorModule = GeneratorModule(apiProvider, generatorConfig, PhpBaseTypes)
                 GeneratorComponent(generatorModule, PhpModelModule())
+            }
+            postman -> {
+                val generatorModule = GeneratorModule(apiProvider, generatorConfig, PostmanBaseTypes)
+                GeneratorComponent(generatorModule, PostmanModelModule())
             }
             else -> throw IllegalArgumentException("unsupported target '$target', allowed values are $javaModel, $springClient, $typescriptModel and $php")
         }

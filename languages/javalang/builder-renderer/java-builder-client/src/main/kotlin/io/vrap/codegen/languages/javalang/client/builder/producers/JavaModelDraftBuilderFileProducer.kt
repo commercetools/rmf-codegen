@@ -15,7 +15,7 @@ import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.types.ObjectType
 import io.vrap.rmf.raml.model.types.Property
 
-class JavaModelDraftBuilderFileProducer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider, private val allObjectTypes: MutableList<ObjectType>) : JavaObjectTypeExtensions, EObjectExtensions, FileProducer {
+class JavaModelDraftBuilderFileProducer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider, private val allObjectTypes: MutableList<ObjectType>) : JavaObjectTypeExtensions, JavaEObjectTypeExtensions, FileProducer {
 
     override fun produceFiles(): List<TemplateFile> {
         return allObjectTypes.filter { !it.isAbstract() }.map { render(it) }
@@ -23,7 +23,7 @@ class JavaModelDraftBuilderFileProducer @Inject constructor(override val vrapTyp
 
     fun render(type: ObjectType): TemplateFile {
 
-        val vrapType = vrapTypeProvider.doSwitch(type) as VrapObjectType
+        val vrapType = vrapTypeProvider.doSwitch(type).toJavaVType() as VrapObjectType
         
         val content : String = """
             |package ${vrapType.`package`};
@@ -85,7 +85,7 @@ class JavaModelDraftBuilderFileProducer @Inject constructor(override val vrapTyp
     }
     
     private fun ObjectType.assignments() : String {
-        val vrapType = vrapTypeProvider.doSwitch(this) as VrapObjectType
+        val vrapType = vrapTypeProvider.doSwitch(this).toJavaVType() as VrapObjectType
         
         return this.allProperties
                 .filter { it.name != this.discriminator() }
@@ -148,7 +148,7 @@ class JavaModelDraftBuilderFileProducer @Inject constructor(override val vrapTyp
     }
     
     private fun ObjectType.buildMethodBody() : String {
-        val vrapType = vrapTypeProvider.doSwitch(this) as VrapObjectType
+        val vrapType = vrapTypeProvider.doSwitch(this).toJavaVType() as VrapObjectType
         val constructorArguments = this.allProperties
                 .filter { it.name != this.discriminator() }
                 .map {
@@ -165,7 +165,7 @@ class JavaModelDraftBuilderFileProducer @Inject constructor(override val vrapTyp
     }
     
     private fun ObjectType.staticOfMethod() : String {
-        val vrapType = vrapTypeProvider.doSwitch(this) as VrapObjectType
+        val vrapType = vrapTypeProvider.doSwitch(this).toJavaVType() as VrapObjectType
         
         return """
             |public static ${vrapType.simpleClassName}Builder of() {
@@ -175,7 +175,7 @@ class JavaModelDraftBuilderFileProducer @Inject constructor(override val vrapTyp
     }
     
     private fun ObjectType.templateMethod(): String {
-        val vrapType = vrapTypeProvider.doSwitch(this) as VrapObjectType
+        val vrapType = vrapTypeProvider.doSwitch(this).toJavaVType() as VrapObjectType
         val fieldsAssignment : String = this.allProperties
                 .filter {it.name != this.discriminator()}
                 .map {
