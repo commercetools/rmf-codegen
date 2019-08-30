@@ -8,7 +8,9 @@ include 'languages:javalang:java-base'
 
 include 'languages:javalang:java-renderer'
 include 'languages:php'
+include 'languages:postman'
 include 'languages:typescript'
 
+include 'tools:cli-application'
 include 'tools:codegen-gradle-plugin'
 
