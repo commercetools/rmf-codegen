@@ -9,9 +9,9 @@ import io.vrap.codegen.languages.javalang.model.JavaModelModule
 import io.vrap.codegen.languages.php.PhpBaseTypes
 import io.vrap.codegen.languages.php.model.PhpModelModule
 import io.vrap.codegen.languages.typescript.model.TypeScriptBaseTypes
-import io.vrap.codegen.languages.typescript.model.TypeScriptModelModule
 import io.vrap.codegen.languages.postman.model.PostmanBaseTypes
 import io.vrap.codegen.languages.postman.model.PostmanModelModule
+import io.vrap.codegen.languages.typescript.model.TypescriptModelModule
 import io.vrap.rmf.codegen.CodeGeneratorConfig
 import io.vrap.rmf.codegen.di.ApiProvider
 import io.vrap.rmf.codegen.di.GeneratorComponent
