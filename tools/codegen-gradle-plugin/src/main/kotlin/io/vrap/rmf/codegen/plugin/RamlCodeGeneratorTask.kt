@@ -10,7 +10,8 @@ import io.vrap.codegen.languages.typescript.client.TypescriptClientModule
 import io.vrap.codegen.languages.typescript.joi.JoiBaseTypes
 import io.vrap.codegen.languages.typescript.joi.JoiModule
 import io.vrap.codegen.languages.typescript.model.TypeScriptBaseTypes
-import io.vrap.codegen.languages.typescript.model.TypeScriptModelModule
+import io.vrap.codegen.languages.typescript.model.TypescriptModelModule
+import io.vrap.codegen.languages.typescript.server.TypescriptServerModule
 import io.vrap.rmf.codegen.CodeGeneratorConfig
 import io.vrap.rmf.codegen.di.ApiProvider
 import io.vrap.rmf.codegen.di.GeneratorComponent
@@ -74,11 +75,15 @@ open class RamlCodeGeneratorTask : DefaultTask() {
             }
             TargetType.TYPESCRIPT_MODEL -> {
                 val generatorModule = GeneratorModule(apiProvider, generatorConfig, TypeScriptBaseTypes)
-                GeneratorComponent(generatorModule, TypeScriptModelModule())
+                GeneratorComponent(generatorModule, TypescriptModelModule)
             }
             TargetType.TYPESCRIPT_CLIENT -> {
                 val generatorModule = GeneratorModule(apiProvider, generatorConfig, TypeScriptBaseTypes)
                 GeneratorComponent(generatorModule, TypescriptClientModule)
+            }
+            TargetType.TYPESCRIPT_HAPI_SERVER -> {
+                val generatorModule = GeneratorModule(apiProvider, generatorConfig, TypeScriptBaseTypes)
+                GeneratorComponent(generatorModule, TypescriptServerModule)
             }
             TargetType.JOI_VALIDATOR -> {
                 val generatorModule = GeneratorModule(apiProvider, generatorConfig, JoiBaseTypes)
