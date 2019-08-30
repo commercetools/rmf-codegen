@@ -22,6 +22,9 @@ import com.commercetools.tax_category.TaxCategoryFixtures;
 import com.commercetools.utils.CommercetoolsTestUtils;
 import org.junit.jupiter.api.Test;
 
+/**
+ * Please be careful when running these tests, as they are meant to be used as cleanup and will delete all resources in your project
+ */
 public class DeleteEverythingIntegrationTest {
     
     @Test

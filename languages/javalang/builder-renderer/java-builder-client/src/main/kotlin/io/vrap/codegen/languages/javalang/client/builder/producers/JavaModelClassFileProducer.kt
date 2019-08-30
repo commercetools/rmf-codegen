@@ -167,7 +167,7 @@ class JavaModelClassFileProducer @Inject constructor(override val vrapTypeProvid
                 }
                 .joinToString(separator = "\n")
 
-        val discriminatorAssignment : String =
+        val discriminatorAssignment =
                 if(this.discriminator() != null) {
                      val enumName : String = this.allProperties.filter { it.name == this.discriminator() }.get(0).type.toVrapType().simpleName()
                     if(enumName != "String"){

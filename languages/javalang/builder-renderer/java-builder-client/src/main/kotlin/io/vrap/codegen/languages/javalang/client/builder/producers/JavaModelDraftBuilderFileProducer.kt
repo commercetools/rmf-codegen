@@ -3,6 +3,7 @@ package io.vrap.codegen.languages.javalang.client.builder.producers
 import com.google.inject.Inject
 import io.vrap.codegen.languages.extensions.isPatternProperty
 import io.vrap.codegen.languages.java.base.extensions.*
+import io.vrap.codegen.languages.javalang.client.builder.utils.KeywordsUtil
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.FileProducer
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
@@ -11,6 +12,7 @@ import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.types.ObjectType
 import io.vrap.rmf.raml.model.types.Property
+
 
 class JavaModelDraftBuilderFileProducer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider, private val allObjectTypes: MutableList<ObjectType>) : JavaObjectTypeExtensions, JavaEObjectTypeExtensions, FileProducer {
 
@@ -97,20 +99,17 @@ class JavaModelDraftBuilderFileProducer @Inject constructor(override val vrapTyp
                 |   return this;
                 |}
             """.escapeAll().trimMargin().keepIndentation()
-        }else if (property.name.equals("interface")) {
+        }else {
+            var propertyName = property.name
+            if(KeywordsUtil.isKeyword(propertyName)) {
+                propertyName = "_$propertyName"
+            }
             """
-                |public ${type.simpleClassName}Builder _interface(${if(!property.required) "@Nullable" else ""} final ${property.type.toVrapType().fullClassName()} _interface) {
-                |   this._interface = _interface;
+                |public ${type.simpleClassName}Builder $propertyName(${if (!property.required) "@Nullable" else ""} final ${property.type.toVrapType().fullClassName()} $propertyName) {
+                |   this.$propertyName = $propertyName;
                 |   return this;
                 |}
             """.trimMargin()
-        }else { 
-            """
-            |public ${type.simpleClassName}Builder ${property.name}(${if(!property.required) "@Nullable" else ""} final ${property.type.toVrapType().fullClassName()} ${property.name}) {
-            |   this.${property.name} = ${property.name};
-            |   return this;
-            |}
-        """.escapeAll().trimMargin().keepIndentation()
         }
     }
     
@@ -127,7 +126,7 @@ class JavaModelDraftBuilderFileProducer @Inject constructor(override val vrapTyp
                 |   return this.values;
                 |}
             """.escapeAll().trimMargin().keepIndentation()
-        } else if(this.name.equals("interface")) {
+        } else if(this.name.equals("interface")) {  
             """
                 |${if(!this.required) "@Nullable" else ""}
                 |public ${this.type.toVrapType().fullClassName()} getInterface(){

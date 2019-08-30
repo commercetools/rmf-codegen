@@ -1,7 +1,6 @@
 package io.vrap.codegen.languages.javalang.client.builder.requests
 
 import com.google.inject.Inject
-import io.vrap.codegen.languages.extensions.*
 import io.vrap.codegen.languages.extensions.getMethodName
 import io.vrap.codegen.languages.extensions.resource
 import io.vrap.codegen.languages.extensions.toParamName
@@ -83,8 +82,8 @@ class JavaRequestBuilderResourceRenderer @Inject constructor(val api: Api, overr
 
     private fun Method.constructorArguments(): String? {
         return if(this.bodies != null && this.bodies.isNotEmpty()){
-            if(this.bodies[0].type.toVrapType() is VrapObjectType) {
-                val methodBodyVrapType = this.bodies[0].type.toVrapType() as VrapObjectType
+            val methodBodyVrapType = this.bodies[0].type.toVrapType()
+            if(methodBodyVrapType is VrapObjectType) {
                 val methodBodyArgument = "${methodBodyVrapType.`package`}.${methodBodyVrapType.simpleClassName} ${methodBodyVrapType.simpleClassName.decapitalize()}"
                 methodBodyArgument
             }else {
@@ -100,9 +99,9 @@ class JavaRequestBuilderResourceRenderer @Inject constructor(val api: Api, overr
         this.pathArguments().forEach { requestArguments.add(it) }
 
         if(this.bodies != null && this.bodies.isNotEmpty()){
-            if(this.bodies[0].type.toVrapType() is VrapObjectType) {
-                val methodBodyVrapType = this.bodies[0].type.toVrapType() as VrapObjectType
-                requestArguments.add(methodBodyVrapType.simpleClassName.decapitalize())
+            val vrapType = this.bodies[0].type.toVrapType()
+            if(vrapType is VrapObjectType) {
+                requestArguments.add(vrapType.simpleClassName.decapitalize())
             }else {
                 requestArguments.add("jsonNode")
             }

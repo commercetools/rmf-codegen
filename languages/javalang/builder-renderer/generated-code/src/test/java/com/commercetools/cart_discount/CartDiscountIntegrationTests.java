@@ -9,13 +9,16 @@ import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class CartDiscountIntegrationTests {
     
     @Test
     public void ref(){
-        ReferenceTypeId.findEnumViaJsonName("product-type");
+        Optional<ReferenceTypeId> optional = ReferenceTypeId.findEnumViaJsonName("product-type");
+        Assertions.assertTrue(optional.isPresent());
     }
+    
     @Test
     public void createAndDelete() {
         CartDiscountValue cartDiscountValue = CartDiscountValueRelativeBuilder.of()

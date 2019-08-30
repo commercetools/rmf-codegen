@@ -304,7 +304,7 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
             |   try{
             |        return URLEncoder.encode(s, "UTF-8");
             |    }catch (UnsupportedEncodingException e) {
-            |        e.printStackTrace();
+            |        //this will never happen
             |        return null;
             |    }
             |}
