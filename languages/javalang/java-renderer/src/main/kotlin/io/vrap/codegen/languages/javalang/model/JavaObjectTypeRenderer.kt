@@ -10,6 +10,7 @@ import io.vrap.rmf.codegen.rendring.utils.escapeAll
 import io.vrap.rmf.codegen.rendring.utils.keepIndentation
 import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
+import io.vrap.rmf.raml.model.types.AnyType
 import io.vrap.rmf.raml.model.types.ArrayType
 import io.vrap.rmf.raml.model.types.ObjectType
 import io.vrap.rmf.raml.model.types.Property
@@ -31,6 +32,7 @@ class JavaObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: 
                 |import javax.annotation.Generated;
                 |import javax.validation.Valid;
                 |import javax.validation.constraints.NotNull;
+                |import javax.validation.constraints.Size;
                 |import java.util.*;
                 |import org.apache.commons.lang3.builder.EqualsBuilder;
                 |import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -149,9 +151,26 @@ class JavaObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: 
         return if (this.isPatternProperty()) {
             "private Map<String,${this.type.toVrapType().simpleName()}> values;"
         } else {
-            "private ${this.type.toVrapType().simpleName()} ${if (this.isPatternProperty()) "values" else this.name};"
+            """
+            |${this.type.toValidationAnnotations()}
+            |private ${this.type.toVrapType().simpleName()} ${if (this.isPatternProperty()) "values" else this.name};
+            """
         }
 
+    }
+
+    fun AnyType.toValidationAnnotations(): String {
+        if (this is ArrayType) {
+            val t = if (this.isInlineType && this.type
+                    != null) this.type as ArrayType else this
+            if (t.minItems != null || t.maxItems != null) {
+                val min = if (t.minItems != null) "min = ${t.minItems}" else ""
+                val max = if (t.maxItems != null) "max = ${t.maxItems}" else ""
+                val constraints = listOf(min, max).filter { it != "" }.joinToString(", ")
+                return "@Size(${constraints})"
+            }
+        }
+        return ""
     }
 
     fun ObjectType.toBeanFields() = this.properties
