@@ -1,7 +1,6 @@
 package io.vrap.codegen.languages.javalang.client.builder.producers
 
 import com.google.inject.Inject
-import io.vrap.codegen.languages.extensions.EObjectExtensions
 import io.vrap.codegen.languages.extensions.isPatternProperty
 import io.vrap.codegen.languages.java.base.extensions.*
 import io.vrap.rmf.codegen.io.TemplateFile
@@ -12,6 +11,8 @@ import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.types.ObjectType
 import io.vrap.rmf.raml.model.types.Property
+import javax.lang.model.SourceVersion
+
 
 class JavaModelDraftBuilderFileProducer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider, private val allObjectTypes: MutableList<ObjectType>) : JavaObjectTypeExtensions, JavaEObjectTypeExtensions, FileProducer {
 
@@ -59,6 +60,7 @@ class JavaModelDraftBuilderFileProducer @Inject constructor(override val vrapTyp
     }
     
     private fun ObjectType.fields() = this.allProperties
+            .filter { it.name != this.discriminator() }
             .map { it.toField() }
             .joinToString(separator = "\n\n")
     
@@ -66,12 +68,17 @@ class JavaModelDraftBuilderFileProducer @Inject constructor(override val vrapTyp
         return if(this.isPatternProperty()){
             """
                 |${if(!this.required) "@Nullable" else ""}
-                |private Map<String, ${this.packageName()}${this.type.toVrapType().simpleName()}> values;
+                |private Map<String, ${this.type.toVrapType().fullClassName()}> values;
             """.escapeAll().trimMargin().keepIndentation()
+        } else if(this.name.equals("interface")) {
+            """
+                |${if(!this.required) "@Nullable" else ""}
+                |private ${this.type.toVrapType().fullClassName()} _interface;
+            """.trimMargin()
         }else{
             """
             |${if(!this.required) "@Nullable" else ""}
-            |private ${this.packageName()}${this.type.toVrapType().simpleName()} ${this.name};
+            |private ${this.type.toVrapType().fullClassName()} ${this.name};
         """.escapeAll().trimMargin().keepIndentation()
         }
     }
@@ -79,29 +86,35 @@ class JavaModelDraftBuilderFileProducer @Inject constructor(override val vrapTyp
     private fun ObjectType.assignments() : String {
         val vrapType = vrapTypeProvider.doSwitch(this).toJavaVType() as VrapObjectType
         
-        return this.allProperties.map { assignment(it, vrapType) }.joinToString(separator = "\n\n")
+        return this.allProperties
+                .filter { it.name != this.discriminator() }
+                .map { assignment(it, vrapType) }.joinToString(separator = "\n\n")
     }
     
     private fun assignment(property: Property, type: VrapObjectType) : String {
         return if(property.isPatternProperty()){
             """
-                |public ${type.simpleClassName}Builder values(${if(!property.required) "@Nullable" else ""} final Map<String, ${property.packageName()}${property.type.toVrapType().simpleName()}> values){
+                |public ${type.simpleClassName}Builder values(${if(!property.required) "@Nullable" else ""} final Map<String, ${property.type.toVrapType().fullClassName()}> values){
                 |   this.values = values;
                 |   return this;
                 |}
             """.escapeAll().trimMargin().keepIndentation()
-        }else { 
+        }else {
+            var propertyName = property.name
+            if(SourceVersion.isKeyword(propertyName)) {
+                propertyName = "_$propertyName"
+            }
             """
-            |public ${type.simpleClassName}Builder ${property.name}(${if(!property.required) "@Nullable" else ""} final ${property.packageName()}${property.type.toVrapType().simpleName()} ${property.name}) {
-            |   this.${property.name} = ${property.name};
-            |   return this;
-            |}
-        """.escapeAll().trimMargin().keepIndentation()
+                |public ${type.simpleClassName}Builder $propertyName(${if (!property.required) "@Nullable" else ""} final ${property.type.toVrapType().fullClassName()} $propertyName) {
+                |   this.$propertyName = $propertyName;
+                |   return this;
+                |}
+            """.trimMargin()
         }
     }
     
     private fun ObjectType.getters() : String {
-        return this.allProperties.map { it.getter() }.joinToString(separator = "\n\n")
+        return this.allProperties.filter { it.name != this.discriminator() }.map { it.getter() }.joinToString(separator = "\n\n")
     }
     
     private fun Property.getter() : String {
@@ -109,14 +122,21 @@ class JavaModelDraftBuilderFileProducer @Inject constructor(override val vrapTyp
         return if(this.isPatternProperty()){
             """
                 |${if(!this.required) "@Nullable" else ""}
-                |public Map<String, ${this.packageName()}${this.type.toVrapType().simpleName()}> getValues(){
+                |public Map<String, ${this.type.toVrapType().fullClassName()}> getValues(){
                 |   return this.values;
+                |}
+            """.escapeAll().trimMargin().keepIndentation()
+        } else if(this.name.equals("interface")) {  
+            """
+                |${if(!this.required) "@Nullable" else ""}
+                |public ${this.type.toVrapType().fullClassName()} getInterface(){
+                |   return this._interface;
                 |}
             """.escapeAll().trimMargin().keepIndentation()
         }else{
             """
                 |${if(!this.required) "@Nullable" else ""}
-                |public ${this.packageName()}${this.type.toVrapType().simpleName()} get${this.name.capitalize()}(){
+                |public ${this.type.toVrapType().fullClassName()} get${this.name.capitalize()}(){
                 |   return this.${this.name};
                 |}
             """.escapeAll().trimMargin().keepIndentation()
@@ -127,7 +147,15 @@ class JavaModelDraftBuilderFileProducer @Inject constructor(override val vrapTyp
         val vrapType = vrapTypeProvider.doSwitch(this).toJavaVType() as VrapObjectType
         val constructorArguments = this.allProperties
                 .filter { it.name != this.discriminator() }
-                .map { if(it.isPatternProperty()) {"values"} else {it.name} }
+                .map {
+                    if(it.isPatternProperty()) {
+                        "values"
+                    } else if(it.name.equals("interface")) { 
+                        "_interface"
+                    } else {
+                        it.name
+                    } 
+                }
                 .joinToString(separator = ", ")
         return "return new ${vrapType.simpleClassName}Impl($constructorArguments);"
     }
@@ -147,10 +175,12 @@ class JavaModelDraftBuilderFileProducer @Inject constructor(override val vrapTyp
         val fieldsAssignment : String = this.allProperties
                 .filter {it.name != this.discriminator()}
                 .map {
-                    if(!it.isPatternProperty()){
-                        "builder.${it.name} = template.get${it.name.upperCamelCase()}();"
-                    }else{
+                    if(it.isPatternProperty()){
                         "builder.values = template.values();"
+                    } else if(it.name.equals("interface")) {
+                        "builder._interface = template.getInterface();"
+                    } else{
+                        "builder.${it.name} = template.get${it.name.upperCamelCase()}();"
                     }
                 }
                 .joinToString(separator = "\n")
@@ -162,13 +192,5 @@ class JavaModelDraftBuilderFileProducer @Inject constructor(override val vrapTyp
             |   return builder;
             |}
         """.escapeAll().trimMargin().keepIndentation()
-    }
-
-    private fun Property.packageName() : String {
-        return if(this.type is ObjectType) {
-            "${(this.type.toVrapType() as VrapObjectType).`package`}."
-        } else {
-            ""
-        }
     }
 }

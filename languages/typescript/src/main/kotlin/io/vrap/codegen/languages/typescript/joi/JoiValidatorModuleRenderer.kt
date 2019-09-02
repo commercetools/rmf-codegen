@@ -5,6 +5,7 @@ import io.vrap.codegen.languages.extensions.EObjectExtensions
 import io.vrap.codegen.languages.extensions.discriminatorProperty
 import io.vrap.codegen.languages.extensions.hasSubtypes
 import io.vrap.codegen.languages.typescript.model.simpleTSName
+import io.vrap.codegen.languages.typescript.toJoiPackageName
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.FileProducer
 import io.vrap.rmf.codegen.rendring.utils.keepIndentation
@@ -17,7 +18,7 @@ class JoiValidatorModuleRenderer @Inject constructor(override val vrapTypeProvid
 
     override fun produceFiles(): List<TemplateFile> {
         return allAnyTypes.groupBy { moduleName(it) }
-            .map { entry -> buildModule("${entry.key}-types", entry.value) }
+            .map { entry -> buildModule(entry.key.toJoiPackageName(), entry.value) }
             .toList()
     }
 

@@ -1,12 +1,12 @@
-package com.commercetools;
+package com.commercetools.misc;
 
 import com.commercetools.models.Category.*;
 import com.commercetools.models.Common.*;
 import com.commercetools.models.Type.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import json.CommercetoolsJsonUtils;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.net.URL;
@@ -39,7 +39,7 @@ public class ModelSerializationTest {
                 .name(localizedString)
                 .custom(CustomFieldsDraftBuilder.of()
                         .fields(fieldContainer)
-                        .type("string type")
+                        .type(TypeResourceIdentifierBuilder.of().key("string type").build())
                         .build())
                 .sources(Arrays.asList(AssetSourceBuilder.of().contentType("application/json").dimensions(AssetDimensionsBuilder.of().h(10).w(5).build()).build()))
                 .tags(Arrays.asList("tag 1", "tag 2"))
@@ -48,7 +48,7 @@ public class ModelSerializationTest {
         CategoryDraft categoryDraft = CategoryDraftBuilder.of()
                 .parent(CategoryResourceIdentifierBuilder.of().id(id).key(key).build())
                 .assets(Arrays.asList(assetDraft))
-                .custom(CustomFieldsDraftBuilder.of().type("string type").fields(fieldContainer).build())
+                .custom(CustomFieldsDraftBuilder.of().type(TypeResourceIdentifierBuilder.of().key("string type").build()).fields(fieldContainer).build())
                 .description(localizedString)
                 .externalId(id)
                 .key(key)
@@ -70,10 +70,10 @@ public class ModelSerializationTest {
         try{
             final URL url = Thread.currentThread().getContextClassLoader().getResource("json_examples/category-draft-example.json");
             String categoryDraftExample = new String(Files.readAllBytes(Paths.get(url.getPath())));
-            Assert.assertEquals(categoryDraftJson, categoryDraftExample);
+            Assertions.assertEquals(categoryDraftJson, categoryDraftExample);
         }catch (IOException e){
             e.printStackTrace();
-            Assert.fail();
+            Assertions.fail(e.getMessage());
         }
     }
     
@@ -96,7 +96,7 @@ public class ModelSerializationTest {
 
         CustomFields customFields = CustomFieldsBuilder.of()
                 .fields(fieldContainer)
-                .type(TypeReferenceBuilder.of().key(key).obj(Type.of()).build())
+                .type(TypeReferenceBuilder.of().id(id).obj(Type.of()).build())
                 .build();
 
         
@@ -111,7 +111,6 @@ public class ModelSerializationTest {
                 .build();
         
         CategoryReference reference = CategoryReferenceBuilder.of()
-                .key(key)
                 .id(id)
                 .obj(Category.of())
                 .build();
@@ -138,10 +137,10 @@ public class ModelSerializationTest {
             final URL url = Thread.currentThread().getContextClassLoader().getResource("json_examples/category-example.json");
             String categoryExampleJsonString = new String(Files.readAllBytes(Paths.get(url.getPath())));
             Category exampleCategory = CommercetoolsJsonUtils.fromJsonString(categoryExampleJsonString, Category.class);
-            Assert.assertEquals(CommercetoolsJsonUtils.toJsonString(category), CommercetoolsJsonUtils.toJsonString(exampleCategory));
+            Assertions.assertEquals(CommercetoolsJsonUtils.toJsonString(category), CommercetoolsJsonUtils.toJsonString(exampleCategory));
         }catch (IOException e){
             e.printStackTrace();
-            Assert.fail();
+            Assertions.fail(e.getMessage());
         }
     }
     

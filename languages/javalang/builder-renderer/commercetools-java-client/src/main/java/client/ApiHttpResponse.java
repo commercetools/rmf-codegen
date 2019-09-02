@@ -6,6 +6,10 @@ public class ApiHttpResponse {
     private ApiHttpHeaders headers;
     private String body;
 
+    public ApiHttpResponse() {
+        
+    }
+    
     public ApiHttpResponse(int statusCode, ApiHttpHeaders headers, String body) {
         this.statusCode = statusCode;
         this.headers = headers;

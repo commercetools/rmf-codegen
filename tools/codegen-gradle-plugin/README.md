@@ -30,8 +30,8 @@ A target is a generation target it contains
    * path: the path to where the code would be put
    * models_package: the package of where the raml types would go to
    * client_package: the package of where the raml client stub would go to
-   * target: can be one of `javaModel`, `javaModelWithInterfaces`, `groovyDsl`, `javaSpringClient`, `typescriptModel`, `joiValidator` depending on your target language
-   * customTypeMapping: optionally allow you to replace some generated types with hand writen ones
+   * target: can be one of `javaModel`, `javaModelWithInterfaces`, `groovyDsl`, `javaSpringClient`, `typescriptModel`, `typescriptHapiServer`, `joiValidator` depending on your target language
+   * customTypeMapping: optionally allow you to replace some generated types with hand written ones
 
 #### Building
 
