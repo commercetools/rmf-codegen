@@ -1,4 +1,4 @@
-package com.commercetools;
+package com.commercetools.utils;
 
 import com.commercetools.models.Common.LocalizedString;
 import com.commercetools.models.Common.LocalizedStringImpl;
@@ -23,5 +23,9 @@ public class CommercetoolsTestUtils {
         LocalizedString localizedString = new LocalizedStringImpl();
         localizedString.setValue(randomString(), randomString());
         return localizedString;
+    }
+
+    public static String getProjectKey() {
+        return System.getenv("JVM_SDK_IT_PROJECT_KEY");
     }
 }

@@ -82,9 +82,13 @@ class JavaRequestBuilderResourceRenderer @Inject constructor(val api: Api, overr
 
     private fun Method.constructorArguments(): String? {
         return if(this.bodies != null && this.bodies.isNotEmpty()){
-            val methodBodyVrapType = this.bodies[0].type.toVrapType() as VrapObjectType
-            val methodBodyArgument = "${methodBodyVrapType.`package`}.${methodBodyVrapType.simpleClassName} ${methodBodyVrapType.simpleClassName.decapitalize()}"
-            methodBodyArgument
+            val methodBodyVrapType = this.bodies[0].type.toVrapType()
+            if(methodBodyVrapType is VrapObjectType) {
+                val methodBodyArgument = "${methodBodyVrapType.`package`}.${methodBodyVrapType.simpleClassName} ${methodBodyVrapType.simpleClassName.decapitalize()}"
+                methodBodyArgument
+            }else {
+                "com.fasterxml.jackson.databind.JsonNode jsonNode"
+            }
         }else {
             ""
         }
@@ -95,10 +99,13 @@ class JavaRequestBuilderResourceRenderer @Inject constructor(val api: Api, overr
         this.pathArguments().forEach { requestArguments.add(it) }
 
         if(this.bodies != null && this.bodies.isNotEmpty()){
-            val methodBodyVrapType = this.bodies[0].type.toVrapType() as VrapObjectType
-            requestArguments.add(methodBodyVrapType.simpleClassName.decapitalize())
+            val vrapType = this.bodies[0].type.toVrapType()
+            if(vrapType is VrapObjectType) {
+                requestArguments.add(vrapType.simpleClassName.decapitalize())
+            }else {
+                requestArguments.add("jsonNode")
+            }
         }
-
         return requestArguments.joinToString(separator = ", ")
     }
 
