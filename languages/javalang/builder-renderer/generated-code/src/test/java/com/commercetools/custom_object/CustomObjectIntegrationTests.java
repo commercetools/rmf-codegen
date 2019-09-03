@@ -22,7 +22,7 @@ public class CustomObjectIntegrationTests {
     @Test
     public void getById() {
         CustomObjectFixtures.withCustomObject(customObject -> {
-            CustomObject queriedCustomObject = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
+            CustomObject queriedCustomObject = CommercetoolsTestUtils.getApiRoot().withProjectKey(CommercetoolsTestUtils.getProjectKey())
                     .customObjects()
                     .withId(customObject.getId())
                     .get()
@@ -43,7 +43,7 @@ public class CustomObjectIntegrationTests {
                     .value(newValue)
                     .build();
 
-            CustomObject updatedCustomObject = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
+            CustomObject updatedCustomObject = CommercetoolsTestUtils.getApiRoot().withProjectKey(CommercetoolsTestUtils.getProjectKey())
                     .customObjects()
                     .post(customObjectDraft)
                     .executeBlocking();
@@ -58,7 +58,7 @@ public class CustomObjectIntegrationTests {
     @Test
     public void query() {
         CustomObjectFixtures.withCustomObject(customObject -> {
-            CustomObjectPagedQueryResponse response = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
+            CustomObjectPagedQueryResponse response = CommercetoolsTestUtils.getApiRoot().withProjectKey(CommercetoolsTestUtils.getProjectKey())
                     .customObjects()
                     .get()
                     .addWhere("id=" + "\"" + customObject.getId() + "\"")

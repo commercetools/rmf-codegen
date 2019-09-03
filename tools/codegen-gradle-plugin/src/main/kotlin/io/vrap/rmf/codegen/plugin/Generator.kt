@@ -38,6 +38,7 @@ open class Target constructor(val name: String){
 enum class TargetType {
     JAVA_MODEL,
     JAVA_MODEL_WITH_INTERFACES,
+    JAVA_API_BUILDER,
     GROOVY_DSL,
     JAVA_SPRING_CLIENT,
     TYPESCRIPT_MODEL,

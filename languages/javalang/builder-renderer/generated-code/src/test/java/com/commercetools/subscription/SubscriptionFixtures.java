@@ -33,7 +33,7 @@ public class SubscriptionFixtures {
                         .build()))
                 .build();
         
-        Subscription subscription = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
+        Subscription subscription = CommercetoolsTestUtils.getApiRoot().withProjectKey(CommercetoolsTestUtils.getProjectKey())
                 .subscriptions()
                 .post(subscriptionDraft)
                 .executeBlocking();
@@ -44,7 +44,7 @@ public class SubscriptionFixtures {
     }
     
     public static Subscription deleteSubscription(final String id, final Long version) {
-        Subscription subscription = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
+        Subscription subscription = CommercetoolsTestUtils.getApiRoot().withProjectKey(CommercetoolsTestUtils.getProjectKey())
                 .subscriptions()
                 .withId(id)
                 .delete()

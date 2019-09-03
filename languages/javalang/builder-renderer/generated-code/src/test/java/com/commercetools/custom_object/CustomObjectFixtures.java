@@ -31,7 +31,7 @@ public class CustomObjectFixtures {
                 .value(CommercetoolsTestUtils.randomString())
                 .build();
         
-        CustomObject customObject = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
+        CustomObject customObject = CommercetoolsTestUtils.getApiRoot().withProjectKey(CommercetoolsTestUtils.getProjectKey())
                 .customObjects()
                 .post(customObjectDraft)
                 .executeBlocking();
@@ -42,7 +42,7 @@ public class CustomObjectFixtures {
     }
     
     public static CustomObject deleteCustomObject(final String id, final Long version) {
-        CustomObject customObject = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
+        CustomObject customObject = CommercetoolsTestUtils.getApiRoot().withProjectKey(CommercetoolsTestUtils.getProjectKey())
                 .customObjects()
                 .withId(id)
                 .delete()

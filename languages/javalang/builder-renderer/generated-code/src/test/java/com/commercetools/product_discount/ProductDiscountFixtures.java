@@ -35,7 +35,7 @@ public class ProductDiscountFixtures {
                 .isActive(false)
                 .build();
 
-        ProductDiscount productDiscount = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
+        ProductDiscount productDiscount = CommercetoolsTestUtils.getApiRoot().withProjectKey(CommercetoolsTestUtils.getProjectKey())
                 .productDiscounts()
                 .post(productDiscountDraft)
                 .executeBlocking();
@@ -47,7 +47,7 @@ public class ProductDiscountFixtures {
     }
     
     public static ProductDiscount deleteProductDiscount(final String id, final Long version) {
-        ProductDiscount deletedProductDiscount = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
+        ProductDiscount deletedProductDiscount = CommercetoolsTestUtils.getApiRoot().withProjectKey(CommercetoolsTestUtils.getProjectKey())
                 .productDiscounts()
                 .withId(id)
                 .delete()

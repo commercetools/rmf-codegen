@@ -12,7 +12,7 @@ public class CategoryGetNonExisting {
     public void getByNonExistingId() {
         CategoryFixtures.withCategory(category -> {
             Assertions.assertThrows(RuntimeException.class, () -> {
-                ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
+                CommercetoolsTestUtils.getApiRoot().withProjectKey(CommercetoolsTestUtils.getProjectKey())
                         .categories()
                         .withId("non-existing")
                         .get()

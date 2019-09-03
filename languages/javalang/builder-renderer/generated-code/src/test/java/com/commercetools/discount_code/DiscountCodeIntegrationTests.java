@@ -23,7 +23,7 @@ public class DiscountCodeIntegrationTests {
     @Test
     public void getById() {
         DiscountCodeFixtures.withDiscountCode(discountCode -> {
-            DiscountCode queriedDiscountCode = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
+            DiscountCode queriedDiscountCode = CommercetoolsTestUtils.getApiRoot().withProjectKey(CommercetoolsTestUtils.getProjectKey())
                     .discountCodes()
                     .withId(discountCode.getId())
                     .get()
@@ -37,7 +37,7 @@ public class DiscountCodeIntegrationTests {
     @Test
     public void query() {
         DiscountCodeFixtures.withDiscountCode(discountCode -> {
-            DiscountCodePagedQueryResponse response = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
+            DiscountCodePagedQueryResponse response = CommercetoolsTestUtils.getApiRoot().withProjectKey(CommercetoolsTestUtils.getProjectKey())
                     .discountCodes()
                     .get()
                     .addWhere("id=" + "\"" + discountCode.getId() + "\"")
@@ -53,7 +53,7 @@ public class DiscountCodeIntegrationTests {
         DiscountCodeFixtures.withUpdateableDiscountCode(discountCode -> {
             List<DiscountCodeUpdateAction> updateActions = new ArrayList<>();
             updateActions.add(DiscountCodeSetMaxApplicationsActionBuilder.of().maxApplications(10L).build());
-            DiscountCode updatedDiscountCode = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
+            DiscountCode updatedDiscountCode = CommercetoolsTestUtils.getApiRoot().withProjectKey(CommercetoolsTestUtils.getProjectKey())
                     .discountCodes()
                     .withId(discountCode.getId())
                     .post(DiscountCodeUpdateBuilder.of()

@@ -3,7 +3,9 @@ package io.vrap.rmf.codegen.plugin
 
 import io.vrap.codegen.languages.java.base.JavaBaseTypes
 import io.vrap.codegen.languages.javalang.client.SpringClientModule
+import io.vrap.codegen.languages.javalang.client.builder.module.JavaClientBuilderModule
 import io.vrap.codegen.languages.javalang.client.builder.module.JavaCompleteModule
+import io.vrap.codegen.languages.javalang.client.builder.module.JavaInterfaceModelModule
 import io.vrap.codegen.languages.javalang.dsl.GroovyDslModule
 import io.vrap.codegen.languages.javalang.model.JavaModelModule
 import io.vrap.codegen.languages.typescript.client.TypescriptClientModule
@@ -63,7 +65,11 @@ open class RamlCodeGeneratorTask : DefaultTask() {
             }
             TargetType.JAVA_MODEL_WITH_INTERFACES -> {
                 val generatorModule = GeneratorModule(apiProvider, generatorConfig, JavaBaseTypes)
-                GeneratorComponent(generatorModule, JavaCompleteModule)
+                GeneratorComponent(generatorModule, JavaInterfaceModelModule)
+            }
+            TargetType.JAVA_API_BUILDER -> {
+                val generatorModule = GeneratorModule(apiProvider, generatorConfig, JavaBaseTypes)
+                GeneratorComponent(generatorModule, JavaClientBuilderModule)
             }
             TargetType.JAVA_SPRING_CLIENT -> {
                 val generatorModule = GeneratorModule(apiProvider, generatorConfig, JavaBaseTypes)

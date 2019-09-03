@@ -22,7 +22,7 @@ public class ProductDiscountIntegrationTests {
                 .isActive(false)
                 .build();
 
-        ProductDiscount productDiscount = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
+        ProductDiscount productDiscount = CommercetoolsTestUtils.getApiRoot().withProjectKey(CommercetoolsTestUtils.getProjectKey())
                 .productDiscounts()
                 .post(productDiscountDraft)
                 .executeBlocking();
@@ -30,7 +30,7 @@ public class ProductDiscountIntegrationTests {
         Assertions.assertNotNull(productDiscount);
         Assertions.assertEquals(productDiscount.getKey(), productDiscountDraft.getKey());
 
-        ProductDiscount deletedProductDiscount = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
+        ProductDiscount deletedProductDiscount = CommercetoolsTestUtils.getApiRoot().withProjectKey(CommercetoolsTestUtils.getProjectKey())
                 .productDiscounts()
                 .withId(productDiscount.getId())
                 .delete()
@@ -44,7 +44,7 @@ public class ProductDiscountIntegrationTests {
     @Test
     public void getById() {
         ProductDiscountFixtures.withProductDiscount(productDiscount -> {
-            ProductDiscount queriedProductDiscount = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
+            ProductDiscount queriedProductDiscount = CommercetoolsTestUtils.getApiRoot().withProjectKey(CommercetoolsTestUtils.getProjectKey())
                     .productDiscounts()
                     .withId(productDiscount.getId())
                     .get()
@@ -58,7 +58,7 @@ public class ProductDiscountIntegrationTests {
     @Test
     public void getByKey() {
         ProductDiscountFixtures.withProductDiscount(productDiscount -> {
-            ProductDiscount queriedProductDiscount = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
+            ProductDiscount queriedProductDiscount = CommercetoolsTestUtils.getApiRoot().withProjectKey(CommercetoolsTestUtils.getProjectKey())
                     .productDiscounts()
                     .withKey(productDiscount.getKey())
                     .get()
@@ -72,7 +72,7 @@ public class ProductDiscountIntegrationTests {
     @Test
     public void query() {
         ProductDiscountFixtures.withProductDiscount(productDiscount -> {
-            ProductDiscountPagedQueryResponse response = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
+            ProductDiscountPagedQueryResponse response = CommercetoolsTestUtils.getApiRoot().withProjectKey(CommercetoolsTestUtils.getProjectKey())
                     .productDiscounts()
                     .get()
                     .addWhere("id=" + "\"" + productDiscount.getId() + "\"")
@@ -89,7 +89,7 @@ public class ProductDiscountIntegrationTests {
             List<ProductDiscountUpdateAction> updateActions = new ArrayList<>();
             String newKey = CommercetoolsTestUtils.randomKey();
             updateActions.add(ProductDiscountSetKeyActionBuilder.of().key(newKey).build());
-            ProductDiscount updatedProductDiscount = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
+            ProductDiscount updatedProductDiscount = CommercetoolsTestUtils.getApiRoot().withProjectKey(CommercetoolsTestUtils.getProjectKey())
                     .productDiscounts()
                     .withId(productDiscount.getId())
                     .post(ProductDiscountUpdateBuilder.of()
@@ -110,7 +110,7 @@ public class ProductDiscountIntegrationTests {
             List<ProductDiscountUpdateAction> updateActions = new ArrayList<>();
             String newKey = CommercetoolsTestUtils.randomKey();
             updateActions.add(ProductDiscountSetKeyActionBuilder.of().key(newKey).build());
-            ProductDiscount updatedProductDiscount = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
+            ProductDiscount updatedProductDiscount = CommercetoolsTestUtils.getApiRoot().withProjectKey(CommercetoolsTestUtils.getProjectKey())
                     .productDiscounts()
                     .withKey(productDiscount.getKey())
                     .post(ProductDiscountUpdateBuilder.of()

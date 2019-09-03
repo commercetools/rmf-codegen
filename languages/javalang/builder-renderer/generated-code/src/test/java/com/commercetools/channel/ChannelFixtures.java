@@ -29,7 +29,7 @@ public class ChannelFixtures {
                 .key(CommercetoolsTestUtils.randomKey())
                 .build();
         
-        Channel channel = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
+        Channel channel = CommercetoolsTestUtils.getApiRoot().withProjectKey(CommercetoolsTestUtils.getProjectKey())
                 .channels()
                 .post(channelDraft)
                 .executeBlocking();
@@ -41,7 +41,7 @@ public class ChannelFixtures {
     }
     
     public static Channel deleteChannel(final String id, final Long version) {
-        Channel channel = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
+        Channel channel = CommercetoolsTestUtils.getApiRoot().withProjectKey(CommercetoolsTestUtils.getProjectKey())
                 .channels()
                 .withId(id)
                 .delete()

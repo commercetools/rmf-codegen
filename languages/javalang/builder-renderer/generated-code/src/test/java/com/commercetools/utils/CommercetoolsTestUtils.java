@@ -1,5 +1,7 @@
 package com.commercetools.utils;
 
+import client.middlewares.LoggerMiddleware;
+import com.commercetools.client.ApiRoot;
 import com.commercetools.models.Common.LocalizedString;
 import com.commercetools.models.Common.LocalizedStringImpl;
 
@@ -27,5 +29,9 @@ public class CommercetoolsTestUtils {
 
     public static String getProjectKey() {
         return System.getenv("JVM_SDK_IT_PROJECT_KEY");
+    }
+
+    public static ApiRoot getApiRoot(){
+        return ApiRoot.formMiddlewares(new LoggerMiddleware());
     }
 }
