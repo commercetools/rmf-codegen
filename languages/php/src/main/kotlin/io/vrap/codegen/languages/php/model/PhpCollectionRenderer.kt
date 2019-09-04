@@ -69,7 +69,7 @@ class PhpCollectionRenderer @Inject constructor(override val vrapTypeProvider: V
             |        return function(int $!index): ?${vrapType.simpleClassName} {
             |            $!data = $!this->get($!index);
             |            if ($!data instanceof stdClass) {
-            |                $!data = new ${vrapType.simpleName()}Model($!data);
+            |                $!data = ${vrapType.simpleName()}Model::of($!data);
             |                $!this->set($!data, $!index);
             |            }
             |            return $!data;

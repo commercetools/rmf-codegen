@@ -79,26 +79,27 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |
                     |use ${packagePrefix.toNamespaceName()}\Exception\InvalidArgumentException;
                     |use Psr\Http\Message\ResponseInterface;
+                    |use stdClass;
                     |
                     |class ResultMapper implements MapperInterface
                     |{
                     |    /**
-                    |     * @template T
+                    |     * @template T of JsonObject
                     |     * @psalm-param class-string<T> $!type
                     |     * @psalm-return T
                     |     */
                     |    public function mapResponseToClass($!type, ResponseInterface $!response)
                     |    {
-                    |        return new $!type($!this->responseData($!response));
+                    |        return $!type::of($!this->responseData($!response));
                     |    }
                     |
                     |    /**
-                    |     * @psalm-return scalar
+                    |     * @psalm-return stdClass
                     |     */
                     |    private function responseData(ResponseInterface $!response)
                     |    {
                     |        $!body = (string)$!response->getBody();
-                    |        /** @psalm-var ?scalar $!data */
+                    |        /** @psalm-var ?stdClass $!data */
                     |        $!data = json_decode($!body);
                     |        if (is_null($!data)) {
                     |           throw new InvalidArgumentException();
@@ -248,7 +249,7 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |    {
                     |        $!data = $!this->raw($!field);
                     |        if ($!data instanceof stdClass) {
-                    |            return new JsonObjectModel($!data);
+                    |            return JsonObjectModel::of($!data);
                     |        }
                     |        if (is_array($!data) && isset($!data[0]) && $!data[0] instanceof stdClass) {
                     |            /** @psalm-var ?array<int, stdClass> $!data */
@@ -286,12 +287,26 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |
                     |namespace ${packagePrefix.toNamespaceName()}\Base;
                     |
+                    |use stdClass;
+                    |
                     |interface JsonObject extends \JsonSerializable
                     |{
                     |    /**
                     |     * @psalm-return scalar|array<int, mixed>|JsonObject|JsonObjectCollection|null
                     |     */
                     |    public function get(string $!field);
+                    |    
+                    |    /**
+                    |     * @psalm-param ?stdClass !data
+                    |     * @psalm-return static
+                    |     */
+                    |    public static function of(stdClass $!data = null);
+                    |
+                    |    /**
+                    |     * @psalm-param array<string, mixed> !data
+                    |     * @psalm-return static
+                    |     */
+                    |    public static function fromArray(array $!data = []);
                     |}
                 """.trimMargin().forcedLiteralEscape()
         )
@@ -305,18 +320,35 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |
                     |namespace ${packagePrefix.toNamespaceName()}\Base;
                     |
+                    |use stdClass;
+                    |
                     |abstract class BaseJsonObject implements JsonObject
                     |{
-                    |    /** @var ?object */
+                    |    /** @var ?stdClass */
                     |    private $!rawData;
                     |
-                    |    public function __construct(\stdClass $!data = null)
+                    |    /**
+                    |     * @psalm-param ?stdClass !data
+                    |     * @psalm-return static
+                    |     */
+                    |    final public static function of(stdClass $!data = null)
                     |    {
-                    |        $!this->rawData = $!data;
+                    |        $!t = new static();
+                    |        $!t->rawData = $!data;
+                    |        return $!t;
                     |    }
                     |
                     |    /**
-                    |     * @psalm-return scalar|array<int, mixed>|\stdClass|null
+                    |     * @psalm-param array<string, mixed> !data
+                    |     * @psalm-return static
+                    |     */
+                    |    final public static function fromArray(array $!data = [])
+                    |    {
+                    |        return static::of((object)$!data);
+                    |    }
+                    |
+                    |    /**
+                    |     * @psalm-return scalar|array<int, mixed>|stdClass|null
                     |     */
                     |    final protected function raw(string $!field)
                     |    {
@@ -1559,7 +1591,7 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |        return function(int $!index): ?JsonObject {
                     |            $!data = $!this->get($!index);
                     |            if (!is_null($!data) && !$!data instanceof JsonObject) {
-                    |                $!data = new JsonObjectModel($!data);
+                    |                $!data = JsonObjectModel::of($!data);
                     |                $!this->set($!data, $!index);
                     |            }
                     |            return $!data;
@@ -1604,21 +1636,21 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |        $!this->iterator = $!this->getIterator();
                     |    }
                     |
-                    |    public function jsonSerialize(): ?array
+                    |    public function toArray(): ?array
                     |    {
                     |        return $!this->data;
                     |    }
-                    |
-                    |    public function isPresent(): bool
+                    |    
+                    |    public function jsonSerialize(): ?array
                     |    {
-                    |        return !is_null($!this->data);
+                    |        return $!this->data;
                     |    }
                     |
                     |    /**
                     |     * @psalm-param array<int, T|stdClass> $!data
                     |     * @return static
                     |     */
-                    |    public static function fromArray(array $!data)
+                    |    final public static function fromArray(array $!data)
                     |    {
                     |        return new static($!data);
                     |    }
@@ -1831,15 +1863,11 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |    private $!iterator;
                     |
                     |    /**
-                    |     * @psalm-param ?array<string, T|stdClass>|stdClass $!data
+                    |     * @psalm-param ?array<string, T|stdClass> $!data
                     |     * @param array|null $!data
                     |     */
-                    |    public function __construct($!data = null)
+                    |    public function __construct(array $!data = null)
                     |    {
-                    |        if ($!data instanceof stdClass) {
-                    |            /** @psalm-var array<string, T|stdClass> $!data */
-                    |            $!data = (array)$!data;
-                    |        }
                     |        if (!is_null($!data)) {
                     |            $!this->index($!data);
                     |        }
@@ -1847,21 +1875,32 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |        $!this->iterator = $!this->getIterator();
                     |    }
                     |
-                    |    public function jsonSerialize(): ?array
+                    |    /**
+                    |     * @psalm-param ?stdClass !data
+                    |     * @psalm-return static
+                    |     */
+                    |    final public static function of(stdClass $!data = null)
+                    |    {
+                    |        /** @var array<string, T|stdClass> $!t */
+                    |        $!t = (array)$!data;
+                    |        return new static($!t);
+                    |    }
+                    |
+                    |    public function toArray(): ?array
                     |    {
                     |        return $!this->data;
                     |    }
                     |
-                    |    public function isPresent(): bool
+                    |    public function jsonSerialize(): ?array
                     |    {
-                    |        return !is_null($!this->data);
+                    |        return $!this->data;
                     |    }
                     |
                     |    /**
                     |     * @psalm-param array<string, T|stdClass> $!data
                     |     * @return static
                     |     */
-                    |    public static function fromArray(array $!data)
+                    |    final public static function fromArray(array $!data)
                     |    {
                     |        return new static($!data);
                     |    }

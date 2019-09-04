@@ -30,7 +30,6 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
 
         val mapAnnotation = type.getAnnotation("asMap")
 
-
         val content = when (mapAnnotation) {
             is Annotation -> mapContent(type, mapAnnotation.type)
             else -> content(type)
@@ -109,13 +108,8 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
     fun ObjectType.constructor(): String {
         return if (this.discriminator != null)
             """
-                |/**
-                | * @param ?stdClass $!data
-                | */
-                |public function __construct(stdClass $!data = null)
+                |public function __construct()
                 |{
-                |    parent::__construct($!data);
-                |    /** @var string $!this->${this.discriminator} */
                 |    $!this->${this.discriminator} = static::DISCRIMINATOR_VALUE;
                 |}
             """.trimMargin()
@@ -299,9 +293,14 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
                     """.trimMargin()
                 } else {
                     """
-                        |/** @psalm-var stdClass $!data */
+                        |/** @psalm-var stdClass|array<string, mixed> $!data */
                         |${if (type.discriminator.isNullOrBlank()) "" else "$!className = ${type.toVrapType().simpleName()}Model::resolveDiscriminatorClass($!data);"}
-                        |return new ${if (type.discriminator.isNullOrBlank()) "${this.type.toVrapType().simpleName()}Model" else "$!className"}($!data);
+                        |if (is_array($!data)) {
+                        |    return ${if (type.discriminator.isNullOrBlank()) "${this.type.toVrapType().simpleName()}Model" else "$!className"}::fromArray($!data);
+                        |} else {
+                        |    /** @psalm-var stdClass $!data */
+                        |    return ${if (type.discriminator.isNullOrBlank()) "${this.type.toVrapType().simpleName()}Model" else "$!className"}::of($!data);
+                        |}
                     """.trimMargin()
                 }
             is ArrayType ->
@@ -348,7 +347,7 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
                     """.trimMargin()
                     else -> """
                         |/** @psalm-var stdClass $!data */
-                        |return new JsonObjectModel($!data);
+                        |return JsonObjectModel::of($!data);
                     """.trimMargin()
                 }
         }
@@ -361,22 +360,30 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
             is ObjectType ->
                 if (type.toVrapType().isScalar()) {
                     """
-                        |/** @psalm-var ?stdClass $!data */
+                        |/** @psalm-var stdClass|array<string, mixed>|null $!data */
                         |$!data = $!this->raw(${defineObject.simpleName()}::${this.toPhpConstantName()});
                         |if (is_null($!data)) {
                         |    return null;
                         |}
-                        |$!this->${this.name} = new JsonObjectModel($!data);
+                        |if (is_array($!data)) {
+                        |    $!this->${this.name} = JsonObjectModel::fromArray($!data);
+                        |} else {
+                        |    $!this->${this.name} = JsonObjectModel::of($!data);
+                        |}
                     """.trimMargin()
                 } else {
                     """
-                        |/** @psalm-var ?stdClass $!data */
+                        |/** @psalm-var stdClass|array<string, mixed>|null $!data */
                         |$!data = $!this->raw(${defineObject.simpleName()}::${this.toPhpConstantName()});
                         |if (is_null($!data)) {
                         |    return null;
                         |}
                         |${if (type.discriminator.isNullOrBlank()) "" else "$!className = ${type.toVrapType().simpleName()}Model::resolveDiscriminatorClass($!data);"}
-                        |$!this->${this.name} = new ${if (type.discriminator.isNullOrBlank()) "${this.type.toVrapType().simpleName()}Model" else "$!className"}($!data);
+                        |if (is_array($!data)) {
+                        |    $!this->${this.name} = ${if (type.discriminator.isNullOrBlank()) "${this.type.toVrapType().simpleName()}Model" else "$!className"}::fromArray($!data);
+                        |} else {
+                        |    $!this->${this.name} = ${if (type.discriminator.isNullOrBlank()) "${this.type.toVrapType().simpleName()}Model" else "$!className"}::of($!data);
+                        |}
                     """.trimMargin()
                 }
             is ArrayType ->
@@ -396,7 +403,7 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
                         |if (is_null($!data)) {
                         |    return null;
                         |}
-                        |$!this->${this.name} = ${if (type.items?.isScalar() != true) "new ${this.type.toVrapType().simpleName()}($!data)" else "$!data"};
+                        |$!this->${this.name} = ${if (type.items?.isScalar() != true) "${this.type.toVrapType().simpleName()}::fromArray($!data)" else "$!data"};
                     """.trimMargin()
                 }
             else ->
@@ -459,7 +466,7 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
                         |if (is_null($!data)) {
                         |    return null;
                         |}
-                        |$!this->${this.name} = new JsonObjectModel($!data);
+                        |$!this->${this.name} = JsonObjectModel::of($!data);
                     """.trimMargin()
                 }
         }
@@ -505,18 +512,27 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
         }
         return """
             |/**
+            | * @psalm-param stdClass|array<string, mixed> $!value
             | * @psalm-return class-string<${this.toVrapType().simpleName()}>
             | */
-            |public static function resolveDiscriminatorClass(stdClass $!value): string
+            |public static function resolveDiscriminatorClass($!value): string
             |{
             |   $!fieldName = ${this.toVrapType().simpleName()}::DISCRIMINATOR_FIELD;
-            |   if (isset($!value->$!fieldName)) {
+            |   if (is_object($!value) && isset($!value->$!fieldName)) {
             |       /** @var string $!discriminatorValue */
             |       $!discriminatorValue = $!value->$!fieldName;
             |       if (isset(static::$!discriminatorClasses[$!discriminatorValue])) {
             |            return static::$!discriminatorClasses[$!discriminatorValue];
             |       }
             |   }
+            |   if (is_array($!value) && isset($!value[$!fieldName])) {
+            |       /** @var string $!discriminatorValue */
+            |       $!discriminatorValue = $!value[$!fieldName];
+            |       if (isset(static::$!discriminatorClasses[$!discriminatorValue])) {
+            |            return static::$!discriminatorClasses[$!discriminatorValue];
+            |       }
+            |   }
+            |   
             |   /** @psalm-var class-string<${this.toVrapType().simpleName()}> */
             |   $!type = ${this.toVrapType().simpleName()}Model::class;
             |   return $!type;

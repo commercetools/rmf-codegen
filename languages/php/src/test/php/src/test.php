@@ -6,7 +6,7 @@ namespace Commercetools\Importer\Models\Product {
     {
         $data = array_merge(
             [$data->getMasterVariant()],
-            $data->getVariants()->jsonSerialize()
+            $data->getVariants()->toArray()
         );
         return new ProductVariantCollection($data);
     }
@@ -88,7 +88,7 @@ namespace Commercetools {
 
     $response = $root->withProjectKey('phpsphere-90')->get()->send();
 
-    $project = new ProjectModel(json_decode((string)$response->getBody()));
+    $project = ProjectModel::fromArray(json_decode((string)$response->getBody(), true));
 
     var_dump($project->getKey());
     var_dump($project->getCreatedAt());
@@ -104,7 +104,7 @@ namespace Commercetools {
     $response = $root->withProjectKey('phpsphere-90')->categories()->get()->send();
 
 
-    $catResponse = new CategoryPagedQueryResponseModel(json_decode((string)$response->getBody()));
+    $catResponse = CategoryPagedQueryResponseModel::of(json_decode((string)$response->getBody()));
     $categories = $catResponse->getResults();
     $c1 = $categories->current();
     var_dump($categories->current());
@@ -164,9 +164,9 @@ namespace Commercetools {
     $ls = $mapper->mapResponseToClass(LocalizedStringModel::class, $tr);
     var_dump($l->at("de-DE"));
 
-    $t = new ProductDraftModel();
+    $t = ProductDraftModel::of();
 
-    $v = new ProductVariantDraftModel();
+    $v = ProductVariantDraftModel::of();
     $v->setSku("123");
 
     $t->setDescription((new LocalizedStringModel())->put('en', 'test'));
@@ -174,6 +174,10 @@ namespace Commercetools {
         new ProductVariantDraftCollection())->add($v)
     );
     var_dump(json_encode($t));
+
+    $d = new ProductVariantDraftModel(['sku' => 'test']);
+    var_dump($d->getSku());
+    var_dump($d);
 //    allVariants($t);
 
 //    var_dump((new CartModel())->use());
