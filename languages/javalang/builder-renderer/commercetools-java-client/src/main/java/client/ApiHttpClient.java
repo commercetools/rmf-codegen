@@ -1,10 +1,9 @@
 package client;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Stream;
+import java.util.concurrent.CompletionException;
 
 public class ApiHttpClient {
 
@@ -18,7 +17,14 @@ public class ApiHttpClient {
     }
 
     public CompletableFuture<ApiHttpResponse> execute(final ApiHttpRequest request) {
-        return reducedMiddleware.next(MiddlewareArg.from(request,null,null,null)).thenApply(MiddlewareArg::getResponse);
+        return reducedMiddleware
+                .next(MiddlewareArg.from(request, null, null, null))
+                .thenApply(middlewareArg -> {
+                    if (middlewareArg.getError() == null) {
+                        return middlewareArg.getResponse();
+                    }
+                    throw new CompletionException(middlewareArg.getError());
+                });
     }
 
     public ApiHttpResponse executeBlocking(ApiHttpRequest request) {
