@@ -18,7 +18,6 @@ public class HttpMiddleware implements Middleware {
 
     public HttpMiddleware(String apiBaseUrl) {
         this.apiBaseUrl = fixUrl(apiBaseUrl);
-        System.err.println(this.apiBaseUrl);
     }
 
     @Override
