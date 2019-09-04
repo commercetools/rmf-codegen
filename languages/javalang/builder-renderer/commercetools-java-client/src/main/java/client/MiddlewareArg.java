@@ -4,17 +4,17 @@ public final class MiddlewareArg {
 
     private final ApiHttpRequest request;
     private final ApiHttpResponse response;
-    private final Error error;
+    private final Exception error;
     private final Middleware next;
 
-    private MiddlewareArg(ApiHttpRequest request, ApiHttpResponse response, Error error, Middleware next) {
+    private MiddlewareArg(ApiHttpRequest request, ApiHttpResponse response, Exception error, Middleware next) {
         this.request = request;
         this.response = response;
         this.error = error;
         this.next = next;
     }
 
-    public static MiddlewareArg from(ApiHttpRequest request, ApiHttpResponse response, Error error, Middleware next) {
+    public static MiddlewareArg from(ApiHttpRequest request, ApiHttpResponse response, Exception error, Middleware next) {
         return new MiddlewareArg(request, response, error, next);
     }
 
@@ -27,7 +27,7 @@ public final class MiddlewareArg {
         return response;
     }
 
-    public Error getError() {
+    public Exception getError() {
         return error;
     }
 

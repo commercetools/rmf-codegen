@@ -1,12 +1,13 @@
 package client.middlewares;
 
+import client.ApiHttpHeaders;
 import client.Middleware;
 import client.MiddlewareArg;
 import json.CommercetoolsJsonUtils;
 
 import java.util.concurrent.CompletableFuture;
 
-public class LoggerMiddleware implements Middleware {
+public final class LoggerMiddleware implements Middleware {
 
     final
     @Override
@@ -16,6 +17,6 @@ public class LoggerMiddleware implements Middleware {
         } catch (Exception e) {
             System.out.println(e);
         }
-        return CompletableFuture.completedFuture(arg);
+        return arg.getNext().next(arg);
     }
 }
