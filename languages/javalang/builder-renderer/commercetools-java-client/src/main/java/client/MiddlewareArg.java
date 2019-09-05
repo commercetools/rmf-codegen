@@ -18,6 +18,10 @@ public final class MiddlewareArg {
         return new MiddlewareArg(request, response, error, next);
     }
 
+    public static MiddlewareArg from(ApiHttpRequest request) {
+        return MiddlewareArg.from(request, null, null, null);
+    }
+
 
     public ApiHttpRequest getRequest() {
         return request;

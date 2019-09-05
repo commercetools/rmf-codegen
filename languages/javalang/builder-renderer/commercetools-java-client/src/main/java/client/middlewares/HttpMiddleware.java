@@ -17,7 +17,7 @@ public class HttpMiddleware implements Middleware {
 
 
     public HttpMiddleware(String apiBaseUrl) {
-        this.apiBaseUrl = fixUrl(apiBaseUrl);
+        this.apiBaseUrl = removeTrailingSlash(apiBaseUrl);
     }
 
     @Override
@@ -74,7 +74,7 @@ public class HttpMiddleware implements Middleware {
         return new ApiHttpResponse(response.code(), apiHttpHeaders, responseString);
     }
 
-    private String fixUrl(String url){
+    private String removeTrailingSlash(String url){
         if(url.charAt(url.length()-1)=='/'){
             return url.substring(0,url.length()-1 );
         }

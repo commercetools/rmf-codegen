@@ -4,6 +4,7 @@ import client.Middleware;
 import client.MiddlewareArg;
 import com.github.scribejava.core.builder.ServiceBuilder;
 import com.github.scribejava.core.builder.api.DefaultApi20;
+import com.github.scribejava.core.model.OAuth2AccessToken;
 import com.github.scribejava.core.oauth.OAuth20Service;
 
 import java.util.concurrent.CompletableFuture;
@@ -16,6 +17,8 @@ public final class CtpOAuthMiddlewareForClientCredentialsGrant implements Middle
     private final String authorizationBaseUrl;
     private final String scope;
     private final OAuth20Service oAuth20Service;
+    private OAuth2AccessToken oAuth2AccessToken;
+
 
 
     public CtpOAuthMiddlewareForClientCredentialsGrant(String clientId, String clientSecret, String scope, String accessTokenEndpoint, String authorizationBaseUrl) {
@@ -24,10 +27,12 @@ public final class CtpOAuthMiddlewareForClientCredentialsGrant implements Middle
         this.accessTokenEndpoint = accessTokenEndpoint;
         this.authorizationBaseUrl = authorizationBaseUrl;
         this.scope = scope;
-        oAuth20Service = new ServiceBuilder(clientId)
-                .apiSecret(clientSecret)
-                .defaultScope(scope)
-                .build(new CtpApi2());
+        final ServiceBuilder serviceBuilder = new ServiceBuilder(clientId)
+                .apiSecret(clientSecret);
+        if(this.scope !=null && !this.scope.isEmpty()){
+            serviceBuilder.defaultScope(this.scope);
+        }
+        oAuth20Service = serviceBuilder.build(new CtpApi2());
     }
 
 
@@ -55,7 +60,7 @@ public final class CtpOAuthMiddlewareForClientCredentialsGrant implements Middle
     public CompletableFuture<MiddlewareArg> next(MiddlewareArg arg) {
 
         try {
-            // We have to do caching here
+            //TODO  We have to do caching here
             String accessToken = oAuth20Service.getAccessTokenClientCredentialsGrant().getAccessToken();
             arg.getRequest().addHeader("Authorization", "Bearer " + accessToken);
             return arg.getNext().next(arg);

@@ -9,7 +9,8 @@ import java.util.concurrent.CompletableFuture;
 
 public final class LoggerMiddleware implements Middleware {
 
-    final
+
+    //Todo this should be done as a proper logger
     @Override
     public CompletableFuture<MiddlewareArg> next(MiddlewareArg arg) {
         try {

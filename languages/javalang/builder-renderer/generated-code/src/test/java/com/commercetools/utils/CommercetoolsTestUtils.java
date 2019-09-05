@@ -30,15 +30,15 @@ public class CommercetoolsTestUtils {
     }
 
     public static String getProjectKey() {
-        return System.getenv("JVM_SDK_IT_PROJECT_KEY");
+        return System.getenv("CTP_PROJECT_KEY");
     }
 
     public static String getClientId() {
-        return System.getenv("JVM_SDK_IT_CLIENT_ID");
+        return System.getenv("CTP_CLIENT_ID");
     }
 
     public static String getClientSecret() {
-        return System.getenv("JVM_SDK_IT_CLIENT_SECRET");
+        return System.getenv("CTP_CLIENT_SECRET");
     }
 
     public static String getScopes() {
@@ -50,7 +50,7 @@ public class CommercetoolsTestUtils {
                 new CtpOAuthMiddlewareForClientCredentialsGrant(
                         getClientId(),
                         getClientSecret(),
-                        "manage_project:achraf-61",
+                        getScopes(),
                         "https://auth.sphere.io/oauth/token",
                         "https://auth.sphere.io/"
                 ),

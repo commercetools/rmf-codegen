@@ -2,15 +2,9 @@ package client;
 
 import java.util.concurrent.CompletableFuture;
 
-public class NoOpMiddleware implements Middleware {
+public enum NoOpMiddleware implements Middleware {
 
-    private static final NoOpMiddleware noOpMiddleware = new NoOpMiddleware();
-
-    private NoOpMiddleware(){}
-
-    public static NoOpMiddleware getInstance(){
-        return noOpMiddleware;
-    }
+    INSTANCE;
 
     @Override
     public CompletableFuture<MiddlewareArg> next(MiddlewareArg arg) {

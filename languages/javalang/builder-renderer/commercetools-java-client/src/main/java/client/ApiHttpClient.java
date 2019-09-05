@@ -12,13 +12,13 @@ public class ApiHttpClient {
     public ApiHttpClient(final List<Middleware> middlewares) {
         final List<Middleware> middlewareList = new ArrayList<>();
         middlewareList.addAll(middlewares);
-        middlewareList.add(NoOpMiddleware.getInstance());
+        middlewareList.add(NoOpMiddleware.INSTANCE);
         this.reducedMiddleware = middlewareList.stream().reduce(ApiHttpClient::reduceMiddlewares).get();
     }
 
     public CompletableFuture<ApiHttpResponse> execute(final ApiHttpRequest request) {
         return reducedMiddleware
-                .next(MiddlewareArg.from(request, null, null, null))
+                .next(MiddlewareArg.from(request))
                 .thenApply(middlewareArg -> {
                     if (middlewareArg.getError() == null) {
                         return middlewareArg.getResponse();
@@ -31,7 +31,6 @@ public class ApiHttpClient {
         try {
             return execute(request).get();
         } catch (Exception e) {
-            e.printStackTrace();
             throw new RuntimeException(e);
         }
     }
