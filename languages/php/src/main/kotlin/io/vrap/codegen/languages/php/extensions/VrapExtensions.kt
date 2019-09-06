@@ -40,6 +40,16 @@ fun VrapType.simpleName():String{
     }
 }
 
+fun VrapType.simpleBuilderName():String{
+    return when(this){
+        is VrapScalarType -> this.scalarType
+        is VrapEnumType -> "string"
+        is VrapObjectType -> this.simpleClassName + "Builder"
+        is VrapArrayType -> if (this.itemType.isScalar()) "array" else "${this.itemType.simpleName()}CollectionBuilder"
+        is VrapNilType -> throw IllegalStateException("$this has no simple class name.")
+    }
+}
+
 fun VrapType.fullClassName():String{
     return when(this){
         is VrapScalarType -> this.scalarType
@@ -56,6 +66,10 @@ fun AnyType.isScalar(): Boolean {
         is IntegerType -> true
         is NumberType -> true
         is BooleanType -> true
+        is DateTimeType -> true
+        is DateOnlyType -> true
+        is DateTimeOnlyType -> true
+        is TimeOnlyType -> true
         is ArrayType -> this.items == null || this.items.isScalar()
         else -> false
     }

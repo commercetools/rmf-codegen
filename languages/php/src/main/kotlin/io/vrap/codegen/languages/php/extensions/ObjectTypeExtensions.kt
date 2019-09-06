@@ -99,9 +99,9 @@ interface  ObjectTypeExtensions : ExtensionsBase {
 
 fun getImportsForType(vrapType: VrapType): String? {
     return when (vrapType) {
-        is VrapObjectType -> "${vrapType.namespaceName()}\\${vrapType.simpleName()}"
+        is VrapObjectType -> "${if (vrapType.namespaceName().isNotEmpty()) "${vrapType.namespaceName()}\\" else "" }${vrapType.simpleName()}"
         is VrapArrayType -> when (vrapType.itemType) {
-            is VrapObjectType -> "${vrapType.namespaceName()}\\${vrapType.simpleName()}"
+            is VrapObjectType -> "${if (vrapType.namespaceName().isNotEmpty()) "${vrapType.namespaceName()}\\" else "" }${vrapType.simpleName()}"
             else -> null
         }
         else -> null

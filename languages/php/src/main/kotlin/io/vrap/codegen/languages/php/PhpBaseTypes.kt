@@ -11,9 +11,9 @@ object PhpBaseTypes : LanguageBaseTypes(
         doubleType = fromScalarPhpType("float"),
         stringType = fromScalarPhpType("string"),
         booleanType = fromScalarPhpType("bool"),
-        dateTimeType = fromPhpType("", "DateTimeImmutable"),
-        dateOnlyType = fromPhpType("", "DateTimeImmutable"),
-        timeOnlyType = fromPhpType("", "DateTimeImmutable"),
+        dateTimeType = fromPhpType("","DateTimeImmutable"),
+        dateOnlyType = fromPhpType("","DateTimeImmutable"),
+        timeOnlyType = fromPhpType("","DateTimeImmutable"),
         file = fromPhpType("","File")
 )
 

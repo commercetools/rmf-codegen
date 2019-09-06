@@ -51,7 +51,8 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
             mapperInterface(),
             jsonObjectCollection(),
             apiClientException(),
-            apiServerException()
+            apiServerException(),
+            builder()
     )
 
     private fun collection(): TemplateFile {
@@ -80,6 +81,9 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |use ${packagePrefix.toNamespaceName()}\Exception\InvalidArgumentException;
                     |use Psr\Http\Message\ResponseInterface;
                     |use stdClass;
+                    |use ReflectionClass;
+                    |use ReflectionParameter;
+                    |use ReflectionException;
                     |
                     |class ResultMapper implements MapperInterface
                     |{
@@ -88,7 +92,7 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |     * @psalm-param class-string<T> $!type
                     |     * @psalm-return T
                     |     */
-                    |    public function mapResponseToClass($!type, ResponseInterface $!response)
+                    |    public function mapResponseToClass(string $!type, ResponseInterface $!response)
                     |    {
                     |        return $!type::of($!this->responseData($!response));
                     |    }
@@ -105,6 +109,32 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |           throw new InvalidArgumentException();
                     |        }
                     |        return $!data;
+                    |    }
+                    |    
+                    |    /**
+                    |     * @template T
+                    |     * @psalm-param class-string<T> $!type
+                    |     * @psalm-param array<string, mixed> $!data
+                    |     * @psalm-return T
+                    |     * @throws InvalidArgumentException
+                    |     * @throws ReflectionException
+                    |     */
+                    |    public function mapToConstructor(string $!type, array $!data) {
+                    |        $!typeClass = new ReflectionClass($!type);
+                    |        $!constructor = $!typeClass->getConstructor();
+                    |        if (is_null($!constructor)) {
+                    |            throw new InvalidArgumentException();
+                    |        }
+                    |        $!params = $!constructor->getParameters();
+                    |
+                    |        /** @var array<int, mixed> $!args */
+                    |        $!args = array_map(
+                    |            function (ReflectionParameter $!param) use ($!data) {
+                    |                return ($!data[$!param->name] ?? null);
+                    |            },
+                    |            $!params
+                    |        );
+                    |        return $!typeClass->newInstanceArgs($!args);
                     |    }
                     |}
                 """.trimMargin().forcedLiteralEscape())
@@ -127,7 +157,7 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |     * @psalm-param class-string<T> $!type
                     |     * @psalm-return T
                     |     */
-                    |    public function mapResponseToClass($!type, ResponseInterface $!response);
+                    |    public function mapResponseToClass(string $!type, ResponseInterface $!response);
                     |}
                 """.trimMargin().forcedLiteralEscape())
     }
@@ -297,16 +327,22 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |    public function get(string $!field);
                     |    
                     |    /**
-                    |     * @psalm-param ?stdClass !data
+                    |     * @psalm-param stdClass|array<string, mixed>|null $!data
                     |     * @psalm-return static
                     |     */
-                    |    public static function of(stdClass $!data = null);
+                    |    public static function of($!data = null);
                     |
                     |    /**
-                    |     * @psalm-param array<string, mixed> !data
+                    |     * @psalm-param array<string, mixed> $!data
                     |     * @psalm-return static
                     |     */
                     |    public static function fromArray(array $!data = []);
+                    |
+                    |    /**
+                    |     * @psalm-param ?stdClass $!data
+                    |     * @psalm-return static
+                    |     */
+                    |    public static function fromStdClass(stdClass $!data = null);
                     |}
                 """.trimMargin().forcedLiteralEscape()
         )
@@ -328,10 +364,22 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |    private $!rawData;
                     |
                     |    /**
-                    |     * @psalm-param ?stdClass !data
+                    |     * @psalm-param ?stdClass|array<string, mixed> $!data
                     |     * @psalm-return static
                     |     */
-                    |    final public static function of(stdClass $!data = null)
+                    |    final public static function of($!data = null)
+                    |    {
+                    |        if (is_array($!data)) {
+                    |            return self::fromArray($!data);
+                    |        }
+                    |        return self::fromStdClass($!data);
+                    |    }
+                    |
+                    |    /**
+                    |     * @psalm-param ?stdClass $!data
+                    |     * @psalm-return static
+                    |     */
+                    |    final public static function fromStdClass(stdClass $!data = null)
                     |    {
                     |        $!t = new static();
                     |        $!t->rawData = $!data;
@@ -339,7 +387,7 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |    }
                     |
                     |    /**
-                    |     * @psalm-param array<string, mixed> !data
+                    |     * @psalm-param array<string, mixed> $!data
                     |     * @psalm-return static
                     |     */
                     |    final public static function fromArray(array $!data = [])
@@ -382,6 +430,27 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |}
                 """.trimMargin().forcedLiteralEscape()
         )
+    }
+
+    private fun builder(): TemplateFile {
+        return TemplateFile(relativePath = "src/Base/Builder.php",
+                content = """
+                    |<?php
+                    |${PhpSubTemplates.generatorInfo}
+                    |
+                    |namespace ${packagePrefix.toNamespaceName()}\Base;
+                    |
+                    |/**
+                    | * @template T
+                    | */
+                    |interface Builder
+                    |{
+                    |    /**
+                    |     * @psalm-return T
+                    |     */
+                    |    public function build();
+                    |}
+                """.trimMargin())
     }
 
     private fun baseNullable(): TemplateFile {
@@ -1876,24 +1945,43 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |    }
                     |
                     |    /**
-                    |     * @psalm-param ?stdClass !data
-                    |     * @psalm-return static
+                    |     * @psalm-param ?stdClass|array<string, T|stdClass> $!data
+                    |     * @return static
                     |     */
-                    |    final public static function of(stdClass $!data = null)
+                    |    final public static function of($!data = null)
                     |    {
-                    |        /** @var array<string, T|stdClass> $!t */
-                    |        $!t = (array)$!data;
-                    |        return new static($!t);
+                    |        if (is_array($!data)) {
+                    |            return self::fromArray($!data);
+                    |        }
+                    |        /** @var stdClass $!data) */
+                    |        return self::fromStdClass($!data);
                     |    }
                     |
+                    |    /**
+                    |     * @psalm-return array<string, stdClass|mixed>
+                    |     */
                     |    public function toArray(): ?array
                     |    {
                     |        return $!this->data;
                     |    }
                     |
+                    |    /**
+                    |     * @psalm-return array<string, stdClass|mixed>
+                    |     */
                     |    public function jsonSerialize(): ?array
                     |    {
                     |        return $!this->data;
+                    |    }
+                    |
+                    |    /**
+                    |     * @psalm-param ?stdClass $!data
+                    |     * @psalm-return static
+                    |     */
+                    |    final public static function fromStdClass(stdClass $!data = null)
+                    |    {
+                    |        /** @var array<string, T|stdClass> $!t */
+                    |        $!t = (array)$!data;
+                    |        return new static($!t);
                     |    }
                     |
                     |    /**

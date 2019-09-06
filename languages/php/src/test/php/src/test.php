@@ -26,8 +26,15 @@ namespace Commercetools {
     use Commercetools\Importer\Client\Resource\ResourceByProjectKey;
     use Commercetools\Importer\Models\Cart\Cart;
     use Commercetools\Importer\Models\Cart\CartModel;
+    use Commercetools\Importer\Models\Category\CategoryBuilder;
+    use Commercetools\Importer\Models\Category\CategoryDraftBuilder;
     use Commercetools\Importer\Models\Category\CategoryPagedQueryResponseModel;
+    use Commercetools\Importer\Models\Common\CreatedByBuilder;
+    use Commercetools\Importer\Models\Common\LocalizedStringBuilder;
     use Commercetools\Importer\Models\Common\LocalizedStringModel;
+    use Commercetools\Importer\Models\Customer\CustomerBuilder;
+    use Commercetools\Importer\Models\Customer\CustomerDraftBuilder;
+    use Commercetools\Importer\Models\Customer\CustomerReferenceBuilder;
     use Commercetools\Importer\Models\Error\ErrorResponse;
     use Commercetools\Importer\Models\Error\ErrorResponseModel;
     use Commercetools\Importer\Models\Product\ProductDraftModel;
@@ -35,6 +42,13 @@ namespace Commercetools {
     use Commercetools\Importer\Models\Product\ProductVariantDraftCollection;
     use Commercetools\Importer\Models\Product\ProductVariantDraftModel;
     use Commercetools\Importer\Models\Product\ProductVariantModel;
+    use Commercetools\Importer\Models\Type\CustomFields;
+    use Commercetools\Importer\Models\Type\CustomFieldsDraft;
+    use Commercetools\Importer\Models\Type\CustomFieldsDraftBuilder;
+    use Commercetools\Importer\Models\Type\CustomFieldsDraftModel;
+    use Commercetools\Importer\Models\Type\FieldContainer;
+    use Commercetools\Importer\Models\Type\FieldContainerBuilder;
+    use Commercetools\Importer\Models\Type\FieldContainerModel;
     use function Commercetools\Importer\Models\Product\allVariants;
     use Commercetools\Importer\Models\Product\ProductDataModel;
     use Commercetools\Importer\Models\Product\ProductProjectionPagedSearchResponse;
@@ -169,15 +183,31 @@ namespace Commercetools {
     $v = ProductVariantDraftModel::of();
     $v->setSku("123");
 
-    $t->setDescription((new LocalizedStringModel())->put('en', 'test'));
+    $t->setDescription(LocalizedStringModel::of()->put('en', 'test'));
     $t->setVariants((
         new ProductVariantDraftCollection())->add($v)
     );
     var_dump(json_encode($t));
 
-    $d = new ProductVariantDraftModel(['sku' => 'test']);
+    $d = ProductVariantDraftModel::fromArray(['sku' => 'test']);
     var_dump($d->getSku());
     var_dump($d);
+
+    $fc = FieldContainerBuilder::of();
+    $fc->put("foo", "bar");
+    $cf = CustomFieldsDraftBuilder::of();
+    $cf->withFieldsBuilder($fc);
+
+    $b = CategoryDraftBuilder::of()->withCustomBuilder($cf);
+
+    var_dump($b);
+    $c1 = $b->build();
+
+    $fc->put("foo", "baz");
+    $c2 = $b->build();
+
+    var_dump(json_encode($c1));
+    var_dump(json_encode($c2));
 //    allVariants($t);
 
 //    var_dump((new CartModel())->use());
