@@ -41,7 +41,7 @@ public class ProductFixtures {
                         .build())
                 .build();
         
-        Product product = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
+        Product product = CommercetoolsTestUtils.getApiRoot().withProjectKey(CommercetoolsTestUtils.getProjectKey())
                 .products()
                 .post(productDraft)
                 .executeBlocking();
@@ -52,7 +52,7 @@ public class ProductFixtures {
     }
     
     public static Product deleteProductById(final String id, final Long version) {
-        Product product = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
+        Product product = CommercetoolsTestUtils.getApiRoot().withProjectKey(CommercetoolsTestUtils.getProjectKey())
                 .products()
                 .withId(id)
                 .delete()
@@ -64,7 +64,7 @@ public class ProductFixtures {
     }
     
     public static Product deleteProductByKey(final String key, final Long version) {
-        Product product = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
+        Product product = CommercetoolsTestUtils.getApiRoot().withProjectKey(CommercetoolsTestUtils.getProjectKey())
                 .products()
                 .withKey(key)
                 .delete()

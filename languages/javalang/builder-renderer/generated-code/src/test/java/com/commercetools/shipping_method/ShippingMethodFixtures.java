@@ -37,7 +37,7 @@ public class ShippingMethodFixtures {
                     .build())
                 .build();
 
-        ShippingMethod shippingMethod = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
+        ShippingMethod shippingMethod = CommercetoolsTestUtils.getApiRoot().withProjectKey(CommercetoolsTestUtils.getProjectKey())
                 .shippingMethods()
                 .post(shippingMethodDraft)
                 .executeBlocking();
@@ -49,7 +49,7 @@ public class ShippingMethodFixtures {
     }
     
     public static ShippingMethod deleteShippingMethod(final String id, final Long version) {
-        ShippingMethod shippingMethod = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
+        ShippingMethod shippingMethod = CommercetoolsTestUtils.getApiRoot().withProjectKey(CommercetoolsTestUtils.getProjectKey())
                 .shippingMethods()
                 .withId(id)
                 .delete()

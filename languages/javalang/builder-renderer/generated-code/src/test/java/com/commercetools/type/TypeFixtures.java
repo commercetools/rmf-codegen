@@ -33,7 +33,7 @@ public class TypeFixtures {
                 .resourceTypeIds(Arrays.asList(ResourceTypeId.ASSET))
                 .build();
         
-        Type type = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
+        Type type = CommercetoolsTestUtils.getApiRoot().withProjectKey(CommercetoolsTestUtils.getProjectKey())
                 .types()
                 .post(typeDraft)
                 .executeBlocking();
@@ -45,7 +45,7 @@ public class TypeFixtures {
     } 
     
     public static Type deleteType(final String id, final Long version) {
-        Type type = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
+        Type type = CommercetoolsTestUtils.getApiRoot().withProjectKey(CommercetoolsTestUtils.getProjectKey())
                 .types()
                 .withId(id)
                 .delete()

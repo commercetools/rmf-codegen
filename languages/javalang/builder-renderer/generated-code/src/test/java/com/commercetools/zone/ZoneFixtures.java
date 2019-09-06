@@ -30,7 +30,7 @@ public class ZoneFixtures {
                 .key(CommercetoolsTestUtils.randomKey())
                 .build();
         
-        Zone zone = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
+        Zone zone = CommercetoolsTestUtils.getApiRoot().withProjectKey(CommercetoolsTestUtils.getProjectKey())
                 .zones()
                 .post(zoneDraft)
                 .executeBlocking();
@@ -42,7 +42,7 @@ public class ZoneFixtures {
     }
     
     public static Zone deleteZone(final String id, final Long version) {
-        Zone zone = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
+        Zone zone = CommercetoolsTestUtils.getApiRoot().withProjectKey(CommercetoolsTestUtils.getProjectKey())
                 .zones()
                 .withId(id)
                 .delete()

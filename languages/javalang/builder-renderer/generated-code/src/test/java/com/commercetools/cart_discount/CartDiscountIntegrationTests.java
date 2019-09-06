@@ -34,7 +34,7 @@ public class CartDiscountIntegrationTests {
                 .sortOrder("0.42")
                 .build();
 
-        CartDiscount cartDiscount = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
+        CartDiscount cartDiscount = CommercetoolsTestUtils.getApiRoot().withProjectKey(CommercetoolsTestUtils.getProjectKey())
                 .cartDiscounts()
                 .post(cartDiscountDraft)
                 .executeBlocking();
@@ -42,7 +42,7 @@ public class CartDiscountIntegrationTests {
         Assertions.assertNotNull(cartDiscount);
         Assertions.assertEquals(cartDiscountDraft.getKey(), cartDiscount.getKey());
         
-        CartDiscount deletedCartDiscount = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
+        CartDiscount deletedCartDiscount = CommercetoolsTestUtils.getApiRoot().withProjectKey(CommercetoolsTestUtils.getProjectKey())
                 .cartDiscounts()
                 .withId(cartDiscount.getId())
                 .delete()
@@ -55,7 +55,7 @@ public class CartDiscountIntegrationTests {
     @Test
     public void getById() {
         CartDiscountFixtures.withCartDiscount(cartDiscount -> {
-            CartDiscount queriedCartDiscount = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
+            CartDiscount queriedCartDiscount = CommercetoolsTestUtils.getApiRoot().withProjectKey(CommercetoolsTestUtils.getProjectKey())
                     .cartDiscounts()
                     .withId(cartDiscount.getId())
                     .get()
@@ -69,7 +69,7 @@ public class CartDiscountIntegrationTests {
     @Test
     public void getByKey() {
         CartDiscountFixtures.withCartDiscount(cartDiscount -> {
-            CartDiscount queriedCartDiscount = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
+            CartDiscount queriedCartDiscount = CommercetoolsTestUtils.getApiRoot().withProjectKey(CommercetoolsTestUtils.getProjectKey())
                     .cartDiscounts()
                     .withKey(cartDiscount.getKey())
                     .get()
@@ -83,7 +83,7 @@ public class CartDiscountIntegrationTests {
     @Test
     public void query() {
         CartDiscountFixtures.withCartDiscount(cartDiscount -> {
-            CartDiscountPagedQueryResponse response = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
+            CartDiscountPagedQueryResponse response = CommercetoolsTestUtils.getApiRoot().withProjectKey(CommercetoolsTestUtils.getProjectKey())
                     .cartDiscounts()
                     .get()
                     .addWhere("id=" + "\"" + cartDiscount.getId() + "\"")
@@ -100,7 +100,7 @@ public class CartDiscountIntegrationTests {
             List<CartDiscountUpdateAction> updateActions = new ArrayList<>();
             String newKey = CommercetoolsTestUtils.randomKey();
             updateActions.add(CartDiscountSetKeyActionBuilder.of().key(newKey).build());
-            CartDiscount updatedCartDiscount = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
+            CartDiscount updatedCartDiscount = CommercetoolsTestUtils.getApiRoot().withProjectKey(CommercetoolsTestUtils.getProjectKey())
                     .cartDiscounts()
                     .withId(cartDiscount.getId())
                     .post(CartDiscountUpdateBuilder.of()
@@ -122,7 +122,7 @@ public class CartDiscountIntegrationTests {
             List<CartDiscountUpdateAction> updateActions = new ArrayList<>();
             String newKey = CommercetoolsTestUtils.randomKey();
             updateActions.add(CartDiscountSetKeyActionBuilder.of().key(newKey).build());
-            CartDiscount updatedCartDiscount = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
+            CartDiscount updatedCartDiscount = CommercetoolsTestUtils.getApiRoot().withProjectKey(CommercetoolsTestUtils.getProjectKey())
                     .cartDiscounts()
                     .withKey(cartDiscount.getKey())
                     .post(CartDiscountUpdateBuilder.of()

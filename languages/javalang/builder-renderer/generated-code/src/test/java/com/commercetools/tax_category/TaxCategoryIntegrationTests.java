@@ -18,7 +18,7 @@ public class TaxCategoryIntegrationTests {
                 .key(CommercetoolsTestUtils.randomKey())
                 .build();
 
-        TaxCategory taxCategory = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
+        TaxCategory taxCategory = CommercetoolsTestUtils.getApiRoot().withProjectKey(CommercetoolsTestUtils.getProjectKey())
                 .taxCategories()
                 .post(taxCategoryDraft)
                 .executeBlocking();
@@ -27,7 +27,7 @@ public class TaxCategoryIntegrationTests {
         Assertions.assertEquals(taxCategoryDraft.getName(), taxCategory.getName());
         Assertions.assertEquals(taxCategoryDraft.getKey(), taxCategory.getKey());
         
-        TaxCategory deletedTaxCategory = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
+        TaxCategory deletedTaxCategory = CommercetoolsTestUtils.getApiRoot().withProjectKey(CommercetoolsTestUtils.getProjectKey())
                 .taxCategories()
                 .withId(taxCategory.getId())
                 .delete()
@@ -41,7 +41,7 @@ public class TaxCategoryIntegrationTests {
     @Test
     public void getById() {
         TaxCategoryFixtures.withTaxCategory(taxCategory -> {
-            TaxCategory queriedTaxCategory = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
+            TaxCategory queriedTaxCategory = CommercetoolsTestUtils.getApiRoot().withProjectKey(CommercetoolsTestUtils.getProjectKey())
                     .taxCategories()
                     .withId(taxCategory.getId())
                     .get()
@@ -55,7 +55,7 @@ public class TaxCategoryIntegrationTests {
     @Test
     public void getByKey() {
         TaxCategoryFixtures.withTaxCategory(taxCategory -> {
-            TaxCategory queriedTaxCategory = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
+            TaxCategory queriedTaxCategory = CommercetoolsTestUtils.getApiRoot().withProjectKey(CommercetoolsTestUtils.getProjectKey())
                     .taxCategories()
                     .withKey(taxCategory.getKey())
                     .get()
@@ -69,7 +69,7 @@ public class TaxCategoryIntegrationTests {
     @Test
     public void query(){
         TaxCategoryFixtures.withTaxCategory(taxCategory -> {
-            TaxCategoryPagedQueryResponse response = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
+            TaxCategoryPagedQueryResponse response = CommercetoolsTestUtils.getApiRoot().withProjectKey(CommercetoolsTestUtils.getProjectKey())
                     .taxCategories()
                     .get()
                     .addWhere("id=" + "\"" + taxCategory.getId() +"\"")
@@ -88,7 +88,7 @@ public class TaxCategoryIntegrationTests {
             String newKey = CommercetoolsTestUtils.randomKey();
             updateActions.add(TaxCategorySetKeyActionBuilder.of().key(newKey).build());
             
-            TaxCategory updatedTaxCategory = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
+            TaxCategory updatedTaxCategory = CommercetoolsTestUtils.getApiRoot().withProjectKey(CommercetoolsTestUtils.getProjectKey())
                     .taxCategories()
                     .withId(taxCategory.getId())
                     .post(TaxCategoryUpdateBuilder.of()
@@ -112,7 +112,7 @@ public class TaxCategoryIntegrationTests {
             String newKey = CommercetoolsTestUtils.randomKey();
             updateActions.add(TaxCategorySetKeyActionBuilder.of().key(newKey).build());
 
-            TaxCategory updatedTaxCategory = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
+            TaxCategory updatedTaxCategory = CommercetoolsTestUtils.getApiRoot().withProjectKey(CommercetoolsTestUtils.getProjectKey())
                     .taxCategories()
                     .withKey(taxCategory.getKey())
                     .post(TaxCategoryUpdateBuilder.of()

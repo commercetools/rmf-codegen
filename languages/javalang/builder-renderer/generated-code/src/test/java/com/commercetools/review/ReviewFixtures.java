@@ -30,7 +30,7 @@ public class ReviewFixtures {
                 .title("review-title-1")
                 .build();
 
-        Review review = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
+        Review review = CommercetoolsTestUtils.getApiRoot().withProjectKey(CommercetoolsTestUtils.getProjectKey())
                 .reviews()
                 .post(reviewDraft)
                 .executeBlocking();
@@ -42,7 +42,7 @@ public class ReviewFixtures {
     }
     
     public static Review delete(final String id, final Long version) {
-        Review deletedReview = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
+        Review deletedReview = CommercetoolsTestUtils.getApiRoot().withProjectKey(CommercetoolsTestUtils.getProjectKey())
                 .reviews()
                 .withId(id)
                 .delete()

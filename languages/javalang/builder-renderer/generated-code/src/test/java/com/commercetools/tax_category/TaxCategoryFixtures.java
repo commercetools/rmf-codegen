@@ -30,7 +30,7 @@ public class TaxCategoryFixtures {
                 .key(CommercetoolsTestUtils.randomKey())
                 .build();
 
-        TaxCategory taxCategory = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
+        TaxCategory taxCategory = CommercetoolsTestUtils.getApiRoot().withProjectKey(CommercetoolsTestUtils.getProjectKey())
                 .taxCategories()
                 .post(taxCategoryDraft)
                 .executeBlocking();
@@ -43,7 +43,7 @@ public class TaxCategoryFixtures {
     }
     
     public static TaxCategory deleteTaxCategory(final String id, final Long version) {
-        TaxCategory deletedTaxCategory = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
+        TaxCategory deletedTaxCategory = CommercetoolsTestUtils.getApiRoot().withProjectKey(CommercetoolsTestUtils.getProjectKey())
                 .taxCategories()
                 .withId(id)
                 .delete()

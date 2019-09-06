@@ -54,14 +54,14 @@ public class CategoryFixtures {
                 .orderHint(CommercetoolsTestUtils.randomString())
                 .build();
 
-        return ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
+        return CommercetoolsTestUtils.getApiRoot().withProjectKey(CommercetoolsTestUtils.getProjectKey())
                 .categories()
                 .post(categoryDraft)
                 .executeBlocking();
     }
     
     public static Category deleteCategory(final String id, final Long version){
-        return ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
+        return CommercetoolsTestUtils.getApiRoot().withProjectKey(CommercetoolsTestUtils.getProjectKey())
                 .categories()
                 .withId(id)
                 .delete()

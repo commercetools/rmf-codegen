@@ -1,5 +1,9 @@
 package com.commercetools.utils;
 
+import client.middlewares.HttpMiddleware;
+import client.middlewares.LoggerMiddleware;
+import client.middlewares.CtpOAuthMiddlewareForClientCredentialsGrant;
+import com.commercetools.client.ApiRoot;
 import com.commercetools.models.Common.LocalizedString;
 import com.commercetools.models.Common.LocalizedStringImpl;
 
@@ -26,6 +30,32 @@ public class CommercetoolsTestUtils {
     }
 
     public static String getProjectKey() {
-        return System.getenv("JVM_SDK_IT_PROJECT_KEY");
+        return System.getenv("CTP_PROJECT_KEY");
+    }
+
+    public static String getClientId() {
+        return System.getenv("CTP_CLIENT_ID");
+    }
+
+    public static String getClientSecret() {
+        return System.getenv("CTP_CLIENT_SECRET");
+    }
+
+    public static String getScopes() {
+        return "manage_project:"+getProjectKey();
+    }
+
+    public static ApiRoot getApiRoot(){
+        return ApiRoot.formMiddlewares(
+                new CtpOAuthMiddlewareForClientCredentialsGrant(
+                        getClientId(),
+                        getClientSecret(),
+                        getScopes(),
+                        "https://auth.sphere.io/oauth/token",
+                        "https://auth.sphere.io/"
+                ),
+                new HttpMiddleware("https://api.sphere.io"),
+                new LoggerMiddleware()
+        );
     }
 }

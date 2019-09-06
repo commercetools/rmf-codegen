@@ -1,6 +1,7 @@
 package io.vrap.codegen.languages.javalang.client.builder.requests
 
 import com.google.inject.Inject
+import io.vrap.codegen.languages.extensions.hasBody
 import io.vrap.codegen.languages.extensions.resource
 import io.vrap.codegen.languages.extensions.toRequestName
 import io.vrap.codegen.languages.java.base.extensions.*
@@ -31,7 +32,6 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
             |import client.ApiHttpHeaders;
             |import client.ApiHttpResponse;
             |import json.CommercetoolsJsonUtils;
-            |import client.CommercetoolsClient;
             |
             |import java.io.IOException;
             |
@@ -43,6 +43,7 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
             |
             |import java.io.UnsupportedEncodingException;
             |import java.net.URLEncoder;
+            |import client.*;
             |
             |public class ${type.toRequestName()} {
             |   
@@ -74,8 +75,8 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
     }
     
     private fun Method.constructor(): String? {
-        val constructorArguments = mutableListOf<String>()
-        val constructorAssignments = mutableListOf<String>()
+        val constructorArguments = mutableListOf("final ApiHttpClient apiHttpClient")
+        val constructorAssignments = mutableListOf("this.apiHttpClient = apiHttpClient;")
 
         this.pathArguments().map { "String $it" }.forEach { constructorArguments.add(it) }
         this.pathArguments().map { "this.$it = $it;" }.forEach { constructorAssignments.add(it) }
@@ -101,27 +102,36 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
     }
     
     private fun Method.fields(): String? {
-        val commandClassFields = mutableListOf<String>()
-        commandClassFields.add("private ApiHttpHeaders headers = new ApiHttpHeaders();")
-        commandClassFields.add("private Map<String, String> additionalQueryParams = new HashMap<>();")
+
         val parameterFields : String =
                 this.queryParameters
                         .filter { it.annotations.find { it.type.name.equals(PLACEHOLDER_PARAM_ANNOTATION) } == null}
                         .map { "private List<${it.type.toVrapType().simpleName()}> ${it.fieldName()} = new ArrayList<>();" }
-                        .joinToString(separator = "\n\n")
-        commandClassFields.add(parameterFields)
+                        .joinToString(separator = "\n")
 
-        this.pathArguments().map { "private String $it;" }.forEach { commandClassFields.add(it) }
-        if(this.bodies != null && this.bodies.isNotEmpty()){
+        val pathArgs = this.pathArguments().map { "private String $it;" }.joinToString(separator = "\n")
+
+
+        val body: String = if(this.bodies != null && this.bodies.isNotEmpty()){
             if(this.bodies[0].type.toVrapType() is VrapObjectType){
                 val methodBodyVrapType = this.bodies[0].type.toVrapType() as VrapObjectType
-                commandClassFields.add("private ${methodBodyVrapType.`package`.toJavaPackage()}.${methodBodyVrapType.simpleClassName} ${methodBodyVrapType.simpleClassName.decapitalize()};")
+                "private ${methodBodyVrapType.`package`.toJavaPackage()}.${methodBodyVrapType.simpleClassName} ${methodBodyVrapType.simpleClassName.decapitalize()};"
             }else {
-                commandClassFields.add("private com.fasterxml.jackson.databind.JsonNode jsonNode;");
+                "private com.fasterxml.jackson.databind.JsonNode jsonNode;"
             }
+        }else{
+            ""
         }
 
-        return commandClassFields.map { it.escapeAll() }.joinToString(separator = "\n\n")
+        return """|
+            |private ApiHttpHeaders headers = new ApiHttpHeaders();
+            |private Map\<String, String\> additionalQueryParams = new HashMap\<\>();
+            |private final ApiHttpClient apiHttpClient; 
+            |${parameterFields.escapeAll()}
+            |<$pathArgs>
+            |
+            |<$body>
+        """.trimMargin()
     }
 
     private fun QueryParameter.fieldName() : String {
@@ -174,7 +184,7 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
         return """
             |public ApiHttpRequest createHttpRequest() {
             |   ApiHttpRequest httpRequest = new ApiHttpRequest();
-            |   $requestPathGeneration
+            |   <$requestPathGeneration>
             |   httpRequest.setPath(httpRequestPath); 
             |   httpRequest.setMethod(ApiHttpMethod.${this.method.name});
             |   httpRequest.setHeaders(headers);
@@ -185,31 +195,19 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
     }   
     
     private fun Method.executeBlockingMethod() : String {
-        val responseErrorsDeserialization : String = 
-                this.responses
-                        .filter { !it.statusCode.startsWith("2") }
-                        .map { responseErrorsDeserialization(it.statusCode, if(it.bodies.isNotEmpty())it.bodies[0].type.toVrapType() else null) }
-                        .joinToString(separator = "\n\n")
-        
         return """
             |public ${this.javaReturnType(vrapTypeProvider)} executeBlocking() {
             |   ApiHttpResponse response;
-            |   try{
-            |       response = CommercetoolsClient.getClient().execute(this.createHttpRequest());
-            |   }catch(IOException e){
-            |       throw new RuntimeException(e.getMessage());
-            |   }
-            |
-            |   $responseErrorsDeserialization
-            |   
-            |   try{
-            |       return CommercetoolsJsonUtils.fromJsonString(response.getBody(), ${this.javaReturnType(vrapTypeProvider)}.class);
-            |   }catch(Exception e){
-            |       e.printStackTrace();
+            |   try {
+            |      response = apiHttpClient.executeBlocking(this.createHttpRequest());
+            |      return CommercetoolsJsonUtils.fromJsonString(response.getBody(),  ${this.javaReturnType(vrapTypeProvider)}.class);
+            |   } catch (Exception e) {
+            |      e.printStackTrace();
             |   }
             |   return null;
             |}
-        """.trimMargin().keepIndentation()
+        """.trimMargin()
+                .keepIndentation()
     }
 
     private fun responseErrorsDeserialization(statusCode : String, bodyType: VrapType?) : String {

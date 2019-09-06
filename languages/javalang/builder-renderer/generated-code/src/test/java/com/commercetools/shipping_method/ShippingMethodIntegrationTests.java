@@ -20,7 +20,7 @@ public class ShippingMethodIntegrationTests {
     @Test
     public void getById() {
         ShippingMethodFixtures.withShippingMethod(shippingMethod -> {
-            ShippingMethod queriedShippingMethod = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
+            ShippingMethod queriedShippingMethod = CommercetoolsTestUtils.getApiRoot().withProjectKey(CommercetoolsTestUtils.getProjectKey())
                     .shippingMethods()
                     .withId(shippingMethod.getId())
                     .get()
@@ -34,7 +34,7 @@ public class ShippingMethodIntegrationTests {
     @Test
     public void getByKey() {
         ShippingMethodFixtures.withShippingMethod(shippingMethod -> {
-            ShippingMethod queriedShippingMethod = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
+            ShippingMethod queriedShippingMethod = CommercetoolsTestUtils.getApiRoot().withProjectKey(CommercetoolsTestUtils.getProjectKey())
                     .shippingMethods()
                     .withKey(shippingMethod.getKey())
                     .get()
@@ -48,7 +48,7 @@ public class ShippingMethodIntegrationTests {
     @Test
     public void query() {
         ShippingMethodFixtures.withShippingMethod(shippingMethod -> {
-            ShippingMethodPagedQueryResponse response = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
+            ShippingMethodPagedQueryResponse response = CommercetoolsTestUtils.getApiRoot().withProjectKey(CommercetoolsTestUtils.getProjectKey())
                     .shippingMethods()
                     .get()
                     .addWhere("id=" + "\"" + shippingMethod.getId() + "\"")
@@ -66,7 +66,7 @@ public class ShippingMethodIntegrationTests {
             String newKey = CommercetoolsTestUtils.randomKey();
             updateActions.add(ShippingMethodSetKeyActionBuilder.of().key(newKey).build());
 
-            ShippingMethod updatedShippingMethod = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
+            ShippingMethod updatedShippingMethod = CommercetoolsTestUtils.getApiRoot().withProjectKey(CommercetoolsTestUtils.getProjectKey())
                     .shippingMethods()
                     .withId(shippingMethod.getId())
                     .post(ShippingMethodUpdateBuilder.of().actions(updateActions).version(shippingMethod.getVersion()).build())
@@ -86,7 +86,7 @@ public class ShippingMethodIntegrationTests {
             String newKey = CommercetoolsTestUtils.randomKey();
             updateActions.add(ShippingMethodSetKeyActionBuilder.of().key(newKey).build());
 
-            ShippingMethod updatedShippingMethod = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
+            ShippingMethod updatedShippingMethod = CommercetoolsTestUtils.getApiRoot().withProjectKey(CommercetoolsTestUtils.getProjectKey())
                     .shippingMethods()
                     .withKey(shippingMethod.getKey())
                     .post(ShippingMethodUpdateBuilder.of().actions(updateActions).version(shippingMethod.getVersion()).build())
@@ -102,7 +102,7 @@ public class ShippingMethodIntegrationTests {
     @Test
     public void deleteByKey(){
         ShippingMethod shippingMethod = ShippingMethodFixtures.createShippingMethod();
-        ShippingMethod deletedShippingMethod = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
+        ShippingMethod deletedShippingMethod = CommercetoolsTestUtils.getApiRoot().withProjectKey(CommercetoolsTestUtils.getProjectKey())
                 .shippingMethods()
                 .withKey(shippingMethod.getKey())
                 .delete()

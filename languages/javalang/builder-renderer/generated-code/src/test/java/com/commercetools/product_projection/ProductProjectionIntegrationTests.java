@@ -13,7 +13,7 @@ public class ProductProjectionIntegrationTests {
     @Test
     public void getById() {
         ProductFixtures.withProduct(product -> {
-            ProductProjection productProjection = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
+            ProductProjection productProjection = CommercetoolsTestUtils.getApiRoot().withProjectKey(CommercetoolsTestUtils.getProjectKey())
                     .productProjections()
                     .withId(product.getId())
                     .get()
@@ -27,7 +27,7 @@ public class ProductProjectionIntegrationTests {
     @Test
     public void getByKey() {
         ProductFixtures.withProduct(product -> {
-            ProductProjection productProjection = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
+            ProductProjection productProjection = CommercetoolsTestUtils.getApiRoot().withProjectKey(CommercetoolsTestUtils.getProjectKey())
                     .productProjections()
                     .withKey(product.getKey())
                     .get()
@@ -41,7 +41,7 @@ public class ProductProjectionIntegrationTests {
     @Test
     public void query() {
         ProductFixtures.withProduct(product -> {
-            ProductProjectionPagedQueryResponse productProjectionPagedQueryResponse = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
+            ProductProjectionPagedQueryResponse productProjectionPagedQueryResponse = CommercetoolsTestUtils.getApiRoot().withProjectKey(CommercetoolsTestUtils.getProjectKey())
                     .productProjections()
                     .get()
                     .addStaged(true)

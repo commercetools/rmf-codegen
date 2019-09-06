@@ -18,7 +18,7 @@ public class ProjectIntegrationTests {
     @Test
     public void byKeyGet() throws Exception {
         String projectKey = CommercetoolsTestUtils.getProjectKey();
-        Project project = ApiRoot.withProjectKey(projectKey)
+        Project project = CommercetoolsTestUtils.getApiRoot().withProjectKey(projectKey)
                 .get()
                 .executeBlocking();
         Assertions.assertNotNull(project);
@@ -30,7 +30,7 @@ public class ProjectIntegrationTests {
         List<String> countries = Arrays.asList("DE");
         List<ProjectUpdateAction> updateActions = new ArrayList<>();
         updateActions.add(ProjectChangeCountriesActionBuilder.of().countries(countries).build());
-        Project project = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
+        Project project = CommercetoolsTestUtils.getApiRoot().withProjectKey(CommercetoolsTestUtils.getProjectKey())
                 .post(ProjectUpdateBuilder.of().actions(updateActions).build())
                 .executeBlocking();
         System.out.println(project.getCountries());

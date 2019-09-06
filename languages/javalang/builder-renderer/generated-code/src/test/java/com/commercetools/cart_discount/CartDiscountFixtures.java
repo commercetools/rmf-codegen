@@ -37,7 +37,7 @@ public class CartDiscountFixtures {
                 .requiresDiscountCode(true)
                 .build();
 
-        CartDiscount cartDiscount = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
+        CartDiscount cartDiscount = CommercetoolsTestUtils.getApiRoot().withProjectKey(CommercetoolsTestUtils.getProjectKey())
                 .cartDiscounts()
                 .post(cartDiscountDraft)
                 .executeBlocking();
@@ -49,7 +49,7 @@ public class CartDiscountFixtures {
     }
     
     public static CartDiscount deleteCartDiscount(final String id, final Long version) {
-        CartDiscount deletedCartDiscount = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
+        CartDiscount deletedCartDiscount = CommercetoolsTestUtils.getApiRoot().withProjectKey(CommercetoolsTestUtils.getProjectKey())
                 .cartDiscounts()
                 .withId(id)
                 .delete()

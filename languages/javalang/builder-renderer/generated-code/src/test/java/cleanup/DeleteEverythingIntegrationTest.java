@@ -32,7 +32,7 @@ public class DeleteEverythingIntegrationTest {
         CategoryPagedQueryResponse response;
 
         do{
-            response = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
+            response = CommercetoolsTestUtils.getApiRoot().withProjectKey(CommercetoolsTestUtils.getProjectKey())
                     .categories()
                     .get()
                     .executeBlocking();
@@ -47,7 +47,7 @@ public class DeleteEverythingIntegrationTest {
         CartDiscountPagedQueryResponse response;
 
         do{
-            response = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
+            response = CommercetoolsTestUtils.getApiRoot().withProjectKey(CommercetoolsTestUtils.getProjectKey())
                     .cartDiscounts()
                     .get()
                     .executeBlocking();
@@ -62,7 +62,7 @@ public class DeleteEverythingIntegrationTest {
         InventoryPagedQueryResponse response;
 
         do{
-            response = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
+            response = CommercetoolsTestUtils.getApiRoot().withProjectKey(CommercetoolsTestUtils.getProjectKey())
                     .inventory()
                     .get()
                     .executeBlocking();
@@ -77,7 +77,7 @@ public class DeleteEverythingIntegrationTest {
         ProductPagedQueryResponse response;
 
         do{
-            response = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
+            response = CommercetoolsTestUtils.getApiRoot().withProjectKey(CommercetoolsTestUtils.getProjectKey())
                     .products()
                     .get()
                     .executeBlocking();
@@ -92,7 +92,7 @@ public class DeleteEverythingIntegrationTest {
         ProductDiscountPagedQueryResponse response;
 
         do{
-            response = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
+            response = CommercetoolsTestUtils.getApiRoot().withProjectKey(CommercetoolsTestUtils.getProjectKey())
                     .productDiscounts()
                     .get()
                     .executeBlocking();
@@ -107,7 +107,7 @@ public class DeleteEverythingIntegrationTest {
         ProductTypePagedQueryResponse response;
 
         do{
-            response = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
+            response = CommercetoolsTestUtils.getApiRoot().withProjectKey(CommercetoolsTestUtils.getProjectKey())
                     .productTypes()
                     .get()
                     .executeBlocking();
@@ -122,7 +122,7 @@ public class DeleteEverythingIntegrationTest {
        ReviewPagedQueryResponse response;
 
         do{
-            response = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
+            response = CommercetoolsTestUtils.getApiRoot().withProjectKey(CommercetoolsTestUtils.getProjectKey())
                     .reviews()
                     .get()
                     .executeBlocking();
@@ -137,7 +137,7 @@ public class DeleteEverythingIntegrationTest {
         TaxCategoryPagedQueryResponse response;
         
         do{
-            response = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
+            response = CommercetoolsTestUtils.getApiRoot().withProjectKey(CommercetoolsTestUtils.getProjectKey())
                     .taxCategories()
                     .get()
                     .executeBlocking();
@@ -152,7 +152,7 @@ public class DeleteEverythingIntegrationTest {
         DiscountCodePagedQueryResponse response;
 
         do{
-            response = ApiRoot.withProjectKey(CommercetoolsTestUtils.getProjectKey())
+            response = CommercetoolsTestUtils.getApiRoot().withProjectKey(CommercetoolsTestUtils.getProjectKey())
                     .discountCodes()
                     .get()
                     .executeBlocking();
