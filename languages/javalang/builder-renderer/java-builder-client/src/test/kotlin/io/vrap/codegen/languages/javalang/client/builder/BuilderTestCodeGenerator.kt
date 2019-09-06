@@ -22,6 +22,7 @@ class BuilderTestCodeGenerator {
 
     companion object {
         private val userProvidedPath = System.getenv("TEST_RAML_FILE")
+        private val generatedCodePath = System.getenv("GENERATED_CODE_PATH")
         private val apiPath : Path = Paths.get(if (userProvidedPath == null) "../api-spec/api.raml" else userProvidedPath)
         val apiProvider: ApiProvider = ApiProvider(apiPath)
         val generatorConfig = CodeGeneratorConfig(basePackageName = "com/commercetools/test")
@@ -60,7 +61,7 @@ class BuilderTestCodeGenerator {
     @Ignore
     @Test
     fun generateJavaCompleteModule() {
-        val generatorConfig = CodeGeneratorConfig(basePackageName = "com.commercetools", outputFolder = Paths.get("../generated-code/src/main/java"))
+        val generatorConfig = CodeGeneratorConfig(basePackageName = "com.commercetools", outputFolder = Paths.get(generatedCodePath))
         val generatorModule = GeneratorModule(apiProvider, generatorConfig, JavaBaseTypes)
         val generatorComponent = GeneratorComponent(generatorModule, JavaCompleteModule)
         generatorComponent.generateFiles()
