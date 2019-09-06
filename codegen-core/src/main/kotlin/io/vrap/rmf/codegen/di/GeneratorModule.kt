@@ -93,6 +93,11 @@ class GeneratorModule constructor(
 
     @Provides
     @Singleton
+    @ApiGitHash
+    fun provideGitHash(): String = apiProvider.gitHash
+
+    @Provides
+    @Singleton
     fun allAnyTypes(ramlApi: Api): List<AnyType> {
         val result = mutableListOf<AnyType>()
         ramlApi.types?.forEach { result.add(it) }

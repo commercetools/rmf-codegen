@@ -5,11 +5,21 @@ import io.vrap.rmf.raml.model.modules.Api
 import org.eclipse.emf.common.util.URI
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.io.IOException
 import java.nio.file.Path
 
 class ApiProvider constructor(private val ramlFileLocation: Path) {
 
     private val logger : Logger = LoggerFactory.getLogger(ApiProvider::class.java)
+
+    val gitHash: String by lazy {
+        try {
+            Runtime.getRuntime().exec("git -C ${ramlFileLocation.parent} rev-parse HEAD").inputStream.bufferedReader().readLine().orEmpty()
+        } catch (e: IOException) {
+            logger.info("Couldn't retrieve git hash for {}", ramlFileLocation.parent, e)
+            ""
+        }
+    }
 
     val api: Api by lazy {
         val fileURI = URI.createURI(ramlFileLocation.toUri().toString())
