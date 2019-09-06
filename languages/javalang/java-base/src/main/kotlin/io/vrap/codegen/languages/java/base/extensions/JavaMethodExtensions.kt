@@ -6,6 +6,9 @@ import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.resources.Method
 
 fun Method.javaReturnType(vrapTypeProvider: VrapTypeProvider) : String {
-    val commandReturnType = vrapTypeProvider.doSwitch(this.returnType()) as VrapObjectType
-    return "${commandReturnType.`package`}.${commandReturnType.simpleClassName}"
+    val returnType = vrapTypeProvider.doSwitch(this.returnType())
+    if(returnType is VrapObjectType) {
+        return "${returnType.`package`.toJavaPackage()}.${returnType.simpleClassName}"
+    }
+    return "com.fasterxml.jackson.databind.JsonNode"
 }

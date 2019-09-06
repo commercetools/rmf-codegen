@@ -1,5 +1,7 @@
 package client;
 
+import java.util.HashMap;
+
 public class ApiHttpRequest {
     
     private ApiHttpMethod method;
@@ -40,6 +42,13 @@ public class ApiHttpRequest {
 
     public void setHeaders(ApiHttpHeaders headers) {
         this.headers = headers;
+    }
+
+    public void addHeader(String key,String value) {
+        if(this.headers == null){
+            this.headers = new ApiHttpHeaders();
+        }
+        this.headers.addHeader(key,value);
     }
 
     public String getBody() {

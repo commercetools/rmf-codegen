@@ -2,10 +2,12 @@ package io.vrap.codegen.languages.extensions
 
 import com.damnhandy.uri.template.Expression
 import com.damnhandy.uri.template.UriTemplate
+import io.vrap.rmf.codegen.types.VrapType
 import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.responses.Response
 import io.vrap.rmf.raml.model.types.AnyType
+import io.vrap.rmf.raml.model.types.NilType
 import io.vrap.rmf.raml.model.types.impl.TypesFactoryImpl
 import io.vrap.rmf.raml.model.util.StringCaseFormat
 import java.util.stream.Collectors
@@ -39,6 +41,14 @@ fun Method.returnType(): AnyType {
             ?.let { it.bodies[0].type }
             ?: TypesFactoryImpl.eINSTANCE.createNilType()
 }
+
+fun Method.hasReturnPayload(): Boolean = this.returnType() !is NilType
+
+fun Method.hasBody(): Boolean = this.bodies.filter { it.type != null }.isNotEmpty()
+
+fun Method.hasQueryParams() = this.queryParameters.isNotEmpty()
+
+fun Method.hasPathParams() = this.resource().fullUri.variables.isNotEmpty()
 
 fun Response.isSuccessfull(): Boolean = this.statusCode.toInt() in (200..299)
 

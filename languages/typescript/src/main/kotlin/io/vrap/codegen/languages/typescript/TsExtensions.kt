@@ -4,10 +4,17 @@ package io.vrap.codegen.languages.typescript
 import io.vrap.codegen.languages.extensions.resource
 import io.vrap.codegen.languages.extensions.toRequestName
 import io.vrap.codegen.languages.extensions.toResourceName
+import io.vrap.codegen.languages.typescript.joi.simpleJoiName
+import io.vrap.codegen.languages.typescript.model.simpleTSName
+import io.vrap.rmf.codegen.types.VrapArrayType
+import io.vrap.rmf.codegen.types.VrapLibraryType
 import io.vrap.rmf.codegen.types.VrapObjectType
+import io.vrap.rmf.codegen.types.VrapType
 import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Resource
+import io.vrap.rmf.raml.model.resources.ResourceContainer
 import io.vrap.rmf.raml.model.types.StringType
+import java.lang.Error
 import java.nio.file.Path
 import java.nio.file.Paths
 
@@ -58,3 +65,32 @@ fun relativizePaths(currentModule: String, targetModule: String): String {
     val targetRelative: Path = Paths.get(targetModule)
     return "./" + currentRelative.relativize(targetRelative).toString().replaceFirst("../", "")
 }
+
+fun VrapType.toImportStatement(moduleName:String):String {
+    return when (this) {
+        is VrapLibraryType -> "import { ${this.simpleClassName} } from '${this.`package`}'"
+        is VrapObjectType -> {
+            val relativePath = relativizePaths(moduleName, this.`package`)
+            "import { ${this.simpleTSName()} } from '$relativePath'"
+        }
+        is VrapArrayType -> {
+            val objType = this.itemType as VrapObjectType
+            val relativePath = relativizePaths(moduleName, objType.`package`)
+            return "import { ${objType.simpleTSName()} } from '$relativePath'"
+        }
+        else -> throw Error("not supposed to arrive here")
+    }
+}
+
+fun ResourceContainer.allMethods(): List<Method> = this
+        .allContainedResources
+        .flatMap {
+            it.methods
+        }
+
+fun Method.toParamName() = "${this.toRequestName()}Parameter"
+fun Method.toResponseName() = "${this.toRequestName()}Response"
+fun Method.toHandlerName() = "${this.toRequestName()}Handler"
+
+fun String.toJoiPackageName() = "${this}-types"
+fun VrapObjectType.toJoiVrapType(): VrapObjectType = VrapObjectType(`package`= this.`package`.toJoiPackageName(), simpleClassName = this.simpleJoiName())
