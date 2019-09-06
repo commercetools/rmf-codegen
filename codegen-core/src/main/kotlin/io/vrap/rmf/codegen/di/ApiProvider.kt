@@ -14,8 +14,9 @@ class ApiProvider constructor(private val ramlFileLocation: Path) {
 
     val gitHash: String by lazy {
         try {
-            Runtime.getRuntime().exec("git -C ${ramlFileLocation.parent} rev-parse HEAD").inputStream.bufferedReader().readLine()
+            Runtime.getRuntime().exec("git -C ${ramlFileLocation.parent} rev-parse HEAD").inputStream.bufferedReader().readLine().orEmpty()
         } catch (e: IOException) {
+            logger.info("Couldn't retrieve git hash for {}", ramlFileLocation.parent, e)
             ""
         }
     }
