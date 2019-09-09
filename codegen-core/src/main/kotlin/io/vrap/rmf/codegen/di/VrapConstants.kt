@@ -50,4 +50,13 @@ annotation class BasePackageName
         AnnotationTarget.VALUE_PARAMETER,
         AnnotationTarget.FUNCTION)
 @Retention(AnnotationRetention.RUNTIME)
+annotation class ApiGitHash
+
+
+@BindingAnnotation
+@Target(AnnotationTarget.FIELD,
+        AnnotationTarget.TYPE_PARAMETER,
+        AnnotationTarget.VALUE_PARAMETER,
+        AnnotationTarget.FUNCTION)
+@Retention(AnnotationRetention.RUNTIME)
 annotation class SharedPackageName

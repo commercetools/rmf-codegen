@@ -2,7 +2,11 @@ package io.vrap.rmf.codegen.rendring
 
 import com.google.inject.Inject
 import io.vrap.rmf.codegen.common.generator.core.ResourceCollection
+import io.vrap.rmf.codegen.di.ApiGitHash
+import io.vrap.rmf.codegen.di.ApiProvider
+import io.vrap.rmf.codegen.di.GeneratorModule
 import io.vrap.rmf.codegen.io.DataSink
+import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.types.ObjectType
@@ -37,6 +41,10 @@ class CoreCodeGenerator @Inject constructor(val dataSink: DataSink,
     @Inject(optional = true)
     lateinit var fileProducers: MutableSet<FileProducer>
 
+    @Inject(optional = true)
+    @ApiGitHash
+    lateinit var gitHash: String
+
     fun generate() {
 
         if(dataSink.clean()){
@@ -44,6 +52,10 @@ class CoreCodeGenerator @Inject constructor(val dataSink: DataSink,
         } else {
             LOGGER.info("data sink cleanup unsuccessful")
         }
+
+        dataSink.write(TemplateFile( relativePath = "gen.properties", content = """
+            hash=${gitHash}
+        """.trimIndent()))
 
         if (::objectTypeGenerators.isInitialized) {
             LOGGER.info("generating files for object types")
