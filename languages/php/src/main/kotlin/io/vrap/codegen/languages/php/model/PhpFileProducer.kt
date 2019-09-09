@@ -34,14 +34,17 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
             config(api),
             authConfig(api),
             clientCredentialsConfig(api),
-            composerJson()
+            composerJson(),
+            psalm()
     )
 
     private fun composerJson(): TemplateFile {
+        val vendorName = sharedPackageName.toLowerCase();
+        val composerPackageName = packagePrefix.replace(sharedPackageName, "").trim('/').toLowerCase()
         return TemplateFile(relativePath = "composer.json",
                 content = """
                     |{
-                    |  "name": "commercetools/raml-sdk",
+                    |  "name": "${vendorName}/raml-sdk-${composerPackageName}",
                     |  "license": "MIT",
                     |  "type": "library",
                     |  "description": "",
@@ -69,7 +72,8 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |    "psr/log": "^1.0",
                     |    "psr/http-client": "^1.0",
                     |    "psr/http-message": "^1.0",
-                    |    "cache/filesystem-adapter": "^1.0"
+                    |    "cache/filesystem-adapter": "^1.0",
+                    |    "${vendorName}/raml-base": "@dev"
                     |  },
                     |  "require-dev": {
                     |    "monolog/monolog": "^1.3",
@@ -77,9 +81,38 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |    "vimeo/psalm": "^3.4",
                     |    "cache/array-adapter": "^1.0",
                     |    "squizlabs/php_codesniffer": "^3.0"
-                    |  }
+                    |  },
+                    |  "repositories": [
+                    |    {
+                    |      "type": "path",
+                    |      "url": "../../../build/gensrc/commercetools-raml-base"
+                    |    }
+                    |  ]
                     |}
                 """.trimMargin())
+    }
+
+    private fun psalm(): TemplateFile {
+        return TemplateFile(relativePath = "psalm.xml",
+                content = """
+                    |<?xml version="1.0"?>
+                    |<psalm
+                    |    totallyTyped="true"
+                    |    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                    |    xmlns="https://getpsalm.org/schema/config"
+                    |    xsi:schemaLocation="https://getpsalm.org/schema/config vendor/vimeo/psalm/config.xsd"
+                    |
+                    |    strictBinaryOperands="true"
+                    |>
+                    |    <projectFiles>
+                    |        <directory name="src" />
+                    |        <ignoreFiles>
+                    |            <directory name="vendor" />
+                    |        </ignoreFiles>
+                    |    </projectFiles>
+                    |</psalm>
+                """.trimMargin()
+        )
     }
 
     private fun config(api: Api): TemplateFile {
@@ -119,7 +152,7 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |        return $!this->apiUri;
                     |    }
                     |
-                    |    public function setApiUri(string $!apiUri): Config
+                    |    public function setApiUri(string $!apiUri): BaseConfig
                     |    {
                     |        $!this->apiUri = $!apiUri;
                     |        return $!this;
@@ -130,7 +163,7 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |        return $!this->clientOptions;
                     |    }
                     |
-                    |    public function setClientOptions(array $!options): Config
+                    |    public function setClientOptions(array $!options): BaseConfig
                     |    {
                     |        $!this->clientOptions = $!options;
                     |        return $!this;
@@ -172,6 +205,8 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |{
                     |    const AUTH_URI = '${api.authUri()}';
                     |
+                    |    const GRANT_TYPE = '';
+                    |    
                     |    /** @var string */
                     |    private $!authUri;
                     |
@@ -197,7 +232,7 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |        return $!this->authUri;
                     |    }
                     |
-                    |    public function setAuthUri(string $!authUri): AuthConfig
+                    |    public function setAuthUri(string $!authUri): BaseAuthConfig
                     |    {
                     |        $!this->authUri = $!authUri;
                     |        return $!this;
@@ -208,7 +243,7 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |        return $!this->clientOptions;
                     |    }
                     |
-                    |    public function setClientOptions(array $!options): AuthConfig
+                    |    public function setClientOptions(array $!options): BaseAuthConfig
                     |    {
                     |        $!this->clientOptions = $!options;
                     |        return $!this;
@@ -241,6 +276,8 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |{
                     |    const AUTH_URI = '${api.authUri()}';
                     |
+                    |    const GRANT_TYPE = 'client_credentials';
+                    |
                     |    /** @var string */
                     |    private $!clientId;
                     |
@@ -271,13 +308,13 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |        return $!this->scope;
                     |    }
                     |
-                    |    public function setScope(string $!scope = null): ClientCredentialsConfig
+                    |    public function setScope(string $!scope = null): BaseClientCredentialsConfig
                     |    {
                     |        $!this->scope = $!scope;
                     |        return $!this;
                     |    }
                     |
-                    |    public function setClientId(string $!clientId): ClientCredentialsConfig
+                    |    public function setClientId(string $!clientId): BaseClientCredentialsConfig
                     |    {
                     |        $!this->clientId = $!clientId;
                     |        return $!this;
@@ -288,7 +325,7 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |        return $!this->clientSecret;
                     |    }
                     |
-                    |    public function setClientSecret(string $!clientSecret): ClientCredentialsConfig
+                    |    public function setClientSecret(string $!clientSecret): BaseClientCredentialsConfig
                     |    {
                     |        $!this->clientSecret = $!clientSecret;
                     |        return $!this;

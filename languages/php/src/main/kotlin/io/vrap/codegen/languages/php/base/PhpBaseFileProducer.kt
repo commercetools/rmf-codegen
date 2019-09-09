@@ -275,7 +275,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |class JsonObjectModel extends BaseJsonObject implements JsonObject
                     |{
                     |    /**
-                    |     * @psalm-return scalar|array<int, mixed>|JsonObject|JsonObjectCollection|null
+                    |     * @psalm-return scalar|array<int|string, mixed>|JsonObject|JsonObjectCollection|null
                     |     */
                     |    final public function get(string $!field)
                     |    {
@@ -324,7 +324,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |interface JsonObject extends \JsonSerializable
                     |{
                     |    /**
-                    |     * @psalm-return scalar|array<int, mixed>|JsonObject|JsonObjectCollection|null
+                    |     * @psalm-return scalar|array<int|string, mixed>|JsonObject|JsonObjectCollection|null
                     |     */
                     |    public function get(string $!field);
                     |    
@@ -398,12 +398,15 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |    }
                     |
                     |    /**
-                    |     * @psalm-return scalar|array<int, mixed>|stdClass|null
+                    |     * @psalm-return scalar|array<int, mixed>|array<string, mixed>|stdClass|null
                     |     */
                     |    final protected function raw(string $!field)
                     |    {
                     |        if (isset($!this->rawData->$!field)) {
-                    |            /** @psalm-suppress PossiblyNullPropertyFetch */
+                    |            /**
+                    |             * @psalm-suppress PossiblyNullPropertyFetch
+                    |             * @psalm-var scalar|array<int, mixed>|array<string, mixed>|stdClass|null
+                    |             */
                     |            return $!this->rawData->$!field;
                     |        }
                     |        return null;
@@ -509,7 +512,6 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |       Config $!config,
                     |       array $!middlewares = []): HttpClient
                     |    {
-                    |        $!config = $!this->createConfig($!config);
                     |        return $!this->createGuzzle6Client($!config->getOptions(), $!middlewares);
                     |    }
                     |
@@ -600,7 +602,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
         return TemplateFile(relativePath = "composer.json",
                 content = """
                     |{
-                    |  "name": "commercetools/raml-base",
+                    |  "name": "${packagePrefix.toLowerCase()}/raml-base",
                     |  "license": "MIT",
                     |  "type": "library",
                     |  "description": "",
@@ -1734,7 +1736,6 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |    const CLIENT_ID = 'clientId';
                     |    const CLIENT_SECRET = 'clientSecret';
                     |    const SCOPE = 'scope';
-                    |    const GRANT_TYPE = 'client_credentials';
                     |
                     |    public function getClientId(): string;
                     |
