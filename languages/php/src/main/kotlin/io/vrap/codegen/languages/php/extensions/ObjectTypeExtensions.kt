@@ -1,6 +1,7 @@
 package io.vrap.codegen.languages.php.extensions
 
 import io.vrap.codegen.languages.extensions.ExtensionsBase
+import io.vrap.rmf.codegen.di.BasePackageName
 import io.vrap.rmf.codegen.types.*
 import io.vrap.rmf.raml.model.types.ObjectType
 import io.vrap.rmf.raml.model.types.Property

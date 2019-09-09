@@ -25,6 +25,7 @@ open class Target constructor(val name: String){
 
     var path : File? = null
     var models_package: String? = null
+    var shared_package: String? = null
     var base_package: String? = null
     var client_package: String? = null
     var target: TargetType? = null

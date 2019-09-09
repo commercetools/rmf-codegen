@@ -5,6 +5,7 @@ import io.vrap.codegen.languages.extensions.isPatternProperty
 import io.vrap.codegen.languages.php.PhpSubTemplates
 import io.vrap.codegen.languages.php.extensions.*
 import io.vrap.rmf.codegen.di.BasePackageName
+import io.vrap.rmf.codegen.di.SharedPackageName
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.ObjectTypeRenderer
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
@@ -21,7 +22,11 @@ class PhpInterfaceObjectTypeRenderer @Inject constructor(override val vrapTypePr
 
     @Inject
     @BasePackageName
-    lateinit var packagePrefix:String
+    lateinit var basePackagePrefix:String
+
+    @Inject
+    @SharedPackageName
+    lateinit var sharedPackageName: String
 
     override fun render(type: ObjectType): TemplateFile {
 
@@ -37,7 +42,7 @@ class PhpInterfaceObjectTypeRenderer @Inject constructor(override val vrapTypePr
 
 
         return TemplateFile(
-                relativePath = "src/" + vrapType.fullClassName().replace(packagePrefix.toNamespaceName(), "").replace("\\", "/") + ".php",
+                relativePath = "src/" + vrapType.fullClassName().replace(basePackagePrefix.toNamespaceName(), "").replace("\\", "/") + ".php",
                 content = content
         )
     }
@@ -50,7 +55,7 @@ class PhpInterfaceObjectTypeRenderer @Inject constructor(override val vrapTypePr
             |${PhpSubTemplates.generatorInfo}
             |namespace ${vrapType.namespaceName().escapeAll()};
             |
-            |use ${packagePrefix.toNamespaceName().escapeAll()}\\Base\\Collection;
+            |use ${sharedPackageName.toNamespaceName().escapeAll()}\\Base\\Collection;
             |
             |interface ${vrapType.simpleClassName} extends Collection
             |{
@@ -66,7 +71,7 @@ class PhpInterfaceObjectTypeRenderer @Inject constructor(override val vrapTypePr
             |${PhpSubTemplates.generatorInfo}
             |namespace ${vrapType.namespaceName().escapeAll()};
             |
-            |use ${packagePrefix.toNamespaceName().escapeAll()}\\Base\\JsonObject;
+            |use ${sharedPackageName.toNamespaceName().escapeAll()}\\Base\\JsonObject;
             |<<${type.imports()}>>
             |
             |interface ${vrapType.simpleClassName} ${type.type?.toVrapType()?.simpleName()?.let { "extends $it" } ?: "extends JsonObject"}

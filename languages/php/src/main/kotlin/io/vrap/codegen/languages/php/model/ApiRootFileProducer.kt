@@ -3,6 +3,7 @@ package io.vrap.codegen.languages.php.model
 import com.google.inject.Inject
 import io.vrap.codegen.languages.php.PhpSubTemplates
 import io.vrap.codegen.languages.php.extensions.forcedLiteralEscape
+import io.vrap.codegen.languages.php.extensions.toNamespaceDir
 import io.vrap.codegen.languages.php.extensions.toNamespaceName
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.FileProducer
@@ -18,15 +19,16 @@ class ApiRootFileProducer @Inject constructor(api: Api, vrapTypeProvider: VrapTy
     )
 
     fun produceApiRoot(type: Api): TemplateFile {
-        return TemplateFile(relativePath = "src/Client/ApiRoot.php",
+        return TemplateFile(relativePath = "src/${clientPackageName.replace(basePackagePrefix, "").toNamespaceDir()}/ApiRoot.php",
                 content = """
                     |<?php
                     |${PhpSubTemplates.generatorInfo}
                     |
-                    |namespace ${packagePrefix.toNamespaceName().escapeAll()}\\Client;
+                    |namespace ${clientPackageName.toNamespaceName().escapeAll()};
                     |
                     |<<${type.imports()}>>
                     |use GuzzleHttp\\Client;
+                    |use ${sharedPackageName.toNamespaceName()}\\Client\\ApiResource;
                     |
                     |class ApiRoot extends ApiResource
                     |{

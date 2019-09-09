@@ -15,12 +15,17 @@
   },
   "require": {
     "commercetools/raml-sdk": "@dev",
+    "commercetools/raml-base": "@dev",
     "monolog/monolog": "^1.3"
   },
   "repositories": [
     {
       "type": "path",
       "url": "../../../build/gensrc/commercetools-raml-sdk"
+    },
+    {
+      "type": "path",
+      "url": "../../../build/gensrc/commercetools-raml-base"
     }
   ]
 }

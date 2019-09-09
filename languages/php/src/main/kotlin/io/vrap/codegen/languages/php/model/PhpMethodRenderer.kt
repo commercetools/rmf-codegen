@@ -2,10 +2,11 @@ package io.vrap.codegen.languages.php.model
 
 import com.google.common.net.MediaType
 import com.google.inject.Inject
-import com.google.inject.name.Named
 import io.vrap.codegen.languages.php.PhpSubTemplates
 import io.vrap.codegen.languages.php.extensions.*
 import io.vrap.rmf.codegen.di.BasePackageName
+import io.vrap.rmf.codegen.di.ClientPackageName
+import io.vrap.rmf.codegen.di.SharedPackageName
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.MethodRenderer
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
@@ -19,13 +20,20 @@ import io.vrap.rmf.raml.model.types.*
 import io.vrap.rmf.raml.model.types.impl.TypesFactoryImpl
 import io.vrap.rmf.raml.model.util.StringCaseFormat
 import org.eclipse.emf.ecore.EObject
-import javax.management.Query
 
 class PhpMethodRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : MethodRenderer, EObjectTypeExtensions {
 
     @Inject
     @BasePackageName
-    lateinit var packagePrefix:String
+    lateinit var basePackagePrefix:String
+
+    @Inject
+    @SharedPackageName
+    lateinit var sharedPackageName: String
+
+    @Inject
+    @ClientPackageName
+    lateinit var clientPackageName: String
 
     private val resourcePackage = "Resource";
 
@@ -35,8 +43,8 @@ class PhpMethodRenderer @Inject constructor(override val vrapTypeProvider: VrapT
         val resultTypes = type.responses.asSequence().filter { it.bodies.asSequence().filter { body -> MediaType.JSON_UTF_8.`is`(body.contentMediaType) }.toList().isNotEmpty() };
         val importTypes = resultTypes.map { response -> "use ${response.bodies.asSequence().filter { body -> MediaType.JSON_UTF_8.`is`(body.contentMediaType) }.first().returnType().returnTypeModelFullClass().escapeAll()};" }
                 .plus(resultTypes.map { response -> "use ${response.bodies.asSequence().filter { body -> MediaType.JSON_UTF_8.`is`(body.contentMediaType) }.first().returnType().returnTypeFullClass().escapeAll()};" })
-                .plus("use ${packagePrefix.toNamespaceName()}\\Base\\JsonObject;".escapeAll())
-                .plus("use ${packagePrefix.toNamespaceName()}\\Base\\JsonObjectModel;".escapeAll())
+                .plus("use ${sharedPackageName.toNamespaceName()}\\Base\\JsonObject;".escapeAll())
+                .plus("use ${sharedPackageName.toNamespaceName()}\\Base\\JsonObjectModel;".escapeAll())
                 .distinct().sorted()
         val returnTypes = resultTypes.map { response -> response.bodies.asSequence().filter { body -> MediaType.JSON_UTF_8.`is`(body.contentMediaType) }.first().returnType().returnTypeClass() }
                 .plus("JsonObject")
@@ -46,17 +54,17 @@ class PhpMethodRenderer @Inject constructor(override val vrapTypeProvider: VrapT
         val content = """
             |<?php
             |${PhpSubTemplates.generatorInfo}
-            |namespace ${vrapType.`package`.toNamespaceName().escapeAll()}\\$resourcePackage;
+            |namespace ${clientPackageName.toNamespaceName().escapeAll()}\\$resourcePackage;
             |
             |use GuzzleHttp\\Client;
             |use GuzzleHttp\\Exception\\ServerException;
             |use GuzzleHttp\\Exception\\ClientException;
-            |use ${packagePrefix.toNamespaceName().escapeAll()}\\Base\\MapperInterface;
-            |use ${packagePrefix.toNamespaceName().escapeAll()}\\Base\\ResultMapper;
-            |use ${packagePrefix.toNamespaceName().escapeAll()}\\Exception\\InvalidArgumentException;
-            |use ${packagePrefix.toNamespaceName().escapeAll()}\\Exception\\ApiServerException;
-            |use ${packagePrefix.toNamespaceName().escapeAll()}\\Exception\\ApiClientException;
-            |use ${vrapType.`package`.toNamespaceName().escapeAll()}\\ApiRequest;
+            |use ${sharedPackageName.toNamespaceName().escapeAll()}\\Base\\MapperInterface;
+            |use ${sharedPackageName.toNamespaceName().escapeAll()}\\Base\\ResultMapper;
+            |use ${sharedPackageName.toNamespaceName().escapeAll()}\\Exception\\InvalidArgumentException;
+            |use ${sharedPackageName.toNamespaceName().escapeAll()}\\Exception\\ApiServerException;
+            |use ${sharedPackageName.toNamespaceName().escapeAll()}\\Exception\\ApiClientException;
+            |use ${sharedPackageName.toNamespaceName().escapeAll()}\\Client\\ApiRequest;
             |${importTypes.joinToString("\n")}
             |${if (type.firstBody()?.type is FileType) "use Psr\\Http\\Message\\UploadedFileInterface;".escapeAll() else ""}
             |use Psr\\Http\\Message\\ResponseInterface;
@@ -122,7 +130,7 @@ class PhpMethodRenderer @Inject constructor(override val vrapTypeProvider: VrapT
             |   <<${type.queryParameters.map { it.withParam(type) }.joinToString("\n\n")}>>
             |}
         """.trimMargin().keepIndentation("<<", ">>").forcedLiteralEscape()
-        val relativeTypeNamespace = vrapType.`package`.toNamespaceName().replace(packagePrefix.toNamespaceName() + "\\", "").replace("\\", "/") + "/$resourcePackage"
+        val relativeTypeNamespace = vrapType.`package`.toNamespaceName().replace(basePackagePrefix.toNamespaceName() + "\\", "").replace("\\", "/") + "/$resourcePackage"
         val relativePath = "src/" + relativeTypeNamespace + "/" + type.toRequestName() + ".php"
         return TemplateFile(
                 relativePath = relativePath,
@@ -348,20 +356,20 @@ class PhpMethodRenderer @Inject constructor(override val vrapTypeProvider: VrapT
     fun AnyType.returnTypeFullClass(): String {
         val vrapType = this.toVrapType()
         if (vrapType.isScalar())
-            return "${packagePrefix.toNamespaceName()}\\Base\\JsonObject"
+            return "${sharedPackageName.toNamespaceName()}\\Base\\JsonObject"
         return when (vrapType) {
             is VrapObjectType -> vrapType.fullClassName()
-            else -> "${packagePrefix.toNamespaceName()}\\Base\\JsonObject"
+            else -> "${sharedPackageName.toNamespaceName()}\\Base\\JsonObject"
         }
     }
 
     fun AnyType.returnTypeModelFullClass(): String {
         val vrapType = this.toVrapType()
         if (vrapType.isScalar())
-            return "${packagePrefix.toNamespaceName()}\\Base\\JsonObjectModel"
+            return "${sharedPackageName.toNamespaceName()}\\Base\\JsonObjectModel"
         return when (vrapType) {
             is VrapObjectType -> vrapType.fullClassName() + "Model"
-            else -> "${packagePrefix.toNamespaceName()}\\Base\\JsonObjectModel"
+            else -> "${sharedPackageName.toNamespaceName()}\\Base\\JsonObjectModel"
         }
     }
 
@@ -382,20 +390,20 @@ class PhpMethodRenderer @Inject constructor(override val vrapTypeProvider: VrapT
     fun Method.returnTypeFullClass(): String {
         val vrapType = this.returnType().toVrapType()
         if (vrapType.isScalar())
-            return "${packagePrefix.toNamespaceName()}\\Base\\JsonObject"
+            return "${sharedPackageName.toNamespaceName()}\\Base\\JsonObject"
         return when (vrapType) {
             is VrapObjectType -> vrapType.fullClassName()
-            else -> "${packagePrefix.toNamespaceName()}\\Base\\JsonObject"
+            else -> "${sharedPackageName.toNamespaceName()}\\Base\\JsonObject"
         }
     }
 
     fun Method.returnTypeModelFullClass(): String {
         val vrapType = this.returnType().toVrapType()
         if (vrapType.isScalar())
-            return "${packagePrefix.toNamespaceName()}\\Base\\JsonObjectModel"
+            return "${sharedPackageName.toNamespaceName()}\\Base\\JsonObjectModel"
         return when (vrapType) {
             is VrapObjectType -> vrapType.fullClassName() + "Model"
-            else -> "${packagePrefix.toNamespaceName()}\\Base\\JsonObjectModel"
+            else -> "${sharedPackageName.toNamespaceName()}\\Base\\JsonObjectModel"
         }
     }
 

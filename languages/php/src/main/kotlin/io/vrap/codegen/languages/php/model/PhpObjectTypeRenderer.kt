@@ -6,6 +6,7 @@ import io.vrap.codegen.languages.php.PhpBaseTypes
 import io.vrap.codegen.languages.php.PhpSubTemplates
 import io.vrap.codegen.languages.php.extensions.*
 import io.vrap.rmf.codegen.di.BasePackageName
+import io.vrap.rmf.codegen.di.SharedPackageName
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.ObjectTypeRenderer
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
@@ -22,7 +23,12 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
 
     @Inject
     @BasePackageName
-    lateinit var packagePrefix:String
+    lateinit var basePackagePrefix:String
+
+    @Inject
+    @SharedPackageName
+    lateinit var sharedPackageName: String
+
 
     override fun render(type: ObjectType): TemplateFile {
 
@@ -37,7 +43,7 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
 
 
         return TemplateFile(
-                relativePath = "src/" + vrapType.fullClassName().replace(packagePrefix.toNamespaceName(), "").replace("\\", "/") + "Model.php",
+                relativePath = "src/" + vrapType.fullClassName().replace(basePackagePrefix.toNamespaceName(), "").replace("\\", "/") + "Model.php",
                 content = content
         )
     }
@@ -50,7 +56,7 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
             |${PhpSubTemplates.generatorInfo}
             |namespace ${vrapType.namespaceName().escapeAll()};
             |
-            |use ${packagePrefix.toNamespaceName().escapeAll()}\\Base\\MapperMap;
+            |use ${sharedPackageName.toNamespaceName().escapeAll()}\\Base\\MapperMap;
             |
             |final class ${vrapType.simpleClassName}Model extends MapperMap implements ${vrapType.simpleClassName}
             |{
@@ -79,9 +85,9 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
             |${PhpSubTemplates.generatorInfo}
             |namespace ${vrapType.namespaceName().escapeAll()};
             |
-            |use ${packagePrefix.toNamespaceName().escapeAll()}\\Base\\JsonObject;
-            |use ${packagePrefix.toNamespaceName().escapeAll()}\\Base\\JsonObjectModel;
-            |use ${packagePrefix.toNamespaceName().escapeAll()}\\Base\\MapperFactory;
+            |use ${sharedPackageName.toNamespaceName().escapeAll()}\\Base\\JsonObject;
+            |use ${sharedPackageName.toNamespaceName().escapeAll()}\\Base\\JsonObjectModel;
+            |use ${sharedPackageName.toNamespaceName().escapeAll()}\\Base\\MapperFactory;
             |use stdClass;
             |
             |<<${type.imports()}>>

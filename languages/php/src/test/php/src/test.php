@@ -1,7 +1,7 @@
 <?php
 declare(strict_types = 1);
 
-namespace Commercetools\Importer\Models\Product {
+namespace Commercetools\Api\Models\Product {
     function allVariants(ProductData $data)
     {
         $data = array_merge(
@@ -12,53 +12,27 @@ namespace Commercetools\Importer\Models\Product {
     }
 }
 
-namespace Commercetools {
+namespace Test {
 
-    use Cache\Adapter\Filesystem\FilesystemCachePool;
-    use Commercetools\Importer\Base\ResultMapper;
-    use Commercetools\Importer\Client\ApiRoot;
-    use Commercetools\Importer\Client\CachedTokenProvider;
-    use Commercetools\Importer\Client\ClientCredentialsConfig;
-    use Commercetools\Importer\Client\ClientCredentialTokenProvider;
-    use Commercetools\Importer\Client\ClientFactory;
-    use Commercetools\Importer\Client\Config;
-    use Commercetools\Importer\Client\MiddlewareFactory;
-    use Commercetools\Importer\Client\Resource\ResourceByProjectKey;
-    use Commercetools\Importer\Models\Cart\Cart;
-    use Commercetools\Importer\Models\Cart\CartModel;
-    use Commercetools\Importer\Models\Category\CategoryBuilder;
-    use Commercetools\Importer\Models\Category\CategoryDraftBuilder;
-    use Commercetools\Importer\Models\Category\CategoryPagedQueryResponseModel;
-    use Commercetools\Importer\Models\Common\CreatedByBuilder;
-    use Commercetools\Importer\Models\Common\LocalizedStringBuilder;
-    use Commercetools\Importer\Models\Common\LocalizedStringModel;
-    use Commercetools\Importer\Models\Customer\CustomerBuilder;
-    use Commercetools\Importer\Models\Customer\CustomerDraftBuilder;
-    use Commercetools\Importer\Models\Customer\CustomerReferenceBuilder;
-    use Commercetools\Importer\Models\Error\ErrorResponse;
-    use Commercetools\Importer\Models\Error\ErrorResponseModel;
-    use Commercetools\Importer\Models\Product\ProductDraftModel;
-    use Commercetools\Importer\Models\Product\ProductVariantCollection;
-    use Commercetools\Importer\Models\Product\ProductVariantDraftCollection;
-    use Commercetools\Importer\Models\Product\ProductVariantDraftModel;
-    use Commercetools\Importer\Models\Product\ProductVariantModel;
-    use Commercetools\Importer\Models\Type\CustomFields;
-    use Commercetools\Importer\Models\Type\CustomFieldsDraft;
-    use Commercetools\Importer\Models\Type\CustomFieldsDraftBuilder;
-    use Commercetools\Importer\Models\Type\CustomFieldsDraftModel;
-    use Commercetools\Importer\Models\Type\FieldContainer;
-    use Commercetools\Importer\Models\Type\FieldContainerBuilder;
-    use Commercetools\Importer\Models\Type\FieldContainerModel;
-    use function Commercetools\Importer\Models\Product\allVariants;
-    use Commercetools\Importer\Models\Product\ProductDataModel;
-    use Commercetools\Importer\Models\Product\ProductProjectionPagedSearchResponse;
-    use Commercetools\Importer\Models\Product\ProductProjectionPagedSearchResponseModel;
-    use Commercetools\Importer\Models\Project\ProjectModel;
-    use GuzzleHttp\Client;
+    use Commercetools\Api\Client\ApiRoot;
+    use Commercetools\Api\Client\ClientCredentialsConfig;
+    use Commercetools\Api\Client\Config;
+    use Commercetools\Api\Models\Cart\CartModel;
+    use Commercetools\Api\Models\Category\CategoryPagedQueryResponseModel;
+    use Commercetools\Api\Models\Common\LocalizedStringModel;
+    use Commercetools\Api\Models\Product\ProductDraftModel;
+    use Commercetools\Api\Models\Product\ProductVariantDraftModel;
+    use Commercetools\Api\Models\Project\ProjectModel;
+    use Commercetools\Base\ResultMapper;
+    use Commercetools\Client\ClientFactory;
+    use Commercetools\Client\MiddlewareFactory;
+    use Commercetools\Api\Models\Category\CategoryDraftBuilder;
+    use Commercetools\Api\Models\Product\ProductVariantDraftCollection;
+    use Commercetools\Api\Models\Type\CustomFieldsDraftBuilder;
+    use Commercetools\Api\Models\Type\FieldContainerBuilder;
+    use Commercetools\Api\Models\Type\FieldContainerModel;
     use GuzzleHttp\HandlerStack;
     use GuzzleHttp\Psr7\Response;
-    use League\Flysystem\Adapter\Local;
-    use League\Flysystem\Filesystem;
     use Monolog\Handler\StreamHandler;
     use Monolog\Logger;
 
@@ -78,6 +52,7 @@ namespace Commercetools {
     $logger = new Logger('client', [new StreamHandler('./logs/requests.log')]);
 
     $client = ClientFactory::of()->createGuzzleClient(
+        new Config(),
         $authConfig,
         $logger
     );
@@ -91,7 +66,7 @@ namespace Commercetools {
 //    $config,
 //    [
 //        'oauth' => MiddlewareFactory::createOAuthMiddlewareForProvider(
-//            new RawTokenProvider(new TokenModel(''))
+//            new RawTokenProvider(new TokenModels(''))
 //        ),
 //        'logger' => MiddlewareFactory::createLoggerMiddleware(new Logger('client', [new StreamHandler('./logs/requests.log')]))
 //    ]
@@ -111,7 +86,7 @@ namespace Commercetools {
     var_dump($project);
     var_dump(json_encode($project));
 
-//$project = new ProjectModel();
+//$project = new ProjectModels();
 //var_dump($project);
 //var_dump($project->getKey());
 
@@ -210,5 +185,5 @@ namespace Commercetools {
     var_dump(json_encode($c2));
 //    allVariants($t);
 
-//    var_dump((new CartModel())->use());
+//    var_dump((new CartModels())->use());
 }

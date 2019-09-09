@@ -1,29 +1,25 @@
 package io.vrap.codegen.languages.php.model;
 
 import com.google.inject.Inject
-import com.google.inject.name.Named
-import io.vrap.codegen.languages.php.PhpBaseTypes
 import io.vrap.codegen.languages.php.PhpSubTemplates
 import io.vrap.codegen.languages.php.extensions.*
 import io.vrap.rmf.codegen.di.BasePackageName
+import io.vrap.rmf.codegen.di.SharedPackageName
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.ObjectTypeRenderer
-import io.vrap.rmf.codegen.rendring.utils.escapeAll
-import io.vrap.rmf.codegen.types.VrapEnumType
 import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
-import io.vrap.rmf.raml.model.types.ArrayType
 import io.vrap.rmf.raml.model.types.ObjectType
-import io.vrap.rmf.raml.model.types.Property
-import io.vrap.rmf.raml.model.types.util.TypesSwitch
-import org.eclipse.emf.ecore.EObject
-import java.util.*
 
 class PhpCollectionRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : ObjectTypeExtensions, EObjectTypeExtensions, ObjectTypeRenderer {
 
     @Inject
     @BasePackageName
-    lateinit var packagePrefix:String
+    lateinit var basePackagePrefix:String
+
+    @Inject
+    @SharedPackageName
+    lateinit var sharedPackageName: String
 
     override fun render(type: ObjectType): TemplateFile {
 
@@ -34,8 +30,8 @@ class PhpCollectionRenderer @Inject constructor(override val vrapTypeProvider: V
             |${PhpSubTemplates.generatorInfo}
             |namespace ${vrapType.namespaceName()};
             |
-            |use ${packagePrefix.toNamespaceName()}\Base\MapperSequence;
-            |use ${packagePrefix.toNamespaceName()}\Exception\InvalidArgumentException;
+            |use ${sharedPackageName.toNamespaceName()}\Base\MapperSequence;
+            |use ${sharedPackageName.toNamespaceName()}\Exception\InvalidArgumentException;
             |use stdClass;
             |
             |/**
@@ -79,7 +75,7 @@ class PhpCollectionRenderer @Inject constructor(override val vrapTypeProvider: V
         """.trimMargin().forcedLiteralEscape()
 
         return TemplateFile(
-                relativePath = "src/" + vrapType.fullClassName().replace(packagePrefix.toNamespaceName(), "").replace("\\", "/") + "Collection.php",
+                relativePath = "src/" + vrapType.fullClassName().replace(basePackagePrefix.toNamespaceName(), "").replace("\\", "/") + "Collection.php",
                 content = content
         )
     }

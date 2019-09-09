@@ -44,6 +44,9 @@ const val postman = "postman"
 @Command(name = "generate", description = "Generate source code from a RAML specification.")
 class GeneratorTask : Runnable {
 
+    @Option(name = ["-s", "--shared-package"], description = "The shared package to be used for the generated code.")
+    var sharedPackage: String? = null
+
     @Option(name = ["-b", "--base-package"], description = "The base package to be used for the generated code.")
     var basePackageName: String? = null
 
@@ -66,6 +69,7 @@ class GeneratorTask : Runnable {
 
     override fun toString(): String {
         return "GeneratorTask{" +
+                ", sharedPackageName='" + sharedPackage +
                 ", basePackageName='" + basePackageName +
                 ", modelPackageName=" + modelPackageName +
                 ", clientPackageName=" + clientPackageName +
@@ -76,6 +80,7 @@ class GeneratorTask : Runnable {
 
     override fun run() {
         val generatorConfig = CodeGeneratorConfig(
+                sharedPackage = sharedPackage,
                 basePackageName = basePackageName,
                 modelPackage = modelPackageName,
                 clientPackage = clientPackageName,
