@@ -89,6 +89,12 @@ class GeneratorModule constructor(
 
     @Provides
     @Singleton
+    @SharedPackageName
+    fun provideSharedPackageName(@BasePackageName basePackageName: String): String = generatorConfig.sharedPackage
+            ?: if (basePackageName.isBlank()) "shared" else "$basePackageName/shared"
+
+    @Provides
+    @Singleton
     fun provideRamlModel(): Api = apiProvider.api
 
     @Provides

@@ -1,6 +1,7 @@
 package io.vrap.codegen.languages.php.extensions
 
 import io.vrap.codegen.languages.extensions.ExtensionsBase
+import io.vrap.rmf.codegen.di.BasePackageName
 import io.vrap.rmf.codegen.types.*
 import io.vrap.rmf.raml.model.types.ObjectType
 import io.vrap.rmf.raml.model.types.Property
@@ -99,9 +100,9 @@ interface  ObjectTypeExtensions : ExtensionsBase {
 
 fun getImportsForType(vrapType: VrapType): String? {
     return when (vrapType) {
-        is VrapObjectType -> "${vrapType.namespaceName()}\\${vrapType.simpleName()}"
+        is VrapObjectType -> "${if (vrapType.namespaceName().isNotEmpty()) "${vrapType.namespaceName()}\\" else "" }${vrapType.simpleName()}"
         is VrapArrayType -> when (vrapType.itemType) {
-            is VrapObjectType -> "${vrapType.namespaceName()}\\${vrapType.simpleName()}"
+            is VrapObjectType -> "${if (vrapType.namespaceName().isNotEmpty()) "${vrapType.namespaceName()}\\" else "" }${vrapType.simpleName()}"
             else -> null
         }
         else -> null

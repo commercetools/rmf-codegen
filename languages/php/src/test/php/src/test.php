@@ -1,45 +1,38 @@
 <?php
 declare(strict_types = 1);
 
-namespace Commercetools\Importer\Models\Product {
+namespace Commercetools\Api\Models\Product {
     function allVariants(ProductData $data)
     {
         $data = array_merge(
             [$data->getMasterVariant()],
-            $data->getVariants()->jsonSerialize()
+            $data->getVariants()->toArray()
         );
         return new ProductVariantCollection($data);
     }
 }
 
-namespace Commercetools {
+namespace Test {
 
-    use Cache\Adapter\Filesystem\FilesystemCachePool;
-    use Commercetools\Importer\Base\ResultMapper;
-    use Commercetools\Importer\Client\ApiRoot;
-    use Commercetools\Importer\Client\CachedTokenProvider;
-    use Commercetools\Importer\Client\ClientCredentialsConfig;
-    use Commercetools\Importer\Client\ClientCredentialTokenProvider;
-    use Commercetools\Importer\Client\ClientFactory;
-    use Commercetools\Importer\Client\Config;
-    use Commercetools\Importer\Client\MiddlewareFactory;
-    use Commercetools\Importer\Client\Resource\ResourceByProjectKey;
-    use Commercetools\Importer\Models\Cart\Cart;
-    use Commercetools\Importer\Models\Cart\CartModel;
-    use Commercetools\Importer\Models\Category\CategoryPagedQueryResponseModel;
-    use Commercetools\Importer\Models\Common\LocalizedStringModel;
-    use Commercetools\Importer\Models\Error\ErrorResponse;
-    use Commercetools\Importer\Models\Error\ErrorResponseModel;
-    use function Commercetools\Importer\Models\Product\allVariants;
-    use Commercetools\Importer\Models\Product\ProductDataModel;
-    use Commercetools\Importer\Models\Product\ProductProjectionPagedSearchResponse;
-    use Commercetools\Importer\Models\Product\ProductProjectionPagedSearchResponseModel;
-    use Commercetools\Importer\Models\Project\ProjectModel;
-    use GuzzleHttp\Client;
+    use Commercetools\Api\Client\ApiRoot;
+    use Commercetools\Api\Client\ClientCredentialsConfig;
+    use Commercetools\Api\Client\Config;
+    use Commercetools\Api\Models\Cart\CartModel;
+    use Commercetools\Api\Models\Category\CategoryPagedQueryResponseModel;
+    use Commercetools\Api\Models\Common\LocalizedStringModel;
+    use Commercetools\Api\Models\Product\ProductDraftModel;
+    use Commercetools\Api\Models\Product\ProductVariantDraftModel;
+    use Commercetools\Api\Models\Project\ProjectModel;
+    use Commercetools\Base\ResultMapper;
+    use Commercetools\Client\ClientFactory;
+    use Commercetools\Client\MiddlewareFactory;
+    use Commercetools\Api\Models\Category\CategoryDraftBuilder;
+    use Commercetools\Api\Models\Product\ProductVariantDraftCollection;
+    use Commercetools\Api\Models\Type\CustomFieldsDraftBuilder;
+    use Commercetools\Api\Models\Type\FieldContainerBuilder;
+    use Commercetools\Api\Models\Type\FieldContainerModel;
     use GuzzleHttp\HandlerStack;
     use GuzzleHttp\Psr7\Response;
-    use League\Flysystem\Adapter\Local;
-    use League\Flysystem\Filesystem;
     use Monolog\Handler\StreamHandler;
     use Monolog\Logger;
 
@@ -59,6 +52,7 @@ namespace Commercetools {
     $logger = new Logger('client', [new StreamHandler('./logs/requests.log')]);
 
     $client = ClientFactory::of()->createGuzzleClient(
+        new Config(),
         $authConfig,
         $logger
     );
@@ -72,7 +66,7 @@ namespace Commercetools {
 //    $config,
 //    [
 //        'oauth' => MiddlewareFactory::createOAuthMiddlewareForProvider(
-//            new RawTokenProvider(new TokenModel(''))
+//            new RawTokenProvider(new TokenModels(''))
 //        ),
 //        'logger' => MiddlewareFactory::createLoggerMiddleware(new Logger('client', [new StreamHandler('./logs/requests.log')]))
 //    ]
@@ -83,7 +77,7 @@ namespace Commercetools {
 
     $response = $root->withProjectKey('phpsphere-90')->get()->send();
 
-    $project = new ProjectModel(json_decode((string)$response->getBody()));
+    $project = ProjectModel::fromArray(json_decode((string)$response->getBody(), true));
 
     var_dump($project->getKey());
     var_dump($project->getCreatedAt());
@@ -92,14 +86,14 @@ namespace Commercetools {
     var_dump($project);
     var_dump(json_encode($project));
 
-//$project = new ProjectModel();
+//$project = new ProjectModels();
 //var_dump($project);
 //var_dump($project->getKey());
 
     $response = $root->withProjectKey('phpsphere-90')->categories()->get()->send();
 
 
-    $catResponse = new CategoryPagedQueryResponseModel(json_decode((string)$response->getBody()));
+    $catResponse = CategoryPagedQueryResponseModel::of(json_decode((string)$response->getBody()));
     $categories = $catResponse->getResults();
     $c1 = $categories->current();
     var_dump($categories->current());
@@ -117,11 +111,13 @@ namespace Commercetools {
     var_dump($t->current());
     var_dump($categories);
     var_dump($c1->getName());
-    var_dump($c1->getName()->by('en'));
+    var_dump($c1->getName()->at('en'));
+
+    $c1->setCreatedAt(new \DateTimeImmutable());
 
     $root = new ApiRoot($client, ['projectKey' => 'phpsphere-90']);
 
-    $t = $root->withProjectKey()->productProjections()->search()->get();
+    $t = $root->withProjectKey()->productProjections()->search()->get()->withFacet("categories.id");
 
     $r = $client->send($t);
     $c = $t->execute();
@@ -151,10 +147,43 @@ namespace Commercetools {
 
     $tr = new Response(200, [], '{"de-DE" : "test" }');
     $l = $t->mapFromResponse($tr, LocalizedStringModel::class);
-    var_dump($l->by("de-DE"));
 
-    $t = new ProductDataModel();
+    $mapper = new ResultMapper();
 
-    allVariants($t);
+    $ls = $mapper->mapResponseToClass(LocalizedStringModel::class, $tr);
+    var_dump($l->at("de-DE"));
 
+    $t = ProductDraftModel::of();
+
+    $v = ProductVariantDraftModel::of();
+    $v->setSku("123");
+
+    $t->setDescription(LocalizedStringModel::of()->put('en', 'test'));
+    $t->setVariants((
+        new ProductVariantDraftCollection())->add($v)
+    );
+    var_dump(json_encode($t));
+
+    $d = ProductVariantDraftModel::fromArray(['sku' => 'test']);
+    var_dump($d->getSku());
+    var_dump($d);
+
+    $fc = FieldContainerBuilder::of();
+    $fc->put("foo", "bar");
+    $cf = CustomFieldsDraftBuilder::of();
+    $cf->withFieldsBuilder($fc);
+
+    $b = CategoryDraftBuilder::of()->withCustomBuilder($cf);
+
+    var_dump($b);
+    $c1 = $b->build();
+
+    $fc->put("foo", "baz");
+    $c2 = $b->build();
+
+    var_dump(json_encode($c1));
+    var_dump(json_encode($c2));
+//    allVariants($t);
+
+//    var_dump((new CartModels())->use());
 }

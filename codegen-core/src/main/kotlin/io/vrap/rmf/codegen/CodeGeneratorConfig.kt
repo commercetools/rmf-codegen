@@ -13,10 +13,11 @@ import java.nio.file.Paths
  * @param clientPackage if used it would override the package specified from clientPackage, for the client classes
  */
 data class CodeGeneratorConfig (
-    val basePackageName: String? = null,
-    val modelPackage: String? = null,
-    val clientPackage: String? = null,
-    val outputFolder: Path = Paths.get("build/gensrc"),
-    val customTypeMapping: Map<String, VrapType> = mapOf(),
-    val docTransformer: (DescriptionFacet) -> String? = DescriptionFacet::toHtml
+        val sharedPackage: String? = null,
+        val basePackageName: String? = null,
+        val modelPackage: String? = null,
+        val clientPackage: String? = null,
+        val outputFolder: Path = Paths.get("build/gensrc"),
+        val customTypeMapping: Map<String, VrapType> = mapOf(),
+        val docTransformer: (DescriptionFacet) -> String? = DescriptionFacet::toHtml
 )

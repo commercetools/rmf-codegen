@@ -5,12 +5,15 @@ import io.vrap.codegen.languages.extensions.isPatternProperty
 import io.vrap.codegen.languages.php.PhpSubTemplates
 import io.vrap.codegen.languages.php.extensions.*
 import io.vrap.rmf.codegen.di.BasePackageName
+import io.vrap.rmf.codegen.di.SharedPackageName
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.ObjectTypeRenderer
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
 import io.vrap.rmf.codegen.rendring.utils.keepIndentation
 import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
+import io.vrap.rmf.raml.model.types.Annotation
+import io.vrap.rmf.raml.model.types.AnyAnnotationType
 import io.vrap.rmf.raml.model.types.ObjectType
 import io.vrap.rmf.raml.model.types.Property
 import io.vrap.rmf.raml.model.util.StringCaseFormat
@@ -19,18 +22,56 @@ class PhpInterfaceObjectTypeRenderer @Inject constructor(override val vrapTypePr
 
     @Inject
     @BasePackageName
-    lateinit var packagePrefix:String
+    lateinit var basePackagePrefix:String
+
+    @Inject
+    @SharedPackageName
+    lateinit var sharedPackageName: String
 
     override fun render(type: ObjectType): TemplateFile {
 
         val vrapType = vrapTypeProvider.doSwitch(type) as VrapObjectType
 
-        val content = """
+        val mapAnnotation = type.getAnnotation("asMap")
+
+
+        val content = when (mapAnnotation) {
+            is Annotation -> mapContent(type, mapAnnotation.type)
+            else -> content(type)
+        }
+
+
+        return TemplateFile(
+                relativePath = "src/" + vrapType.fullClassName().replace(basePackagePrefix.toNamespaceName(), "").replace("\\", "/") + ".php",
+                content = content
+        )
+    }
+
+    fun mapContent(type: ObjectType, anno: AnyAnnotationType): String {
+        val vrapType = vrapTypeProvider.doSwitch(type) as VrapObjectType
+
+        return """
             |<?php
             |${PhpSubTemplates.generatorInfo}
             |namespace ${vrapType.namespaceName().escapeAll()};
             |
-            |use ${packagePrefix.toNamespaceName().escapeAll()}\\Base\\JsonObject;
+            |use ${sharedPackageName.toNamespaceName().escapeAll()}\\Base\\Collection;
+            |
+            |interface ${vrapType.simpleClassName} extends Collection
+            |{
+            |}
+        """.trimMargin().keepIndentation("<<", ">>").forcedLiteralEscape()
+    }
+
+    fun content(type: ObjectType): String {
+        val vrapType = vrapTypeProvider.doSwitch(type) as VrapObjectType
+
+        return """
+            |<?php
+            |${PhpSubTemplates.generatorInfo}
+            |namespace ${vrapType.namespaceName().escapeAll()};
+            |
+            |use ${sharedPackageName.toNamespaceName().escapeAll()}\\Base\\JsonObject;
             |<<${type.imports()}>>
             |
             |interface ${vrapType.simpleClassName} ${type.type?.toVrapType()?.simpleName()?.let { "extends $it" } ?: "extends JsonObject"}
@@ -39,14 +80,9 @@ class PhpInterfaceObjectTypeRenderer @Inject constructor(override val vrapTypePr
             |    <<${type.toBeanConstant()}>>
             |
             |    <<${type.getters()}>>
+            |    <<${type.setters()}>>
             |}
         """.trimMargin().keepIndentation("<<", ">>").forcedLiteralEscape()
-
-
-        return TemplateFile(
-                relativePath = "src/" + vrapType.fullClassName().replace(packagePrefix.toNamespaceName(), "").replace("\\", "/") + ".php",
-                content = content
-        )
     }
 
     fun ObjectType.imports() = this.getImports().map { "use ${it.escapeAll()};" }.joinToString(separator = "\n")
@@ -82,37 +118,20 @@ class PhpInterfaceObjectTypeRenderer @Inject constructor(override val vrapTypePr
     }
 
     fun ObjectType.setters() = this.properties
-            //Filter the discriminators because they don't make much sense the generated bean
-            .filter { it.name != this.discriminator }
+            .filter { !it.isPatternProperty() }
             .map { it.setter() }
             .joinToString(separator = "\n\n")
 
 
     fun ObjectType.getters() = this.properties
-            //Filter the discriminators because they don't make much sense the generated bean
-//            .filter { it.name != this.discriminator }
             .filter { !it.isPatternProperty() }
             .map { it.getter() }
             .joinToString(separator = "\n\n")
 
     fun Property.setter(): String {
-        return if (this.isPatternProperty()) {
-            """
-                |@JsonAnySetter
-                |public void setValue(String key, ${this.type.toVrapType().simpleName()} value) {
-                |    if (values == null) {
-                |        values = new HashMap<>();
-                |    }
-                |    values.put(key, value);
-                |}
-            """.trimMargin()
-        } else {
-            """
-                |public void set${this.name.capitalize()}(final ${this.type.toVrapType().simpleName()} ${this.name}){
-                |   this.${this.name} = ${this.name};
-                |}
-            """.trimMargin()
-        }
+        return """
+            |public function set${this.name.capitalize()}(?${if (this.type.toVrapType().simpleName() != "stdClass") this.type.toVrapType().simpleName() else "JsonObject" } $${this.name}): void;
+        """.trimMargin()
     }
 
     fun Property.getter(): String {

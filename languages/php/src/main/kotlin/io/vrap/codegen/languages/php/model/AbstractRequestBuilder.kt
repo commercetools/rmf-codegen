@@ -4,6 +4,8 @@ import com.google.inject.Inject
 import io.vrap.codegen.languages.extensions.getMethodName
 import io.vrap.codegen.languages.php.extensions.*
 import io.vrap.rmf.codegen.di.BasePackageName
+import io.vrap.rmf.codegen.di.ClientPackageName
+import io.vrap.rmf.codegen.di.SharedPackageName
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
 import io.vrap.rmf.codegen.types.VrapArrayType
 import io.vrap.rmf.codegen.types.VrapNilType
@@ -25,7 +27,16 @@ abstract class AbstractRequestBuilder constructor(
 
     @Inject
     @BasePackageName
-    lateinit var packagePrefix:String
+    lateinit var basePackagePrefix: String
+
+    @Inject
+    @SharedPackageName
+    lateinit var sharedPackageName: String
+
+
+    @Inject
+    @ClientPackageName
+    lateinit var clientPackageName: String
 
     protected fun Resource.methods(): String {
         return this.methods.map {
@@ -83,12 +94,12 @@ abstract class AbstractRequestBuilder constructor(
         val vrapType = this.returnType().toVrapType()
         return when (vrapType) {
             is VrapObjectType -> vrapType.fullClassName()
-            else -> "${packagePrefix.toNamespaceName()}\\Base\\JsonObject"
+            else -> "${sharedPackageName.toNamespaceName()}\\Base\\JsonObject"
         }
     }
 
     fun Resource.resourceBuilderName():String = "Resource${this.toResourceName()}"
-    fun Resource.resourceBuilderFullName():String = "${packagePrefix.toNamespaceName()}\\Client\\Resource\\Resource${this.toResourceName()}"
+    fun Resource.resourceBuilderFullName():String = "${clientPackageName.toNamespaceName()}\\Resource\\Resource${this.toResourceName()}"
 
     protected fun Resource.imports() = this.methods.asSequence().mapNotNull { it.firstBody()?.type }
             .map { it.toVrapType() }

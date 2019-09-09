@@ -49,6 +49,7 @@ open class RamlCodeGeneratorTask : DefaultTask() {
 
 
         val generatorConfig = CodeGeneratorConfig(
+            sharedPackage = target.shared_package,
             basePackageName = target.base_package,
             modelPackage = target.models_package,
             clientPackage = target.client_package,
