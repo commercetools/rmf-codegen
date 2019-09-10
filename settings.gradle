@@ -1,16 +1,15 @@
 include 'codegen-renderers'
 include 'codegen-core'
-//include 'languages:javalang:builder-renderer:generated-code'
-include 'languages:javalang:builder-renderer:commercetools-java-client'
-include 'languages:javalang:builder-renderer:commercetools-java-base'
 include 'languages:javalang:builder-renderer:java-builder-client'
 include 'languages:javalang:java-base'
-
 include 'languages:javalang:java-renderer'
+
 include 'languages:php'
 include 'languages:postman'
 include 'languages:typescript'
 
 include 'tools:cli-application'
-include 'tools:codegen-gradle-plugin'
 
+
+
+include 'tools:codegen-gradle-plugin'
