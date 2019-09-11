@@ -99,9 +99,10 @@ class PhpMethodRenderer @Inject constructor(override val vrapTypeProvider: VrapT
             |        $!mapper = new ResultMapper();
             |        if (is_null($!resultType)) {
             |            switch ($!response->getStatusCode()) {
-            |                <<${resultTypes.map { response -> "case \"${response.statusCode}\": $!resultType = ${response.bodies[0].returnType().returnTypeModelClass()}::class; break;" }.joinToString("\n")}>>
+            |                <<${resultTypes.map { response -> "case \"${response.statusCode}\":\n    $!resultType = ${response.bodies[0].returnType().returnTypeModelClass()}::class;\n    break;" }.joinToString("\n")}>>
             |                default:
-            |                    $!resultType = JsonObjectModel::class; break;
+            |                    $!resultType = JsonObjectModel::class;
+            |                    break;
             |            }
             |        }
             |        return $!mapper->mapResponseToClass($!resultType, $!response);

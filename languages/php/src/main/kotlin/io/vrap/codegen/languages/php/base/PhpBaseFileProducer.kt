@@ -914,6 +914,8 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |
                     |namespace ${packagePrefix.toNamespaceName()}\Client;
                     |
+                    |use ${packagePrefix.toNamespaceName()}\Base\JsonObjectModel;
+                    |use ${packagePrefix.toNamespaceName()}\Base\ResultMapper;
                     |use ${packagePrefix.toNamespaceName()}\Exception\InvalidArgumentException;
                     |use GuzzleHttp\Client;
                     |use GuzzleHttp\Exception\GuzzleException;
