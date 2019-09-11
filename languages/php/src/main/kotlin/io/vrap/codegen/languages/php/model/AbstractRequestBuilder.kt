@@ -58,11 +58,11 @@ abstract class AbstractRequestBuilder constructor(
         return this.resources.map {
             """
                 |/**
-                | <<${it.uriParameters?.asSequence()?.map { "* @psalm-param scalar $${it.name}" }?.joinToString(separator = "\n") ?: "*"}>>
+                | <<* ${it.relativeUri.paramValues().map { "@psalm-param scalar $$it" }.joinToString(separator = "\n* ")}>>
                 | */
-                |public function ${it.getMethodName()}(${it.uriParameters?.asSequence()?.map { "$${it.name} = null"  }?.joinToString(", ") ?: ""}): ${it.resourceBuilderName()} {
+                |public function ${it.getMethodName()}(${it.relativeUri.paramValues().joinToString(", ") { "$$it = null" }}): ${it.resourceBuilderName()} {
                 |   $!args = $!this->getArgs();
-                |   ${it.uriParameters?.asSequence()?.map { "if (!is_null($${it.name})) { $!args['${it.name}'] = $${it.name}; }" }?.joinToString("\n")}
+                |   ${it.relativeUri.paramValues().joinToString("\n") { "if (!is_null($$it)) { $!args['$it'] = $$it; }" }}
                 |   return new ${it.resourceBuilderName()}($!this->getUri() . '${it.relativeUri.template}', $!args, $!this->getClient());
                 |}
                 |

@@ -133,3 +133,88 @@ fun Method.allParams(): List<String>? {
 fun Method.firstBody(): Body? = this.bodies.stream().findFirst().orElse(null)
 
 fun scalarTypes():Array<String> { return arrayOf("string", "int", "float", "bool", "array", "stdClass") }
+
+fun QueryParameter.methodName(): String {
+    val anno = this.getAnnotation("placeholderParam");
+
+    if (anno != null) {
+        val o = anno.getValue() as ObjectInstance
+        val paramName = o.value.stream().filter { propertyValue -> propertyValue.name == "paramName" }.findFirst().orElse(null).value as StringInstance
+        return "with" + StringCaseFormat.UPPER_CAMEL_CASE.apply(paramName.value)
+    }
+    return "with" + StringCaseFormat.UPPER_CAMEL_CASE.apply(this.name.replace(".", "-"))
+}
+
+fun QueryParameter.methodParam(): String {
+    val anno = this.getAnnotation("placeholderParam");
+
+    if (anno != null) {
+        val o = anno.value as ObjectInstance
+        val placeholder = o.value.stream().filter { propertyValue -> propertyValue.name == "placeholder" }.findFirst().orElse(null).value as StringInstance
+        val paramName = o.value.stream().filter { propertyValue -> propertyValue.name == "paramName" }.findFirst().orElse(null).value as StringInstance
+        return "$" + StringCaseFormat.LOWER_CAMEL_CASE.apply(placeholder.value) + ", $" + paramName.value
+    }
+    return "$" + StringCaseFormat.LOWER_CAMEL_CASE.apply(this.name.replace(".", "-"))
+}
+
+fun QueryParameter.paramName(): String {
+    val anno = this.getAnnotation("placeholderParam");
+
+    if (anno != null) {
+        val o = anno.value as ObjectInstance
+        val paramName = o.value.stream().filter { propertyValue -> propertyValue.name == "paramName" }.findFirst().orElse(null).value as StringInstance
+        return "$" + paramName.value
+    }
+    return "$" + StringCaseFormat.LOWER_CAMEL_CASE.apply(this.name.replace(".", "-"))
+}
+
+fun QueryParameter.simpleParamName(): String {
+    val anno = this.getAnnotation("placeholderParam");
+
+    if (anno != null) {
+        val o = anno.value as ObjectInstance
+        val paramName = o.value.stream().filter { propertyValue -> propertyValue.name == "paramName" }.findFirst().orElse(null).value as StringInstance
+        return paramName.value
+    }
+    return StringCaseFormat.LOWER_CAMEL_CASE.apply(this.name.replace(".", "-"))
+}
+
+fun QueryParameter.template(): String {
+    val anno = this.getAnnotation("placeholderParam");
+
+    if (anno != null) {
+        val o = anno.value as ObjectInstance
+        val template = o.value.stream().filter { propertyValue -> propertyValue.name == "template" }.findFirst().orElse(null).value as StringInstance
+        val placeholder = o.value.stream().filter { propertyValue -> propertyValue.name == "placeholder" }.findFirst().orElse(null).value as StringInstance
+        return "sprintf('" + template.value.replace("<" + placeholder.value + ">", "%s") + "', $" + placeholder.value + ")"
+    }
+    return "'" + this.name + "'"
+}
+
+fun QueryParameter.placeholderDocBlock(): String {
+    val anno = this.getAnnotation("placeholderParam");
+
+    if (anno != null) {
+        val o = anno.value as ObjectInstance
+        val placeholder = o.value.stream().filter { propertyValue -> propertyValue.name == "placeholder" }.findFirst().orElse(null).value as StringInstance
+        return "@psalm-param scalar $" + placeholder.value
+    }
+    return ""
+}
+
+fun QueryParameter.withParam(type: Method): String {
+    return """
+            |/**
+            | * ${this.placeholderDocBlock()}
+            | * @psalm-param scalar ${this.paramName()}
+            | */
+            |public function ${this.methodName()}(${this.methodParam()}): ${type.toRequestName()}
+            |{
+            |    return $!this->withQueryParam(${this.template()}, ${this.paramName()});
+            |}
+        """.trimMargin()
+}
+
+fun UriTemplate.paramValues(): List<String> {
+    return this.components.filterIsInstance<Expression>().flatMap { expression -> expression.varSpecs.map { varSpec -> varSpec.variableName  } }
+}

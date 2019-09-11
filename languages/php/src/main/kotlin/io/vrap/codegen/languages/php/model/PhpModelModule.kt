@@ -26,5 +26,6 @@ class PhpModelModule: AbstractModule() {
 
         val resourceBinder = Multibinder.newSetBinder(binder(), ResourceRenderer::class.java)
         resourceBinder.addBinding().to(PhpMethodBuilderRenderer::class.java)
+        resourceBinder.addBinding().to(PhpRequestTestRenderer::class.java)
     }
 }
