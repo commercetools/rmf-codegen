@@ -93,7 +93,7 @@ class SpringClientRenderer @Inject constructor(override val vrapTypeProvider: Vr
             |
             |    final Map\<String, Object\> parameters = new HashMap\<\>();
             |
-            |    <${resource.allUriParameters.map { "parameters.put(\"${it.name}\",${it.name});" }.joinToString(separator = "\n")}>
+            |    <${resource.fullUriParameters.map { "parameters.put(\"${it.name}\",${it.name});" }.joinToString(separator = "\n")}>
             |    <${method.queryParameters.map { "parameters.put(\"${it.name}\",${it.name});" }.joinToString(separator = "\n")}>
             |
             |    <${method.mediaType().escapeAll()}>
@@ -127,7 +127,7 @@ class SpringClientRenderer @Inject constructor(override val vrapTypeProvider: Vr
 
     fun methodParameters(resource: Resource, method: Method): String {
 
-        val parameters : MutableList<String> = resource.allUriParameters
+        val parameters : MutableList<String> = resource.fullUriParameters
                 .map { "final ${it.type.toVrapType().fullClassName()} ${it.name}" }
                 .toMutableList()
 
