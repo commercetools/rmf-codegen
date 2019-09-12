@@ -15,17 +15,18 @@ class TestCodeGenerator {
 
     companion object {
         private val userProvidedPath = System.getenv("TEST_RAML_FILE")
+        private val userProvidedOutputPath = System.getenv("OUTPUT_FOLDER")
         private val apiPath : Path = Paths.get(if (userProvidedPath == null) "../../api-spec/api.raml" else userProvidedPath)
+        private val outputFolder : Path = Paths.get(if (userProvidedOutputPath == null) "build/gensrc" else userProvidedOutputPath)
         val apiProvider: ApiProvider = ApiProvider(apiPath)
-        val generatorConfig = CodeGeneratorConfig(basePackageName = "")
     }
 
     @Test
-    fun generatePHPModels() {
+    fun generateApiSdk() {
         val generatorConfig = CodeGeneratorConfig(
                 basePackageName = "commercetools/api",
                 sharedPackage = "commercetools",
-                outputFolder = Paths.get("build/gensrc/commercetools-raml-sdk")
+                outputFolder = Paths.get("${outputFolder}/commercetools-api")
         )
 
         val generatorModule = GeneratorModule(apiProvider, generatorConfig, PhpBaseTypes)
@@ -34,10 +35,23 @@ class TestCodeGenerator {
     }
 
     @Test
+    fun generateImportSdk() {
+        val generatorConfig = CodeGeneratorConfig(
+                basePackageName = "commercetools/import",
+                sharedPackage = "commercetools",
+                outputFolder = Paths.get("${outputFolder}/commercetools-import")
+        )
+
+        val generatorModule = GeneratorModule(ApiProvider(Paths.get("../../api-spec/api.raml")), generatorConfig, PhpBaseTypes)
+        val generatorComponent = GeneratorComponent(generatorModule, PhpModelModule())
+        generatorComponent.generateFiles()
+    }
+
+    @Test
     fun generatePHPBase() {
         val generatorConfig = CodeGeneratorConfig(
                 basePackageName = "commercetools",
-                outputFolder = Paths.get("build/gensrc/commercetools-raml-base")
+                outputFolder = Paths.get("${outputFolder}/commercetools-base")
         )
 
         val generatorModule = GeneratorModule(apiProvider, generatorConfig, PhpBaseTypes)
@@ -46,7 +60,7 @@ class TestCodeGenerator {
     }
 
     private fun cleanGenTestFolder() {
-        cleanFolder("build/gensrc")
+        cleanFolder(outputFolder.toString())
     }
 
     private fun cleanFolder(path: String) {

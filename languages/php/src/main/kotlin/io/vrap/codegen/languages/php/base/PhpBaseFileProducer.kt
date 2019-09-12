@@ -367,7 +367,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |
                     |    /**
                     |     * @psalm-param ?stdClass|array<string, mixed> $!data
-                    |     * @psalm-return static
+                    |     * @return static
                     |     */
                     |    final public static function of($!data = null)
                     |    {
@@ -379,7 +379,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |
                     |    /**
                     |     * @psalm-param ?stdClass $!data
-                    |     * @psalm-return static
+                    |     * @return static
                     |     */
                     |    final public static function fromStdClass(stdClass $!data = null)
                     |    {
@@ -390,7 +390,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |
                     |    /**
                     |     * @psalm-param array<string, mixed> $!data
-                    |     * @psalm-return static
+                    |     * @return static
                     |     */
                     |    final public static function fromArray(array $!data = [])
                     |    {

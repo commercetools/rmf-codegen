@@ -50,7 +50,7 @@ class PhpRequestTestRenderer @Inject constructor(api: Api, vrapTypeProvider: Vra
             |    public function getRequests()
             |    {
             |        return [
-            |           <<${type.methods.flatMap { method -> method.queryParameters.map { parameterTestProvider(type, method, it) }.plus(parameterTestProvider(type, method)) }.joinToString(",\n")}>>
+            |            <<${type.methods.flatMap { method -> method.queryParameters.map { parameterTestProvider(type, method, it) }.plus(parameterTestProvider(type, method)) }.joinToString(",\n")}>>
             |        ];
             |    }
             |    
@@ -84,7 +84,7 @@ class PhpRequestTestRenderer @Inject constructor(api: Api, vrapTypeProvider: Vra
             |'${method.toRequestName()}' => [
             |    function(ApiRoot $!builder): RequestInterface {
             |        return $!builder
-            |            <<->${resource.resourcePathList().map { r -> "${r.getMethodName()}(${if (r.uriParameters.isNotEmpty()) "\"${r.relativeUri.paramValues().joinToString("\", \"") }\"" else ""})" }.joinToString("\n->")}>>
+            |            <<->${resource.resourcePathList().map { r -> "${r.getMethodName()}(${if (r.relativeUri.paramValues().isNotEmpty()) "\"${r.relativeUri.paramValues().joinToString("\", \"") }\"" else ""})" }.joinToString("\n->")}>>
             |            ->${method.method}(${if (method.firstBody() != null) "null" else ""});
             |    },
             |    '${method.method}',
@@ -110,7 +110,7 @@ class PhpRequestTestRenderer @Inject constructor(api: Api, vrapTypeProvider: Vra
             |'${method.toRequestName()}_${parameter.methodName()}' => [
             |    function(ApiRoot $!builder): RequestInterface {
             |        return $!builder
-            |            <<->${resource.resourcePathList().map { r -> "${r.getMethodName()}(${if (r.uriParameters.isNotEmpty()) "\"${r.relativeUri.paramValues().joinToString("\", \"") }\"" else ""})" }.joinToString("\n->")}>>
+            |            <<->${resource.resourcePathList().map { r -> "${r.getMethodName()}(${if (r.relativeUri.paramValues().isNotEmpty()) "\"${r.relativeUri.paramValues().joinToString("\", \"") }\"" else ""})" }.joinToString("\n->")}>>
             |            ->${method.method}(${if (method.firstBody() != null) "null" else ""})
             |            ->${parameter.methodName()}(${template});
             |    },
