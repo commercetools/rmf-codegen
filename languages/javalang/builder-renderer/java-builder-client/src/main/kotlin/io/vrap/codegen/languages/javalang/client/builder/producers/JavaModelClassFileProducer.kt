@@ -43,7 +43,6 @@ class JavaModelClassFileProducer @Inject constructor(override val vrapTypeProvid
                 |import com.fasterxml.jackson.annotation.JsonCreator;
                 |import com.fasterxml.jackson.annotation.JsonProperty;
                 |
-                |import json.CommercetoolsJsonUtils;
                 |
                 |<${type.toComment().escapeAll()}>
                 |<${JavaSubTemplates.generatedAnnotation}>

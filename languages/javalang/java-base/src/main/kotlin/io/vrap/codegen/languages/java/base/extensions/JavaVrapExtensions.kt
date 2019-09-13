@@ -1,9 +1,10 @@
 package io.vrap.codegen.languages.java.base.extensions
 
 import io.vrap.rmf.codegen.types.*
+import io.vrap.rmf.raml.model.util.StringCaseFormat
 
-fun VrapType.simpleName():String{
-    return when(this){
+fun VrapType.simpleName(): String {
+    return when (this) {
         is VrapScalarType -> this.scalarType
         is VrapEnumType -> this.simpleClassName
         is VrapObjectType -> this.simpleClassName
@@ -12,8 +13,8 @@ fun VrapType.simpleName():String{
     }
 }
 
-fun VrapType.fullClassName():String{
-    return when(this){
+fun VrapType.fullClassName(): String {
+    return when (this) {
         is VrapScalarType -> this.scalarType
         is VrapEnumType -> "${this.`package`}.${this.simpleClassName}"
         is VrapObjectType -> "${this.`package`}.${this.simpleClassName}"
@@ -22,13 +23,13 @@ fun VrapType.fullClassName():String{
     }
 }
 
-fun VrapType.toJavaVType():VrapType {
-    return when(this){
+fun VrapType.toJavaVType(): VrapType {
+    return when (this) {
         is VrapObjectType -> {
-             VrapObjectType(`package` = this.`package`.toJavaPackage(), simpleClassName = this.simpleClassName)
+            VrapObjectType(`package` = this.`package`.toJavaPackage(), simpleClassName = this.simpleClassName)
         }
         is VrapEnumType -> {
-             VrapEnumType(`package` = this.`package`.toJavaPackage(), simpleClassName = this.simpleClassName)
+            VrapEnumType(`package` = this.`package`.toJavaPackage(), simpleClassName = this.simpleClassName)
         }
         is VrapArrayType -> {
             VrapArrayType(this.itemType.toJavaVType())
@@ -41,5 +42,10 @@ fun VrapType.toJavaVType():VrapType {
 }
 
 
-
-fun String.toJavaPackage() = this.replace("/",".")
+fun String.toJavaPackage(): String {
+    return this.split('.', '/')
+            .map(
+                    StringCaseFormat.LOWER_UNDERSCORE_CASE::apply
+            )
+            .joinToString(separator = ".")
+}

@@ -27,12 +27,10 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
         val content = """
             |package ${vrapType.`package`.toJavaPackage()};
             |
-            |import client.ApiHttpRequest;
-            |import client.ApiHttpMethod;
-            |import client.ApiHttpHeaders;
-            |import client.ApiHttpResponse;
-            |import json.CommercetoolsJsonUtils;
+            |import io.vrap.rmf.base.client.utils.Utils;
+            |import io.vrap.rmf.base.client.utils.json.VrapJsonUtils;
             |
+            |import java.io.InputStream;
             |import java.io.IOException;
             |
             |import java.util.ArrayList;
@@ -40,10 +38,11 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
             |import java.util.Map;
             |import java.util.HashMap;
             |import java.util.stream.Collectors;
+            |import java.util.concurrent.CompletableFuture;
             |
             |import java.io.UnsupportedEncodingException;
             |import java.net.URLEncoder;
-            |import client.*;
+            |import io.vrap.rmf.base.client.*;
             |
             |public class ${type.toRequestName()} {
             |   
@@ -54,6 +53,8 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
             |   <${type.createRequestMethod()}>
             |   
             |   <${type.executeBlockingMethod()}>
+            |   
+            |   <${type.executeMethod()}>
             |   
             |   <${type.pathArgumentsGetters()}>
             |   
@@ -66,7 +67,8 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
             |   <${type.helperMethods()}>
             |
             |}
-        """.trimMargin().keepIndentation()
+        """.trimMargin()
+                .keepIndentation()
         
         return TemplateFile(
                 relativePath = "${vrapType.`package`}.${type.toRequestName()}".replace(".", "/") + ".java",
@@ -185,10 +187,10 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
             |public ApiHttpRequest createHttpRequest() {
             |   ApiHttpRequest httpRequest = new ApiHttpRequest();
             |   <$requestPathGeneration>
-            |   httpRequest.setPath(httpRequestPath); 
+            |   httpRequest.setRelativeUrl(httpRequestPath); 
             |   httpRequest.setMethod(ApiHttpMethod.${this.method.name});
             |   httpRequest.setHeaders(headers);
-            |   ${if(bodyName != null) "try{httpRequest.setBody(CommercetoolsJsonUtils.toJsonString($bodyName));}catch(Exception e){e.printStackTrace();}" else "" }
+            |   ${if(bodyName != null) "try{httpRequest.setBody(VrapJsonUtils.toJsonByteArray($bodyName));}catch(Exception e){e.printStackTrace();}" else "" }
             |   return httpRequest;
             |}
         """.trimMargin()
@@ -196,18 +198,23 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
     
     private fun Method.executeBlockingMethod() : String {
         return """
-            |public ${this.javaReturnType(vrapTypeProvider)} executeBlocking() {
-            |   ApiHttpResponse response;
+            |public ApiHttpResponse\<${this.javaReturnType(vrapTypeProvider)}\> executeBlocking(){
             |   try {
-            |      response = apiHttpClient.executeBlocking(this.createHttpRequest());
-            |      return CommercetoolsJsonUtils.fromJsonString(response.getBody(),  ${this.javaReturnType(vrapTypeProvider)}.class);
+            |       return execute().get();
             |   } catch (Exception e) {
-            |      e.printStackTrace();
+            |       throw new RuntimeException(e);
             |   }
-            |   return null;
             |}
         """.trimMargin()
-                .keepIndentation()
+    }
+
+    private fun Method.executeMethod() : String {
+        return """
+            |public CompletableFuture\<ApiHttpResponse\<${this.javaReturnType(vrapTypeProvider)}\>\> execute(){
+            |   return apiHttpClient.execute(this.createHttpRequest())
+            |           .thenApply(response -\> Utils.convertResponse(response,${this.javaReturnType(vrapTypeProvider)}.class));
+            |}
+        """.trimMargin()
     }
 
     private fun responseErrorsDeserialization(statusCode : String, bodyType: VrapType?) : String {
@@ -221,7 +228,7 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
             """
             |if(response.getStatusCode() == $statusCode){
             |   try{
-            |       ${bodyType?.fullClassName()} ${bodyType?.simpleName()?.lowerCamelCase()} = CommercetoolsJsonUtils.fromJsonString(response.getBody(), ${bodyType?.fullClassName()}.class);
+            |       ${bodyType?.fullClassName()} ${bodyType?.simpleName()?.lowerCamelCase()} = VrapJsonUtils.fromJsonString(response.getBody(), ${bodyType?.fullClassName()}.class);
             |       throw new RuntimeException(${bodyType?.simpleName()?.lowerCamelCase()}.getMessage());
             |   }catch(Exception e){
             |       e.printStackTrace();

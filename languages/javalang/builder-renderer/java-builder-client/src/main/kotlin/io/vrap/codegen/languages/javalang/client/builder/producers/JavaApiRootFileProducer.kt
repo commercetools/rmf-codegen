@@ -23,8 +23,8 @@ class JavaApiRootFileProducer @Inject constructor(@ClientPackageName val clientP
         val content =  """
             |package ${clientPackage.toJavaPackage()};
             |
-            |import client.ApiHttpClient;
-            |import client.Middleware;
+            |import io.vrap.rmf.base.client.ApiHttpClient;
+            |import io.vrap.rmf.base.client.middlewares.Middleware;
             |
             |import java.util.List;
             |import java.util.Arrays;
@@ -37,7 +37,7 @@ class JavaApiRootFileProducer @Inject constructor(@ClientPackageName val clientP
             |      this.apiHttpClient = new ApiHttpClient(Arrays.asList(middlewares));
             |   }
             |      
-            |   public static ApiRoot formMiddlewares(final Middleware... middlewares) {
+            |   public static ApiRoot fromMiddlewares(final Middleware... middlewares) {
             |       return new ApiRoot(middlewares);
             |   }
             |           

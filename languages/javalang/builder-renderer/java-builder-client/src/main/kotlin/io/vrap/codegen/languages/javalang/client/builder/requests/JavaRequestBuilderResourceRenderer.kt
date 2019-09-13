@@ -27,7 +27,7 @@ class JavaRequestBuilderResourceRenderer @Inject constructor(val api: Api, overr
 
         val content : String = """
             |package ${vrapType.`package`};
-            |import client.ApiHttpClient;
+            |import io.vrap.rmf.base.client.ApiHttpClient;
             |
             |public class $className {
             |   
