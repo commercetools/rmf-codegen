@@ -15,8 +15,10 @@ class TestCodeGenerator {
 
     companion object {
         private val userProvidedPath = System.getenv("TEST_RAML_FILE")
+        private val importerUserProvidedPath = System.getenv("IMPORTER_RAML_FILE")
         private val userProvidedOutputPath = System.getenv("OUTPUT_FOLDER")
         private val apiPath : Path = Paths.get(if (userProvidedPath == null) "../../api-spec/api.raml" else userProvidedPath)
+        private val importerPath : Path = Paths.get(if (importerUserProvidedPath == null) "../../api-spec/api.raml" else importerUserProvidedPath)
         private val outputFolder : Path = Paths.get(if (userProvidedOutputPath == null) "build/gensrc" else userProvidedOutputPath)
         val apiProvider: ApiProvider = ApiProvider(apiPath)
     }
@@ -42,7 +44,7 @@ class TestCodeGenerator {
                 outputFolder = Paths.get("${outputFolder}/commercetools-import")
         )
 
-        val generatorModule = GeneratorModule(ApiProvider(Paths.get("../../api-spec/api.raml")), generatorConfig, PhpBaseTypes)
+        val generatorModule = GeneratorModule(ApiProvider(importerPath), generatorConfig, PhpBaseTypes)
         val generatorComponent = GeneratorComponent(generatorModule, PhpModelModule())
         generatorComponent.generateFiles()
     }
