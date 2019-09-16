@@ -185,6 +185,32 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
         """.trimMargin().split("\n").map { it.escapeJson().escapeAll() }.joinToString("\",\n\"", "\"", "\"")
     }
 
+    private fun String.jScript(): String {
+        return this.split("\n").map { it.escapeJson().escapeAll() }.joinToString("\",\n\"", "\"", "\"");
+    }
+
+    private fun testAuthScript(): String {
+        return """
+                |tests["Status code is 200"] = responseCode.code === 200;
+                |var data = JSON.parse(responseBody);
+                |if(data.access_token){
+                |    pm.environment.set("ctp_access_token", data.access_token);
+                |}
+                |if (data.scope) {
+                |    parts = data.scope.split(" ");
+                |    parts = parts.filter(scope => scope.includes(":")).map(scope => scope.split(":"))
+                |    if (parts.length > 0) {
+                |        scopeParts = parts[0];
+                |        pm.environment.set("projectKey", scopeParts[1]);
+                |        parts = parts.filter(scope => scope.length >= 3)
+                |        if (parts.length > 0) {
+                |            scopeParts = parts[0];
+                |            pm.environment.set("storeKey", scopeParts[2]);
+                |        }
+                |    }
+                |}
+            """.trimMargin()
+    }
     private fun testScript(item: ItemGenModel, param: String): String {
 
         return """
@@ -743,20 +769,7 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
             |                    "script": {
             |                        "type": "text/javascript",
             |                        "exec": [
-            |                            "tests[\"Status code is 200\"] = responseCode.code === 200;",
-            |                            "var data = JSON.parse(responseBody);",
-            |                            "if(data.access_token){",
-            |                            "    pm.environment.set(\"ctp_access_token\", data.access_token);",
-            |                            "}",
-            |                            "if (data.scope) {",
-            |                            "    parts = data.scope.split(\" \");",
-            |                            "    if (parts.length > 0) {",
-            |                            "        scopeParts = parts[0].split(\":\");",
-            |                            "        if (scopeParts.length >= 2) {",
-            |                            "            pm.environment.set(\"projectKey\", scopeParts[1]);",
-            |                            "        }",
-            |                            "    }",
-            |                            "}"
+            |                            <<${testAuthScript().jScript()}>>
             |                        ]
             |                    }
             |                }
@@ -805,7 +818,7 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
             |                    "script": {
             |                        "type": "text/javascript",
             |                        "exec": [
-            |                            "tests[\"Status code is 200\"] = responseCode.code === 200;"
+            |                            <<${ "tests[\"Status code is 200\"] = responseCode.code === 200;".jScript() }>>
             |                        ]
             |                    }
             |                }
@@ -877,7 +890,7 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
             |                    "script": {
             |                        "type": "text/javascript",
             |                        "exec": [
-            |                            "tests[\"Status code is 200\"] = responseCode.code === 200;"
+            |                            <<${ "tests[\"Status code is 200\"] = responseCode.code === 200;".jScript() }>>
             |                        ]
             |                    }
             |                }
@@ -933,7 +946,7 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
             |                    "script": {
             |                        "type": "text/javascript",
             |                        "exec": [
-            |                            "tests[\"Status code is 200\"] = responseCode.code === 200;"
+            |                            <<${ "tests[\"Status code is 200\"] = responseCode.code === 200;".jScript() }>>
             |                        ]
             |                    }
             |                }
@@ -981,7 +994,7 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
             |        }
             |    ]
             |}
-        """.trimMargin().escapeAll()
+        """.trimMargin().keepIndentation("<<", ">>").escapeAll()
     }
 
     private fun readme(): String {
