@@ -238,12 +238,12 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
             |            "raw": ""
             |        },
             |        "url": {
-            |            "raw": "{{host}}/${item.resource.fullUri.template.replace("{", "{{").replace("}", "}}")}",
+            |            "raw": "{{host}}${item.resource.fullUri.template.replace("{", "{{").replace("}", "}}")}",
             |            "host": [
             |                "{{host}}"
             |            ],
             |            "path": [
-            |                <<"${item.resource.fullUri.template.replace("{", "{{").replace("}", "}}").split("/").map { it.trim('/') }.joinToString("\",\n\"")}">>
+            |                <<"${item.resource.fullUri.template.replace("{", "{{").replace("}", "}}").trim('/').split("/").joinToString("\",\n\"")}">>
             |            ],
             |            "query": [
             |                <<${if (item.queryParameters.isNotEmpty()) item.queryParameters.joinToString(",\n") { it.queryParam() } else ""}>>
@@ -286,12 +286,12 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
             |            "raw": "${if (item.getExample().isNullOrEmpty().not()) item.getExample()!!.escapeJson() else ""}"
             |        },
             |        "url": {
-            |            "raw": "{{host}}/${item.resource.fullUri.template.replace("{", "{{").replace("}", "}}")}",
+            |            "raw": "{{host}}${item.resource.fullUri.template.replace("{", "{{").replace("}", "}}")}",
             |            "host": [
             |                "{{host}}"
             |            ],
             |            "path": [
-            |                <<"${item.resource.fullUri.template.replace("{", "{{").replace("}", "}}").split("/").map { it.trim('/') }.joinToString("\",\n\"")}">>
+            |                <<"${item.resource.fullUri.template.replace("{", "{{").replace("}", "}}").trim('/').split("/").joinToString("\",\n\"")}">>
             |            ],
             |            "query": [
             |                <<${if (item.queryParameters.isNotEmpty()) item.queryParameters.joinToString(",\n") { it.queryParam() } else ""}>>
@@ -343,15 +343,15 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
             |        },
             |        "url": {
             |            ${if (param.isNotEmpty()) """
-                            "raw": "{{host}}/${item.resource.fullUri.template.replace("{", "{{").replace("}", "}}")}/${param}={{${item.resource.resourcePathName.singularize()}-${param}}}",
+                            "raw": "{{host}}${item.resource.fullUri.template.replace("{", "{{").replace("}", "}}")}/${param}={{${item.resource.resourcePathName.singularize()}-${param}}}",
                             """.trimIndent() else """
-                            "raw": "{{host}}/${item.resource.fullUri.template.replace("{", "{{").replace("}", "}}")}/{{${item.resource.resourcePathName.singularize()}-id}}",
+                            "raw": "{{host}}${item.resource.fullUri.template.replace("{", "{{").replace("}", "}}")}/{{${item.resource.resourcePathName.singularize()}-id}}",
                             """.trimIndent()}
             |            "host": [
             |                "{{host}}"
             |            ],
             |            "path": [
-            |                <<"${item.resource.fullUri.template.replace("{", "{{").replace("}", "}}").split("/").map { it.trim('/') }.joinToString("\",\n\"")}">>,
+            |                <<"${item.resource.fullUri.template.replace("{", "{{").replace("}", "}}").trim('/').split("/").joinToString("\",\n\"")}">>,
             |                "${if (param.isNotEmpty()) "${param}={{${item.resource.resourcePathName.singularize()}-${param}}}" else "{{${item.resource.resourcePathName.singularize()}-id}}"}"
             |            ],
             |            "query": [
@@ -409,15 +409,15 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
             |        },
             |        "url": {
             |            ${if (param.isNotEmpty()) """
-                            "raw": "{{host}}/${item.resource.fullUri.template.replace("{", "{{").replace("}", "}}")}/${param}={{${item.resource.resourcePathName.singularize()}-${param}}}",
+                            "raw": "{{host}}${item.resource.fullUri.template.replace("{", "{{").replace("}", "}}")}/${param}={{${item.resource.resourcePathName.singularize()}-${param}}}",
                             """.trimIndent() else """
-                            "raw": "{{host}}/${item.resource.fullUri.template.replace("{", "{{").replace("}", "}}")}/{{${item.resource.resourcePathName.singularize()}-id}}",
+                            "raw": "{{host}}${item.resource.fullUri.template.replace("{", "{{").replace("}", "}}")}/{{${item.resource.resourcePathName.singularize()}-id}}",
                             """.trimIndent()}
             |            "host": [
             |                "{{host}}"
             |            ],
             |            "path": [
-            |                <<"${item.resource.fullUri.template.replace("{", "{{").replace("}", "}}").split("/").map { it.trim('/') }.joinToString("\",\n\"")}">>,
+            |                <<"${item.resource.fullUri.template.replace("{", "{{").replace("}", "}}").trim('/').split("/").joinToString("\",\n\"")}">>,
             |                "${if (param.isNotEmpty()) "${param}={{${item.resource.resourcePathName.singularize()}-${param}}}" else "{{${item.resource.resourcePathName.singularize()}-id}}"}"
             |            ],
             |            "query": [
@@ -470,15 +470,15 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
             |        },
             |        "url": {
             |            ${if (param.isNotEmpty()) """
-                            "raw": "{{host}}/${item.resource.fullUri.template.replace("{", "{{").replace("}", "}}")}/${param}={{${item.resource.resourcePathName.singularize()}-${param}}}",
+                            "raw": "{{host}}${item.resource.fullUri.template.replace("{", "{{").replace("}", "}}")}/${param}={{${item.resource.resourcePathName.singularize()}-${param}}}",
                             """.trimIndent() else """
-                            "raw": "{{host}}/${item.resource.fullUri.template.replace("{", "{{").replace("}", "}}")}/{{${item.resource.resourcePathName.singularize()}-id}}",
+                            "raw": "{{host}}${item.resource.fullUri.template.replace("{", "{{").replace("}", "}}")}/{{${item.resource.resourcePathName.singularize()}-id}}",
                             """.trimIndent()}
             |            "host": [
             |                "{{host}}"
             |            ],
             |            "path": [
-            |                <<"${item.resource.fullUri.template.replace("{", "{{").replace("}", "}}").split("/").map { it.trim('/') }.joinToString("\",\n\"")}">>,
+            |                <<"${item.resource.fullUri.template.replace("{", "{{").replace("}", "}}").trim('/').split("/").joinToString("\",\n\"")}">>,
             |                "${if (param.isNotEmpty()) "${param}={{${item.resource.resourcePathName.singularize()}-${param}}}" else "{{${item.resource.resourcePathName.singularize()}-id}}"}"
             |            ],
             |            "query": [
@@ -563,12 +563,12 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
                 |            }
                 |        ],
                 |        "url": {
-                |            "raw": "{{host}}/${item.resource.fullUri.template.replace("{", "{{").replace("}", "}}")}/{{${item.resource.resourcePathName.singularize()}-id}}",
+                |            "raw": "{{host}}${item.resource.fullUri.template.replace("{", "{{").replace("}", "}}")}/{{${item.resource.resourcePathName.singularize()}-id}}",
                 |            "host": [
                 |                "{{host}}"
                 |            ],
                 |            "path": [
-                |                <<"${item.resource.fullUri.template.replace("{", "{{").replace("}", "}}").split("/").map { it.trim('/') }.joinToString("\",\n\"")}">>,
+                |                <<"${item.resource.fullUri.template.replace("{", "{{").replace("}", "}}").trim('/').split("/").joinToString("\",\n\"")}">>,
                 |                "{{${item.resource.resourcePathName.singularize()}-id}}"
                 |            ],
                 |            "query": [
