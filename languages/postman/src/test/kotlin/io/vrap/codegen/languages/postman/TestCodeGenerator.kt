@@ -22,7 +22,7 @@ class TestCodeGenerator {
     fun generatePostmanModels() {
         val generatorConfig = CodeGeneratorConfig(
                 basePackageName = "com/commercetools/importer",
-                outputFolder = Paths.get("/Users/jensschulze/workspace/commercetools-api-reference/postman")
+                outputFolder = Paths.get("build/gensrc/postman")
         )
 
         val generatorModule = GeneratorModule(apiProvider, generatorConfig, PostmanBaseTypes)
@@ -31,7 +31,7 @@ class TestCodeGenerator {
     }
 
     private fun cleanGenTestFolder() {
-        cleanFolder("/Users/jensschulze/workspace/commercetools-api-reference/postman")
+        cleanFolder("build/gensrc")
     }
 
     private fun cleanFolder(path: String) {
