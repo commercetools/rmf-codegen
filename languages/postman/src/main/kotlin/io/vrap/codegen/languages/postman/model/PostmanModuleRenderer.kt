@@ -870,11 +870,6 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
             |                            "key": "password",
             |                            "value": "",
             |                            "equals": true
-            |                        },
-            |                        {
-            |                            "key": "scope",
-            |                            "value": "manage_project:{{projectKey}}",
-            |                            "equals": true
             |                        }
             |                    ]
             |                },
@@ -910,7 +905,7 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
             |                    "raw": ""
             |                },
             |                "url": {
-            |                    "raw": "https://{{auth_url}}/oauth/{{projectKey}}/anonymous/token?grant_type=client_credentials&scope=manage_my_profile:{{projectKey}}",
+            |                    "raw": "https://{{auth_url}}/oauth/{{projectKey}}/anonymous/token?grant_type=client_credentials",
             |                    "protocol": "https",
             |                    "host": [
             |                        "{{auth_url}}"
@@ -925,11 +920,6 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
             |                        {
             |                            "key": "grant_type",
             |                            "value": "client_credentials",
-            |                            "equals": true
-            |                        },
-            |                        {
-            |                            "key": "scope",
-            |                            "value": "manage_my_profile:{{projectKey}}",
             |                            "equals": true
             |                        }
             |                    ]
@@ -1012,6 +1002,9 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
             for a complete and approved documentation of the commercetools platform API.
 
             ## How to use
+            
+            **:warning: Be aware that postman automatically synchronizes environment variables to your workspace if logged in.
+            Use this collection only for development purposes and non-production projects.**
             
             To use this collection in Postman please perform the following steps:
 
