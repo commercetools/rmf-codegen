@@ -67,7 +67,7 @@ class JoiValidatorModuleRenderer @Inject constructor(override val vrapTypeProvid
         val arrayArg:String = this.getOneOf().map { "${it.toVrapType().simpleJoiName()}()"}
                 .joinToString(prefix = "[",separator = ",",postfix = "]")
         val schemaDeclaration = """
-            |schema.${toVrapType().simpleJoiName()} = Joi.lazy(() => Joi.alternatives($arrayArg))
+            |schema.${toVrapType().simpleJoiName()} = Joi.lazy(() =\> Joi.alternatives($arrayArg))
             |
         """
         return (schemaDeclaration + toVrapType().renderSchemaExportFunction()).trimMargin()
