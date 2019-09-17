@@ -9,10 +9,7 @@ import io.vrap.rmf.codegen.di.ClientPackageName
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.FileProducer
 import io.vrap.rmf.codegen.rendring.utils.keepIndentation
-import io.vrap.rmf.codegen.types.VrapArrayType
-import io.vrap.rmf.codegen.types.VrapObjectType
-import io.vrap.rmf.codegen.types.VrapType
-import io.vrap.rmf.codegen.types.VrapTypeProvider
+import io.vrap.rmf.codegen.types.*
 import io.vrap.rmf.raml.model.modules.Api
 import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Resource
@@ -217,6 +214,9 @@ class ServerRenderer @Inject constructor(
             }
             is VrapArrayType -> {
                 return this.itemType.joiImportStatement(moduleName)
+            }
+            is VrapScalarType -> {
+                return ""
             }
             else -> throw Error("not supposed to arrive here")
         }
