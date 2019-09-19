@@ -63,7 +63,7 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
                     |    {
                     |      "enabled": true,
                     |      "key": "auth_url",
-                    |      "value": "${api.oauth().uri().host}",
+                    |      "value": "https://${api.oauth().uri().host}",
                     |      "type": "text"
                     |    },
                     |    {
@@ -789,7 +789,7 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
             |                    "raw": ""
             |                },
             |                "url": {
-            |                    "raw": "https://{{auth_url}}${oauth.uri().path}?grant_type=client_credentials",
+            |                    "raw": "{{auth_url}}${oauth.uri().path}?grant_type=client_credentials",
             |                    "protocol": "https",
             |                    "host": [
             |                        "{{auth_url}}"
@@ -844,7 +844,7 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
             |                    "raw": ""
             |                },
             |                "url": {
-            |                    "raw": "https://{{auth_url}}/oauth/{{projectKey}}/customers/token?grant_type=password&username={{user_email}}&password={{user_password}}",
+            |                    "raw": "{{auth_url}}/oauth/{{projectKey}}/customers/token?grant_type=password&username={{user_email}}&password={{user_password}}",
             |                    "protocol": "https",
             |                    "host": [
             |                        "{{auth_url}}"
@@ -905,7 +905,7 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
             |                    "raw": ""
             |                },
             |                "url": {
-            |                    "raw": "https://{{auth_url}}/oauth/{{projectKey}}/anonymous/token?grant_type=client_credentials",
+            |                    "raw": "{{auth_url}}/oauth/{{projectKey}}/anonymous/token?grant_type=client_credentials",
             |                    "protocol": "https",
             |                    "host": [
             |                        "{{auth_url}}"
@@ -961,7 +961,7 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
             |                    "raw": ""
             |                },
             |                "url": {
-            |                    "raw": "https://{{auth_url}}/oauth/introspect?token={{ctp_access_token}}",
+            |                    "raw": "{{auth_url}}/oauth/introspect?token={{ctp_access_token}}",
             |                    "protocol": "https",
             |                    "host": [
             |                        "{{auth_url}}"
