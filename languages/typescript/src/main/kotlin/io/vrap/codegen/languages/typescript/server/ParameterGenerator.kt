@@ -138,24 +138,29 @@ class ParameterGenerator @Inject constructor(
 
     private fun imports(moduleName:String):String {
         return api.allMethods()
-                .flatMap {
-                    it.bodies
+                .flatMap { method ->
+
+                    method.bodies
                             .map {
                                 it.type
                             }
                             .plus(
-                                    it.responses
+                                    method.responses
                                             .flatMap {
                                                 it.bodies.map {
                                                     body -> body.type
                                                 }
                                             }
+                            ).plus(
+
+                                    method.queryParameters.map { it.type }
                             )
+
                 }
                 .map{
                     it.toVrapType()
                 }
-                .filter { it is VrapObjectType }
+                .filter { it is VrapObjectType || it is VrapEnumType}
                 .distinct()
                 .map {
                     it.importModelsStatements(moduleName)
@@ -170,6 +175,10 @@ class ParameterGenerator @Inject constructor(
     private fun VrapType.importModelsStatements(moduleName:String):String {
         return when (this) {
             is VrapObjectType -> {
+                val relativePath = relativizePaths("./${moduleFilePath.parent}", "$modelsLocation${this.`package`}")
+                "import { ${this.simpleTSName()} } from '$relativePath'"
+            }
+            is VrapEnumType -> {
                 val relativePath = relativizePaths("./${moduleFilePath.parent}", "$modelsLocation${this.`package`}")
                 "import { ${this.simpleTSName()} } from '$relativePath'"
             }
