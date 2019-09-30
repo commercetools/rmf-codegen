@@ -10,12 +10,14 @@ import io.vrap.codegen.languages.typescript.model.simpleTSName
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.ResourceRenderer
 import io.vrap.rmf.codegen.rendring.utils.keepIndentation
-import io.vrap.rmf.codegen.types.*
+import io.vrap.rmf.codegen.types.VrapArrayType
+import io.vrap.rmf.codegen.types.VrapEnumType
+import io.vrap.rmf.codegen.types.VrapObjectType
+import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.modules.Api
 import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.types.StringType
-import java.lang.Error
 
 
 class RequestBuilder @Inject constructor(
@@ -165,10 +167,15 @@ class RequestBuilder @Inject constructor(
                     "import { ${it.toRequestBuilderName()} } from '$relativePath'"
                 }.plus(
                         this.methods
-                                .flatMap { it.bodies }
+                                .flatMap {
+                                    method ->  method.bodies
+                                        .plus(
+                                                method.queryParameters
+                                        )
+                                }
                                 .filter { it.type != null }
                                 .map { it.type.toVrapType() }
-                                .filter { it is VrapObjectType || (it is VrapArrayType && it.itemType is VrapObjectType) }
+                                .filter { it is VrapEnumType || it is VrapObjectType || (it is VrapArrayType && it.itemType is VrapObjectType) }
                                 .map {
                                     it.toImportStatement(moduleName)
                                 }
