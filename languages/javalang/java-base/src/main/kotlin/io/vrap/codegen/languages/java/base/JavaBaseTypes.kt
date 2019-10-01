@@ -2,6 +2,7 @@ package io.vrap.codegen.languages.java.base
 
 import io.vrap.rmf.codegen.types.LanguageBaseTypes
 import io.vrap.rmf.codegen.types.VrapObjectType
+import io.vrap.rmf.codegen.types.VrapScalarType
 import java.io.File
 import java.lang.Boolean
 import java.lang.Double
@@ -31,4 +32,4 @@ fun fromJavaType(kClass: KClass<out Any>): VrapObjectType {
     return VrapObjectType(kClass.java.`package`.name, kClass.java.simpleName)
 }
 
-fun fromDefaultJavaType(kClass: KClass<out Any>): VrapObjectType = fromJavaType(kClass).let { VrapObjectType(it.`package`, it.simpleClassName) }
+fun fromDefaultJavaType(kClass: KClass<out Any>): VrapScalarType = fromJavaType(kClass).let { VrapScalarType(it.simpleClassName) }
