@@ -1,7 +1,6 @@
 package io.vrap.codegen.languages.javalang.client.builder.requests
 
 import com.google.inject.Inject
-import io.vrap.codegen.languages.extensions.hasBody
 import io.vrap.codegen.languages.extensions.resource
 import io.vrap.codegen.languages.extensions.toRequestName
 import io.vrap.codegen.languages.java.base.extensions.*
@@ -10,6 +9,7 @@ import io.vrap.rmf.codegen.rendring.MethodRenderer
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
 import io.vrap.rmf.codegen.rendring.utils.keepIndentation
 import io.vrap.rmf.codegen.types.VrapObjectType
+import io.vrap.rmf.codegen.types.VrapScalarType
 import io.vrap.rmf.codegen.types.VrapType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.resources.Method
@@ -20,10 +20,10 @@ import org.eclipse.emf.ecore.EObject
 const val PLACEHOLDER_PARAM_ANNOTATION = "placeholderParam"
 
 class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : MethodRenderer, JavaObjectTypeExtensions, JavaEObjectTypeExtensions {
-    
+
     override fun render(type: Method): TemplateFile {
         val vrapType = vrapTypeProvider.doSwitch(type as EObject) as VrapObjectType
-        
+
         val content = """
             |package ${vrapType.`package`.toJavaPackage()};
             |
@@ -43,6 +43,7 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
             |import java.io.UnsupportedEncodingException;
             |import java.net.URLEncoder;
             |import io.vrap.rmf.base.client.*;
+            |${type.imports()}
             |
             |public class ${type.toRequestName()} {
             |   
@@ -69,13 +70,13 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
             |}
         """.trimMargin()
                 .keepIndentation()
-        
+
         return TemplateFile(
                 relativePath = "${vrapType.`package`}.${type.toRequestName()}".replace(".", "/") + ".java",
                 content = content
         )
     }
-    
+
     private fun Method.constructor(): String? {
         val constructorArguments = mutableListOf("final ApiHttpClient apiHttpClient")
         val constructorAssignments = mutableListOf("this.apiHttpClient = apiHttpClient;")
@@ -83,45 +84,45 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
         this.pathArguments().map { "String $it" }.forEach { constructorArguments.add(it) }
         this.pathArguments().map { "this.$it = $it;" }.forEach { constructorAssignments.add(it) }
 
-        if(this.bodies != null && this.bodies.isNotEmpty()){
-            if(this.bodies[0].type.toVrapType() is VrapObjectType) {
+        if (this.bodies != null && this.bodies.isNotEmpty()) {
+            if (this.bodies[0].type.toVrapType() is VrapObjectType) {
                 val methodBodyVrapType = this.bodies[0].type.toVrapType() as VrapObjectType
                 val methodBodyArgument = "${methodBodyVrapType.`package`.toJavaPackage()}.${methodBodyVrapType.simpleClassName} ${methodBodyVrapType.simpleClassName.decapitalize()}"
                 constructorArguments.add(methodBodyArgument)
                 val methodBodyAssignment = "this.${methodBodyVrapType.simpleClassName.decapitalize()} = ${methodBodyVrapType.simpleClassName.decapitalize()};"
                 constructorAssignments.add(methodBodyAssignment)
-            }else {
+            } else {
                 constructorArguments.add("com.fasterxml.jackson.databind.JsonNode jsonNode")
                 constructorAssignments.add("this.jsonNode = jsonNode;")
             }
         }
-        
+
         return """
             |public ${this.toRequestName()}(${constructorArguments.joinToString(separator = ", ")}){
             |   <${constructorAssignments.joinToString(separator = "\n")}>
             |}
         """.trimMargin().keepIndentation()
     }
-    
+
     private fun Method.fields(): String? {
 
-        val parameterFields : String =
+        val parameterFields: String =
                 this.queryParameters
-                        .filter { it.annotations.find { it.type.name.equals(PLACEHOLDER_PARAM_ANNOTATION) } == null}
+                        .filter { it.annotations.find { it.type.name.equals(PLACEHOLDER_PARAM_ANNOTATION) } == null }
                         .map { "private List<${it.type.toVrapType().simpleName()}> ${it.fieldName()} = new ArrayList<>();" }
                         .joinToString(separator = "\n")
 
         val pathArgs = this.pathArguments().map { "private String $it;" }.joinToString(separator = "\n")
 
 
-        val body: String = if(this.bodies != null && this.bodies.isNotEmpty()){
-            if(this.bodies[0].type.toVrapType() is VrapObjectType){
+        val body: String = if (this.bodies != null && this.bodies.isNotEmpty()) {
+            if (this.bodies[0].type.toVrapType() is VrapObjectType) {
                 val methodBodyVrapType = this.bodies[0].type.toVrapType() as VrapObjectType
                 "private ${methodBodyVrapType.`package`.toJavaPackage()}.${methodBodyVrapType.simpleClassName} ${methodBodyVrapType.simpleClassName.decapitalize()};"
-            }else {
+            } else {
                 "private com.fasterxml.jackson.databind.JsonNode jsonNode;"
             }
-        }else{
+        } else {
             ""
         }
 
@@ -136,16 +137,16 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
         """.trimMargin()
     }
 
-    private fun QueryParameter.fieldName() : String {
+    private fun QueryParameter.fieldName(): String {
         return StringCaseFormat.LOWER_CAMEL_CASE.apply(this.name.replace(".", "-"))
     }
-    
-    private fun Method.pathArguments() : List<String> {
+
+    private fun Method.pathArguments(): List<String> {
         return this.resource().fullUri.variables.toList()
     }
-    
-    private fun Method.createRequestMethod() : String {
-        
+
+    private fun Method.createRequestMethod(): String {
+
         val pathArguments = this.pathArguments().map { "{$it}" }
         var stringFormat = this.resource().fullUri.template
         pathArguments.forEach { stringFormat = stringFormat.replace(it, "%s") }
@@ -154,25 +155,25 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
                 .map { "this.$it" }
                 .joinToString(separator = ", ")
 
-        val bodyName : String? = if(this.bodies != null && this.bodies.isNotEmpty()){
-            if(this.bodies[0].type.toVrapType() is VrapObjectType) {
+        val bodyName: String? = if (this.bodies != null && this.bodies.isNotEmpty()) {
+            if (this.bodies[0].type.toVrapType() is VrapObjectType) {
                 val methodBodyVrapType = this.bodies[0].type.toVrapType() as VrapObjectType
                 methodBodyVrapType.simpleClassName.decapitalize()
-            }else {
+            } else {
                 "jsonNode"
             }
-        }else {
+        } else {
             null
         }
-        
-        val addingQueryParams : String = this.queryParameters
-                .filter { it.annotations.find { it.type.name.equals("placeholderParam") } == null}
-                .map { "params.add(this.${it.fieldName()}.stream().map(s -> \"${it.name}=\" + ${if(it.type.name.equals("string")) "urlEncode(s)" else "s"}).collect(Collectors.joining(\"&\")));" }
+
+        val addingQueryParams: String = this.queryParameters
+                .filter { it.annotations.find { it.type.name.equals("placeholderParam") } == null }
+                .map { "params.add(this.${it.fieldName()}.stream().map(s -> \"${it.name}=\" + ${if (it.type.name.equals("string")) "urlEncode(s)" else "s"}).collect(Collectors.joining(\"&\")));" }
                 .joinToString(separator = "\n")
-        
-        val addingAdditionalQueryParams : String = "params.add(additionalQueryParams.entrySet().stream().map(entry -> entry.getKey() + \"=\" + entry.getValue()).collect(Collectors.joining(\"&\")));"
-        
-        val requestPathGeneration : String = """
+
+        val addingAdditionalQueryParams: String = "params.add(additionalQueryParams.entrySet().stream().map(entry -> entry.getKey() + \"=\" + entry.getValue()).collect(Collectors.joining(\"&\")));"
+
+        val requestPathGeneration: String = """
             |List<String> params = new ArrayList<>();
             |$addingQueryParams
             |$addingAdditionalQueryParams
@@ -182,7 +183,7 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
             |   httpRequestPath += "?" + String.join("&", params);
             |}
         """.trimMargin().escapeAll()
-        
+
         return """
             |public ApiHttpRequest createHttpRequest() {
             |   ApiHttpRequest httpRequest = new ApiHttpRequest();
@@ -190,13 +191,13 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
             |   httpRequest.setRelativeUrl(httpRequestPath); 
             |   httpRequest.setMethod(ApiHttpMethod.${this.method.name});
             |   httpRequest.setHeaders(headers);
-            |   ${if(bodyName != null) "try{httpRequest.setBody(VrapJsonUtils.toJsonByteArray($bodyName));}catch(Exception e){e.printStackTrace();}" else "" }
+            |   ${if (bodyName != null) "try{httpRequest.setBody(VrapJsonUtils.toJsonByteArray($bodyName));}catch(Exception e){e.printStackTrace();}" else ""}
             |   return httpRequest;
             |}
         """.trimMargin()
-    }   
-    
-    private fun Method.executeBlockingMethod() : String {
+    }
+
+    private fun Method.executeBlockingMethod(): String {
         return """
             |public ApiHttpResponse\<${this.javaReturnType(vrapTypeProvider)}\> executeBlocking(){
             |   try {
@@ -208,7 +209,7 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
         """.trimMargin()
     }
 
-    private fun Method.executeMethod() : String {
+    private fun Method.executeMethod(): String {
         return """
             |public CompletableFuture\<ApiHttpResponse\<${this.javaReturnType(vrapTypeProvider)}\>\> execute(){
             |   return apiHttpClient.execute(this.createHttpRequest())
@@ -217,14 +218,14 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
         """.trimMargin()
     }
 
-    private fun responseErrorsDeserialization(statusCode : String, bodyType: VrapType?) : String {
-        return if(bodyType == null){
+    private fun responseErrorsDeserialization(statusCode: String, bodyType: VrapType?): String {
+        return if (bodyType == null) {
             """
                 |if(response.getStatusCode() == $statusCode){
                 |   throw new RuntimeException("Response status code : " + $statusCode);
                 |}
             """.trimMargin().keepIndentation()
-        }else{
+        } else {
             """
             |if(response.getStatusCode() == $statusCode){
             |   try{
@@ -238,27 +239,30 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
         """.trimMargin().keepIndentation()
         }
     }
-    
-    private fun Method.pathArgumentsGetters() : String = this.pathArguments()
+
+    private fun Method.pathArgumentsGetters(): String = this.pathArguments()
             .map { "public String get${it.capitalize()}() {return this.$it;}" }
             .joinToString(separator = "\n")
-    
-    private fun Method.pathArgumentsSetters() : String = this.pathArguments()
+
+    private fun Method.pathArgumentsSetters(): String = this.pathArguments()
             .map { "public void set${it.capitalize()}(final String $it) {this.$it = $it;}" }
             .joinToString(separator = "\n\n")
-    
-    private fun Method.queryParamsGetters() : String = this.queryParameters
-            .filter { it.annotations.find { it.type.name.equals("placeholderParam") } == null}
-            .map { """
+
+    private fun Method.queryParamsGetters(): String = this.queryParameters
+            .filter { it.annotations.find { it.type.name.equals("placeholderParam") } == null }
+            .map {
+                """
                 |public List<${it.type.toVrapType().simpleName()}> get${it.fieldName().capitalize()}() {
                 |   return this.${it.fieldName()};
                 |}
-                """.trimMargin().escapeAll() }
+                """.trimMargin().escapeAll()
+            }
             .joinToString(separator = "\n\n")
-    
-    private fun Method.queryParamsSetters() : String = this.queryParameters
-            .filter { it.annotations.find { it.type.name.equals("placeholderParam") } == null}
-            .map { """
+
+    private fun Method.queryParamsSetters(): String = this.queryParameters
+            .filter { it.annotations.find { it.type.name.equals("placeholderParam") } == null }
+            .map {
+                """
                 |public ${this.toRequestName()} add${it.fieldName().capitalize()}(final ${it.type.toVrapType().simpleName()} ${it.fieldName()}){
                 |   this.${it.fieldName()}.add(${it.fieldName()});
                 |   return this;
@@ -268,10 +272,11 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
                 |   this.${it.fieldName()} = ${it.fieldName()};
                 |   return this;
                 |}
-            """.trimMargin().escapeAll() }
+            """.trimMargin().escapeAll()
+            }
             .joinToString(separator = "\n\n")
-    
-    private fun Method.helperMethods() : String {
+
+    private fun Method.helperMethods(): String {
         return """
             |public ${this.toRequestName()} addHeader(final String key, final String value) {
             |   this.headers.addHeader(key, value);
@@ -314,5 +319,20 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
             |    }
             |}
         """.trimMargin().escapeAll()
+    }
+
+    private fun Method.imports(): String {
+        return this.queryParameters
+                .map {
+                    it.type.toVrapType()
+                }
+                .filter { it !is VrapScalarType }
+                .map {
+                    getImportsForType(it)
+                }
+                .filter { !it.isNullOrBlank() }
+                .map { "import ${it};" }
+                .joinToString(separator = "\n")
+
     }
 }
