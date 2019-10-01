@@ -209,44 +209,17 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
     }
 
     private fun Method.executeMethod() : String {
-
-        val responseErrorsDeserialization : String =
-                this.responses
-                        .filter { !it.statusCode.startsWith("2") }
-                        .map { responseErrorsDeserialization(it.statusCode, if(it.bodies.isNotEmpty())it.bodies[0].type.toVrapType() else null) }
-                        .joinToString(separator = "\n\n")
-        
         return """
             |public CompletableFuture\<ApiHttpResponse\<${this.javaReturnType(vrapTypeProvider)}\>\> execute(){
             |   return apiHttpClient.execute(this.createHttpRequest())
             |           .thenApply(response -\> {
-            |               $responseErrorsDeserialization
+            |               if(response.getStatusCode() \>= 400){
+            |                   throw new ApiHttpException(response.getStatusCode(), new String(response.getBody()), response.getHeaders());
+            |               }
             |               return Utils.convertResponse(response,${this.javaReturnType(vrapTypeProvider)}.class);
             |           });
             |}
         """.trimMargin()
-    }
-
-    private fun responseErrorsDeserialization(statusCode : String, bodyType: VrapType?) : String {
-        return if(bodyType == null){
-            """
-                |if(response.getStatusCode() == $statusCode){
-                |   throw new RuntimeException("Response status code : " + $statusCode);
-                |}
-            """.trimMargin().keepIndentation()
-        }else{
-            """
-            |if(response.getStatusCode() == $statusCode){
-            |   try{
-            |       ${bodyType?.fullClassName()} ${bodyType?.simpleName()?.lowerCamelCase()} = VrapJsonUtils.fromJsonString(new String(response.getBody()), ${bodyType?.fullClassName()}.class);
-            |       throw new RuntimeException(${bodyType?.simpleName()?.lowerCamelCase()}.getMessage());
-            |   }catch(Exception e){
-            |       e.printStackTrace();
-            |       throw new RuntimeException(e.getMessage());
-            |   }
-            |}
-        """.trimMargin().keepIndentation()
-        }
     }
     
     private fun Method.pathArgumentsGetters() : String = this.pathArguments()
