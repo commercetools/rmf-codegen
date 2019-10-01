@@ -1,7 +1,6 @@
 package io.vrap.codegen.languages.javalang.client.builder.requests
 
 import com.google.inject.Inject
-import io.vrap.codegen.languages.extensions.hasBody
 import io.vrap.codegen.languages.extensions.resource
 import io.vrap.codegen.languages.extensions.toRequestName
 import io.vrap.codegen.languages.java.base.extensions.*
@@ -10,6 +9,7 @@ import io.vrap.rmf.codegen.rendring.MethodRenderer
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
 import io.vrap.rmf.codegen.rendring.utils.keepIndentation
 import io.vrap.rmf.codegen.types.VrapObjectType
+import io.vrap.rmf.codegen.types.VrapScalarType
 import io.vrap.rmf.codegen.types.VrapType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.resources.Method
@@ -20,10 +20,10 @@ import org.eclipse.emf.ecore.EObject
 const val PLACEHOLDER_PARAM_ANNOTATION = "placeholderParam"
 
 class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : MethodRenderer, JavaObjectTypeExtensions, JavaEObjectTypeExtensions {
-    
+
     override fun render(type: Method): TemplateFile {
         val vrapType = vrapTypeProvider.doSwitch(type as EObject) as VrapObjectType
-        
+
         val content = """
             |package ${vrapType.`package`.toJavaPackage()};
             |
@@ -43,6 +43,7 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
             |import java.io.UnsupportedEncodingException;
             |import java.net.URLEncoder;
             |import io.vrap.rmf.base.client.*;
+            |${type.imports()}
             |
             |public class ${type.toRequestName()} {
             |   
@@ -136,7 +137,7 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
         """.trimMargin()
     }
 
-    private fun QueryParameter.fieldName() : String {
+    private fun QueryParameter.fieldName(): String {
         return StringCaseFormat.LOWER_CAMEL_CASE.apply(this.name.replace(".", "-"))
     }
     
@@ -297,5 +298,20 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
             |    }
             |}
         """.trimMargin().escapeAll()
+    }
+
+    private fun Method.imports(): String {
+        return this.queryParameters
+                .map {
+                    it.type.toVrapType()
+                }
+                .filter { it !is VrapScalarType }
+                .map {
+                    getImportsForType(it)
+                }
+                .filter { !it.isNullOrBlank() }
+                .map { "import ${it};" }
+                .joinToString(separator = "\n")
+
     }
 }

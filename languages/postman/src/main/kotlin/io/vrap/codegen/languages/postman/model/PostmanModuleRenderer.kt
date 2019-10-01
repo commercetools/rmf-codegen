@@ -63,18 +63,18 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
                     |    {
                     |      "enabled": true,
                     |      "key": "auth_url",
-                    |      "value": "${api.oauth().uri().host}",
+                    |      "value": "https://${api.oauth().uri().host}",
                     |      "type": "text"
                     |    },
                     |    {
                     |      "enabled": true,
-                    |      "key": "ctp_client_id",
+                    |      "key": "client_id",
                     |      "value": "<your-client-id>",
                     |      "type": "text"
                     |    },
                     |    {
                     |      "enabled": true,
-                    |      "key": "ctp_client_secret",
+                    |      "key": "client_secret",
                     |      "value": "<your-client-secret>",
                     |      "type": "text"
                     |    },
@@ -778,8 +778,8 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
             |                "auth": {
             |                    "type": "basic",
             |                    "basic": {
-            |                        "username": "{{ctp_client_id}}",
-            |                        "password": "{{ctp_client_secret}}"
+            |                        "username": "{{client_id}}",
+            |                        "password": "{{client_secret}}"
             |                    }
             |                },
             |                "method": "POST",
@@ -789,7 +789,7 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
             |                    "raw": ""
             |                },
             |                "url": {
-            |                    "raw": "https://{{auth_url}}${oauth.uri().path}?grant_type=client_credentials",
+            |                    "raw": "{{auth_url}}${oauth.uri().path}?grant_type=client_credentials",
             |                    "protocol": "https",
             |                    "host": [
             |                        "{{auth_url}}"
@@ -818,7 +818,7 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
             |                    "script": {
             |                        "type": "text/javascript",
             |                        "exec": [
-            |                            <<${ "tests[\"Status code is 200\"] = responseCode.code === 200;".jScript() }>>
+            |                            <<${testAuthScript().jScript()}>>
             |                        ]
             |                    }
             |                }
@@ -827,8 +827,8 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
             |                "auth": {
             |                    "type": "basic",
             |                    "basic": {
-            |                        "username": "{{ctp_client_id}}",
-            |                        "password": "{{ctp_client_secret}}"
+            |                        "username": "{{client_id}}",
+            |                        "password": "{{client_secret}}"
             |                    }
             |                },
             |                "method": "POST",
@@ -844,7 +844,7 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
             |                    "raw": ""
             |                },
             |                "url": {
-            |                    "raw": "https://{{auth_url}}/oauth/{{projectKey}}/customers/token?grant_type=password&username={{user_email}}&password={{user_password}}",
+            |                    "raw": "{{auth_url}}/oauth/{{projectKey}}/customers/token?grant_type=password&username={{user_email}}&password={{user_password}}",
             |                    "protocol": "https",
             |                    "host": [
             |                        "{{auth_url}}"
@@ -870,11 +870,6 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
             |                            "key": "password",
             |                            "value": "",
             |                            "equals": true
-            |                        },
-            |                        {
-            |                            "key": "scope",
-            |                            "value": "manage_project:{{projectKey}}",
-            |                            "equals": true
             |                        }
             |                    ]
             |                },
@@ -890,7 +885,7 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
             |                    "script": {
             |                        "type": "text/javascript",
             |                        "exec": [
-            |                            <<${ "tests[\"Status code is 200\"] = responseCode.code === 200;".jScript() }>>
+            |                            <<${testAuthScript().jScript()}>>
             |                        ]
             |                    }
             |                }
@@ -899,8 +894,8 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
             |                "auth": {
             |                    "type": "basic",
             |                    "basic": {
-            |                        "username": "{{ctp_client_id}}",
-            |                        "password": "{{ctp_client_secret}}"
+            |                        "username": "{{client_id}}",
+            |                        "password": "{{client_secret}}"
             |                    }
             |                },
             |                "method": "POST",
@@ -910,7 +905,7 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
             |                    "raw": ""
             |                },
             |                "url": {
-            |                    "raw": "https://{{auth_url}}/oauth/{{projectKey}}/anonymous/token?grant_type=client_credentials&scope=manage_my_profile:{{projectKey}}",
+            |                    "raw": "{{auth_url}}/oauth/{{projectKey}}/anonymous/token?grant_type=client_credentials",
             |                    "protocol": "https",
             |                    "host": [
             |                        "{{auth_url}}"
@@ -925,11 +920,6 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
             |                        {
             |                            "key": "grant_type",
             |                            "value": "client_credentials",
-            |                            "equals": true
-            |                        },
-            |                        {
-            |                            "key": "scope",
-            |                            "value": "manage_my_profile:{{projectKey}}",
             |                            "equals": true
             |                        }
             |                    ]
@@ -955,8 +945,8 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
             |                "auth": {
             |                    "type": "basic",
             |                    "basic": {
-            |                        "username": "{{ctp_client_id}}",
-            |                        "password": "{{ctp_client_secret}}"
+            |                        "username": "{{client_id}}",
+            |                        "password": "{{client_secret}}"
             |                    }
             |                },
             |                "method": "POST",
@@ -971,7 +961,7 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
             |                    "raw": ""
             |                },
             |                "url": {
-            |                    "raw": "https://{{auth_url}}/oauth/introspect?token={{ctp_access_token}}",
+            |                    "raw": "{{auth_url}}/oauth/introspect?token={{ctp_access_token}}",
             |                    "protocol": "https",
             |                    "host": [
             |                        "{{auth_url}}"
@@ -1013,10 +1003,13 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
 
             ## How to use
             
+            **:warning: Be aware that postman automatically synchronizes environment variables (including your API client credentials) to your workspace if logged in.
+            Use this collection only for development purposes and non-production projects.**
+            
             To use this collection in Postman please perform the following steps:
 
             1. Download and install the Postman Client
-            2. Import the collection.json and template.json in your postman application
+            2. Import the [collection.json](https://github.com/commercetools/commercetools-postman-api-examples/raw/master/collection.json) and [template.json](https://github.com/commercetools/commercetools-postman-api-examples/raw/master/template.json) in your postman application
             3. In the Merchant Center, create a new API Client and fill in the client credentials in your environment
             4. Obtain an access token by sending the "Authorization/Obtain access token" request at the bottom of the request list. Now you can use all other endpoints
     
