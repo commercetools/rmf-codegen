@@ -20,7 +20,7 @@ class TestCodeGenerator {
         val generatorConfig = CodeGeneratorConfig(basePackageName = "")
     }
 
-    @Test
+    
     fun generatePHPModels() {
         val generatorConfig = CodeGeneratorConfig(
                 basePackageName = "commercetools/api",
@@ -33,7 +33,7 @@ class TestCodeGenerator {
         generatorComponent.generateFiles()
     }
 
-    @Test
+    
     fun generatePHPBase() {
         val generatorConfig = CodeGeneratorConfig(
                 basePackageName = "commercetools",
