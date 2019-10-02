@@ -17,6 +17,9 @@ import io.vrap.rmf.raml.model.types.QueryParameter
 import io.vrap.rmf.raml.model.util.StringCaseFormat
 import org.eclipse.emf.ecore.EObject
 
+/**
+ * Query parameters with this annotation should be ignored by JVM sdk.
+ */
 const val PLACEHOLDER_PARAM_ANNOTATION = "placeholderParam"
 
 class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : MethodRenderer, JavaObjectTypeExtensions, JavaEObjectTypeExtensions {
@@ -167,7 +170,7 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
         }
         
         val addingQueryParams : String = this.queryParameters
-                .filter { it.annotations.find { it.type.name.equals("placeholderParam") } == null}
+                .filter { it.annotations.find { it.type.name.equals(PLACEHOLDER_PARAM_ANNOTATION) } == null}
                 .map { "params.add(this.${it.fieldName()}.stream().map(s -> \"${it.name}=\" + ${if(it.type.name.equals("string")) "urlEncode(s)" else "s"}).collect(Collectors.joining(\"&\")));" }
                 .joinToString(separator = "\n")
         
@@ -232,7 +235,7 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
             .joinToString(separator = "\n\n")
     
     private fun Method.queryParamsGetters() : String = this.queryParameters
-            .filter { it.annotations.find { it.type.name.equals("placeholderParam") } == null}
+            .filter { it.annotations.find { it.type.name.equals(PLACEHOLDER_PARAM_ANNOTATION) } == null}
             .map { """
                 |public List<${it.type.toVrapType().simpleName()}> get${it.fieldName().capitalize()}() {
                 |   return this.${it.fieldName()};
@@ -241,7 +244,7 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
             .joinToString(separator = "\n\n")
     
     private fun Method.queryParamsSetters() : String = this.queryParameters
-            .filter { it.annotations.find { it.type.name.equals("placeholderParam") } == null}
+            .filter { it.annotations.find { it.type.name.equals(PLACEHOLDER_PARAM_ANNOTATION) } == null}
             .map { """
                 |public ${this.toRequestName()} add${it.fieldName().capitalize()}(final ${it.type.toVrapType().simpleName()} ${it.fieldName()}){
                 |   this.${it.fieldName()}.add(${it.fieldName()});
