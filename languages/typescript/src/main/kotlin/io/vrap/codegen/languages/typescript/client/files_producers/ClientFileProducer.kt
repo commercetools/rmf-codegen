@@ -144,10 +144,15 @@ function getURI(commonRequest: CommonRequest): string {
     uri = uri.replace(`{${'$'}param}`, `${'$'}{pathMap[param]}`);
   }
   for (const query in queryMap) {
-    queryParams = [
-      ...queryParams,
-      `${'$'}{query}=${'$'}{encodeURIComponent(`${'$'}{queryMap[query]}`)}`
-    ];
+    const queryParameter = queryMap[query]
+    if(queryParameter instanceof Array){
+      for(const element in queryParameter){
+        queryParams.push(`${'$'}{query}=${'$'}{encodeURIComponent(element)}`)
+      }
+    }
+    else {
+      queryParams.push(`${'$'}{query}=${'$'}{encodeURIComponent(`${'$'}{queryParameter}`)}`)
+    }
   }
   const resQuery = queryParams.join("&");
   if (resQuery == "") {
@@ -155,6 +160,7 @@ function getURI(commonRequest: CommonRequest): string {
   }
   return `${'$'}{commonRequest.baseURL}${'$'}{uri}?${'$'}{resQuery}`;
 }
+
 
 const noOpMiddleware = async (x: MiddlewareArg) => x;
 """.trim())
