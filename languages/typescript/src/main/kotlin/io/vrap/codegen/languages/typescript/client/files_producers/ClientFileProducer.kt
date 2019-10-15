@@ -2,6 +2,8 @@ package io.vrap.codegen.languages.typescript.client.files_producers
 
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.FileProducer
+import jdk.nashorn.internal.runtime.GlobalFunctions.encodeURIComponent
+import scala.annotation.meta.param
 
 class ClientFileProducer : FileProducer {
 
@@ -21,7 +23,9 @@ export type MethodType =
   | "OPTIONS"
   | "TRACE";
 
-export type VariableMap =  { [key: string]: string | number | boolean | undefined }
+export type VariableMap = {
+  [key: string]: string | string[] | number | number[] | boolean | undefined
+}
 
 export type MiddlewareArg = {
   request: ClientRequest;
@@ -50,7 +54,7 @@ export type Middleware = (arg: MiddlewareArg) => Promise<MiddlewareArg>;
 fun localCommonTypes() = TemplateFile(relativePath = "base/local-common-types.ts", content = """
 import { MethodType, VariableMap } from "./common-types";
 
-export interface CommonRequest<T> {
+export interface CommonRequest {
   baseURL: string;
   url?: string,
   headers?: VariableMap;
@@ -58,7 +62,7 @@ export interface CommonRequest<T> {
   uriTemplate: string;
   pathVariables?: VariableMap;
   queryParams?: VariableMap;
-  body?: T
+  body?: any
 }
 """.trim())
 
@@ -66,10 +70,9 @@ fun produceRequestUtils() = TemplateFile(relativePath = "base/requests-utils.ts"
 import { Middleware, MiddlewareArg, ClientResponse } from "./common-types";
 import { CommonRequest } from "./local-common-types";
 
-export class ApiRequest<O> {
+export class ApiRequestExecutor {
   private middleware: Middleware;
   constructor(
-    private readonly commonRequest: CommonRequest<any>,
     middlewares: Middleware[]
   ) {
     if (!middlewares || middlewares.length == 0) {
@@ -78,13 +81,13 @@ export class ApiRequest<O> {
     this.middleware = middlewares.reduce(reduceMiddleware);
   }
 
-  async execute(): Promise<ClientResponse<O>> {
-    const { body, headers, method } = this.commonRequest;
+  public async  execute<O>(request: CommonRequest): Promise<ClientResponse<O>> {
+    const { body, headers, method } = request;
     const req = {
       headers,
       method,
       body,
-      uri: getURI(this.commonRequest)
+      uri: getURI(request)
     };
 
     const res : MiddlewareArg= await this.middleware({
@@ -106,6 +109,17 @@ export class ApiRequest<O> {
   }
 }
 
+export class ApiRequest<O> {
+  constructor(
+    private readonly commonRequest : CommonRequest,
+    private readonly apiRequestExecutor: ApiRequestExecutor
+  ){}
+
+  public execute(): Promise<ClientResponse<O>>{
+    return this.apiRequestExecutor.execute(this.commonRequest)
+  }
+}
+
 function reduceMiddleware(op1: Middleware, op2: Middleware): Middleware {
   return async (arg: MiddlewareArg) => {
     const { next, ...rest } = arg;
@@ -121,13 +135,13 @@ function reduceMiddleware(op1: Middleware, op2: Middleware): Middleware {
   };
 }
 
-function getURI(commonRequest: CommonRequest<any>): string {
+function getURI(commonRequest: CommonRequest): string {
   const pathMap = commonRequest.pathVariables;
   const queryMap = commonRequest.queryParams;
   var uri: String = commonRequest.uriTemplate;
   var queryParams : string[]= [];
   for (const param in pathMap) {
-    uri = uri.replace(`{${'$'}{param}}`, `${'$'}{pathMap[param]}`);
+    uri = uri.replace(`{${'$'}param}`, `${'$'}{pathMap[param]}`);
   }
   for (const query in queryMap) {
     queryParams = [
