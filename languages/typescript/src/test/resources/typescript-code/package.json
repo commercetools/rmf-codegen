@@ -1,0 +1,26 @@
+{
+  "dependencies": {
+    "@commercetools/sdk-client": "^2.1.1",
+    "@commercetools/sdk-middleware-auth": "^6.0.0",
+    "@commercetools/sdk-middleware-http": "^6.0.0",
+    "joi": "^14.3.1",
+    "node-fetch": "^2.6.0"
+  },
+  "devDependencies": {
+    "@types/node": "^12.7.12",
+    "prettier": "^1.18.2",
+    "tsc": "^1.20150623.0",
+    "tslint": "^5.20.0",
+    "tslint-auto-fix": "^1.0.0",
+    "tslint-config-prettier": "^1.18.0",
+    "tslint-plugin-prettier": "^2.0.1",
+    "typescript": "^3.6.4"
+  },
+  "scripts": {
+    "prettier:base": "prettier --parser typescript --single-quote",
+    "prettier:check": "yarn run prettier:base -- --list-different \"src/**/*.{ts,tsx}\"",
+    "prettier:write": "yarn run prettier:base -- --write \"src/**/*.{ts,tsx}\"",
+    "prestart": "tsc",
+    "start": "node ./dist/main.js"
+  }
+}

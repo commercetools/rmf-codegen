@@ -24,7 +24,7 @@ export type MethodType =
   | "TRACE";
 
 export type VariableMap = {
-  [key: string]: string | string[] | number | number[] | boolean | undefined
+  [key: string]: string | string[] | number | number[] | boolean | boolean[] | undefined
 }
 
 export type MiddlewareArg = {
@@ -89,7 +89,7 @@ export class ApiRequestExecutor {
       body,
       uri: getURI(request)
     };
-
+    
     const res : MiddlewareArg= await this.middleware({
       request: req,
       next: noOpMiddleware,
@@ -136,18 +136,20 @@ function reduceMiddleware(op1: Middleware, op2: Middleware): Middleware {
 }
 
 function getURI(commonRequest: CommonRequest): string {
+
+  
   const pathMap = commonRequest.pathVariables;
   const queryMap = commonRequest.queryParams;
   var uri: String = commonRequest.uriTemplate;
   var queryParams : string[]= [];
   for (const param in pathMap) {
-    uri = uri.replace(`{${'$'}param}`, `${'$'}{pathMap[param]}`);
+    uri = uri.replace(`{${'$'}{param}}`, `${'$'}{pathMap[param]}`);
   }
   for (const query in queryMap) {
     const queryParameter = queryMap[query]
     if(queryParameter instanceof Array){
       for(const element in queryParameter){
-        queryParams.push(`${'$'}{query}=${'$'}{encodeURIComponent(element)}`)
+        queryParams.push(`${'$'}{query}=${'$'}{encodeURIComponent(`${'$'}{queryParameter[element]}`)}`)
       }
     }
     else {

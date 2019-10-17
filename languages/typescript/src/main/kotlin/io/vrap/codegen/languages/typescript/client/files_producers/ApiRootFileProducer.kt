@@ -3,6 +3,7 @@ package io.vrap.codegen.languages.typescript.client.files_producers
 import com.google.inject.Inject
 import io.vrap.codegen.languages.extensions.EObjectExtensions
 import io.vrap.codegen.languages.extensions.getMethodName
+import io.vrap.codegen.languages.typescript.model.TsObjectTypeExtensions
 import io.vrap.codegen.languages.typescript.toImportStatement
 import io.vrap.codegen.languages.typescript.toRequestBuilderName
 import io.vrap.codegen.languages.typescript.tsRequestVrapType
@@ -18,7 +19,7 @@ class ApiRootFileProducer @Inject constructor(
         @ClientPackageName val client_package: String,
         val api: Api,
         override val vrapTypeProvider: VrapTypeProvider
-) : FileProducer, EObjectExtensions {
+) : FileProducer, TsObjectTypeExtensions {
 
 
     override fun produceFiles(): List<TemplateFile> {
@@ -27,7 +28,7 @@ class ApiRootFileProducer @Inject constructor(
     }
 
     fun produceApiRoot(type: Api): TemplateFile {
-        val moduleName = "$client_package/ApiRoot"
+        val moduleName = "$client_package/api-root"
         return TemplateFile(
                 relativePath = "$moduleName.ts",
                 content = """|
@@ -62,7 +63,7 @@ class ApiRootFileProducer @Inject constructor(
                     """.trimMargin()
 
                     """|
-                    |${it.getMethodName()}($args): ${it.toRequestBuilderName()} {
+                    |public ${it.getMethodName()}($args): ${it.toRequestBuilderName()} {
                     |   return new ${it.toRequestBuilderName()}(
                     |         {
                     |            pathArgs: {
@@ -83,11 +84,7 @@ class ApiRootFileProducer @Inject constructor(
                 .map {
                     it.tsRequestVrapType(client_package)
                 }
-                .map {
-                    it.toImportStatement(moduleName)
-                }
-                .distinct()
-                .joinToString(separator = "\n")
+                .getImportsForModuleVrapTypes(moduleName)
     }
 
 }

@@ -8,6 +8,7 @@ import io.vrap.codegen.languages.extensions.returnType
 import io.vrap.codegen.languages.typescript.*
 import io.vrap.codegen.languages.typescript.client.files_producers.apiRequestExecutor
 import io.vrap.codegen.languages.typescript.client.files_producers.apiRequest
+import io.vrap.codegen.languages.typescript.model.TsObjectTypeExtensions
 import io.vrap.codegen.languages.typescript.model.simpleTSName
 import io.vrap.rmf.codegen.di.ClientPackageName
 import io.vrap.rmf.codegen.io.TemplateFile
@@ -28,7 +29,7 @@ class RequestBuilder @Inject constructor(
         @ClientPackageName val client_package: String,
         val api: Api,
         override val vrapTypeProvider: VrapTypeProvider
-) : ResourceRenderer, EObjectExtensions {
+) : ResourceRenderer, TsObjectTypeExtensions {
 
     override fun render(type: Resource): TemplateFile {
 
@@ -90,7 +91,7 @@ class RequestBuilder @Inject constructor(
                     """.trimMargin()
 
                     """|
-                    |${it.getMethodName()}($args): ${it.toRequestBuilderName()} {
+                    |public ${it.getMethodName()}($args): ${it.toRequestBuilderName()} {
                     |   return new ${it.toRequestBuilderName()}(
                     |         {
                     |            pathArgs: {
@@ -161,7 +162,7 @@ class RequestBuilder @Inject constructor(
 
 
                     """|
-                    |${it.methodName}(<$methodArgs>): $methodReturn {
+                    |public ${it.methodName}(<$methodArgs>): $methodReturn {
                     |   return new $methodReturn(
                     |       <$bodyLiteral>,
                     |       this.args.apiRequestExecutor
@@ -215,11 +216,7 @@ class RequestBuilder @Inject constructor(
                                 .filter { it is VrapObjectType || (it is VrapArrayType && it.itemType is VrapObjectType) }
 
                 )
-                .map {
-                    it.toImportStatement(moduleName)
-                }
-                .distinct()
-                .joinToString(separator = "\n")
+                .getImportsForModuleVrapTypes(moduleName)
     }
 
 
