@@ -30,7 +30,7 @@ class BuilderTestCodeGenerator {
         val apiProvider: ApiProvider = ApiProvider(apiPath)
         val generatorConfig = CodeGeneratorConfig(basePackageName = "com/commercetools/test")
     }
-    
+
     @Ignore
     @Test
     fun generateJavaModelsWithInterfacesModule() {

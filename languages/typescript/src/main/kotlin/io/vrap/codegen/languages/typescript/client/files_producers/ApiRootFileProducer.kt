@@ -1,22 +1,25 @@
 package io.vrap.codegen.languages.typescript.client.files_producers
 
 import com.google.inject.Inject
-import io.vrap.codegen.languages.typescript.client.AbstractRequestBuilder
-import io.vrap.codegen.languages.typescript.relativizePaths
-import io.vrap.codegen.languages.typescript.tsRequestModuleName
+import io.vrap.codegen.languages.extensions.EObjectExtensions
+import io.vrap.codegen.languages.extensions.getMethodName
+import io.vrap.codegen.languages.typescript.model.TsObjectTypeExtensions
+import io.vrap.codegen.languages.typescript.toImportStatement
+import io.vrap.codegen.languages.typescript.toRequestBuilderName
+import io.vrap.codegen.languages.typescript.tsRequestVrapType
 import io.vrap.rmf.codegen.di.ClientPackageName
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.FileProducer
 import io.vrap.rmf.codegen.rendring.utils.keepIndentation
-import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.modules.Api
+import io.vrap.rmf.raml.model.resources.ResourceContainer
 
 class ApiRootFileProducer @Inject constructor(
         @ClientPackageName val client_package: String,
-        api: Api,
-        vrapTypeProvider: VrapTypeProvider
-) : FileProducer, AbstractRequestBuilder(api, vrapTypeProvider) {
+        val api: Api,
+        override val vrapTypeProvider: VrapTypeProvider
+) : FileProducer, TsObjectTypeExtensions {
 
 
     override fun produceFiles(): List<TemplateFile> {
@@ -25,20 +28,19 @@ class ApiRootFileProducer @Inject constructor(
     }
 
     fun produceApiRoot(type: Api): TemplateFile {
-        val moduleName = "$client_package/ApiRoot"
+        val moduleName = "$client_package/api-root"
         return TemplateFile(
                 relativePath = "$moduleName.ts",
                 content = """|
                 |${type.imports(moduleName)}
-                |import { ApiRequest } from '${relativizePaths(moduleName, "base/requests-utils")}'
+                |import { Middleware } from '../base/common-types'
+                |import { ApiRequestExecutor } from '../base/requests-utils'
                 |
                 |export class ApiRoot {
-                |
-                |  constructor(
-                |    protected readonly args: {
-                |      middlewares: Middleware[];
-                |    }
-                |  ) {}
+                |  private apiRequestExecutor: ApiRequestExecutor
+                |  constructor(args: { middlewares: Middleware[] }) {
+                |    this.apiRequestExecutor = new ApiRequestExecutor(args.middlewares)
+                |  }
                 |
                 |  <${type.subResources()}>
                 |
@@ -49,18 +51,40 @@ class ApiRootFileProducer @Inject constructor(
         )
     }
 
+    protected fun ResourceContainer.subResources(): String {
+        return this.resources
+                .map {
+
+                    val args = if (it.relativeUri.variables.isNullOrEmpty()) "" else """|
+                        |   childPathArgs: {
+                        |       <${it.relativeUri.variables.map { "$it: string" }.joinToString(separator = "\n")}>
+                        |   }
+                        |
+                    """.trimMargin()
+
+                    """|
+                    |public ${it.getMethodName()}($args): ${it.toRequestBuilderName()} {
+                    |   return new ${it.toRequestBuilderName()}(
+                    |         {
+                    |            pathArgs: {
+                    |               <${if (it.relativeUri.variables.isNotEmpty()) "...childPathArgs" else ""}>
+                    |            },
+                    |            apiRequestExecutor: this.apiRequestExecutor
+                    |         }
+                    |   )
+                    |}
+                    |
+                 """.trimMargin()
+                }.joinToString(separator = "")
+    }
+
+
     fun Api.imports(moduleName: String): String {
         return this.resources
                 .map {
-                    val relativePath = relativizePaths(moduleName, it.tsRequestModuleName((it.toVrapType() as VrapObjectType).`package`))
-                    "import { ${it.toRequestBuilderName()} } from '$relativePath'"
+                    it.tsRequestVrapType(client_package)
                 }
-                .plus(
-                        "import { ${middleware.simpleClassName} } from '${relativizePaths(moduleName, middleware.`package`)}'"
-                )
-                .distinct()
-                .joinToString(separator = "\n")
+                .getImportsForModuleVrapTypes(moduleName)
     }
 
-    override fun hasPathArgs(): Boolean = false
 }

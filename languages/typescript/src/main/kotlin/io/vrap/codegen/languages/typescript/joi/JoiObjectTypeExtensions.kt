@@ -1,6 +1,6 @@
 package io.vrap.codegen.languages.typescript.joi
 
-import io.vrap.codegen.languages.extensions.ExtensionsBase
+import io.vrap.codegen.languages.typescript.model.TsObjectTypeExtensions
 import io.vrap.codegen.languages.typescript.model.simpleTSName
 import io.vrap.rmf.codegen.types.*
 import io.vrap.rmf.raml.model.types.AnyType
@@ -9,7 +9,7 @@ import io.vrap.rmf.raml.model.types.UnionType
 import java.nio.file.Path
 import java.nio.file.Paths
 
-interface JoiObjectTypeExtensions : ExtensionsBase {
+interface JoiObjectTypeExtensions : TsObjectTypeExtensions {
 
     fun getImportsForJoiModule(moduleName: String, types: List<AnyType>): String {
 
@@ -52,7 +52,7 @@ interface JoiObjectTypeExtensions : ExtensionsBase {
 
         return this
                 .getOneOf()
-                .map { vrapTypeProvider.doSwitch(it) }
+                .map { it.toVrapType() }
                 .map { toVrapType(it) }
                 .filterNotNull()
                 .filter { it !is VrapScalarType }
@@ -68,7 +68,7 @@ interface JoiObjectTypeExtensions : ExtensionsBase {
                 .plus(this.subTypes)
                 .plus(this.type)
                 .filterNotNull()
-                .map { vrapTypeProvider.doSwitch(it) }
+                .map { it.toVrapType() }
                 .map { toVrapType(it) }
                 .filterNotNull()
                 .filter { it !is VrapScalarType }
