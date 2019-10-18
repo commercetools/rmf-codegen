@@ -3,6 +3,7 @@ package io.vrap.codegen.languages.javalang.client.builder.producers
 import com.google.inject.Inject
 import io.vrap.codegen.languages.extensions.getMethodName
 import io.vrap.codegen.languages.extensions.toResourceName
+import io.vrap.codegen.languages.java.base.JavaSubTemplates
 import io.vrap.codegen.languages.java.base.extensions.toJavaPackage
 import io.vrap.rmf.codegen.di.ClientPackageName
 import io.vrap.rmf.codegen.io.TemplateFile
@@ -29,6 +30,7 @@ class JavaApiRootFileProducer @Inject constructor(@ClientPackageName val clientP
             |import java.util.List;
             |import java.util.Arrays;
             |
+            |<${JavaSubTemplates.generatedAnnotation}>
             |public class ApiRoot {
             |   
             |   private final ApiHttpClient apiHttpClient;

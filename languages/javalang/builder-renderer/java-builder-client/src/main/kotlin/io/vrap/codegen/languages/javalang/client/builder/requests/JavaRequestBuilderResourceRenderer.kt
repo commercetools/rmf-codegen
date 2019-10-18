@@ -5,6 +5,7 @@ import io.vrap.codegen.languages.extensions.getMethodName
 import io.vrap.codegen.languages.extensions.resource
 import io.vrap.codegen.languages.extensions.toParamName
 import io.vrap.codegen.languages.extensions.toRequestName
+import io.vrap.codegen.languages.java.base.JavaSubTemplates
 import io.vrap.codegen.languages.java.base.extensions.JavaEObjectTypeExtensions
 import io.vrap.codegen.languages.java.base.extensions.simpleName
 import io.vrap.codegen.languages.java.base.extensions.toJavaVType
@@ -29,6 +30,7 @@ class JavaRequestBuilderResourceRenderer @Inject constructor(val api: Api, overr
             |package ${vrapType.`package`};
             |import io.vrap.rmf.base.client.ApiHttpClient;
             |
+            |<${JavaSubTemplates.generatedAnnotation}>
             |public class $className {
             |   
             |   <${type.fields()}>

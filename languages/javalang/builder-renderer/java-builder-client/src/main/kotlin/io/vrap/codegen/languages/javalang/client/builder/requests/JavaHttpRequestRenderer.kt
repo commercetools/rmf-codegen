@@ -3,6 +3,7 @@ package io.vrap.codegen.languages.javalang.client.builder.requests
 import com.google.inject.Inject
 import io.vrap.codegen.languages.extensions.resource
 import io.vrap.codegen.languages.extensions.toRequestName
+import io.vrap.codegen.languages.java.base.JavaSubTemplates
 import io.vrap.codegen.languages.java.base.extensions.*
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.MethodRenderer
@@ -48,6 +49,7 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
             |import io.vrap.rmf.base.client.*;
             |${type.imports()}
             |
+            |<${JavaSubTemplates.generatedAnnotation}>
             |public class ${type.toRequestName()} {
             |   
             |   <${type.fields()}>
