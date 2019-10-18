@@ -34,6 +34,7 @@ class JavaModelDraftBuilderFileProducer @Inject constructor(override val vrapTyp
             |import java.util.List;
             |import java.util.Map;
             |import java.time.ZonedDateTime;
+            |import javax.annotation.Generated;
             |
             |<${JavaSubTemplates.generatedAnnotation}>
             |public final class ${vrapType.simpleClassName}Builder {
