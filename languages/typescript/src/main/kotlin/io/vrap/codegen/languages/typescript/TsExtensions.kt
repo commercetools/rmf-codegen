@@ -11,7 +11,7 @@ import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.resources.ResourceContainer
 import io.vrap.rmf.raml.model.types.StringType
-import java.lang.Error
+import io.vrap.rmf.raml.model.util.StringCaseFormat
 import java.nio.file.Path
 import java.nio.file.Paths
 
@@ -55,7 +55,12 @@ fun String.tsRemoveRegexp():String {
     return this
 }
 
-fun Resource.tsRequestModuleName(clientPackageName: String):String = "$clientPackageName/${this.resourcePathName}/${this.toResourceName()}RequestBuilder"
+fun Resource.toRequestBuilderName(): String = "${this.toResourceName()}RequestBuilder"
+
+fun Resource.tsRequestModuleName(clientPackageName: String): String = "$clientPackageName/${this.resourcePathName}/${StringCaseFormat.LOWER_HYPHEN_CASE.apply(this.toRequestBuilderName())}"
+
+fun Resource.tsRequestVrapType(clientPackageName: String): VrapObjectType = VrapObjectType(`package` = this.tsRequestModuleName(clientPackageName), simpleClassName = this.toRequestBuilderName())
+
 
 fun relativizePaths(currentModule: String, targetModule: String): String {
     val currentRelative: Path = Paths.get(currentModule)
