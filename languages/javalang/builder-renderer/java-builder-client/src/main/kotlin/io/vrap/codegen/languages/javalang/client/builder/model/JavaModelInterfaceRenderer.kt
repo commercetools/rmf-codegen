@@ -38,7 +38,6 @@ class JavaModelInterfaceRenderer @Inject constructor(override val vrapTypeProvid
             |import java.util.Map;
             |import java.time.*;
             |
-            |import json.CommercetoolsJsonUtils;
             |import java.io.IOException;
             |
             |<${type.toComment().escapeAll()}>

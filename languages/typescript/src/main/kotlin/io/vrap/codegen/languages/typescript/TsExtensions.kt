@@ -6,15 +6,12 @@ import io.vrap.codegen.languages.extensions.toRequestName
 import io.vrap.codegen.languages.extensions.toResourceName
 import io.vrap.codegen.languages.typescript.joi.simpleJoiName
 import io.vrap.codegen.languages.typescript.model.simpleTSName
-import io.vrap.rmf.codegen.types.VrapArrayType
-import io.vrap.rmf.codegen.types.VrapLibraryType
-import io.vrap.rmf.codegen.types.VrapObjectType
-import io.vrap.rmf.codegen.types.VrapType
+import io.vrap.rmf.codegen.types.*
 import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.resources.ResourceContainer
 import io.vrap.rmf.raml.model.types.StringType
-import java.lang.Error
+import io.vrap.rmf.raml.model.util.StringCaseFormat
 import java.nio.file.Path
 import java.nio.file.Paths
 
@@ -58,7 +55,12 @@ fun String.tsRemoveRegexp():String {
     return this
 }
 
-fun Resource.tsRequestModuleName(clientPackageName: String):String = "$clientPackageName/${this.resourcePathName}/${this.toResourceName()}RequestBuilder"
+fun Resource.toRequestBuilderName(): String = "${this.toResourceName()}RequestBuilder"
+
+fun Resource.tsRequestModuleName(clientPackageName: String): String = "$clientPackageName/${this.resourcePathName}/${StringCaseFormat.LOWER_HYPHEN_CASE.apply(this.toRequestBuilderName())}"
+
+fun Resource.tsRequestVrapType(clientPackageName: String): VrapObjectType = VrapObjectType(`package` = this.tsRequestModuleName(clientPackageName), simpleClassName = this.toRequestBuilderName())
+
 
 fun relativizePaths(currentModule: String, targetModule: String): String {
     val currentRelative: Path = Paths.get(currentModule)
@@ -70,6 +72,10 @@ fun VrapType.toImportStatement(moduleName:String):String {
     return when (this) {
         is VrapLibraryType -> "import { ${this.simpleClassName} } from '${this.`package`}'"
         is VrapObjectType -> {
+            val relativePath = relativizePaths(moduleName, this.`package`)
+            "import { ${this.simpleTSName()} } from '$relativePath'"
+        }
+        is VrapEnumType -> {
             val relativePath = relativizePaths(moduleName, this.`package`)
             "import { ${this.simpleTSName()} } from '$relativePath'"
         }

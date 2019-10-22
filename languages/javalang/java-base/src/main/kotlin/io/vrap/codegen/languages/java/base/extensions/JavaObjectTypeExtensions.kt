@@ -7,7 +7,10 @@ import io.vrap.rmf.codegen.types.VrapArrayType
 import io.vrap.rmf.codegen.types.VrapEnumType
 import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapType
+import io.vrap.rmf.raml.model.types.BooleanAnnotationType
+import io.vrap.rmf.raml.model.types.BooleanInstance
 import io.vrap.rmf.raml.model.types.ObjectType
+import org.omg.CORBA.Object
 
 interface JavaObjectTypeExtensions : ExtensionsBase {
 
@@ -27,8 +30,11 @@ interface JavaObjectTypeExtensions : ExtensionsBase {
 
     fun ObjectType.imports() = this.getImports().map { "import $it;" }.joinToString(separator = "\n")
 
-    fun ObjectType.isAbstract() : Boolean = this.discriminator() != null && this.discriminator().isNotEmpty() && (this.discriminatorValue == null || this.discriminatorValue.isEmpty())
-
+    fun ObjectType.isAbstract() : Boolean = this.discriminator() != null && this.discriminator().isNotEmpty() && (this.discriminatorValue == null || this.discriminatorValue.isEmpty()) || this.hasAbstractAnnotation()
+    
+    fun ObjectType.hasAbstractAnnotation() : Boolean {
+        return (this.getAnnotation("abstract")?.value as BooleanInstance?)?.value ?: false
+    }
 }
 
 fun getImportsForType(vrapType: VrapType): String? {

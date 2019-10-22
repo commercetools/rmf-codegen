@@ -43,7 +43,6 @@ class JavaModelClassFileProducer @Inject constructor(override val vrapTypeProvid
                 |import com.fasterxml.jackson.annotation.JsonCreator;
                 |import com.fasterxml.jackson.annotation.JsonProperty;
                 |
-                |import json.CommercetoolsJsonUtils;
                 |
                 |<${type.toComment().escapeAll()}>
                 |<${JavaSubTemplates.generatedAnnotation}>
@@ -149,7 +148,7 @@ class JavaModelClassFileProducer @Inject constructor(override val vrapTypeProvid
                     }else if(it.name.equals("interface")) {
                         "@JsonProperty(\"${it.name.lowerCamelCase()}\") final ${it.type.toVrapType().fullClassName()} _interface"
                     } else {
-                        "@JsonProperty(\"${it.name.lowerCamelCase()}\") final ${it.type.toVrapType().fullClassName()} ${it.name.lowerCamelCase()}"
+                        "@JsonProperty(\"${it.name}\") final ${it.type.toVrapType().fullClassName()} ${it.name.lowerCamelCase()}"
                     }
                 }
                 .joinToString(separator = ", ")

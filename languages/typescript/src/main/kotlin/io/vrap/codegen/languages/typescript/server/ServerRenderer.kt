@@ -4,20 +4,15 @@ import com.google.inject.Inject
 import io.vrap.codegen.languages.extensions.*
 import io.vrap.codegen.languages.typescript.*
 import io.vrap.codegen.languages.typescript.joi.simpleJoiName
-import io.vrap.codegen.languages.typescript.model.simpleTSName
 import io.vrap.rmf.codegen.di.ClientPackageName
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.FileProducer
 import io.vrap.rmf.codegen.rendring.utils.keepIndentation
-import io.vrap.rmf.codegen.types.VrapArrayType
-import io.vrap.rmf.codegen.types.VrapObjectType
-import io.vrap.rmf.codegen.types.VrapType
-import io.vrap.rmf.codegen.types.VrapTypeProvider
+import io.vrap.rmf.codegen.types.*
 import io.vrap.rmf.raml.model.modules.Api
 import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.resources.ResourceContainer
-import java.lang.Error
 import java.nio.file.Paths
 
 class ServerRenderer @Inject constructor(
@@ -151,15 +146,9 @@ class ServerRenderer @Inject constructor(
     }
 
     private fun Method.handlerNavigator(): String = this.resource().fullUri
-            .components
-            .map {
-                it.value
-            }.map {
-                it.replace("/", "")
-            }
-            .filter {
-                it.isNotEmpty()
-            }
+            .template
+            .split("/")
+            .filter { it.isNotBlank() }
             .map {
                 "'$it'"
             }
@@ -217,6 +206,9 @@ class ServerRenderer @Inject constructor(
             }
             is VrapArrayType -> {
                 return this.itemType.joiImportStatement(moduleName)
+            }
+            is VrapScalarType -> {
+                return ""
             }
             else -> throw Error("not supposed to arrive here")
         }

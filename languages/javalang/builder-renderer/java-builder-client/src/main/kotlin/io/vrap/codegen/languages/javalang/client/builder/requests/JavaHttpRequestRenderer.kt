@@ -1,7 +1,6 @@
 package io.vrap.codegen.languages.javalang.client.builder.requests
 
 import com.google.inject.Inject
-import io.vrap.codegen.languages.extensions.hasBody
 import io.vrap.codegen.languages.extensions.resource
 import io.vrap.codegen.languages.extensions.toRequestName
 import io.vrap.codegen.languages.java.base.extensions.*
@@ -10,6 +9,7 @@ import io.vrap.rmf.codegen.rendring.MethodRenderer
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
 import io.vrap.rmf.codegen.rendring.utils.keepIndentation
 import io.vrap.rmf.codegen.types.VrapObjectType
+import io.vrap.rmf.codegen.types.VrapScalarType
 import io.vrap.rmf.codegen.types.VrapType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.resources.Method
@@ -17,22 +17,23 @@ import io.vrap.rmf.raml.model.types.QueryParameter
 import io.vrap.rmf.raml.model.util.StringCaseFormat
 import org.eclipse.emf.ecore.EObject
 
+/**
+ * Query parameters with this annotation should be ignored by JVM sdk.
+ */
 const val PLACEHOLDER_PARAM_ANNOTATION = "placeholderParam"
 
 class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : MethodRenderer, JavaObjectTypeExtensions, JavaEObjectTypeExtensions {
-    
+
     override fun render(type: Method): TemplateFile {
         val vrapType = vrapTypeProvider.doSwitch(type as EObject) as VrapObjectType
-        
+
         val content = """
             |package ${vrapType.`package`.toJavaPackage()};
             |
-            |import client.ApiHttpRequest;
-            |import client.ApiHttpMethod;
-            |import client.ApiHttpHeaders;
-            |import client.ApiHttpResponse;
-            |import json.CommercetoolsJsonUtils;
+            |import io.vrap.rmf.base.client.utils.Utils;
+            |import io.vrap.rmf.base.client.utils.json.VrapJsonUtils;
             |
+            |import java.io.InputStream;
             |import java.io.IOException;
             |
             |import java.util.ArrayList;
@@ -40,10 +41,12 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
             |import java.util.Map;
             |import java.util.HashMap;
             |import java.util.stream.Collectors;
+            |import java.util.concurrent.CompletableFuture;
             |
             |import java.io.UnsupportedEncodingException;
             |import java.net.URLEncoder;
-            |import client.*;
+            |import io.vrap.rmf.base.client.*;
+            |${type.imports()}
             |
             |public class ${type.toRequestName()} {
             |   
@@ -54,6 +57,8 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
             |   <${type.createRequestMethod()}>
             |   
             |   <${type.executeBlockingMethod()}>
+            |   
+            |   <${type.executeMethod()}>
             |   
             |   <${type.pathArgumentsGetters()}>
             |   
@@ -66,7 +71,8 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
             |   <${type.helperMethods()}>
             |
             |}
-        """.trimMargin().keepIndentation()
+        """.trimMargin()
+                .keepIndentation()
         
         return TemplateFile(
                 relativePath = "${vrapType.`package`}.${type.toRequestName()}".replace(".", "/") + ".java",
@@ -134,7 +140,7 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
         """.trimMargin()
     }
 
-    private fun QueryParameter.fieldName() : String {
+    private fun QueryParameter.fieldName(): String {
         return StringCaseFormat.LOWER_CAMEL_CASE.apply(this.name.replace(".", "-"))
     }
     
@@ -164,7 +170,7 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
         }
         
         val addingQueryParams : String = this.queryParameters
-                .filter { it.annotations.find { it.type.name.equals("placeholderParam") } == null}
+                .filter { it.annotations.find { it.type.name.equals(PLACEHOLDER_PARAM_ANNOTATION) } == null}
                 .map { "params.add(this.${it.fieldName()}.stream().map(s -> \"${it.name}=\" + ${if(it.type.name.equals("string")) "urlEncode(s)" else "s"}).collect(Collectors.joining(\"&\")));" }
                 .joinToString(separator = "\n")
         
@@ -185,10 +191,10 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
             |public ApiHttpRequest createHttpRequest() {
             |   ApiHttpRequest httpRequest = new ApiHttpRequest();
             |   <$requestPathGeneration>
-            |   httpRequest.setPath(httpRequestPath); 
+            |   httpRequest.setRelativeUrl(httpRequestPath); 
             |   httpRequest.setMethod(ApiHttpMethod.${this.method.name});
             |   httpRequest.setHeaders(headers);
-            |   ${if(bodyName != null) "try{httpRequest.setBody(CommercetoolsJsonUtils.toJsonString($bodyName));}catch(Exception e){e.printStackTrace();}" else "" }
+            |   ${if(bodyName != null) "try{httpRequest.setBody(VrapJsonUtils.toJsonByteArray($bodyName));}catch(Exception e){e.printStackTrace();}" else "" }
             |   return httpRequest;
             |}
         """.trimMargin()
@@ -196,40 +202,28 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
     
     private fun Method.executeBlockingMethod() : String {
         return """
-            |public ${this.javaReturnType(vrapTypeProvider)} executeBlocking() {
-            |   ApiHttpResponse response;
+            |public ApiHttpResponse\<${this.javaReturnType(vrapTypeProvider)}\> executeBlocking(){
             |   try {
-            |      response = apiHttpClient.executeBlocking(this.createHttpRequest());
-            |      return CommercetoolsJsonUtils.fromJsonString(response.getBody(),  ${this.javaReturnType(vrapTypeProvider)}.class);
+            |       return execute().get();
             |   } catch (Exception e) {
-            |      e.printStackTrace();
+            |       throw new RuntimeException(e);
             |   }
-            |   return null;
             |}
         """.trimMargin()
-                .keepIndentation()
     }
 
-    private fun responseErrorsDeserialization(statusCode : String, bodyType: VrapType?) : String {
-        return if(bodyType == null){
-            """
-                |if(response.getStatusCode() == $statusCode){
-                |   throw new RuntimeException("Response status code : " + $statusCode);
-                |}
-            """.trimMargin().keepIndentation()
-        }else{
-            """
-            |if(response.getStatusCode() == $statusCode){
-            |   try{
-            |       ${bodyType?.fullClassName()} ${bodyType?.simpleName()?.lowerCamelCase()} = CommercetoolsJsonUtils.fromJsonString(response.getBody(), ${bodyType?.fullClassName()}.class);
-            |       throw new RuntimeException(${bodyType?.simpleName()?.lowerCamelCase()}.getMessage());
-            |   }catch(Exception e){
-            |       e.printStackTrace();
-            |       throw new RuntimeException(e.getMessage());
-            |   }
+    private fun Method.executeMethod() : String {
+        return """
+            |public CompletableFuture\<ApiHttpResponse\<${this.javaReturnType(vrapTypeProvider)}\>\> execute(){
+            |   return apiHttpClient.execute(this.createHttpRequest())
+            |           .thenApply(response -\> {
+            |               if(response.getStatusCode() \>= 400){
+            |                   throw new ApiHttpException(response.getStatusCode(), new String(response.getBody()), response.getHeaders());
+            |               }
+            |               return Utils.convertResponse(response,${this.javaReturnType(vrapTypeProvider)}.class);
+            |           });
             |}
-        """.trimMargin().keepIndentation()
-        }
+        """.trimMargin()
     }
     
     private fun Method.pathArgumentsGetters() : String = this.pathArguments()
@@ -241,7 +235,7 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
             .joinToString(separator = "\n\n")
     
     private fun Method.queryParamsGetters() : String = this.queryParameters
-            .filter { it.annotations.find { it.type.name.equals("placeholderParam") } == null}
+            .filter { it.annotations.find { it.type.name.equals(PLACEHOLDER_PARAM_ANNOTATION) } == null}
             .map { """
                 |public List<${it.type.toVrapType().simpleName()}> get${it.fieldName().capitalize()}() {
                 |   return this.${it.fieldName()};
@@ -250,7 +244,7 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
             .joinToString(separator = "\n\n")
     
     private fun Method.queryParamsSetters() : String = this.queryParameters
-            .filter { it.annotations.find { it.type.name.equals("placeholderParam") } == null}
+            .filter { it.annotations.find { it.type.name.equals(PLACEHOLDER_PARAM_ANNOTATION) } == null}
             .map { """
                 |public ${this.toRequestName()} add${it.fieldName().capitalize()}(final ${it.type.toVrapType().simpleName()} ${it.fieldName()}){
                 |   this.${it.fieldName()}.add(${it.fieldName()});
@@ -307,5 +301,20 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
             |    }
             |}
         """.trimMargin().escapeAll()
+    }
+
+    private fun Method.imports(): String {
+        return this.queryParameters
+                .map {
+                    it.type.toVrapType()
+                }
+                .filter { it !is VrapScalarType }
+                .map {
+                    getImportsForType(it)
+                }
+                .filter { !it.isNullOrBlank() }
+                .map { "import ${it};" }
+                .joinToString(separator = "\n")
+
     }
 }

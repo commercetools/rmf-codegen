@@ -63,18 +63,18 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
                     |    {
                     |      "enabled": true,
                     |      "key": "auth_url",
-                    |      "value": "${api.oauth().uri().host}",
+                    |      "value": "https://${api.oauth().uri().host}",
                     |      "type": "text"
                     |    },
                     |    {
                     |      "enabled": true,
-                    |      "key": "ctp_client_id",
+                    |      "key": "client_id",
                     |      "value": "<your-client-id>",
                     |      "type": "text"
                     |    },
                     |    {
                     |      "enabled": true,
-                    |      "key": "ctp_client_secret",
+                    |      "key": "client_secret",
                     |      "value": "<your-client-secret>",
                     |      "type": "text"
                     |    },
@@ -111,6 +111,29 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
     }
 
     private fun folder(resource: ResourceModel): String {
+        if (resource.name() == "InStore") {
+            return """
+                |{
+                |    "name": "${resource.name()}",
+                |    "description": "${resource.description()?.escapeJson()?.escapeAll()}",
+                |    "item": [
+                |        <<${resource.resource.resources.joinToString(",\n") { folder(ResourceModel(it, it.items())) }}>>
+                |    ]
+                |}
+            """.trimMargin()
+        }
+        if (resource.name() == "Me") {
+            return """
+                |{
+                |    "name": "${resource.name()}",
+                |    "description": "${resource.description()?.escapeJson()?.escapeAll()}",
+                |    "item": [
+                |        <<${resource.resource.resources.joinToString(",\n") { folder(ResourceModel(it, it.items())) }}>>${if (resource.items.isNotEmpty()) "," else ""}
+                |        <<${resource.items.joinToString(",\n") { it.template(it) } }>>
+                |    ]
+                |}
+            """.trimMargin()
+        }
         return """
             |{
             |    "name": "${resource.name()}",
@@ -162,6 +185,32 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
         """.trimMargin().split("\n").map { it.escapeJson().escapeAll() }.joinToString("\",\n\"", "\"", "\"")
     }
 
+    private fun String.jScript(): String {
+        return this.split("\n").map { it.escapeJson().escapeAll() }.joinToString("\",\n\"", "\"", "\"");
+    }
+
+    private fun testAuthScript(): String {
+        return """
+                |tests["Status code is 200"] = responseCode.code === 200;
+                |var data = JSON.parse(responseBody);
+                |if(data.access_token){
+                |    pm.environment.set("ctp_access_token", data.access_token);
+                |}
+                |if (data.scope) {
+                |    parts = data.scope.split(" ");
+                |    parts = parts.filter(scope => scope.includes(":")).map(scope => scope.split(":"))
+                |    if (parts.length > 0) {
+                |        scopeParts = parts[0];
+                |        pm.environment.set("projectKey", scopeParts[1]);
+                |        parts = parts.filter(scope => scope.length >= 3)
+                |        if (parts.length > 0) {
+                |            scopeParts = parts[0];
+                |            pm.environment.set("storeKey", scopeParts[2]);
+                |        }
+                |    }
+                |}
+            """.trimMargin()
+    }
     private fun testScript(item: ItemGenModel, param: String): String {
 
         return """
@@ -215,13 +264,12 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
             |            "raw": ""
             |        },
             |        "url": {
-            |            "raw": "{{host}}/{{projectKey}}${item.resource.relativeUri.template}",
+            |            "raw": "{{host}}${item.resource.fullUri.template.replace("{", "{{").replace("}", "}}")}",
             |            "host": [
             |                "{{host}}"
             |            ],
             |            "path": [
-            |                "{{projectKey}}",
-            |                "${item.resource.resourcePathName}"
+            |                <<"${item.resource.fullUri.template.replace("{", "{{").replace("}", "}}").trim('/').split("/").joinToString("\",\n\"")}">>
             |            ],
             |            "query": [
             |                <<${if (item.queryParameters.isNotEmpty()) item.queryParameters.joinToString(",\n") { it.queryParam() } else ""}>>
@@ -264,13 +312,12 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
             |            "raw": "${if (item.getExample().isNullOrEmpty().not()) item.getExample()!!.escapeJson() else ""}"
             |        },
             |        "url": {
-            |            "raw": "{{host}}/{{projectKey}}${item.resource.relativeUri.template}",
+            |            "raw": "{{host}}${item.resource.fullUri.template.replace("{", "{{").replace("}", "}}")}",
             |            "host": [
             |                "{{host}}"
             |            ],
             |            "path": [
-            |                "{{projectKey}}",
-            |                "${item.resource.resourcePathName}"
+            |                <<"${item.resource.fullUri.template.replace("{", "{{").replace("}", "}}").trim('/').split("/").joinToString("\",\n\"")}">>
             |            ],
             |            "query": [
             |                <<${if (item.queryParameters.isNotEmpty()) item.queryParameters.joinToString(",\n") { it.queryParam() } else ""}>>
@@ -322,16 +369,15 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
             |        },
             |        "url": {
             |            ${if (param.isNotEmpty()) """
-                            "raw": "{{host}}/{{projectKey}}${item.resource.relativeUri.template}/${param}={{${item.resource.resourcePathName.singularize()}-${param}}}",
+                            "raw": "{{host}}${item.resource.fullUri.template.replace("{", "{{").replace("}", "}}")}/${param}={{${item.resource.resourcePathName.singularize()}-${param}}}",
                             """.trimIndent() else """
-                            "raw": "{{host}}/{{projectKey}}${item.resource.relativeUri.template}/{{${item.resource.resourcePathName.singularize()}-id}}",
+                            "raw": "{{host}}${item.resource.fullUri.template.replace("{", "{{").replace("}", "}}")}/{{${item.resource.resourcePathName.singularize()}-id}}",
                             """.trimIndent()}
             |            "host": [
             |                "{{host}}"
             |            ],
             |            "path": [
-            |                "{{projectKey}}",
-            |                "${item.resource.resourcePathName}",
+            |                <<"${item.resource.fullUri.template.replace("{", "{{").replace("}", "}}").trim('/').split("/").joinToString("\",\n\"")}">>,
             |                "${if (param.isNotEmpty()) "${param}={{${item.resource.resourcePathName.singularize()}-${param}}}" else "{{${item.resource.resourcePathName.singularize()}-id}}"}"
             |            ],
             |            "query": [
@@ -389,16 +435,15 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
             |        },
             |        "url": {
             |            ${if (param.isNotEmpty()) """
-                            "raw": "{{host}}/{{projectKey}}${item.resource.relativeUri.template}/${param}={{${item.resource.resourcePathName.singularize()}-${param}}}",
+                            "raw": "{{host}}${item.resource.fullUri.template.replace("{", "{{").replace("}", "}}")}/${param}={{${item.resource.resourcePathName.singularize()}-${param}}}",
                             """.trimIndent() else """
-                            "raw": "{{host}}/{{projectKey}}${item.resource.relativeUri.template}/{{${item.resource.resourcePathName.singularize()}-id}}",
+                            "raw": "{{host}}${item.resource.fullUri.template.replace("{", "{{").replace("}", "}}")}/{{${item.resource.resourcePathName.singularize()}-id}}",
                             """.trimIndent()}
             |            "host": [
             |                "{{host}}"
             |            ],
             |            "path": [
-            |                "{{projectKey}}",
-            |                "${item.resource.resourcePathName}",
+            |                <<"${item.resource.fullUri.template.replace("{", "{{").replace("}", "}}").trim('/').split("/").joinToString("\",\n\"")}">>,
             |                "${if (param.isNotEmpty()) "${param}={{${item.resource.resourcePathName.singularize()}-${param}}}" else "{{${item.resource.resourcePathName.singularize()}-id}}"}"
             |            ],
             |            "query": [
@@ -451,16 +496,15 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
             |        },
             |        "url": {
             |            ${if (param.isNotEmpty()) """
-                            "raw": "{{host}}/{{projectKey}}${item.resource.relativeUri.template}/${param}={{${item.resource.resourcePathName.singularize()}-${param}}}?version={{${item.resource.resourcePathName.singularize()}-version}}",
+                            "raw": "{{host}}${item.resource.fullUri.template.replace("{", "{{").replace("}", "}}")}/${param}={{${item.resource.resourcePathName.singularize()}-${param}}}",
                             """.trimIndent() else """
-                            "raw": "{{host}}/{{projectKey}}${item.resource.relativeUri.template}/{{${item.resource.resourcePathName.singularize()}-id}}?version={{${item.resource.resourcePathName.singularize()}-version}}",
+                            "raw": "{{host}}${item.resource.fullUri.template.replace("{", "{{").replace("}", "}}")}/{{${item.resource.resourcePathName.singularize()}-id}}",
                             """.trimIndent()}
             |            "host": [
             |                "{{host}}"
             |            ],
             |            "path": [
-            |                "{{projectKey}}",
-            |                "${item.resource.resourcePathName}",
+            |                <<"${item.resource.fullUri.template.replace("{", "{{").replace("}", "}}").trim('/').split("/").joinToString("\",\n\"")}">>,
             |                "${if (param.isNotEmpty()) "${param}={{${item.resource.resourcePathName.singularize()}-${param}}}" else "{{${item.resource.resourcePathName.singularize()}-id}}"}"
             |            ],
             |            "query": [
@@ -545,13 +589,12 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
                 |            }
                 |        ],
                 |        "url": {
-                |            "raw": "{{host}}/{{projectKey}}${item.resource.relativeUri.template}/{{${item.resource.resourcePathName.singularize()}-id}}",
+                |            "raw": "{{host}}${item.resource.fullUri.template.replace("{", "{{").replace("}", "}}")}/{{${item.resource.resourcePathName.singularize()}-id}}",
                 |            "host": [
                 |                "{{host}}"
                 |            ],
                 |            "path": [
-                |                "{{projectKey}}",
-                |                "${item.resource.resourcePathName}",
+                |                <<"${item.resource.fullUri.template.replace("{", "{{").replace("}", "}}").trim('/').split("/").joinToString("\",\n\"")}">>,
                 |                "{{${item.resource.resourcePathName.singularize()}-id}}"
                 |            ],
                 |            "query": [
@@ -726,20 +769,7 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
             |                    "script": {
             |                        "type": "text/javascript",
             |                        "exec": [
-            |                            "tests[\"Status code is 200\"] = responseCode.code === 200;",
-            |                            "var data = JSON.parse(responseBody);",
-            |                            "if(data.access_token){",
-            |                            "    pm.environment.set(\"ctp_access_token\", data.access_token);",
-            |                            "}",
-            |                            "if (data.scope) {",
-            |                            "    parts = data.scope.split(\" \");",
-            |                            "    if (parts.length > 0) {",
-            |                            "        scopeParts = parts[0].split(\":\");",
-            |                            "        if (scopeParts.length >= 2) {",
-            |                            "            pm.environment.set(\"projectKey\", scopeParts[1]);",
-            |                            "        }",
-            |                            "    }",
-            |                            "}"
+            |                            <<${testAuthScript().jScript()}>>
             |                        ]
             |                    }
             |                }
@@ -748,8 +778,8 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
             |                "auth": {
             |                    "type": "basic",
             |                    "basic": {
-            |                        "username": "{{ctp_client_id}}",
-            |                        "password": "{{ctp_client_secret}}"
+            |                        "username": "{{client_id}}",
+            |                        "password": "{{client_secret}}"
             |                    }
             |                },
             |                "method": "POST",
@@ -759,7 +789,7 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
             |                    "raw": ""
             |                },
             |                "url": {
-            |                    "raw": "https://{{auth_url}}${oauth.uri().path}?grant_type=client_credentials",
+            |                    "raw": "{{auth_url}}${oauth.uri().path}?grant_type=client_credentials",
             |                    "protocol": "https",
             |                    "host": [
             |                        "{{auth_url}}"
@@ -788,7 +818,7 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
             |                    "script": {
             |                        "type": "text/javascript",
             |                        "exec": [
-            |                            "tests[\"Status code is 200\"] = responseCode.code === 200;"
+            |                            <<${testAuthScript().jScript()}>>
             |                        ]
             |                    }
             |                }
@@ -797,8 +827,8 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
             |                "auth": {
             |                    "type": "basic",
             |                    "basic": {
-            |                        "username": "{{ctp_client_id}}",
-            |                        "password": "{{ctp_client_secret}}"
+            |                        "username": "{{client_id}}",
+            |                        "password": "{{client_secret}}"
             |                    }
             |                },
             |                "method": "POST",
@@ -814,7 +844,7 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
             |                    "raw": ""
             |                },
             |                "url": {
-            |                    "raw": "https://{{auth_url}}/oauth/{{projectKey}}/customers/token?grant_type=password&username={{user_email}}&password={{user_password}}",
+            |                    "raw": "{{auth_url}}/oauth/{{projectKey}}/customers/token?grant_type=password&username={{user_email}}&password={{user_password}}",
             |                    "protocol": "https",
             |                    "host": [
             |                        "{{auth_url}}"
@@ -840,11 +870,6 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
             |                            "key": "password",
             |                            "value": "",
             |                            "equals": true
-            |                        },
-            |                        {
-            |                            "key": "scope",
-            |                            "value": "manage_project:{{projectKey}}",
-            |                            "equals": true
             |                        }
             |                    ]
             |                },
@@ -860,7 +885,7 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
             |                    "script": {
             |                        "type": "text/javascript",
             |                        "exec": [
-            |                            "tests[\"Status code is 200\"] = responseCode.code === 200;"
+            |                            <<${testAuthScript().jScript()}>>
             |                        ]
             |                    }
             |                }
@@ -869,8 +894,8 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
             |                "auth": {
             |                    "type": "basic",
             |                    "basic": {
-            |                        "username": "{{ctp_client_id}}",
-            |                        "password": "{{ctp_client_secret}}"
+            |                        "username": "{{client_id}}",
+            |                        "password": "{{client_secret}}"
             |                    }
             |                },
             |                "method": "POST",
@@ -880,7 +905,7 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
             |                    "raw": ""
             |                },
             |                "url": {
-            |                    "raw": "https://{{auth_url}}/oauth/{{projectKey}}/anonymous/token?grant_type=client_credentials&scope=manage_my_profile:{{projectKey}}",
+            |                    "raw": "{{auth_url}}/oauth/{{projectKey}}/anonymous/token?grant_type=client_credentials",
             |                    "protocol": "https",
             |                    "host": [
             |                        "{{auth_url}}"
@@ -895,11 +920,6 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
             |                        {
             |                            "key": "grant_type",
             |                            "value": "client_credentials",
-            |                            "equals": true
-            |                        },
-            |                        {
-            |                            "key": "scope",
-            |                            "value": "manage_my_profile:{{projectKey}}",
             |                            "equals": true
             |                        }
             |                    ]
@@ -916,7 +936,7 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
             |                    "script": {
             |                        "type": "text/javascript",
             |                        "exec": [
-            |                            "tests[\"Status code is 200\"] = responseCode.code === 200;"
+            |                            <<${ "tests[\"Status code is 200\"] = responseCode.code === 200;".jScript() }>>
             |                        ]
             |                    }
             |                }
@@ -925,8 +945,8 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
             |                "auth": {
             |                    "type": "basic",
             |                    "basic": {
-            |                        "username": "{{ctp_client_id}}",
-            |                        "password": "{{ctp_client_secret}}"
+            |                        "username": "{{client_id}}",
+            |                        "password": "{{client_secret}}"
             |                    }
             |                },
             |                "method": "POST",
@@ -941,7 +961,7 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
             |                    "raw": ""
             |                },
             |                "url": {
-            |                    "raw": "https://{{auth_url}}/oauth/introspect?token={{ctp_access_token}}",
+            |                    "raw": "{{auth_url}}/oauth/introspect?token={{ctp_access_token}}",
             |                    "protocol": "https",
             |                    "host": [
             |                        "{{auth_url}}"
@@ -964,20 +984,39 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
             |        }
             |    ]
             |}
-        """.trimMargin().escapeAll()
+        """.trimMargin().keepIndentation("<<", ">>").escapeAll()
     }
 
     private fun readme(): String {
         return """
             # commercetools API Postman collection
 
-            This Postman collection contains examples of requests and responses for most endpoints and commands of the commercetools platform API. For every command the smallest possible payload is given. Please find optional fields in the related official documentation. Additionally the collection provides example requests and responses for specific tasks and more complex data models.
+            This Postman collection contains examples of requests and responses for most endpoints and commands of the
+            commercetools platform API. For every command the smallest possible payload is given. Please find optional
+            fields in the related official documentation. Additionally the collection provides example requests and
+            responses for specific tasks and more complex data models.
 
             ## Disclaimer
 
-            This is not the official commercetools platform API documentation. Please see [here](http://docs.commercetools.com/) for a complete and approved documentation of the commercetools platform API.
+            This is not the official commercetools platform API documentation. Please see [here](http://docs.commercetools.com/)
+            for a complete and approved documentation of the commercetools platform API.
 
-            To automate frequent tasks the collection automatically manages commonly required values and parameters such as resource ids, keys and versions in Postman environment variables for you.
+            ## How to use
+            
+            **:warning: Be aware that postman automatically synchronizes environment variables (including your API client credentials) to your workspace if logged in.
+            Use this collection only for development purposes and non-production projects.**
+            
+            To use this collection in Postman please perform the following steps:
+
+            1. Download and install the Postman Client
+            2. Import the [collection.json](https://github.com/commercetools/commercetools-postman-api-examples/raw/master/collection.json) and [template.json](https://github.com/commercetools/commercetools-postman-api-examples/raw/master/template.json) in your postman application
+            3. In the Merchant Center, create a new API Client and fill in the client credentials in your environment
+            4. Obtain an access token by sending the "Authorization/Obtain access token" request at the bottom of the request list. Now you can use all other endpoints
+    
+            Feel free to clone and modify this collection to your needs.
+
+            To automate frequent tasks the collection automatically manages commonly required values and parameters such
+            as resource ids, keys and versions in Postman environment variables for you.
 
             Please see http://docs.commercetools.com/ for further information about the commercetools Plattform.
         """.trimIndent()

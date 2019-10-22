@@ -4,6 +4,7 @@ import com.google.inject.Inject
 import io.vrap.codegen.languages.extensions.EObjectExtensions
 import io.vrap.codegen.languages.extensions.discriminatorProperty
 import io.vrap.codegen.languages.extensions.hasSubtypes
+import io.vrap.codegen.languages.typescript.model.TsObjectTypeExtensions
 import io.vrap.codegen.languages.typescript.model.simpleTSName
 import io.vrap.codegen.languages.typescript.toJoiPackageName
 import io.vrap.rmf.codegen.io.TemplateFile
@@ -12,7 +13,7 @@ import io.vrap.rmf.codegen.rendring.utils.keepIndentation
 import io.vrap.rmf.codegen.types.*
 import io.vrap.rmf.raml.model.types.*
 
-class JoiValidatorModuleRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : JoiObjectTypeExtensions, EObjectExtensions, FileProducer {
+class JoiValidatorModuleRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : JoiObjectTypeExtensions, TsObjectTypeExtensions, FileProducer {
     @Inject
     lateinit var allAnyTypes: MutableList<AnyType>
 
@@ -34,7 +35,6 @@ class JoiValidatorModuleRenderer @Inject constructor(override val vrapTypeProvid
 
     fun buildModule(moduleName: String, types: List<AnyType>): TemplateFile {
         val content = """
-           |/* tslint:disable */
            |//Generated file, please do not change
            |
            |import * as Joi from 'joi'
@@ -67,7 +67,7 @@ class JoiValidatorModuleRenderer @Inject constructor(override val vrapTypeProvid
         val arrayArg:String = this.getOneOf().map { "${it.toVrapType().simpleJoiName()}()"}
                 .joinToString(prefix = "[",separator = ",",postfix = "]")
         val schemaDeclaration = """
-            |schema.${toVrapType().simpleJoiName()} = Joi.lazy(() => Joi.alternatives($arrayArg))
+            |schema.${toVrapType().simpleJoiName()} = Joi.lazy(() =\> Joi.alternatives($arrayArg))
             |
         """
         return (schemaDeclaration + toVrapType().renderSchemaExportFunction()).trimMargin()
