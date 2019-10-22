@@ -27,6 +27,7 @@ interface  ObjectTypeExtensions : ExtensionsBase {
                 .map { getImportsForType(it) }
                 .filterNotNull()
                 .filter { !it.equals("\\\\") }
+                .filter { !it.contains("DateTimeImmutableCollection") }
                 .sortedBy { it }
                 .distinct()
                 .toList()
@@ -56,6 +57,7 @@ interface  ObjectTypeExtensions : ExtensionsBase {
                 .map { getImportsForType(it) }
                 .filterNotNull()
                 .filter { !it.equals("\\\\") }
+                .filter { !it.contains("DateTimeImmutableCollection") }
                 .sortedBy { it }
                 .distinct()
                 .toList()
@@ -90,6 +92,7 @@ interface  ObjectTypeExtensions : ExtensionsBase {
                 .map { getImportsForType(it) }
                 .filterNotNull()
                 .filter { !it.equals("\\\\") }
+                .filter { !it.contains("DateTimeImmutableCollection") }
                 .sortedBy { it }
                 .distinct()
                 .toList()

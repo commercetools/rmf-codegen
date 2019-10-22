@@ -137,7 +137,7 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |    /** @var array */
                     |    private $!clientOptions;
                     |
-                    |    public function __construct(array $!config = [])
+                    |    public function __construct(${if (api.baseUri.value.variables.isNotEmpty()) { api.baseUri.value.params() } else ""}array $!config = [])
                     |    {
                     |        /** @var string $!apiUri */
                     |        $!apiUri = isset($!config[self::OPT_BASE_URI]) ? $!config[self::OPT_BASE_URI] : static::API_URI;
@@ -171,7 +171,7 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |
                     |    public function getOptions(): array
                     |    {
-                    |        return array_merge(
+                    |        return array_replace(
                     |            [self::OPT_BASE_URI => $!this->getApiUri()],
                     |            $!this->clientOptions
                     |        );
@@ -181,11 +181,13 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
     }
 
     fun UriTemplate.replaceValues(): String = variables
-            .map { """
-                |/** @psalm-var string $!${StringCaseFormat.LOWER_CAMEL_CASE.apply(it)} */
-                |$!${StringCaseFormat.LOWER_CAMEL_CASE.apply(it)} = isset($!config[self::OPT_${StringCaseFormat.UPPER_UNDERSCORE_CASE.apply(it)}]) ? $!config[self::OPT_${StringCaseFormat.UPPER_UNDERSCORE_CASE.apply(it)}] : '{$it}';
-                |$!apiUri = str_replace('{$it}', $!${StringCaseFormat.LOWER_CAMEL_CASE.apply(it)}, $!apiUri);""".trimMargin() }
+            .map { "$!apiUri = str_replace('{$it}', $!${StringCaseFormat.LOWER_CAMEL_CASE.apply(it)}, $!apiUri);" }
             .joinToString(separator = "\n")
+
+    fun UriTemplate.params(): String = variables
+            .map { "string $${StringCaseFormat.LOWER_CAMEL_CASE.apply(it)}" }
+            .joinToString(separator = ", ", postfix = ", ")
+
 
     fun UriTemplate.constVariables(): String = variables
             .map { "const OPT_${StringCaseFormat.UPPER_UNDERSCORE_CASE.apply(it)}= '$it';" }
@@ -251,7 +253,7 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |
                     |    public function getOptions(): array
                     |    {
-                    |        return array_merge(
+                    |        return array_replace(
                     |            [self::OPT_BASE_URI => $!this->authUri],
                     |            $!this->clientOptions
                     |        );

@@ -102,6 +102,9 @@ fun Api.authUri(): String {
 fun Method.resource(): Resource = this.eContainer() as Resource
 
 fun Method.toRequestName(): String {
+    if (this.resource().fullUri.template == "/") {
+        return "ApiRoot" + this.method.toString().capitalize();
+    }
     return this.resource().fullUri.toParamName("By") + this.method.toString().capitalize()
 }
 

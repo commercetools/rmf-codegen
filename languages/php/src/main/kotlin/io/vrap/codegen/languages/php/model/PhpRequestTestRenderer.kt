@@ -80,15 +80,17 @@ class PhpRequestTestRenderer @Inject constructor(api: Api, vrapTypeProvider: Vra
     }
 
     private fun parameterTestProvider(resource: Resource, method: Method): String {
+        val builderChain = resource.resourcePathList().map { r -> "${r.getMethodName()}(${if (r.relativeUri.paramValues().isNotEmpty()) "\"${r.relativeUri.paramValues().joinToString("\", \"") }\"" else ""})" }
+                .plus("${method.method}(${if (method.firstBody() != null) "null" else ""})")
+
         return """
             |'${method.toRequestName()}' => [
             |    function(ApiRoot $!builder): RequestInterface {
             |        return $!builder
-            |            <<->${resource.resourcePathList().map { r -> "${r.getMethodName()}(${if (r.relativeUri.paramValues().isNotEmpty()) "\"${r.relativeUri.paramValues().joinToString("\", \"") }\"" else ""})" }.joinToString("\n->")}>>
-            |            ->${method.method}(${if (method.firstBody() != null) "null" else ""});
+            |            <<${builderChain.joinToString("\n->", "->")}>>;
             |    },
             |    '${method.method}',
-            |    '${resource.fullUri.template}',
+            |    '${resource.fullUri.template.trimStart('/')}',
             |]
         """.trimMargin()
     }
@@ -106,16 +108,17 @@ class PhpRequestTestRenderer @Inject constructor(api: Api, vrapTypeProvider: Vra
             template = "'${placeholder.value}', '${paramName}'"
         }
 
+        val builderChain = resource.resourcePathList().map { r -> "${r.getMethodName()}(${if (r.relativeUri.paramValues().isNotEmpty()) "\"${r.relativeUri.paramValues().joinToString("\", \"") }\"" else ""})" }
+                .plus("${method.method}(${if (method.firstBody() != null) "null" else ""})")
+                .plus("${parameter.methodName()}(${template})")
         return """
             |'${method.toRequestName()}_${parameter.methodName()}' => [
             |    function(ApiRoot $!builder): RequestInterface {
             |        return $!builder
-            |            <<->${resource.resourcePathList().map { r -> "${r.getMethodName()}(${if (r.relativeUri.paramValues().isNotEmpty()) "\"${r.relativeUri.paramValues().joinToString("\", \"") }\"" else ""})" }.joinToString("\n->")}>>
-            |            ->${method.method}(${if (method.firstBody() != null) "null" else ""})
-            |            ->${parameter.methodName()}(${template});
+            |            <<${builderChain.joinToString("\n->", "->")}>>;
             |    },
             |    '${method.method}',
-            |    '${resource.fullUri.template}?${paramName}=${paramName}',
+            |    '${resource.fullUri.template.trimStart('/')}?${paramName}=${paramName}',
             |]
         """.trimMargin()
     }
@@ -124,10 +127,16 @@ class PhpRequestTestRenderer @Inject constructor(api: Api, vrapTypeProvider: Vra
 
     fun Resource.resourcePathList(): List<Resource> {
         val path = Lists.newArrayList<Resource>()
+        if (this.fullUri.template == "/") {
+            return path
+        }
         path.add(this)
         var t = this.eContainer()
         while (t is Resource) {
-            path.add(t)
+            val template = t.fullUri.template
+            if (template != "/") {
+                path.add(t)
+            }
             t = t.eContainer()
         }
         return Lists.reverse(path)

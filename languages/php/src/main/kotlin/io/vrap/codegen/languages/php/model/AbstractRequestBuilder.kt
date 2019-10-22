@@ -100,8 +100,9 @@ abstract class AbstractRequestBuilder constructor(
 
     fun Resource.resourceBuilderName():String = "Resource${this.toResourceName()}"
     fun Resource.resourceBuilderFullName():String = "${clientPackageName.toNamespaceName()}\\Resource\\Resource${this.toResourceName()}"
+    fun Method.fullClassName():String = "${clientPackageName.toNamespaceName()}\\Resource\\${this.toRequestName()}"
 
-    protected fun Resource.imports() = this.methods.asSequence().mapNotNull { it.firstBody()?.type }
+    protected fun Resource.methodReturnTypeImports() = this.methods.asSequence().mapNotNull { it.firstBody()?.type }
             .map { it.toVrapType() }
             .filter { !it.isScalar() }
             .map {
@@ -113,15 +114,22 @@ abstract class AbstractRequestBuilder constructor(
             }
             .filter { it != "" }
             .map { "use ${it.escapeAll()};" }
+    protected fun Resource.imports() = this.methodReturnTypeImports()
             .distinct()
             .sorted()
             .joinToString("\n")
 
-    protected fun Api.imports() = this.resources.asSequence()
-            .map { "use ${it.resourceBuilderFullName().escapeAll()};" }
-            .distinct()
-            .sorted()
-            .joinToString("\n")
+    protected fun Api.imports(): String {
+        val rootResource = if (this.resources.size == 1 && this.resources[0].resourcePath == "/") this.resources[0] else null
+        val methodImports = rootResource?.methods?.asSequence()?.map { method -> "use ${method.fullClassName().escapeAll()};" } ?: emptySequence()
+        return (rootResource?.resources ?: this.resources).asSequence()
+                .map { "use ${it.resourceBuilderFullName().escapeAll()};" }
+                .plus(methodImports)
+                .plus(rootResource?.methodReturnTypeImports() ?: emptySequence())
+                .distinct()
+                .sorted()
+                .joinToString("\n")
+    }
 
     protected fun Method.bodyType(): String? {
         val firstBody = this.firstBody()?.type

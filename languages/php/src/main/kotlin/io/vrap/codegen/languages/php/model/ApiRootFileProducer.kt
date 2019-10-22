@@ -19,6 +19,7 @@ class ApiRootFileProducer @Inject constructor(api: Api, vrapTypeProvider: VrapTy
     )
 
     fun produceApiRoot(type: Api): TemplateFile {
+        val rootResource = type.resources.firstOrNull { resource -> resource.resourcePath == "/" }
         return TemplateFile(relativePath = "src/${clientPackageName.replace(basePackagePrefix, "").toNamespaceDir()}/ApiRoot.php",
                 content = """
                     |<?php
@@ -40,7 +41,8 @@ class ApiRootFileProducer @Inject constructor(api: Api, vrapTypeProvider: VrapTy
                     |       parent::__construct('', $!args, $!client);
                     |   }
                     |
-                    |   <<${type.subResources()}>>
+                    |   <<${if (rootResource != null && type.resources.size == 1) rootResource.subResources() else type.subResources()}>>
+                    |   <<${rootResource?.methods() ?: ""}>>
                     |}
                 """.trimMargin().keepIndentation("<<", ">>").forcedLiteralEscape())
     }

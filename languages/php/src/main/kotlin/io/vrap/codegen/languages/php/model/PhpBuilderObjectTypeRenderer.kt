@@ -96,6 +96,7 @@ class PhpBuilderObjectTypeRenderer @Inject constructor(override val vrapTypeProv
             |namespace ${vrapType.namespaceName().escapeAll()};
             |
             |use ${sharedPackageName.toNamespaceName().escapeAll()}\\Base\\Builder;
+            |use ${sharedPackageName.toNamespaceName().escapeAll()}\\Base\\DateTimeImmutableCollection;
             |use ${sharedPackageName.toNamespaceName().escapeAll()}\\Base\\JsonObject;
             |use ${sharedPackageName.toNamespaceName().escapeAll()}\\Base\\JsonObjectModel;
             |use ${sharedPackageName.toNamespaceName().escapeAll()}\\Base\\MapperFactory;

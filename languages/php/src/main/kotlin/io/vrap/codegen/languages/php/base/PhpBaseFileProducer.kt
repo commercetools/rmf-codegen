@@ -43,12 +43,14 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
             mapperIterator(),
             mapperInterface(),
             mapperSequence(),
+            mapperScalarSequence(),
             mapperMap(),
             psalm(),
             resource(),
             resultMapper(),
             mapperInterface(),
             jsonObjectCollection(),
+            dateTimeImmutableCollection(),
             apiClientException(),
             apiServerException(),
             authConfig(),
@@ -177,6 +179,8 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |
                     |class MapperFactory
                     |{
+                    |    const TIME_FORMAT = "H:i:s.u";
+                    |    const DATE_FORMAT = "Y-m-d";
                     |    const DATETIME_FORMAT = "Y-m-d?H:i:s.uT";
                     |
                     |    /**
@@ -527,7 +531,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |            $!options['handler'] = $!stack;
                     |        }
                     |
-                    |        $!options = array_merge(
+                    |        $!options = array_replace(
                     |            [
                     |                'allow_redirects' => false,
                     |                'verify' => true,
@@ -1104,6 +1108,58 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                 """.trimMargin().forcedLiteralEscape())
     }
 
+    private fun dateTimeImmutableCollection(): TemplateFile {
+        return TemplateFile(relativePath = "src/Base/DateTimeImmutableCollection.php",
+                content = """
+                    |<?php
+                    |${PhpSubTemplates.generatorInfo}
+                    |
+                    |namespace ${packagePrefix.toNamespaceName()}\Base;
+                    |
+                    |use DateTimeImmutable;
+                    |use ${packagePrefix.toNamespaceName()}\Exception\InvalidArgumentException;
+                    |
+                    |/**
+                    | * @extends MapperScalarSequence<DateTimeImmutable>
+                    | * @method DateTimeImmutable current()
+                    | * @method DateTimeImmutable at($!offset)
+                    | */
+                    |class DateTimeImmutableCollection extends MapperScalarSequence
+                    |{
+                    |    /**
+                    |     * @psalm-assert DateTimeImmutable $!value
+                    |     * @psalm-param DateTimeImmutable|scalar $!value
+                    |     * @return DateTimeImmutableCollection
+                    |     * @throws InvalidArgumentException
+                    |     */
+                    |    public function add($!value)
+                    |    {
+                    |        if (!$!value instanceof DateTimeImmutable) {
+                    |            throw new InvalidArgumentException();
+                    |        }
+                    |        $!this->store($!value);
+                    |
+                    |        return $!this;
+                    |    }
+                    |
+                    |    /**
+                    |     * @psalm-return callable(int):?DateTimeImmutable
+                    |     */
+                    |    protected function mapper()
+                    |    {
+                    |        return function(int $!index): ?DateTimeImmutable {
+                    |            $!data = $!this->get($!index);
+                    |            if (!is_null($!data) && !$!data instanceof DateTimeImmutable) {
+                    |                $!data = new DateTimeImmutable((string)$!data);
+                    |                $!this->set($!data, $!index);
+                    |            }
+                    |            return $!data;
+                    |        };
+                    |    }
+                    |}
+                """.trimMargin().forcedLiteralEscape())
+    }
+
     private fun mapperSequence(): TemplateFile {
         return TemplateFile(relativePath = "src/Base/MapperSequence.php",
                 content = """
@@ -1318,6 +1374,242 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |    /**
                     |     * @param int $!offset
                     |     * @psalm-param T|stdClass $!value
+                    |     * @param mixed $!value
+                    |     * @return void
+                    |     */
+                    |    public function offsetSet($!offset, $!value)
+                    |    {
+                    |        $!this->set($!value, $!offset);
+                    |        $!this->iterator = $!this->getIterator();
+                    |    }
+                    |
+                    |    /**
+                    |     * @param int $!offset
+                    |     * @return void
+                    |     */
+                    |    public function offsetUnset($!offset)
+                    |    {
+                    |        if ($!this->offsetExists($!offset)) {
+                    |            /** @psalm-suppress PossiblyNullArrayAccess */
+                    |            unset($!this->data[$!offset]);
+                    |            $!this->iterator = $!this->getIterator();
+                    |        }
+                    |    }
+                    |}
+                """.trimMargin().forcedLiteralEscape())
+    }
+
+    private fun mapperScalarSequence(): TemplateFile {
+        return TemplateFile(relativePath = "src/Base/MapperScalarSequence.php",
+                content = """
+                    |<?php
+                    |${PhpSubTemplates.generatorInfo}
+                    |
+                    |namespace ${packagePrefix.toNamespaceName()}\Base;
+                    |
+                    |use stdClass;
+                    |
+                    |/**
+                    | * @template T
+                    | */
+                    |abstract class MapperScalarSequence implements Collection, \ArrayAccess, \JsonSerializable, \IteratorAggregate
+                    |{
+                    |    /** @psalm-var ?array<int, T|scalar> */
+                    |    private $!data;
+                    |    /** @var array<string, array<string, int>> */
+                    |    private $!indexes = [];
+                    |    /** @var MapperIterator */
+                    |    private $!iterator;
+                    |
+                    |    /**
+                    |     * @psalm-param ?array<int, T|scalar> $!data
+                    |     * @param array|null $!data
+                    |     */
+                    |    public function __construct(array $!data = null)
+                    |    {
+                    |        if (!is_null($!data)) {
+                    |            $!this->index($!data);
+                    |        }
+                    |        $!this->data = $!data;
+                    |        $!this->iterator = $!this->getIterator();
+                    |    }
+                    |
+                    |    public function toArray(): ?array
+                    |    {
+                    |        return $!this->data;
+                    |    }
+                    |    
+                    |    public function jsonSerialize(): ?array
+                    |    {
+                    |        return $!this->data;
+                    |    }
+                    |
+                    |    /**
+                    |     * @psalm-param array<int, T|scalar> $!data
+                    |     * @return static
+                    |     */
+                    |    final public static function fromArray(array $!data)
+                    |    {
+                    |        return new static($!data);
+                    |    }
+                    |
+                    |    /**
+                    |     * @param mixed $!data
+                    |     */
+                    |    protected function index($!data): void
+                    |    {
+                    |    }
+                    |
+                    |    /**
+                    |     * @psalm-return T|scalar|null
+                    |     */
+                    |    final protected function get(int $!index)
+                    |    {
+                    |        if (isset($!this->data[$!index])) {
+                    |            return $!this->data[$!index];
+                    |        }
+                    |        return null;
+                    |    }
+                    |
+                    |    /**
+                    |     * @psalm-param T|scalar $!data
+                    |     */
+                    |    final protected function set($!data, ?int $!index): void
+                    |    {
+                    |        if (is_null($!index)) {
+                    |            $!this->data[] = $!data;
+                    |        } else {
+                    |            $!this->data[$!index] = $!data;
+                    |        }
+                    |    }
+                    |
+                    |    /**
+                    |     * @psalm-param T|scalar $!value
+                    |     * @param $!value
+                    |     * @return Collection
+                    |     */
+                    |    public function add($!value)
+                    |    {
+                    |        return $!this->store($!value);
+                    |    }
+                    |
+                    |    /**
+                    |     * @psalm-param T|scalar $!value
+                    |     * @param $!value
+                    |     * @return Collection
+                    |     */
+                    |    final protected function store($!value)
+                    |    {
+                    |        $!this->set($!value, null);
+                    |        $!this->iterator = $!this->getIterator();
+                    |
+                    |        return $!this;
+                    |    }
+                    |
+                    |    /**
+                    |     * @psalm-return ?T
+                    |     */
+                    |    public function at(int $!index)
+                    |    {
+                    |        return $!this->mapper()($!index);
+                    |    }
+                    |
+                    |    /**
+                    |     * @psalm-return callable(int): ?T
+                    |     */
+                    |    abstract protected function mapper();
+                    |
+                    |    final protected function addToIndex(string $!field, string $!key, int $!index): void
+                    |    {
+                    |        $!this->indexes[$!field][$!key] = $!index;
+                    |    }
+                    |
+                    |    /**
+                    |     * @psalm-return ?T
+                    |     */
+                    |    final protected function valueByKey(string $!field, string $!key)
+                    |    {
+                    |        return isset($!this->indexes[$!field][$!key]) ? $!this->at($!this->indexes[$!field][$!key]) : null;
+                    |    }
+                    |
+                    |    public function getIterator(): MapperIterator
+                    |    {
+                    |        $!keys = !is_null($!this->data) ? array_keys($!this->data) : [];
+                    |        $!keyIterator = new \ArrayIterator(array_combine($!keys, $!keys));
+                    |        $!iterator = new MapperIterator(
+                    |            $!keyIterator,
+                    |            $!this->mapper()
+                    |        );
+                    |        $!iterator->rewind();
+                    |
+                    |        return $!iterator;
+                    |    }
+                    |
+                    |    /**
+                    |     * @return ?T
+                    |     */
+                    |    public function current()
+                    |    {
+                    |        /** @psalm-var ?T $!current  */
+                    |        $!current = $!this->iterator->current();
+                    |        return $!current;
+                    |    }
+                    |
+                    |    /**
+                    |     * @return void
+                    |     */
+                    |    public function next()
+                    |    {
+                    |        $!this->iterator->next();
+                    |    }
+                    |
+                    |    /**
+                    |     * @return int
+                    |     */
+                    |    public function key()
+                    |    {
+                    |        /** @var int $!key  */
+                    |        $!key = $!this->iterator->key();
+                    |        return $!key;
+                    |    }
+                    |
+                    |    /**
+                    |     * @return bool
+                    |     */
+                    |    public function valid()
+                    |    {
+                    |        return $!this->iterator->valid();
+                    |    }
+                    |
+                    |    /**
+                    |     * @return void
+                    |     */
+                    |    public function rewind()
+                    |    {
+                    |        $!this->iterator->rewind();
+                    |    }
+                    |
+                    |    /**
+                    |     * @param int $!offset
+                    |     * @return bool
+                    |     */
+                    |    public function offsetExists($!offset)
+                    |    {
+                    |        return !is_null($!this->data) && array_key_exists($!offset, $!this->data);
+                    |    }
+                    |
+                    |    /**
+                    |     * @param int $!offset
+                    |     * @return ?T
+                    |     */
+                    |    public function offsetGet($!offset)
+                    |    {
+                    |        return $!this->at($!offset);
+                    |    }
+                    |
+                    |    /**
+                    |     * @param int $!offset
+                    |     * @psalm-param T|scalar $!value
                     |     * @param mixed $!value
                     |     * @return void
                     |     */
