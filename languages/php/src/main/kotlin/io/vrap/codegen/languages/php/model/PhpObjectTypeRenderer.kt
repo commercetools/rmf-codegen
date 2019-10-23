@@ -360,10 +360,11 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
 
     fun Property.mapper():String {
         val type = this.type
+        val vrapType = type.toVrapType();
         val defineObject = this.eContainer().toVrapType();
         return when(type) {
             is ObjectType ->
-                if (type.toVrapType().isScalar()) {
+                if (vrapType.isScalar()) {
                     """
                         |/** @psalm-var stdClass|array<string, mixed>|null $!data */
                         |$!data = $!this->raw(${defineObject.simpleName()}::${this.toPhpConstantName()});
@@ -396,7 +397,7 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
                                 |$!this->${this.name} = new DateTimeImmutableCollection($!data);
                             """.trimMargin()
                     else ->
-                        if (type.toVrapType().isScalar()) {
+                        if (vrapType.isScalar()) {
                             """
                                 |/** @psalm-var ?array<int, mixed> $!data */
                                 |$!data = $!this->raw(${defineObject.simpleName()}::${this.toPhpConstantName()});
@@ -417,7 +418,7 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
                         }
                 }
             else ->
-                when (type.toVrapType()) {
+                when (vrapType) {
                     is VrapEnumType -> """
                        |/** @psalm-var ?string $!data */
                        |$!data = $!this->raw(${defineObject.simpleName()}::${this.toPhpConstantName()});
@@ -426,6 +427,45 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
                        |}
                        |$!this->${this.name} = (string)$!data;
                     """.trimMargin()
+                    is VrapDateTimeType ->
+                        when (vrapType) {
+                            PhpBaseTypes.timeOnlyType -> """
+                               |/** @psalm-var ?string $!data */
+                               |$!data = $!this->raw(${defineObject.simpleName()}::${this.toPhpConstantName()});
+                               |if (is_null($!data)) {
+                               |    return null;
+                               |}
+                               |$!data = DateTimeImmutable::createFromFormat(MapperFactory::TIME_FORMAT, $!data);
+                               |if ($!data === false) {
+                               |    return null;
+                               |}
+                               |$!this->${this.name} = $!data;
+                            """.trimMargin()
+                            PhpBaseTypes.dateOnlyType -> """
+                               |/** @psalm-var ?string $!data */
+                               |$!data = $!this->raw(${defineObject.simpleName()}::${this.toPhpConstantName()});
+                               |if (is_null($!data)) {
+                               |    return null;
+                               |}
+                               |$!data = DateTimeImmutable::createFromFormat(MapperFactory::DATE_FORMAT, $!data);
+                               |if ($!data === false) {
+                               |    return null;
+                               |}
+                               |$!this->${this.name} = $!data;
+                            """.trimMargin()
+                            else -> """
+                               |/** @psalm-var ?string $!data */
+                               |$!data = $!this->raw(${defineObject.simpleName()}::${this.toPhpConstantName()});
+                               |if (is_null($!data)) {
+                               |    return null;
+                               |}
+                               |$!data = DateTimeImmutable::createFromFormat(MapperFactory::DATETIME_FORMAT, $!data);
+                               |if ($!data === false) {
+                               |    return null;
+                               |}
+                               |$!this->${this.name} = $!data;
+                            """.trimMargin()
+                        }
                     PhpBaseTypes.integerType ->  """
                        |/** @psalm-var ?int $!data */
                        |$!data = $!this->raw(${defineObject.simpleName()}::${this.toPhpConstantName()});
@@ -458,42 +498,7 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
                        |}
                        |$!this->${this.name} = (bool)$!data;
                     """.trimMargin()
-                    PhpBaseTypes.timeOnlyType -> """
-                       |/** @psalm-var ?string $!data */
-                       |$!data = $!this->raw(${defineObject.simpleName()}::${this.toPhpConstantName()});
-                       |if (is_null($!data)) {
-                       |    return null;
-                       |}
-                       |$!data = DateTimeImmutable::createFromFormat(MapperFactory::TIME_FORMAT, $!data);
-                       |if ($!data === false) {
-                       |    return null;
-                       |}
-                       |$!this->${this.name} = $!data;
-                    """.trimMargin()
-                    PhpBaseTypes.dateOnlyType -> """
-                       |/** @psalm-var ?string $!data */
-                       |$!data = $!this->raw(${defineObject.simpleName()}::${this.toPhpConstantName()});
-                       |if (is_null($!data)) {
-                       |    return null;
-                       |}
-                       |$!data = DateTimeImmutable::createFromFormat(MapperFactory::DATE_FORMAT, $!data);
-                       |if ($!data === false) {
-                       |    return null;
-                       |}
-                       |$!this->${this.name} = $!data;
-                    """.trimMargin()
-                    PhpBaseTypes.dateTimeType -> """
-                       |/** @psalm-var ?string $!data */
-                       |$!data = $!this->raw(${defineObject.simpleName()}::${this.toPhpConstantName()});
-                       |if (is_null($!data)) {
-                       |    return null;
-                       |}
-                       |$!data = DateTimeImmutable::createFromFormat(MapperFactory::DATETIME_FORMAT, $!data);
-                       |if ($!data === false) {
-                       |    return null;
-                       |}
-                       |$!this->${this.name} = $!data;
-                    """.trimMargin()
+
                     else -> """
                         |/** @psalm-var ?stdClass $!data */
                         |$!data = $!this->raw(${defineObject.simpleName()}::${this.toPhpConstantName()});
