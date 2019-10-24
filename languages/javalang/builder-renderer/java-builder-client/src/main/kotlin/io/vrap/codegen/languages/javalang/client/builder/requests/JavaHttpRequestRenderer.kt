@@ -43,7 +43,7 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
             |import java.util.HashMap;
             |import java.util.stream.Collectors;
             |import java.util.concurrent.CompletableFuture;
-            |import javax.annotation.Generated;
+            |import io.vrap.rmf.base.client.utils.Generated;
             |
             |import java.io.UnsupportedEncodingException;
             |import java.net.URLEncoder;

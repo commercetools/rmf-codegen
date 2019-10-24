@@ -29,7 +29,7 @@ class JavaModelClassFileProducer @Inject constructor(override val vrapTypeProvid
                 |package ${vrapType.`package`.toJavaPackage()};
                 |
                 |${type.imports()}
-                |import javax.annotation.Generated;
+                |import io.vrap.rmf.base.client.utils.Generated;
                 |import javax.validation.Valid;
                 |import javax.validation.constraints.NotNull;
                 |import java.util.*;

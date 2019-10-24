@@ -36,7 +36,7 @@ class SpringClientRenderer @Inject constructor(override val vrapTypeProvider: Vr
             |import java.util.List;
             |import java.util.Map;
             |import java.net.ConnectException;
-            |import javax.annotation.Generated;
+            |import io.vrap.rmf.base.client.utils.Generated;
             |
             |import org.springframework.beans.factory.annotation.Value;
             |import org.springframework.core.ParameterizedTypeReference;

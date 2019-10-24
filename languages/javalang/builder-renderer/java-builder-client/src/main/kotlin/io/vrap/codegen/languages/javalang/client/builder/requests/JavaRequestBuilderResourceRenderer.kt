@@ -29,7 +29,7 @@ class JavaRequestBuilderResourceRenderer @Inject constructor(val api: Api, overr
         val content : String = """
             |package ${vrapType.`package`};
             |import io.vrap.rmf.base.client.ApiHttpClient;
-            |import javax.annotation.Generated;
+            |import io.vrap.rmf.base.client.utils.Generated;
             |
             |<${JavaSubTemplates.generatedAnnotation}>
             |public class $className {

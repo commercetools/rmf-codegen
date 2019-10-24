@@ -29,7 +29,7 @@ class JavaApiRootFileProducer @Inject constructor(@ClientPackageName val clientP
             |
             |import java.util.List;
             |import java.util.Arrays;
-            |import javax.annotation.Generated;
+            |import io.vrap.rmf.base.client.utils.Generated;
             |
             |<${JavaSubTemplates.generatedAnnotation}>
             |public class ApiRoot {

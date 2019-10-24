@@ -29,7 +29,7 @@ class JavaStringTypeRenderer @Inject constructor(override val vrapTypeProvider: 
                 |import java.lang.String;
                 |import java.util.Arrays;
                 |import java.util.Optional;
-                |import javax.annotation.Generated;
+                |import io.vrap.rmf.base.client.utils.Generated;
                 |
                 |${type.toComment().escapeAll()}
                 |${JavaSubTemplates.generatedAnnotation}
