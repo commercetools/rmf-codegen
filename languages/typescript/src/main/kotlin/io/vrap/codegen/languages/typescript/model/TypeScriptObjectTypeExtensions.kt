@@ -24,6 +24,7 @@ interface TsObjectTypeExtensions : ExtensionsBase {
 
     fun List<VrapType>.getImportsForModuleVrapTypes(moduleName: String): String {
         return this
+                .map { it.flattenVrapType() }
                 .distinct()
                 .filter {
                     when (it) {
@@ -48,8 +49,8 @@ interface TsObjectTypeExtensions : ExtensionsBase {
     }
 
     private fun relativizePaths(currentModule: String, targetModule: String): String {
-        val currentRelative: Path = Paths.get(currentModule.replace(".", "/"))
-        val targetRelative: Path = Paths.get(targetModule.replace(".", "/"))
+        val currentRelative: Path = Paths.get(currentModule)
+        val targetRelative: Path = Paths.get(targetModule)
         return currentRelative.relativize(targetRelative).toString().replaceFirst("../", "./")
     }
 
@@ -95,15 +96,12 @@ interface TsObjectTypeExtensions : ExtensionsBase {
         return this.split("/").map { StringCaseFormat.LOWER_HYPHEN_CASE.apply(it) }.joinToString(separator = "/")
     }
 
-    private fun VrapType.flattenVrapType(): VrapType? {
+    private fun VrapType.flattenVrapType(): VrapType {
         return when (this) {
-            is VrapObjectType -> this
-            is VrapEnumType -> this
             is VrapArrayType -> {
                 this.itemType.flattenVrapType()
             }
-            is VrapNilType -> this
-            else -> null
+            else -> this
 
         }
     }

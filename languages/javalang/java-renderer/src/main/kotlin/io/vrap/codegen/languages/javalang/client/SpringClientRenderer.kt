@@ -1,7 +1,6 @@
 package io.vrap.codegen.languages.javalang.client
 
 import com.google.inject.Inject
-import io.vrap.codegen.languages.extensions.EObjectExtensions
 import io.vrap.codegen.languages.extensions.toComment
 import io.vrap.codegen.languages.java.base.JavaSubTemplates
 import io.vrap.codegen.languages.java.base.extensions.JavaEObjectTypeExtensions
@@ -12,14 +11,15 @@ import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.ResourceCollectionRenderer
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
 import io.vrap.rmf.codegen.rendring.utils.keepIndentation
-import io.vrap.rmf.codegen.types.PackageProvider
 import io.vrap.rmf.codegen.types.VrapNilType
 import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Resource
+import io.vrap.rmf.raml.model.resources.UriParameter
 import io.vrap.rmf.raml.model.responses.Response
 import io.vrap.rmf.raml.model.types.AnyType
+import io.vrap.rmf.raml.model.types.StringType
 import io.vrap.rmf.raml.model.types.impl.TypesFactoryImpl
 
 class SpringClientRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : ResourceCollectionRenderer, JavaEObjectTypeExtensions {
@@ -93,7 +93,7 @@ class SpringClientRenderer @Inject constructor(override val vrapTypeProvider: Vr
             |
             |    final Map\<String, Object\> parameters = new HashMap\<\>();
             |
-            |    <${resource.fullUriParameters.map { "parameters.put(\"${it.name}\",${it.name});" }.joinToString(separator = "\n")}>
+            |    <${resource.fullUriParameters.map { "parameters.put(\"${it.name}\",${it.valueExtractor()});" }.joinToString(separator = "\n")}>
             |    <${method.queryParameters.map { "parameters.put(\"${it.name}\",${it.name});" }.joinToString(separator = "\n")}>
             |
             |    <${method.mediaType().escapeAll()}>
@@ -106,6 +106,20 @@ class SpringClientRenderer @Inject constructor(override val vrapTypeProvider: Vr
             |}
                 """.trimMargin()
         return body
+    }
+
+    fun UriParameter.valueExtractor(): String {
+        val paramType = this.type.type
+        return when (paramType) {
+            is StringType -> {
+                if (paramType.enum.isEmpty()) {
+                    this.name;
+                } else {
+                    "${this.name}.getJsonName()"
+                }
+            }
+            else -> this.name
+        }
     }
 
     fun relativeUrl(resource: Resource, method: Method) : String{
