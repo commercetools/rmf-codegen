@@ -31,10 +31,10 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
 
 
     override fun produceFiles(): List<TemplateFile> = listOf(
-            config(api),
             authConfig(api),
             clientCredentialsConfig(api),
             composerJson(),
+            config(api),
             psalm()
     )
 
@@ -137,14 +137,13 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |    /** @var array */
                     |    private $!clientOptions;
                     |
-                    |    public function __construct(${if (api.baseUri.value.variables.isNotEmpty()) { api.baseUri.value.params() } else ""}array $!config = [])
+                    |    public function __construct(${if (api.baseUri.value.variables.isNotEmpty()) { api.baseUri.value.params() } else ""}array $!clientOptions = [], string $!baseUri = null)
                     |    {
                     |        /** @var string $!apiUri */
-                    |        $!apiUri = isset($!config[self::OPT_BASE_URI]) ? $!config[self::OPT_BASE_URI] : static::API_URI;
+                    |        $!apiUri = $!baseUri ?? static::API_URI;
                     |        <<${if (api.baseUri.value.variables.isNotEmpty()) { api.baseUri.value.replaceValues()} else ""}>>
                     |        $!this->apiUri = $!apiUri;
-                    |        $!this->clientOptions = isset($!config[self::OPT_CLIENT_OPTIONS]) && is_array($!config[self::OPT_CLIENT_OPTIONS]) ?
-                    |            $!config[self::OPT_CLIENT_OPTIONS] : [];
+                    |        $!this->clientOptions = $!clientOptions;
                     |    }
                     |
                     |    public function getApiUri(): string
@@ -152,27 +151,15 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |        return $!this->apiUri;
                     |    }
                     |
-                    |    public function setApiUri(string $!apiUri): BaseConfig
-                    |    {
-                    |        $!this->apiUri = $!apiUri;
-                    |        return $!this;
-                    |    }
-                    |
                     |    public function getClientOptions(): array
                     |    {
                     |        return $!this->clientOptions;
                     |    }
                     |
-                    |    public function setClientOptions(array $!options): BaseConfig
-                    |    {
-                    |        $!this->clientOptions = $!options;
-                    |        return $!this;
-                    |    }
-                    |
                     |    public function getOptions(): array
                     |    {
                     |        return array_replace(
-                    |            [self::OPT_BASE_URI => $!this->getApiUri()],
+                    |            [self::OPT_BASE_URI => $!this->apiUri],
                     |            $!this->clientOptions
                     |        );
                     |    }
@@ -215,12 +202,11 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |    /** @var array */
                     |    private $!clientOptions;
                     |
-                    |    public function __construct(array $!config = [])
+                    |    public function __construct(array $!clientOptions = [], string $!authUri = self::AUTH_URI)
                     |    {
                     |        /** @var string authUri */
-                    |        $!this->authUri = isset($!config[self::OPT_AUTH_URI]) ? $!config[self::OPT_AUTH_URI] : static::AUTH_URI;
-                    |        $!this->clientOptions = isset($!config[self::OPT_CLIENT_OPTIONS]) && is_array($!config[self::OPT_CLIENT_OPTIONS]) ?
-                    |            $!config[self::OPT_CLIENT_OPTIONS] : [];
+                    |        $!this->authUri = $!authUri;
+                    |        $!this->clientOptions = $!clientOptions;
                     |    }
                     |
                     |    public function getGrantType(): string
@@ -234,21 +220,9 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |        return $!this->authUri;
                     |    }
                     |
-                    |    public function setAuthUri(string $!authUri): BaseAuthConfig
-                    |    {
-                    |        $!this->authUri = $!authUri;
-                    |        return $!this;
-                    |    }
-                    |
                     |    public function getClientOptions(): array
                     |    {
                     |        return $!this->clientOptions;
-                    |    }
-                    |
-                    |    public function setClientOptions(array $!options): BaseAuthConfig
-                    |    {
-                    |        $!this->clientOptions = $!options;
-                    |        return $!this;
                     |    }
                     |
                     |    public function getOptions(): array
@@ -258,8 +232,6 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |            $!this->clientOptions
                     |        );
                     |    }
-                    |    
-                    |    abstract function getCacheKey(): string;
                     |}
                 """.trimMargin().forcedLiteralEscape())
     }
@@ -272,6 +244,7 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |
                     |namespace ${clientPackageName.toNamespaceName()};
                     |
+                    |use ${sharedPackageName.toNamespaceName()}\Client\ClientCredentials;
                     |use ${sharedPackageName.toNamespaceName()}\Client\ClientCredentialsConfig as BaseClientCredentialsConfig;
                     |
                     |class ClientCredentialsConfig extends AuthConfig implements BaseClientCredentialsConfig
@@ -280,62 +253,18 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |
                     |    const GRANT_TYPE = 'client_credentials';
                     |
-                    |    /** @var string */
-                    |    private $!clientId;
+                    |    /** @var ClientCredentials */
+                    |    private $!credentials;
                     |
-                    |    /** @var string */
-                    |    private $!clientSecret;
-                    |
-                    |    /** @var ?string */
-                    |    private $!scope;
-                    |
-                    |    /**
-                    |     * @psalm-param array<string, string> $!authConfig
-                    |     */
-                    |    public function __construct(array $!authConfig = [])
+                    |    public function __construct(ClientCredentials $!credentials, array $!clientOptions = [], string $!authUri = self::AUTH_URI)
                     |    {
-                    |        parent::__construct($!authConfig);
-                    |        $!this->clientId = isset($!authConfig[self::CLIENT_ID]) ? $!authConfig[self::CLIENT_ID] : '';
-                    |        $!this->clientSecret = isset($!authConfig[self::CLIENT_SECRET]) ? $!authConfig[self::CLIENT_SECRET] : '';
-                    |        $!this->scope = isset($!authConfig[self::SCOPE]) ? $!authConfig[self::SCOPE] : null;
+                    |        parent::__construct($!clientOptions, $!authUri);
+                    |        $!this->credentials = $!credentials;
                     |    }
                     |
-                    |    public function getClientId(): string
+                    |    public function getCredentials(): ClientCredentials
                     |    {
-                    |        return $!this->clientId;
-                    |    }
-                    |
-                    |    public function getScope(): ?string
-                    |    {
-                    |        return $!this->scope;
-                    |    }
-                    |
-                    |    public function setScope(string $!scope = null): BaseClientCredentialsConfig
-                    |    {
-                    |        $!this->scope = $!scope;
-                    |        return $!this;
-                    |    }
-                    |
-                    |    public function setClientId(string $!clientId): BaseClientCredentialsConfig
-                    |    {
-                    |        $!this->clientId = $!clientId;
-                    |        return $!this;
-                    |    }
-                    |
-                    |    public function getClientSecret(): string
-                    |    {
-                    |        return $!this->clientSecret;
-                    |    }
-                    |
-                    |    public function setClientSecret(string $!clientSecret): BaseClientCredentialsConfig
-                    |    {
-                    |        $!this->clientSecret = $!clientSecret;
-                    |        return $!this;
-                    |    }
-                    |
-                    |    public function getCacheKey(): string
-                    |    {
-                    |        return sha1($!this->clientId . (string)$!this->scope);
+                    |        return $!this->credentials;
                     |    }
                     |}
                 """.trimMargin().forcedLiteralEscape()

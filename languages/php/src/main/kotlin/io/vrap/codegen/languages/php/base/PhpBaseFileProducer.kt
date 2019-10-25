@@ -8,7 +8,6 @@ import io.vrap.rmf.codegen.di.BasePackageName
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.FileProducer
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
-import io.vrap.rmf.codegen.rendring.utils.keepIndentation
 import io.vrap.rmf.raml.model.modules.Api
 import io.vrap.rmf.raml.model.util.StringCaseFormat
 
@@ -19,43 +18,43 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
     lateinit var packagePrefix:String
 
     override fun produceFiles(): List<TemplateFile> = listOf(
-            collection(),
+            apiClientException(),
+            apiRequest(),
+            apiServerException(),
+            authConfig(),
+            baseException(),
+            baseJsonObject(),
             baseNullable(),
+            builder(),
+            cachedProvider(),
+            clientCredentials(),
+            clientCredentialsConfig(),
             clientFactory(),
-            tokenProvider(),
-            token(),
+            collection(),
             composerJson(),
             config(),
             credentialTokenProvider(),
-            cachedProvider(),
-            rawTokenProvider(),
-            oauth2Handler(),
-            middlewareFactory(),
-            tokenModel(),
-            oauthHandlerFactory(),
-            baseException(),
+            dateTimeImmutableCollection(),
             invalidArgumentException(),
-            apiRequest(),
-            mapperFactory(),
-            jsonObjectModel(),
             jsonObject(),
-            baseJsonObject(),
+            jsonObjectModel(),
+            jsonObjectCollection(),
+            mapperFactory(),
             mapperIterator(),
             mapperInterface(),
+            mapperMap(),
             mapperSequence(),
             mapperScalarSequence(),
-            mapperMap(),
+            middlewareFactory(),
+            oauth2Handler(),
+            oauthHandlerFactory(),
+            PreAuthTokenProvider(),
             psalm(),
             resource(),
             resultMapper(),
-            mapperInterface(),
-            jsonObjectCollection(),
-            dateTimeImmutableCollection(),
-            apiClientException(),
-            apiServerException(),
-            authConfig(),
-            clientCredentialsConfig(),
-            builder()
+            token(),
+            tokenModel(),
+            tokenProvider()
     )
 
 
@@ -499,7 +498,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |     * @psalm-param array<string, callable> $!middlewares
                     |     * @throws InvalidArgumentException
                     |     */
-                    |    public function createGuzzleClient(Config $!config, AuthConfig $!authConfig, LoggerInterface $!logger, $!cache = null, array $!middlewares = []): HttpClient
+                    |    public function createGuzzleClient(Config $!config, ClientCredentialsConfig $!authConfig, LoggerInterface $!logger, $!cache = null, array $!middlewares = []): HttpClient
                     |    {
                     |        $!middlewares = array_merge(
                     |           MiddlewareFactory::createDefaultMiddlewares($!logger, $!authConfig, $!cache),
@@ -658,15 +657,15 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
             .map { "const OPT_${StringCaseFormat.UPPER_UNDERSCORE_CASE.apply(it)}= '$it';" }
             .joinToString(separator = "\n")
 
-    private fun rawTokenProvider(): TemplateFile {
-        return TemplateFile(relativePath = "src/Client/RawTokenProvider.php",
+    private fun PreAuthTokenProvider(): TemplateFile {
+        return TemplateFile(relativePath = "src/Client/PreAuthTokenProvider.php",
                 content = """
                     |<?php
                     |${PhpSubTemplates.generatorInfo}
                     |
                     |namespace ${packagePrefix.toNamespaceName()}\Client;
                     |
-                    |class RawTokenProvider implements TokenProvider
+                    |class PreAuthTokenProvider implements TokenProvider
                     |{
                     |    const TOKEN = 'token';
                     |
@@ -774,10 +773,11 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |               $!provider = new CachedTokenProvider(
                     |                   new ClientCredentialTokenProvider(
                     |                       new Client($!authConfig->getClientOptions()),
-                    |                       $!authConfig
+                    |                       $!authConfig->getAuthUri(),
+                    |                       $!authConfig->getCredentials()
                     |                   ),
                     |                   $!cache,
-                    |                   $!authConfig->getCacheKey()
+                    |                   $!authConfig->getCredentials()->getCacheKey()
                     |               );
                     |               break;
                     |           default:
@@ -1997,22 +1997,14 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |interface AuthConfig
                     |{
                     |    const OPT_BASE_URI = 'base_uri';
-                    |    const OPT_AUTH_URI = 'auth_uri';
-                    |    const OPT_CLIENT_OPTIONS = 'options';
                     |
                     |    public function getGrantType(): string;
                     |
                     |    public function getAuthUri(): string;
                     |
-                    |    public function setAuthUri(string $!authUri): AuthConfig;
-                    |
                     |    public function getClientOptions(): array;
                     |
-                    |    public function setClientOptions(array $!options): AuthConfig;
-                    |
                     |    public function getOptions(): array;
-                    |    
-                    |    public function getCacheKey(): string;
                     |}
                 """.trimMargin().forcedLiteralEscape())
     }
@@ -2027,23 +2019,57 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |
                     |interface ClientCredentialsConfig extends AuthConfig
                     |{
-                    |    const CLIENT_ID = 'clientId';
-                    |    const CLIENT_SECRET = 'clientSecret';
-                    |    const SCOPE = 'scope';
+                    |    public function getCredentials(): ClientCredentials;
+                    |}
+                """.trimMargin().forcedLiteralEscape()
+        )
+    }
+
+    private fun clientCredentials(): TemplateFile {
+        return TemplateFile(relativePath = "src/Client/ClientCredentials.php",
+                content = """
+                    |<?php
+                    |${PhpSubTemplates.generatorInfo}
                     |
-                    |    public function getClientId(): string;
+                    |namespace ${packagePrefix.toNamespaceName()}\Client;
                     |
-                    |    public function getScope(): ?string;
+                    |class ClientCredentials
+                    |{
+                    |    /** @var string */
+                    |    private $!clientId;
                     |
-                    |    public function setScope(string $!scope = null): ClientCredentialsConfig;
+                    |    /** @var string */
+                    |    private $!clientSecret;
                     |
-                    |    public function setClientId(string $!clientId): ClientCredentialsConfig;
+                    |    /** @var ?string */
+                    |    private $!scope;
                     |
-                    |    public function getClientSecret(): string;
+                    |    public function __construct(string $!clientId, string $!clientSecret, string $!scope = null)
+                    |    {
+                    |        $!this->clientId = $!clientId;
+                    |        $!this->clientSecret = $!clientSecret;
+                    |        $!this->scope = $!scope;
+                    |    }
                     |
-                    |    public function setClientSecret(string $!clientSecret): ClientCredentialsConfig;
+                    |    public function getClientId(): string
+                    |    {
+                    |        return $!this->clientId;
+                    |    }
                     |
-                    |    public function getCacheKey(): string;
+                    |    public function getScope(): ?string
+                    |    {
+                    |        return $!this->scope;
+                    |    }
+                    |
+                    |    public function getClientSecret(): string
+                    |    {
+                    |        return $!this->clientSecret;
+                    |    }
+                    |
+                    |    public function getCacheKey(): string
+                    |    {
+                    |        return sha1($!this->clientId . (string)$!this->scope);
+                    |    }
                     |}
                 """.trimMargin().forcedLiteralEscape()
         )
@@ -2064,11 +2090,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |
                     |    public function getApiUri(): string;
                     |
-                    |    public function setApiUri(string $!apiUri): Config;
-                    |
                     |    public function getClientOptions(): array;
-                    |
-                    |    public function setClientOptions(array $!options): Config;
                     |
                     |    public function getOptions(): array;
                     |}
@@ -2196,9 +2218,8 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |
                     |class ClientCredentialTokenProvider implements TokenProvider
                     |{
+                    |    const GRANT_TYPE_CLIENT_CREDENTIALS = 'client_credentials';
                     |    const GRANT_TYPE = 'grant_type';
-                    |    const CLIENT_ID = 'clientId';
-                    |    const CLIENT_SECRET = 'clientSecret';
                     |    const SCOPE = 'scope';
                     |    const ACCESS_TOKEN = 'access_token';
                     |    const EXPIRES_IN = 'expires_in';
@@ -2206,29 +2227,33 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |    /** @var Client */
                     |    private $!client;
                     |
-                    |    /** @var ClientCredentialsConfig */
-                    |    private $!authConfig;
+                    |    /** @var string */
+                    |    private $!accessTokenUrl;
                     |
-                    |    public function __construct(Client $!client, ClientCredentialsConfig $!authConfig)
+                    |    /** @var ClientCredentials */
+                    |    private $!credentials;
+                    |
+                    |    public function __construct(Client $!client, string $!accessTokenUrl, ClientCredentials $!credentials)
                     |    {
-                    |        $!this->authConfig = $!authConfig;
                     |        $!this->client = $!client;
+                    |        $!this->accessTokenUrl = $!accessTokenUrl;
+                    |        $!this->credentials = $!credentials;
                     |    }
                     |
                     |    public function getToken(): Token
                     |    {
                     |        $!data = [
-                    |            self::GRANT_TYPE => $!this->authConfig->getGrantType()
+                    |            self::GRANT_TYPE => self::GRANT_TYPE_CLIENT_CREDENTIALS
                     |        ];
-                    |        if (!is_null($!this->authConfig->getScope())) {
-                    |            $!data[self::SCOPE] = $!this->authConfig->getScope();
+                    |        if (!is_null($!this->credentials->getScope())) {
+                    |            $!data[self::SCOPE] = $!this->credentials->getScope();
                     |        }
                     |        $!options = [
                     |            'form_params' => $!data,
-                    |            'auth' => [$!this->authConfig->getClientId(), $!this->authConfig->getClientSecret()]
+                    |            'auth' => [$!this->credentials->getClientId(), $!this->credentials->getClientSecret()]
                     |        ];
                     |
-                    |        $!result = $!this->client->post($!this->authConfig->getAuthUri(), $!options);
+                    |        $!result = $!this->client->post($!this->accessTokenUrl, $!options);
                     |
                     |        /** @var array $!body */
                     |        $!body = json_decode((string)$!result->getBody(), true);
@@ -2300,9 +2325,6 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |
                     |use GuzzleHttp\MessageFormatter;
                     |use GuzzleHttp\Middleware;
-                    |use GuzzleHttp\Promise\PromiseInterface;
-                    |use Psr\Cache\CacheItemPoolInterface;
-                    |use Psr\SimpleCache\CacheInterface;
                     |use Psr\Log\LoggerInterface;
                     |use Psr\Log\LogLevel;
                     |use Psr\Http\Message\RequestInterface;
