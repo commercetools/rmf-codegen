@@ -22,7 +22,7 @@ class GroovyDslRenderer @Inject constructor(override val vrapTypeProvider: VrapT
             |
             |import groovy.lang.Closure;
             |import groovy.lang.DelegatesTo;
-            |import javax.annotation.Generated;
+            |import io.vrap.rmf.base.client.utils.Generated;
             |
             |/**
             | * Provides a Groovy DSL to build instances of this type.
