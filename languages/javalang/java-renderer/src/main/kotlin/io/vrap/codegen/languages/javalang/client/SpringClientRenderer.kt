@@ -20,6 +20,7 @@ import io.vrap.rmf.raml.model.resources.UriParameter
 import io.vrap.rmf.raml.model.responses.Response
 import io.vrap.rmf.raml.model.types.AnyType
 import io.vrap.rmf.raml.model.types.StringType
+import io.vrap.rmf.raml.model.types.TypedElement
 import io.vrap.rmf.raml.model.types.impl.TypesFactoryImpl
 
 class SpringClientRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : ResourceCollectionRenderer, JavaEObjectTypeExtensions {
@@ -94,7 +95,7 @@ class SpringClientRenderer @Inject constructor(override val vrapTypeProvider: Vr
             |    final Map\<String, Object\> parameters = new HashMap\<\>();
             |
             |    <${resource.fullUriParameters.map { "parameters.put(\"${it.name}\",${it.valueExtractor()});" }.joinToString(separator = "\n")}>
-            |    <${method.queryParameters.map { "parameters.put(\"${it.name}\",${it.name});" }.joinToString(separator = "\n")}>
+            |    <${method.queryParameters.map { "parameters.put(\"${it.name}\",${it.valueExtractor()});" }.joinToString(separator = "\n")}>
             |
             |    <${method.mediaType().escapeAll()}>
             |
@@ -108,7 +109,7 @@ class SpringClientRenderer @Inject constructor(override val vrapTypeProvider: Vr
         return body
     }
 
-    fun UriParameter.valueExtractor(): String {
+    fun TypedElement.valueExtractor(): String {
         val paramType = this.type.type
         return when (paramType) {
             is StringType -> {
