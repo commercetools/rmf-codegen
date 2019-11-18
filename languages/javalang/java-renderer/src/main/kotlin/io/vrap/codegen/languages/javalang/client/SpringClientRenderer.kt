@@ -116,7 +116,7 @@ class SpringClientRenderer @Inject constructor(override val vrapTypeProvider: Vr
                 if (paramType.enum.isEmpty()) {
                     this.name;
                 } else {
-                    "${this.name}.getJsonName()"
+                    "${this.name} == null ? null : ${this.name}.getJsonName()"
                 }
             }
             else -> this.name
