@@ -494,14 +494,13 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |class ClientFactory
                     |{
                     |    /**
-                    |     * @psalm-param CacheItemPoolInterface|CacheInterface|null $!cache
                     |     * @psalm-param array<string, callable> $!middlewares
                     |     * @throws InvalidArgumentException
                     |     */
-                    |    public function createGuzzleClient(Config $!config, ClientCredentialsConfig $!authConfig, LoggerInterface $!logger, $!cache = null, array $!middlewares = []): HttpClient
+                    |    public function createGuzzleClient(Config $!config, OAuth2Handler $!handler, LoggerInterface $!logger, array $!middlewares = []): HttpClient
                     |    {
                     |        $!middlewares = array_merge(
-                    |           MiddlewareFactory::createDefaultMiddlewares($!logger, $!authConfig, $!cache),
+                    |           MiddlewareFactory::createDefaultMiddlewares($!logger, $!handler),
                     |           $!middlewares
                     |        );
                     |        return $!this->createGuzzle6Client($!config->getOptions(), $!middlewares);
@@ -2325,10 +2324,13 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |
                     |use GuzzleHttp\MessageFormatter;
                     |use GuzzleHttp\Middleware;
-                    |use Psr\Log\LoggerInterface;
-                    |use Psr\Log\LogLevel;
+                    |use GuzzleHttp\Promise\PromiseInterface;
+                    |use Psr\Cache\CacheItemPoolInterface;
                     |use Psr\Http\Message\RequestInterface;
                     |use Psr\Http\Message\ResponseInterface;
+                    |use Psr\Log\LoggerInterface;
+                    |use Psr\Log\LogLevel;
+                    |use Psr\SimpleCache\CacheInterface;
                     |
                     |class MiddlewareFactory
                     |{
@@ -2338,10 +2340,8 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |     */
                     |    public static function createDefaultMiddlewares(
                     |        LoggerInterface $!logger,
-                    |        AuthConfig $!authConfig,
-                    |        $!cache = null
+                    |        OAuth2Handler $!handler
                     |    ) {
-                    |        $!handler = OAuthHandlerFactory::ofAuthConfig($!authConfig, $!cache);
                     |        return [
                     |            'oauth' => self::createMiddlewareForOAuthHandler($!handler),
                     |            'reauth' => self::createReauthenticateMiddleware($!handler),
@@ -2354,25 +2354,6 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |     */
                     |    public static function createMiddlewareForOAuthHandler(OAuth2Handler $!handler)
                     |    {
-                    |        return Middleware::mapRequest($!handler);
-                    |    }
-                    |
-                    |    /**
-                    |     * @psalm-param CacheItemPoolInterface|CacheInterface|null $!cache
-                    |     * @psalm-return callable()
-                    |     */
-                    |    public static function createOAuthMiddleware(AuthConfig $!authConfig, $!cache = null)
-                    |    {
-                    |        $!handler = OAuthHandlerFactory::ofAuthConfig($!authConfig, $!cache);
-                    |        return Middleware::mapRequest($!handler);
-                    |    }
-                    |
-                    |    /**
-                    |     * @psalm-return callable()
-                    |     */
-                    |    public static function createOAuthMiddlewareForProvider(TokenProvider $!provider)
-                    |    {
-                    |        $!handler = OAuthHandlerFactory::ofProvider($!provider);
                     |        return Middleware::mapRequest($!handler);
                     |    }
                     |
@@ -2402,7 +2383,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |                     * @psalm-return PromiseInterface
                     |                     * @psalm-param array{reauth: int} $!options
                     |                     */
-                    |                    function (RequestInterface $!request, array $!options) use ($!handler, $!oauthHandler, $!maxRetries) {
+                    |                    function (RequestInterface $!request, array $!options) use ($!handler, $!oauthHandler, $!maxRetries): PromiseInterface {
                     |                        return $!handler($!request, $!options)->then(
                     |                            function (ResponseInterface $!response) use (
                     |                                $!request,
@@ -2428,7 +2409,6 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |                                return $!response;
                     |                            }
                     |                        );
-                    |                        return $!result;
                     |                    };
                     |            };
                     |    }
