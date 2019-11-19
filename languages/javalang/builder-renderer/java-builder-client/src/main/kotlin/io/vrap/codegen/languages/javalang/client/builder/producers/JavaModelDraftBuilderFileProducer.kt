@@ -2,6 +2,7 @@ package io.vrap.codegen.languages.javalang.client.builder.producers
 
 import com.google.inject.Inject
 import io.vrap.codegen.languages.extensions.isPatternProperty
+import io.vrap.codegen.languages.java.base.JavaSubTemplates
 import io.vrap.codegen.languages.java.base.extensions.*
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.FileProducer
@@ -33,7 +34,9 @@ class JavaModelDraftBuilderFileProducer @Inject constructor(override val vrapTyp
             |import java.util.List;
             |import java.util.Map;
             |import java.time.ZonedDateTime;
+            |import io.vrap.rmf.base.client.utils.Generated;
             |
+            |<${JavaSubTemplates.generatedAnnotation}>
             |public final class ${vrapType.simpleClassName}Builder {
             |   
             |   <${type.fields().escapeAll()}>
