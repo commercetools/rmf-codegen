@@ -497,10 +497,24 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |     * @psalm-param array<string, callable> $!middlewares
                     |     * @throws InvalidArgumentException
                     |     */
-                    |    public function createGuzzleClient(Config $!config, OAuth2Handler $!handler, LoggerInterface $!logger, array $!middlewares = []): HttpClient
+                    |    public function createGuzzleClient(Config $!config, ?AuthConfig $!authConfig = null, ?LoggerInterface $!logger = null, array $!middlewares = []): HttpClient
+                    |    {
+                    |        $!handler = null;
+                    |        if (!is_null($!authConfig)) {
+                    |            $!handler = OAuthHandlerFactory::ofAuthConfig($!authConfig);
+                    |        }
+                    |
+                    |        return $!this->createGuzzleClientForHandler($!config, $!handler, $!logger, $!middlewares);
+                    |    }
+                    |
+                    |    /**
+                    |     * @psalm-param array<string, callable> $!middlewares
+                    |     * @throws InvalidArgumentException
+                    |     */
+                    |    public function createGuzzleClientForHandler(Config $!config, ?OAuth2Handler $!handler = null, ?LoggerInterface $!logger = null, array $!middlewares = []): HttpClient
                     |    {
                     |        $!middlewares = array_merge(
-                    |           MiddlewareFactory::createDefaultMiddlewares($!logger, $!handler),
+                    |           MiddlewareFactory::createDefaultMiddlewares($!handler, $!logger),
                     |           $!middlewares
                     |        );
                     |        return $!this->createGuzzle6Client($!config->getOptions(), $!middlewares);
@@ -604,7 +618,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
         return TemplateFile(relativePath = "composer.json",
                 content = """
                     |{
-                    |  "name": "${packagePrefix.toLowerCase()}/raml-base",
+                    |  "name": "${packagePrefix.toLowerCase()}/spec-base",
                     |  "license": "MIT",
                     |  "type": "library",
                     |  "description": "",
@@ -2336,17 +2350,20 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |{
                     |    /**
                     |     * @psalm-return array<string, callable>
-                    |     * @psalm-param CacheItemPoolInterface|CacheInterface|null $!cache
                     |     */
                     |    public static function createDefaultMiddlewares(
-                    |        LoggerInterface $!logger,
-                    |        OAuth2Handler $!handler
+                    |        ?OAuth2Handler $!handler = null,
+                    |        ?LoggerInterface $!logger = null
                     |    ) {
-                    |        return [
-                    |            'oauth' => self::createMiddlewareForOAuthHandler($!handler),
-                    |            'reauth' => self::createReauthenticateMiddleware($!handler),
-                    |            'logger' => self::createLoggerMiddleware($!logger)
-                    |        ];
+                    |        $!middlewares = [];
+                    |        if (!is_null($!handler)) {
+                    |            $!middlewares['oauth'] = self::createMiddlewareForOAuthHandler($!handler);
+                    |           $!middlewares['reauth'] = self::createReauthenticateMiddleware($!handler);
+                    |        }
+                    |        if (!is_null($!logger)) {
+                    |            $!middlewares['logger'] = self::createLoggerMiddleware($!logger);
+                    |        }
+                    |        return $!middlewares;
                     |    }
                     |
                     |    /**

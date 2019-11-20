@@ -1,6 +1,7 @@
 package io.vrap.codegen.languages.php.model;
 
 import com.google.inject.Inject
+import io.vrap.codegen.languages.extensions.discriminatorProperty
 import io.vrap.codegen.languages.extensions.isPatternProperty
 import io.vrap.codegen.languages.php.PhpBaseTypes
 import io.vrap.codegen.languages.php.PhpSubTemplates
@@ -113,12 +114,13 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
 
 
     fun ObjectType.constructor(): String {
+        val discriminator = this.discriminatorProperty()
         return """
                 |public function __construct(
-                |    <<${this.allProperties.filter { !it.isPatternProperty() }.joinToString(",\n") { it.toParam() }}>>
+                |    <<${this.allProperties.filter { property -> property != discriminator }.filter { !it.isPatternProperty() }.joinToString(",\n") { it.toParam() }}>>
                 |) {
-                |    <<${this.allProperties.filter { !it.isPatternProperty() }.joinToString("\n") { "$!this->${it.name} = $${it.name};" }}>>
-                |    ${if (this.discriminator.isNullOrEmpty().not()) "$!this->${this.discriminator} = static::DISCRIMINATOR_VALUE;" else ""}
+                |    <<${this.allProperties.filter { property -> property != discriminator }.filter { !it.isPatternProperty() }.joinToString("\n") { "$!this->${it.name} = $${it.name};" }}>>
+                |    ${if (discriminator != null) "$!this->${discriminator.name} = static::DISCRIMINATOR_VALUE;" else ""}
                 |}
             """.trimMargin()
     }
@@ -169,11 +171,14 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
             .filter { !it.isPatternProperty() }
             .map { it.toPhpField() }.joinToString(separator = "\n\n")
 
-    fun ObjectType.setters() = this.allProperties
-            .filter { !it.isPatternProperty() }
-            .map { it.setter() }
-            .joinToString(separator = "\n\n")
-
+    fun ObjectType.setters(): String {
+        val discriminator = this.discriminatorProperty()
+        return this.allProperties
+                .filter { property -> property != discriminator }
+                .filter { !it.isPatternProperty() }
+                .map { it.setter() }
+                .joinToString(separator = "\n\n")
+    }
 
     fun ObjectType.getters() = this.allProperties
             .filter { !it.isPatternProperty() }

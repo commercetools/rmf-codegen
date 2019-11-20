@@ -1,6 +1,7 @@
 package io.vrap.codegen.languages.php.model;
 
 import com.google.inject.Inject
+import io.vrap.codegen.languages.extensions.discriminatorProperty
 import io.vrap.codegen.languages.extensions.isPatternProperty
 import io.vrap.codegen.languages.php.PhpSubTemplates
 import io.vrap.codegen.languages.php.extensions.*
@@ -118,11 +119,14 @@ class PhpInterfaceObjectTypeRenderer @Inject constructor(override val vrapTypePr
         """.trimMargin()
     }
 
-    fun ObjectType.setters() = this.properties
-            .filter { !it.isPatternProperty() }
-            .map { it.setter() }
-            .joinToString(separator = "\n\n")
-
+    fun ObjectType.setters(): String {
+        val discriminator = this.discriminatorProperty()
+        return this.properties
+                .filter { property -> property != discriminator }
+                .filter { !it.isPatternProperty() }
+                .map { it.setter() }
+                .joinToString(separator = "\n\n")
+    }
 
     fun ObjectType.getters() = this.properties
             .filter { !it.isPatternProperty() }
