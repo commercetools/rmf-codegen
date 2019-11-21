@@ -99,13 +99,13 @@ fun Api.authUri(): String {
             .findFirst().orElse("")
 }
 
-fun Method.resource(): Resource = this.eContainer() as Resource
+fun Method.apiResource(): Resource = this.eContainer() as Resource
 
 fun Method.toRequestName(): String {
-    if (this.resource().fullUri.template == "/") {
+    if (this.apiResource().fullUri.template == "/") {
         return "ApiRoot" + this.method.toString().capitalize();
     }
-    return this.resource().fullUri.toParamName("By") + this.method.toString().capitalize()
+    return this.apiResource().fullUri.toParamName("By") + this.method.toString().capitalize()
 }
 
 fun Resource.toResourceName(): String {
@@ -127,7 +127,7 @@ fun UriTemplate.toParamName(delimiter: String, suffix: String): String {
 }
 
 fun Method.allParams(): List<String>? {
-    return this.resource().fullUri.components.stream()
+    return this.apiResource().fullUri.components.stream()
             .filter { uriTemplatePart -> uriTemplatePart is Expression }
             .flatMap { uriTemplatePart -> (uriTemplatePart as Expression).varSpecs.stream().map { it.variableName } }
             .collect(Collectors.toList())

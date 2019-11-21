@@ -70,6 +70,7 @@ abstract class AbstractRequestBuilder constructor(
         }.joinToString(separator = "")
     }
 
+    protected fun rootResource() = basePackagePrefix.replace(sharedPackageName, "").trim('/').toNamespaceName() + "Root"
 
     protected fun Response.isSuccessfull(): Boolean = this.statusCode.toInt() in (200..299)
 

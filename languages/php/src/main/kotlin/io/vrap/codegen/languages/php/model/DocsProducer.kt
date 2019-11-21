@@ -4,25 +4,15 @@ import com.google.common.collect.Lists
 import com.google.inject.Inject
 import io.vrap.codegen.languages.extensions.getMethodName
 import io.vrap.codegen.languages.php.extensions.*
-import io.vrap.rmf.codegen.di.BasePackageName
-import io.vrap.rmf.codegen.di.ClientPackageName
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.FileProducer
-import io.vrap.rmf.codegen.rendring.utils.escapeAll
 import io.vrap.rmf.codegen.rendring.utils.keepIndentation
+import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.modules.Api
 import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Resource
 
-class DocsProducer @Inject constructor(val api: Api) : FileProducer {
-
-    @Inject
-    @BasePackageName
-    lateinit var packagePrefix:String
-
-    @Inject
-    @ClientPackageName
-    lateinit var clientPackageName: String
+class DocsProducer @Inject constructor(api: Api, vrapTypeProvider: VrapTypeProvider) : FileProducer, AbstractRequestBuilder(api, vrapTypeProvider) {
 
     override fun produceFiles(): List<TemplateFile> = listOf(
             requestBuilder(api)
@@ -37,9 +27,9 @@ class DocsProducer @Inject constructor(val api: Api) : FileProducer {
                     |In order to be able to build request objects you can use the RequestBuilder. The following methods return a HTTP request instance of Guzzle [PSR-7](https://github.com/guzzle/psr7).
                     |
                     |```php
-                    |use ${clientPackageName.toNamespaceName()}\Client\ApiRoot;
+                    |use ${clientPackageName.toNamespaceName()}\Client\${rootResource()};
                     |
-                    |$!root = new ApiRoot();
+                    |$!root = new ${rootResource()}();
                     |```
                     |
                     |<<${resources.values.flatMap { resource -> resource.methods.map { method -> resourceInfo(resource, method) }}.joinToString("\n")}>>
@@ -57,7 +47,7 @@ class DocsProducer @Inject constructor(val api: Api) : FileProducer {
             |
             |### Example
             |```php
-            |$!builder =  new ApiRoot();
+            |$!builder =  new ${rootResource()}();
             |$!request = $!builder
             |                <<${builderChain.joinToString("\n->", "->")}>>;
             |```

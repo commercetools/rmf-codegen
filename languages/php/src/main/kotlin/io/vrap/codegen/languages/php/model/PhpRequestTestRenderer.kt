@@ -1,18 +1,11 @@
 package io.vrap.codegen.languages.php.model
 
-import com.damnhandy.uri.template.Expression
-import com.damnhandy.uri.template.UriTemplate
-import com.damnhandy.uri.template.impl.VarSpec
 import com.google.common.collect.Lists
 import com.google.inject.Inject
 import io.vrap.codegen.languages.extensions.getMethodName
 import io.vrap.codegen.languages.php.PhpSubTemplates
 import io.vrap.codegen.languages.php.extensions.*
-import io.vrap.rmf.codegen.di.BasePackageName
-import io.vrap.rmf.codegen.di.ClientPackageName
-import io.vrap.rmf.codegen.di.SharedPackageName
 import io.vrap.rmf.codegen.io.TemplateFile
-import io.vrap.rmf.codegen.rendring.MethodRenderer
 import io.vrap.rmf.codegen.rendring.ResourceRenderer
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
 import io.vrap.rmf.codegen.rendring.utils.keepIndentation
@@ -25,7 +18,6 @@ import io.vrap.rmf.raml.model.types.ObjectInstance
 import io.vrap.rmf.raml.model.types.QueryParameter
 import io.vrap.rmf.raml.model.types.StringInstance
 import org.eclipse.emf.ecore.EObject
-import java.util.stream.Collectors
 
 class PhpRequestTestRenderer @Inject constructor(api: Api, vrapTypeProvider: VrapTypeProvider) : ResourceRenderer, AbstractRequestBuilder(api, vrapTypeProvider), EObjectTypeExtensions {
 
@@ -41,7 +33,7 @@ class PhpRequestTestRenderer @Inject constructor(api: Api, vrapTypeProvider: Vra
             |namespace ${clientTestPackageName.toNamespaceName().escapeAll()}\\$resourcePackage;
             |
             |use PHPUnit\\Framework\\TestCase;
-            |use ${clientPackageName.toNamespaceName().escapeAll()}\\ApiRoot;
+            |use ${clientPackageName.toNamespaceName().escapeAll()}\\${rootResource()};
             |use ${clientPackageName.toNamespaceName().escapeAll()}\\$resourcePackage\\${type.resourceBuilderName()};
             |use Psr\\Http\\Message\\RequestInterface;
             |
@@ -59,7 +51,7 @@ class PhpRequestTestRenderer @Inject constructor(api: Api, vrapTypeProvider: Vra
             |     */
             |    public function testBuilder(callable $!builderFunction, string $!method, string $!relativeUri, string $!body = null)
             |    {
-            |        $!builder = new ApiRoot();
+            |        $!builder = new ${rootResource()}();
             |        $!request = $!builderFunction($!builder);
             |        $!this->assertSame(strtolower($!method), strtolower($!request->getMethod()));
             |        $!this->assertStringContainsString(str_replace(['{', '}'], '', $!relativeUri), (string)$!request->getUri());
@@ -85,7 +77,7 @@ class PhpRequestTestRenderer @Inject constructor(api: Api, vrapTypeProvider: Vra
 
         return """
             |'${method.toRequestName()}' => [
-            |    function(ApiRoot $!builder): RequestInterface {
+            |    function(${rootResource()} $!builder): RequestInterface {
             |        return $!builder
             |            <<${builderChain.joinToString("\n->", "->")}>>;
             |    },
@@ -113,7 +105,7 @@ class PhpRequestTestRenderer @Inject constructor(api: Api, vrapTypeProvider: Vra
                 .plus("${parameter.methodName()}(${template})")
         return """
             |'${method.toRequestName()}_${parameter.methodName()}' => [
-            |    function(ApiRoot $!builder): RequestInterface {
+            |    function(${rootResource()} $!builder): RequestInterface {
             |        return $!builder
             |            <<${builderChain.joinToString("\n->", "->")}>>;
             |    },

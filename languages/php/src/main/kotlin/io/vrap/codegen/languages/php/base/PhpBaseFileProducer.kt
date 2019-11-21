@@ -20,6 +20,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
     override fun produceFiles(): List<TemplateFile> = listOf(
             apiClientException(),
             apiRequest(),
+            apiResource(),
             apiServerException(),
             authConfig(),
             baseException(),
@@ -50,7 +51,6 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
             oauthHandlerFactory(),
             PreAuthTokenProvider(),
             psalm(),
-            resource(),
             resultMapper(),
             token(),
             tokenModel(),
@@ -1936,7 +1936,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
         )
     }
 
-    private fun resource(): TemplateFile {
+    private fun apiResource(): TemplateFile {
         return TemplateFile(relativePath = "src/Client/ApiResource.php",
                 content = """
                     |<?php

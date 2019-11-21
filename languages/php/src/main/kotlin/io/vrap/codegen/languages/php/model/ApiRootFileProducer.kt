@@ -20,7 +20,7 @@ class ApiRootFileProducer @Inject constructor(api: Api, vrapTypeProvider: VrapTy
 
     fun produceApiRoot(type: Api): TemplateFile {
         val rootResource = type.resources.firstOrNull { resource -> resource.resourcePath == "/" }
-        return TemplateFile(relativePath = "src/${clientPackageName.replace(basePackagePrefix, "").toNamespaceDir()}/ApiRoot.php",
+        return TemplateFile(relativePath = "src/${clientPackageName.replace(basePackagePrefix, "").toNamespaceDir()}/${rootResource()}.php",
                 content = """
                     |<?php
                     |${PhpSubTemplates.generatorInfo}
@@ -31,7 +31,7 @@ class ApiRootFileProducer @Inject constructor(api: Api, vrapTypeProvider: VrapTy
                     |use GuzzleHttp\\Client;
                     |use ${sharedPackageName.toNamespaceName()}\\Client\\ApiResource;
                     |
-                    |class ApiRoot extends ApiResource
+                    |class ${rootResource()} extends ApiResource
                     |{
                     |   /**
                     |    * @psalm-param array<string, scalar> $!args
