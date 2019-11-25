@@ -16,7 +16,14 @@ private val PARSER = Parser.builder().build()
  *
  * @return the description of this as a doc comment
  */
-fun DescriptionFacet.toComment() = this.toHtml()?.let {"/**\n${it.lines().map { '\t'+it }.joinToString(separator = "\n")}\n*/"}?:""
+fun DescriptionFacet.toComment(): String {
+    val htmlString = this.toHtml()
+    return if(htmlString.isNullOrBlank()){
+        ""
+    }else{
+        htmlString.let {"/**\n${it.lines().map { "*  $it" }.joinToString(separator = "\n")}\n*/"}?:""
+    }
+}
 
 /**
  * This method extracts the javadoc comment from the "enumDescriptions" annotation - which is of object type.

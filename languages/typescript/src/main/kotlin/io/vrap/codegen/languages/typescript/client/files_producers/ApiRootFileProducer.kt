@@ -1,15 +1,15 @@
 package io.vrap.codegen.languages.typescript.client.files_producers
 
 import com.google.inject.Inject
-import io.vrap.codegen.languages.extensions.EObjectExtensions
 import io.vrap.codegen.languages.extensions.getMethodName
 import io.vrap.codegen.languages.typescript.model.TsObjectTypeExtensions
-import io.vrap.codegen.languages.typescript.toImportStatement
 import io.vrap.codegen.languages.typescript.toRequestBuilderName
+import io.vrap.codegen.languages.typescript.toTsComment
 import io.vrap.codegen.languages.typescript.tsRequestVrapType
 import io.vrap.rmf.codegen.di.ClientPackageName
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.FileProducer
+import io.vrap.rmf.codegen.rendring.utils.escapeAll
 import io.vrap.rmf.codegen.rendring.utils.keepIndentation
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.modules.Api
@@ -63,6 +63,7 @@ class ApiRootFileProducer @Inject constructor(
                     """.trimMargin()
 
                     """|
+                    |<${it.toTsComment().escapeAll()}>
                     |public ${it.getMethodName()}($args): ${it.toRequestBuilderName()} {
                     |   return new ${it.toRequestBuilderName()}(
                     |         {

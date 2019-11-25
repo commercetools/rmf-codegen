@@ -10,22 +10,22 @@ import io.vrap.rmf.codegen.types.*
 import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.resources.ResourceContainer
+import io.vrap.rmf.raml.model.types.DescriptionFacet
 import io.vrap.rmf.raml.model.types.StringType
 import io.vrap.rmf.raml.model.util.StringCaseFormat
 import java.nio.file.Path
 import java.nio.file.Paths
 
 
-fun Method.tsRequestName():String = "${this.toRequestName()}Request"
-fun Method.tsRequestModuleName(clientPackageName: String):String = "${if(clientPackageName.isEmpty()) "" else "$clientPackageName."}${this.resource().resourcePathName}.${this.toRequestName()}Request"
+fun Method.tsRequestName(): String = "${this.toRequestName()}Request"
+fun Method.tsRequestModuleName(clientPackageName: String): String = "${if (clientPackageName.isEmpty()) "" else "$clientPackageName."}${this.resource().resourcePathName}.${this.toRequestName()}Request"
 
-fun VrapObjectType.tsModuleName() : String = "${this.`package`.replace(".","/")}.ts"
+fun VrapObjectType.tsModuleName(): String = "${this.`package`.replace(".", "/")}.ts"
 
 fun Method.tsMediaType(): String {
 
-    val  headers = mutableMapOf<String,List<String>>()
-    if (!this.bodies.isNullOrEmpty() && !this.bodies[0].contentMediaType.type().isNullOrEmpty())
-    {
+    val headers = mutableMapOf<String, List<String>>()
+    if (!this.bodies.isNullOrEmpty() && !this.bodies[0].contentMediaType.type().isNullOrEmpty()) {
         headers["Content-Type"] = listOf(this.bodies[0].contentMediaType.toString())
     }
     this.headers
@@ -38,21 +38,30 @@ fun Method.tsMediaType(): String {
     return headers
             .filter { it.value.size == 1 }
             .map {
-        "'${it.key}': '${it.value[0]}'"
-    }.joinToString(separator = "\n")
+                "'${it.key}': '${it.value[0]}'"
+            }.joinToString(separator = "\n")
 
 }
 
-fun String.tsRemoveRegexp():String {
-    if(this.startsWith("/")){
+fun String.tsRemoveRegexp(): String {
+    if (this.startsWith("/")) {
         val index = this.indexOf("\\")
-        return this.substring(1,index)
+        return this.substring(1, index)
     }
-    if(this.contains(".")){
+    if (this.contains(".")) {
         val index = this.indexOf(".")
-        return this.substring(index+1,this.length)
+        return this.substring(index + 1, this.length)
     }
     return this
+}
+
+fun DescriptionFacet.toTsComment(): String {
+    val description = this.description
+    return if (description?.value.isNullOrBlank()) {
+        ""
+    } else description.value
+            .lines()
+            .joinToString(prefix = "/**\n*\t\t", postfix = "\n*/", separator = "\n*\t\t")
 }
 
 fun Resource.toRequestBuilderName(): String = "${this.toResourceName()}RequestBuilder"
@@ -68,7 +77,7 @@ fun relativizePaths(currentModule: String, targetModule: String): String {
     return "./" + currentRelative.relativize(targetRelative).toString().replaceFirst("../", "")
 }
 
-fun VrapType.toImportStatement(moduleName:String):String {
+fun VrapType.toImportStatement(moduleName: String): String {
     return when (this) {
         is VrapLibraryType -> "import { ${this.simpleClassName} } from '${this.`package`}'"
         is VrapObjectType -> {
@@ -99,4 +108,4 @@ fun Method.toResponseName() = "${this.toRequestName()}Response"
 fun Method.toHandlerName() = "${this.toRequestName()}Handler"
 
 fun String.toJoiPackageName() = "${this}-types"
-fun VrapObjectType.toJoiVrapType(): VrapObjectType = VrapObjectType(`package`= this.`package`.toJoiPackageName(), simpleClassName = this.simpleJoiName())
+fun VrapObjectType.toJoiVrapType(): VrapObjectType = VrapObjectType(`package` = this.`package`.toJoiPackageName(), simpleClassName = this.simpleJoiName())
