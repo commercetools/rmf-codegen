@@ -1,10 +1,7 @@
 package io.vrap.codegen.languages.typescript.client
 
 import com.google.inject.Inject
-import io.vrap.codegen.languages.extensions.EObjectExtensions
-import io.vrap.codegen.languages.extensions.getMethodName
-import io.vrap.codegen.languages.extensions.resource
-import io.vrap.codegen.languages.extensions.returnType
+import io.vrap.codegen.languages.extensions.*
 import io.vrap.codegen.languages.typescript.*
 import io.vrap.codegen.languages.typescript.client.files_producers.apiRequestExecutor
 import io.vrap.codegen.languages.typescript.client.files_producers.apiRequest
@@ -13,6 +10,7 @@ import io.vrap.codegen.languages.typescript.model.simpleTSName
 import io.vrap.rmf.codegen.di.ClientPackageName
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.ResourceRenderer
+import io.vrap.rmf.codegen.rendring.utils.escapeAll
 import io.vrap.rmf.codegen.rendring.utils.keepIndentation
 import io.vrap.rmf.codegen.types.VrapArrayType
 import io.vrap.rmf.codegen.types.VrapEnumType
@@ -90,7 +88,8 @@ class RequestBuilder @Inject constructor(
                         |
                     """.trimMargin()
 
-                    """|
+                    """
+                    |<${it.toTsComment()}>
                     |public ${it.getMethodName()}($args): ${it.toRequestBuilderName()} {
                     |   return new ${it.toRequestBuilderName()}(
                     |         {
@@ -153,15 +152,16 @@ class RequestBuilder @Inject constructor(
                         |   pathVariables: this.args.pathArgs,
                         |   headers: {
                         |       <${if (it.tsMediaType().isNotEmpty()) "${it.tsMediaType()}," else ""}>
-                        |       ...(methodArgs || {} as any).headers
+                        |       ...methodArgs?.headers
                         |   },
-                        |   <${if (it.queryParameters.isNullOrEmpty()) "" else "queryParams: (methodArgs || {} as any).queryArgs,"}>
-                        |   <${if (it.bodies.isNullOrEmpty()) "" else "body: (methodArgs || {} as any).body,"}>
+                        |   <${if (it.queryParameters.isNullOrEmpty()) "" else "queryParams: methodArgs?.queryArgs,"}>
+                        |   <${if (it.bodies.isNullOrEmpty()) "" else "body: methodArgs?.body,"}>
                         |}
                     """.trimMargin()
 
 
-                    """|
+                    """
+                    |<${it.toTsComment().escapeAll()}>
                     |public ${it.methodName}(<$methodArgs>): $methodReturn {
                     |   return new $methodReturn(
                     |       <$bodyLiteral>,
