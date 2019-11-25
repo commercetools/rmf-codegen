@@ -61,7 +61,7 @@ fun DescriptionFacet.toTsComment(): String {
         ""
     } else description.value
             .lines()
-            .joinToString(prefix = "/**\n*\t\t", postfix = "\n*/", separator = "\n*\t\t")
+            .joinToString(prefix = "/**\n*\t", postfix = "\n*/", separator = "\n*\t")
 }
 
 fun Resource.toRequestBuilderName(): String = "${this.toResourceName()}RequestBuilder"
