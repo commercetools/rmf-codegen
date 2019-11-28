@@ -7,6 +7,7 @@ include 'languages:javalang:java-renderer'
 include 'languages:php'
 include 'languages:postman'
 include 'languages:typescript'
+include 'languages:ramldoc'
 
 include 'tools:cli-application'
 
