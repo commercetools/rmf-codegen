@@ -14,7 +14,7 @@ class RamldocModelModule : AbstractModule() {
         val stringTypeBinder = Multibinder.newSetBinder(binder(), StringTypeRenderer::class.java)
         stringTypeBinder.addBinding().to(RamlScalarTypeRenderer::class.java)
 
-//        val fileBinder = Multibinder.newSetBinder(binder(), FileProducer::class.java)
-//        fileBinder.addBinding().to(RamldocModuleRenderer::class.java)
+        val fileBinder = Multibinder.newSetBinder(binder(), FileProducer::class.java)
+        fileBinder.addBinding().to(ApiRamlRenderer::class.java)
     }
 }

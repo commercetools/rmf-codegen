@@ -29,7 +29,7 @@ class RamlObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: 
         """.trimMargin().keepIndentation("<<", ">>")
 
         return TemplateFile(
-                relativePath = "types/" + vrapType.`package`.replace(modelPackageName, "") + "/" + vrapType.simpleClassName + ".raml",
+                relativePath = "types/" + vrapType.`package`.replace(modelPackageName, "").trim('/') + "/" + vrapType.simpleClassName + ".raml",
                 content = content
         )
     }

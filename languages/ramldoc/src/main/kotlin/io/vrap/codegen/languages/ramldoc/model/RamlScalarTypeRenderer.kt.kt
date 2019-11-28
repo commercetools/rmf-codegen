@@ -29,7 +29,7 @@ class RamlScalarTypeRenderer @Inject constructor(override val vrapTypeProvider: 
             |${type.enum.joinToString("\n") { "- ${it.value}" }}
         """.trimMargin()
         return TemplateFile(
-                relativePath = "types/" + vrapType.`package`.replace(modelPackageName, "") + "/" + vrapType.simpleClassName + ".raml",
+                relativePath = "types/" + vrapType.`package`.replace(modelPackageName, "").trim('/') + "/" + vrapType.simpleClassName + ".raml",
                 content = content
         )
     }
