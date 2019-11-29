@@ -13,7 +13,9 @@ import java.nio.file.Paths
 class TestCodeGenerator {
     companion object {
         private val userProvidedPath = System.getenv("TEST_RAML_FILE")
+        private val userProvidedOutputPath = System.getenv("OUTPUT_FOLDER")
         private val apiPath : Path = Paths.get(if (userProvidedPath == null) "../../api-spec/api.raml" else userProvidedPath)
+        private val outputFolder : Path = Paths.get(if (userProvidedOutputPath == null) "build/gensrc" else userProvidedOutputPath)
         val apiProvider: ApiProvider = ApiProvider(apiPath)
         val generatorConfig = CodeGeneratorConfig(basePackageName = "")
     }
@@ -22,7 +24,7 @@ class TestCodeGenerator {
     fun generateRamldocModels() {
         val generatorConfig = CodeGeneratorConfig(
                 basePackageName = "com/commercetools/importer",
-                outputFolder = Paths.get("build/gensrc/ramldoc")
+                outputFolder = Paths.get("${outputFolder}/api")
         )
 
         val generatorModule = GeneratorModule(apiProvider, generatorConfig, RamldocBaseTypes)
