@@ -25,7 +25,7 @@ class RamlObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: 
             |${if (type.discriminator.isNullOrBlank().not()) "discriminator: ${type.discriminator}" else ""}
             |${if (type.discriminatorValue.isNullOrBlank().not()) "discriminatorValue: ${type.discriminatorValue}" else ""}
             |properties:
-            |   <<${type.properties.joinToString("\n") { renderProperty(it) }}>>
+            |  <<${type.allProperties.joinToString("\n") { renderProperty(it) }}>>
         """.trimMargin().keepIndentation("<<", ">>")
 
         return TemplateFile(
@@ -37,48 +37,50 @@ class RamlObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: 
     private fun renderProperty(property: Property): String {
         return """
             |${property.name}:
-            |   <<${renderType(property.type)}>>
+            |  <<${property.type.renderType()}>>
         """.trimMargin().keepIndentation("<<", ">>")
     }
 
-    private fun renderScalarType(type: AnyType): String {
-        if (!type.isInlineType) {
-            return "type: ${type.name}"
-        }
-        return renderEAttributes(type).plus("type: ${type.name}").joinToString("\n")
+
+}
+
+private fun AnyType.renderScalarType(): String {
+    if (!this.isInlineType) {
+        return "type: ${this.name}"
     }
+    return this.renderEAttributes().plus("type: ${this.name}").joinToString("\n")
+}
 
-    private fun renderEAttributes(type: AnyType): List<String> {
-        val eAttributes = type.eClass().eAllAttributes
-        return eAttributes.filter { eAttribute -> eAttribute.name != "name" && type.eGet(eAttribute) != null}
-                .map { eAttribute -> "${eAttribute.name}: ${type.eGet(eAttribute)}" }
+private fun AnyType.renderEAttributes(): List<String> {
+    val eAttributes = this.eClass().eAllAttributes
+    return eAttributes.filter { eAttribute -> eAttribute.name != "name" && this.eGet(eAttribute) != null}
+            .map { eAttribute -> "${eAttribute.name}: ${this.eGet(eAttribute)}" }
 
-    }
+}
 
-    private fun renderArrayType(type: ArrayType): String {
-        var t = renderEAttributes(type).plus("type: array").joinToString("\n")
-        if (type.items != null) {
-            t += """
+private fun ArrayType.renderArrayType(): String {
+    var t = this.renderEAttributes().plus("type: array").joinToString("\n")
+    if (this.items != null) {
+        t += """
                 |items:
-                |  <<${renderScalarType(type.items)}>>
+                |  <<${this.items.renderScalarType()}>>
             """
-        }
-        return t.trimMargin().keepIndentation("<<", ">>")
     }
+    return t.trimMargin().keepIndentation("<<", ">>")
+}
 
-    private fun renderType(type: AnyType): String {
-        var t = ""
-        if (type.description?.value.isNullOrBlank().not()) {
-            t += """
+private fun AnyType.renderType(): String {
+    var t = ""
+    if (this.description?.value.isNullOrBlank().not()) {
+        t += """
                 |description: |-
-                |  <<${type.description.value}>>
+                |  <<${this.description.value}>>
                 |
             """.trimMargin()
-        }
-        when (type) {
-            is ArrayType -> return t + renderArrayType(type)
-            else ->
-                return t + renderScalarType(type);
-        }
+    }
+    when (this) {
+        is ArrayType -> return t + this.renderArrayType()
+        else ->
+            return t + this.renderScalarType();
     }
 }
