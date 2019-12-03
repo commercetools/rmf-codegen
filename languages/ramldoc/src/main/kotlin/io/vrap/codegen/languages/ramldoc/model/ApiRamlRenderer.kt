@@ -9,6 +9,7 @@ import io.vrap.rmf.codegen.rendring.FileProducer
 import io.vrap.rmf.codegen.rendring.utils.keepIndentation
 import io.vrap.rmf.codegen.types.VrapEnumType
 import io.vrap.rmf.codegen.types.VrapObjectType
+import io.vrap.rmf.codegen.types.VrapScalarType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.modules.Api
 import io.vrap.rmf.raml.model.types.*
@@ -25,13 +26,19 @@ class ApiRamlRenderer @Inject constructor(val api: Api, override val vrapTypePro
     }
 
     private fun apiRaml(api: Api): TemplateFile {
-
         val content = """
             |#%RAML 1.0
             |---
             |title: ${api.title}
+            |annotationTypes:
+            |  resourcePathUri:
+            |    type: string
+            |    allowedTargets: Method
+            |  originalType:
+            |    type: string
+            |    allowedTargets: TypeDeclaration
             |types:
-            |  <<${api.types.sortedWith(compareBy { it.name }).joinToString("\n") { "${it.name}: !include ${ramlFileName(it)}" }}>>
+            |  <<${api.types.filterNot { it is UnionType }.sortedWith(compareBy { it.name }).joinToString("\n") { "${it.name}: !include ${ramlFileName(it)}" }}>>
             |  
             |${api.allContainedResources.sortedWith(compareBy { it.resourcePath }).joinToString("\n") { "${it.fullUri.template}: !include resources/${it.toResourceName()}.raml" }}
         """.trimMargin().keepIndentation("<<", ">>")
@@ -47,6 +54,8 @@ class ApiRamlRenderer @Inject constructor(val api: Api, override val vrapTypePro
                 return "types/" + vrapType.`package`.replace(modelPackageName, "").trim('/') + "/" + vrapType.simpleClassName + ".raml"
             is VrapEnumType ->
                 return "types/" + vrapType.`package`.replace(modelPackageName, "").trim('/') + "/" + vrapType.simpleClassName + ".raml"
+            is VrapScalarType ->
+                return "types/" + type.name + ".raml"
             else -> return ""
         }
     }

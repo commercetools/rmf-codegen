@@ -1,7 +1,10 @@
 package io.vrap.codegen.languages.ramldoc.model
 
 import com.google.inject.Inject
+import io.vrap.codegen.languages.extensions.hasReturnPayload
+import io.vrap.codegen.languages.extensions.isSuccessfull
 import io.vrap.codegen.languages.extensions.toResourceName
+import io.vrap.codegen.languages.ramldoc.extensions.renderType
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.ResourceRenderer
 import io.vrap.rmf.codegen.rendring.utils.keepIndentation
@@ -11,6 +14,8 @@ import io.vrap.rmf.raml.model.modules.Api
 import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.resources.UriParameter
+import io.vrap.rmf.raml.model.responses.Body
+import io.vrap.rmf.raml.model.responses.Response
 import io.vrap.rmf.raml.model.types.AnyType
 import io.vrap.rmf.raml.model.types.ArrayType
 import io.vrap.rmf.raml.model.types.QueryParameter
@@ -22,10 +27,10 @@ class RamlResourceRenderer @Inject constructor(val api: Api, val vrapTypeProvide
 
         val content = """
             |#${type.toResourceName()}
-            |(resourcePath): ${type.fullUri.template}
-            |${if (type.fullUriParameters.size > 0) """uriParameters:
+            |${if (type.fullUriParameters.size > 0) """
+            |uriParameters:
             |  <<${type.fullUriParameters.joinToString("\n") { renderUriParameter(it) }}>>""" else ""}
-            |${type.methods.joinToString("\n") { renderMethod(it) }}
+            |${type.methods.joinToString("\n") { renderMethod(type.fullUri.template, it) }}
         """.trimMargin().keepIndentation("<<", ">>")
         val relativePath = "resources/" + type.toResourceName()+ ".raml"
         return TemplateFile(
@@ -34,58 +39,48 @@ class RamlResourceRenderer @Inject constructor(val api: Api, val vrapTypeProvide
         )
     }
 
-    private fun renderMethod(method: Method): String {
+    private fun renderMethod(fullUri: String, method: Method): String {
         return """
             |${method.methodName}:
-            |  ${if (method.queryParameters.size > 0) """queryParameters:
-            |    <<${method.queryParameters.joinToString("\n") { renderQueryParameter(it) }}>>""" else ""}
-        """.trimMargin()
+            |  (resourcePathUri): "${fullUri.trimStart('/')}"${if (method.description != null) """
+            |  description: |-
+            |    <<${method.description.value.trim()}>>""" else ""}${if (method.queryParameters.size > 0) """
+            |  queryParameters:
+            |    <<${method.queryParameters.joinToString("\n") { renderQueryParameter(it) }}>>""" else ""}${if (method.bodies.any { it.type != null }) """
+            |  body:
+            |    <<${method.bodies.filter { it.type != null }.joinToString("\n") { renderBody(it) } }>>""" else ""}${if (method.responses.any { response -> response.isSuccessfull() }) """
+            |  responses:
+            |    <<${method.responses.filter { response -> response.isSuccessfull() }.joinToString("\n") { renderResponse(it) }}>>""" else ""}
+        """.trimMargin().keepIndentation("<<", ">>")
     }
 
+    private fun renderResponse(response: Response): String {
+        return """
+            |${response.statusCode}:
+            |  body:
+            |    <<${response.bodies.joinToString("\n") { renderBody(it) } }>>
+        """.trimMargin().keepIndentation("<<", ">>")
+    }
+
+    private fun renderBody(body: Body): String {
+        return """
+            |${body.contentType}:
+            |  <<${body.type.renderType()}>>
+        """.trimMargin().keepIndentation("<<", ">>")
+    }
     private fun renderUriParameter(uriParameter: UriParameter): String {
         return """
             |${uriParameter.name}:
-            |  <<${uriParameter.type.renderType()}>>
+            |  <<${uriParameter.type.renderType(false)}>>
         """.trimMargin().keepIndentation("<<", ">>")
     }
 
     private fun renderQueryParameter(queryParameter: QueryParameter): String {
         return """
             |${queryParameter.name}:
-            |  <<${queryParameter.type.renderType()}>>
+            |  <<${queryParameter.type.renderType(false)}>>
         """.trimMargin().keepIndentation("<<", ">>")
     }
 }
 
-private fun AnyType.renderScalarType(): String {
-    if (!this.isInlineType) {
-        return "type: ${this.name}"
-    }
-    return this.renderEAttributes().plus("type: ${this.name}").joinToString("\n")
-}
 
-private fun AnyType.renderEAttributes(): List<String> {
-    val eAttributes = this.eClass().eAllAttributes
-    return eAttributes.filter { eAttribute -> eAttribute.name != "name" && this.eGet(eAttribute) != null}
-            .map { eAttribute -> "${eAttribute.name}: ${this.eGet(eAttribute)}" }
-
-}
-
-private fun ArrayType.renderArrayType(): String {
-    var t = this.renderEAttributes().plus("type: array").joinToString("\n")
-    if (this.items != null) {
-        t += """
-                |items:
-                |  <<${this.items.renderScalarType()}>>
-            """
-    }
-    return t.trimMargin().keepIndentation("<<", ">>")
-}
-
-private fun AnyType.renderType(): String {
-    when (this) {
-        is ArrayType -> return this.renderArrayType()
-        else ->
-            return this.renderScalarType();
-    }
-}

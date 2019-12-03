@@ -151,7 +151,7 @@ class GeneratorModule constructor(
             override fun caseNamedElement(`object`: NamedElement): Boolean = generatorConfig.customTypeMapping[`object`.name]?.let { false }
                     ?: true
 
-            override fun caseStringType(stringType: StringType): Boolean = stringType.enum?.isNotEmpty() ?: false
+            override fun caseStringType(stringType: StringType): Boolean = stringType.enum?.isNotEmpty() ?: false || stringType.pattern != null
             override fun defaultCase(`object`: EObject?): Boolean? = false
         }
     }
