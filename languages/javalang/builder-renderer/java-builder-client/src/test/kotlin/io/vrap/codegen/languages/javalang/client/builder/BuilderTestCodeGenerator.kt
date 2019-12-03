@@ -22,12 +22,16 @@ class BuilderTestCodeGenerator {
 
     companion object {
         private val userProvidedPath = System.getenv("TEST_RAML_FILE")
+        private val importApiProvidedPath = System.getenv("IMPORT_API_RAML_FILE")
         /**
          * Specifies a path where the code generator should place generated code
          * */
         private val generatedCodePath = System.getenv("GENERATED_CODE_PATH")
+        private val generatedImporterCodePath = System.getenv("GENERATED_IMPORT_API_CODE_PATH")
         private val apiPath : Path = Paths.get(if (userProvidedPath == null) "../api-spec/api.raml" else userProvidedPath)
+        private val importApiPath : Path = Paths.get(importApiProvidedPath)
         val apiProvider: ApiProvider = ApiProvider(apiPath)
+        val importApiProvider: ApiProvider = ApiProvider(importApiPath)
         val generatorConfig = CodeGeneratorConfig(basePackageName = "com/commercetools/test")
     }
 
@@ -70,6 +74,15 @@ class BuilderTestCodeGenerator {
         generatorComponent.generateFiles()
     }
 
+    @Ignore
+    @Test
+    fun generateJavaImportApi() {
+        val generatorConfig = CodeGeneratorConfig(basePackageName = "com.commercetools.importer", outputFolder = Paths.get(generatedImporterCodePath))
+        val generatorModule = GeneratorModule(importApiProvider, generatorConfig, JavaBaseTypes)
+        val generatorComponent = GeneratorComponent(generatorModule, JavaCompleteModule)
+        generatorComponent.generateFiles()
+    }
+    
     /**
      * This test method uses code generator to generate interface and a class for simple-type.raml which is a part of the test-api.raml located in the resources
      * folder. After the classes are generated, it checks if they are the same as the ones specified in SimpleType.txt and SimpleTypeImpl.txt.
