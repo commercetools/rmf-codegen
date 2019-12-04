@@ -3,18 +3,16 @@ package io.vrap.codegen.languages.ramldoc.model
 import com.damnhandy.uri.template.UriTemplate
 import com.damnhandy.uri.template.jackson.datatype.UriTemplateSerializer
 import com.fasterxml.jackson.core.JsonGenerator
-import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.JsonSerializer
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializerProvider
 import com.fasterxml.jackson.databind.ser.BeanPropertyWriter
-import com.fasterxml.jackson.databind.ser.PropertyFilter
 import com.fasterxml.jackson.databind.ser.PropertyWriter
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter
-import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider
-import com.fasterxml.jackson.databind.ser.std.StdSerializer
 import com.google.inject.Inject
 import io.vrap.codegen.languages.extensions.EObjectExtensions
+import io.vrap.codegen.languages.ramldoc.extensions.InstanceSerializer
+import io.vrap.codegen.languages.ramldoc.extensions.ObjectInstanceSerializer
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.FileProducer
 import io.vrap.rmf.codegen.types.VrapTypeProvider
@@ -22,10 +20,8 @@ import io.vrap.rmf.raml.model.modules.Api
 import io.vrap.rmf.raml.model.types.*
 import io.vrap.rmf.raml.model.values.RegExp
 import org.eclipse.emf.ecore.EObject
-import org.eclipse.emf.ecore.util.EObjectContainmentEList
 import org.emfjson.jackson.annotations.EcoreReferenceInfo
 import org.emfjson.jackson.annotations.EcoreTypeInfo
-import org.emfjson.jackson.databind.ser.EMFSerializers
 import org.emfjson.jackson.databind.ser.EcoreReferenceSerializer
 import org.emfjson.jackson.handlers.BaseURIHandler
 import org.emfjson.jackson.module.EMFModule
@@ -147,27 +143,6 @@ class RegExpSerializer : JsonSerializer<RegExp>() {
     @Throws(IOException::class)
     override fun serialize(value: RegExp, gen: JsonGenerator, provider: SerializerProvider) {
         gen.writeString("/" + value.toString() + "/")
-    }
-}
-
-class InstanceSerializer : JsonSerializer<Instance>() {
-
-    @Throws(IOException::class)
-    override fun serialize(value: Instance, gen: JsonGenerator, provider: SerializerProvider) {
-        gen.writeObject(value.value)
-    }
-}
-
-class ObjectInstanceSerializer : JsonSerializer<ObjectInstance>() {
-
-    @Throws(IOException::class)
-    override fun serialize(value: ObjectInstance, gen: JsonGenerator, provider: SerializerProvider) {
-        val properties = value.value
-        gen.writeStartObject()
-        for (v in properties) {
-            gen.writeObjectField(v.name, v.value)
-        }
-        gen.writeEndObject()
     }
 }
 

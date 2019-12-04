@@ -2,12 +2,14 @@ package io.vrap.codegen.languages.ramldoc.extensions
 
 import com.damnhandy.uri.template.Expression
 import com.damnhandy.uri.template.UriTemplate
+import com.fasterxml.jackson.core.JsonGenerator
+import com.fasterxml.jackson.databind.JsonSerializer
+import com.fasterxml.jackson.databind.SerializerProvider
 import io.vrap.rmf.codegen.rendring.utils.keepIndentation
 import io.vrap.rmf.raml.model.resources.Resource
-import io.vrap.rmf.raml.model.types.AnyType
-import io.vrap.rmf.raml.model.types.ArrayType
-import io.vrap.rmf.raml.model.types.UnionType
+import io.vrap.rmf.raml.model.types.*
 import io.vrap.rmf.raml.model.util.StringCaseFormat
+import java.io.IOException
 import java.util.stream.Collectors
 
 fun Resource.toResourceName(): String {
@@ -75,5 +77,26 @@ fun AnyType.renderType(withDescription: Boolean = true): String {
         is UnionType -> t + this.renderUnionType()
         else ->
             t + this.renderScalarType();
+    }
+}
+
+class InstanceSerializer : JsonSerializer<Instance>() {
+
+    @Throws(IOException::class)
+    override fun serialize(value: Instance, gen: JsonGenerator, provider: SerializerProvider) {
+        gen.writeObject(value.value)
+    }
+}
+
+class ObjectInstanceSerializer : JsonSerializer<ObjectInstance>() {
+
+    @Throws(IOException::class)
+    override fun serialize(value: ObjectInstance, gen: JsonGenerator, provider: SerializerProvider) {
+        val properties = value.value
+        gen.writeStartObject()
+        for (v in properties) {
+            gen.writeObjectField(v.name, v.value)
+        }
+        gen.writeEndObject()
     }
 }
