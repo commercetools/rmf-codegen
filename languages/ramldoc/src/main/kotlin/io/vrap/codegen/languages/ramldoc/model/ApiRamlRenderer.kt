@@ -35,8 +35,16 @@ class ApiRamlRenderer @Inject constructor(val api: Api, override val vrapTypePro
             |  resourcePathUri:
             |    type: string
             |    allowedTargets: Method
-            |  originalType:
+            |  builtinType:
             |    type: string
+            |    allowedTargets: TypeDeclaration
+            |  subTypes:
+            |    type: array
+            |    items: string
+            |    allowedTargets: TypeDeclaration
+            |  oneOf:
+            |    type: array
+            |    items: string
             |    allowedTargets: TypeDeclaration
             |securitySchemes:
             |  oauth_2_0: !include oauth2.raml

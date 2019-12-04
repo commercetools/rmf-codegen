@@ -84,7 +84,7 @@ class RamlResourceRenderer @Inject constructor(val api: Api, val vrapTypeProvide
     private fun renderUriParameter(uriParameter: UriParameter): String {
         return """
             |${uriParameter.name}:
-            |  <<${uriParameter.type.renderType(false)}>>
+            |  <<${uriParameter.type.renderType()}>>
         """.trimMargin().keepIndentation("<<", ">>")
     }
 
@@ -93,7 +93,7 @@ class RamlResourceRenderer @Inject constructor(val api: Api, val vrapTypeProvide
             |${queryParameter.name}:${if (queryParameter.type.default != null) """
             |  default: ${queryParameter.type.default.value}""" else ""}
             |  required: ${queryParameter.required}
-            |  <<${queryParameter.type.renderType(false)}>>
+            |  <<${queryParameter.type.renderType()}>>
         """.trimMargin().keepIndentation("<<", ">>")
     }
 }

@@ -49,6 +49,7 @@ class RamlScalarTypeRenderer @Inject constructor(override val vrapTypeProvider: 
         val content = """
             |#%RAML 1.0 DataType
             |displayName: ${type.displayName?.value ?: type.name}
+            |(builtinType): string
             |type: ${type.type?.name?: "string"}
             |${if (type.description != null) """description: |-
             |  <<${type.description.value.trim()}>>""".trimMargin() else ""}

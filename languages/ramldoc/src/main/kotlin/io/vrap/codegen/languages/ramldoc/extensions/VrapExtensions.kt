@@ -56,28 +56,34 @@ fun ArrayType.renderArrayType(): String {
 }
 
 fun UnionType.renderUnionType(): String {
-    var typeString = this.oneOf.joinToString(" | ") { when(it) { is ArrayType -> "${it.items.name}[]" else -> it.name } }
+    val typeString = this.oneOf.joinToString(" | ") { when(it) { is ArrayType -> "${it.items.name}[]" else -> it.name } }
 
-    var t = this.renderEAttributes().plus("type: ${typeString}").joinToString("\n")
+    val unionString = """
+        |(oneOf):
+        |${this.oneOf.joinToString("\n") { when(it) { is ArrayType -> "- ${it.items.name}[]" else -> "- ${it.name}" } }}
+    """.trimMargin()
+
+    val t = listOf<String>().plus("type: ${typeString}").plus(unionString).plus(this.renderEAttributes()).joinToString("\n")
     return t.trimMargin().keepIndentation("<<", ">>")
 }
 
 fun AnyType.renderType(withDescription: Boolean = true): String {
-    val t = if (withDescription && this.description?.value.isNullOrBlank().not()) {
+    val builtinType = "(builtinType): ${BuiltinType.of(this.eClass()).map { it.getName() }.orElse("any")}"
+    val description = if (withDescription && this.description?.value.isNullOrBlank().not()) {
         """
-            |description: |-
-            |  <<${this.description.value.trim()}>>
-            |
-        """.trimMargin()
+        |description: |-
+        |  <<${this.description.value.trim()}>>
+        """.trimEnd().keepIndentation("<<", ">>")
     } else {
         ""
     }
-    return when (this) {
-        is ArrayType -> t + this.renderArrayType()
-        is UnionType -> t + this.renderUnionType()
-        else ->
-            t + this.renderScalarType();
-    }
+    return """
+        |${when (this) {
+            is ArrayType -> this.renderArrayType()
+            is UnionType -> this.renderUnionType()
+            else -> this.renderScalarType()}}
+        |$builtinType$description
+        """.trimMargin()
 }
 
 class InstanceSerializer : JsonSerializer<Instance>() {

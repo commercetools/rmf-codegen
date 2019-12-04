@@ -22,11 +22,13 @@ class RamlObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: 
         val vrapType = vrapTypeProvider.doSwitch(type) as VrapObjectType
         val content = """
             |#%RAML 1.0 DataType
-            |type: object
-            |(originalType): ${type.type?.name?: "object"}
-            |displayName: ${type.displayName?.value ?: vrapType.simpleClassName}
-            |# ${if (type.discriminatorProperty() != null) "discriminator: ${type.discriminatorProperty()?.name}" else ""}
-            |# ${if (type.discriminatorValue.isNullOrBlank().not()) "discriminatorValue: ${type.discriminatorValue}" else ""}
+            |(builtinType): object
+            |type: ${type.type?.name?: "object"}
+            |displayName: ${type.displayName?.value ?: vrapType.simpleClassName}${if (type.discriminatorProperty() != null) """
+            |discriminator: ${type.discriminatorProperty()?.name}""" else ""}${if (type.discriminatorValue.isNullOrBlank().not()) """
+            |discriminatorValue: ${type.discriminatorValue}""" else ""}${if (type.subTypes.filterNot { it.isInlineType }.isNotEmpty()) """
+            |(subTypes):
+            |${type.subTypes.filterNot { it.isInlineType }.joinToString("\n") { "- ${it.name}" }}""" else ""}
             |properties:
             |  <<${type.allProperties.joinToString("\n") { renderProperty(type, it) }}>>
         """.trimMargin().keepIndentation("<<", ">>")
@@ -41,11 +43,12 @@ class RamlObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: 
         val discriminatorProp = type.discriminatorProperty()?.name
         val discriminatorValue = type.discriminatorValue
         return """
-            |${property.name}:${if (discriminatorProp == property.name && discriminatorValue.isNullOrBlank().not()) """
-            |  default: $discriminatorValue""" else if (property.type.default != null) """
+            |${property.name}:
+            |  <<${property.type.renderType()}>>${if (discriminatorProp == property.name && discriminatorValue.isNullOrBlank().not()) """
+            |  enum:
+            |  - $discriminatorValue""" else ""}${if (property.type.default != null) """
             |  default: ${property.type.default.value}""" else ""}
             |  required: ${property.required}
-            |  <<${property.type.renderType()}>>
         """.trimMargin().keepIndentation("<<", ">>")
     }
 
