@@ -43,7 +43,7 @@ class RamlObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: 
         } else {
             null
         }
-        val examples = type.examples.plus(postmanExample).filterNotNull()
+        val examples = type.examples.plus(postmanExample).filterNotNull().sortedWith(compareBy { it.name })
 
         val content = """
             |#%RAML 1.0 DataType
@@ -53,7 +53,7 @@ class RamlObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: 
             |discriminator: ${type.discriminatorProperty()?.name}""" else ""}${if (type.discriminatorValue.isNullOrBlank().not()) """
             |discriminatorValue: ${type.discriminatorValue}""" else ""}${if (type.subTypes.filterNot { it.isInlineType }.isNotEmpty()) """
             |(oneOf):
-            |${type.subTypes.filterNot { it.isInlineType }.joinToString("\n") { "- ${it.name}" }}""" else ""}${if (examples.isNotEmpty()) """
+            |${type.subTypes.filterNot { it.isInlineType }.sortedWith(compareBy { it.name }).joinToString("\n") { "- ${it.name}" }}""" else ""}${if (examples.isNotEmpty()) """
             |examples:
             |  <<${examples.joinToString("\n") { renderExample(vrapType, it) }}>>""" else ""}
             |properties:

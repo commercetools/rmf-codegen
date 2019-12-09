@@ -23,6 +23,7 @@ dependencies {
     compile "io.vrap.rmf:raml-model:${versions.rmf}"
     compile 'com.google.inject:guice:4.2.0'
     compile 'org.slf4j:slf4j-simple:1.7.25'
+    compile 'commons-io:commons-io:2.5'
 
     testCompile "org.assertj:assertj-core:3.10.0"
     testCompile 'junit:junit:4.12'
