@@ -1,7 +1,10 @@
 package io.vrap.codegen.languages.typescript.model
 
 import com.google.inject.Inject
-import io.vrap.codegen.languages.extensions.*
+import io.vrap.codegen.languages.extensions.getSuperTypes
+import io.vrap.codegen.languages.extensions.isPatternProperty
+import io.vrap.codegen.languages.extensions.sortedByTopology
+import io.vrap.codegen.languages.typescript.toTsComment
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.FileProducer
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
@@ -61,14 +64,14 @@ class TypeScriptModuleRenderer @Inject constructor(override val vrapTypeProvider
         return if (discriminator() != null) {
             if (discriminatorValue === null) {
                 """
-                |${toComment().escapeAll()}
+                |<${toTsComment().escapeAll()}>
                 |export type ${name} =
                 |  <${subTypes.filter { !it.isInlineType }.map { it.renderTypeExpr() }.joinToString(" |\n")}>
                 |;
                 """.trimMargin()
             } else {
                 """
-                |${toComment().escapeAll()}
+                |<${toTsComment().escapeAll()}>
                 |export interface ${name} {
                 |  readonly ${discriminator()}: "${discriminatorValue}";
                 |  <${renderPatternSpec()}>
@@ -78,7 +81,7 @@ class TypeScriptModuleRenderer @Inject constructor(override val vrapTypeProvider
             }
         } else {
             """
-                |${this.toComment().escapeAll()}
+                |<${this.toTsComment().escapeAll()}>
                 |export interface ${name} ${renderExtendsExpr()}{
                 |  <${renderPatternSpec()}>
                 |  <${renderPropertyDecls(false)}>
@@ -108,10 +111,10 @@ class TypeScriptModuleRenderer @Inject constructor(override val vrapTypeProvider
         return renderProperties
             .filter { !it.isPatternProperty() && it.name != discriminator() }
             .map {
-                val comment: String = it.type.toComment().escapeAll()
+                val comment: String = it.type.toTsComment().escapeAll()
                 val optional = if (it.required) "" else "?"
                 """
-                    |${comment}
+                    |<${comment}>
                     |readonly ${it.name}${optional}: ${it.type.renderTypeExpr()}
                     """.trimMargin()
             }
@@ -136,7 +139,7 @@ class TypeScriptModuleRenderer @Inject constructor(override val vrapTypeProvider
         val vrapType = this.toVrapType() as VrapEnumType
 
         return """
-        |${this.toComment().escapeAll()}
+        |<${this.toTsComment().escapeAll()}>
         |export type ${vrapType.simpleClassName} =
         |   <${this.renderEnumValues()}>;
         """.trimMargin()
