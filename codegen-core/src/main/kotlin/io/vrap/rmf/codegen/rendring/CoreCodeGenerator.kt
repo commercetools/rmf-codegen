@@ -97,6 +97,8 @@ class CoreCodeGenerator @Inject constructor(val dataSink: DataSink,
             fileProducers.flatMap { it.produceFiles() }.map { dataSink.write(it) }
         }
 
+        dataSink.postClean()
+
         LOGGER.info("files generation ended")
     }
 

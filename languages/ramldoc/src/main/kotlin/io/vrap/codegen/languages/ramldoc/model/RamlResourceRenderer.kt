@@ -1,6 +1,7 @@
 package io.vrap.codegen.languages.ramldoc.model
 
 import com.fasterxml.jackson.core.JsonProcessingException
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
@@ -117,6 +118,31 @@ fun Instance.toYaml(): String {
     } else if (this is ObjectInstance) {
         try {
             example = mapper.writeValueAsString(this)
+        } catch (e: JsonProcessingException) {
+        }
+    }
+
+    return example.trim()
+}
+
+fun Instance.toJson(): String {
+    var example = ""
+    val mapper = ObjectMapper()
+
+    val module = SimpleModule()
+    module.addSerializer(ObjectInstance::class.java, ObjectInstanceSerializer())
+    module.addSerializer<Instance>(ArrayInstance::class.java, InstanceSerializer())
+    module.addSerializer<Instance>(IntegerInstance::class.java, InstanceSerializer())
+    module.addSerializer<Instance>(BooleanInstance::class.java, InstanceSerializer())
+    module.addSerializer<Instance>(StringInstance::class.java, InstanceSerializer())
+    module.addSerializer<Instance>(NumberInstance::class.java, InstanceSerializer())
+    mapper.registerModule(module)
+
+    if (this is StringInstance) {
+        example = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(this.value)
+    } else if (this is ObjectInstance) {
+        try {
+            example = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(this)
         } catch (e: JsonProcessingException) {
         }
     }

@@ -21,5 +21,6 @@ class RamldocModelModule : AbstractModule() {
 
         val fileBinder = Multibinder.newSetBinder(binder(), FileProducer::class.java)
         fileBinder.addBinding().to(ApiRamlRenderer::class.java)
+        fileBinder.addBinding().to(RamlExampleRenderer::class.java)
     }
 }
