@@ -6,4 +6,5 @@ interface DataSink {
 
     fun clean():Boolean = true
 
+    fun postClean()
 }

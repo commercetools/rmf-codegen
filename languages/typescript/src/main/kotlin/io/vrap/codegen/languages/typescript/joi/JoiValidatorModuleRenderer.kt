@@ -44,7 +44,7 @@ class JoiValidatorModuleRenderer @Inject constructor(override val vrapTypeProvid
            |  <${types.map { it.renderSchemaPlaceholder() }.joinToString(separator = ",\n")}>
            |}
            |
-           |${types.map { it.renderJoiSchema() }.joinToString(separator = "\n\n")}
+           |${types.filterNot { it is StringType && it.pattern != null }.map { it.renderJoiSchema() }.joinToString(separator = "\n\n")}
        """.trimMargin().keepIndentation()
         return TemplateFile(content, moduleName.replace(".", "/") + ".ts")
 

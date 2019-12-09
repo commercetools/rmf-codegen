@@ -21,4 +21,6 @@ object ConsoleDataSink : DataSink{
         LOGGER.info(result)
     }
 
+    override fun postClean() {
+    }
 }

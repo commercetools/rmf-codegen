@@ -117,7 +117,13 @@ class GeneratorModule constructor(
 
     @Provides
     @Singleton
-    fun allStringTypes(anyTypeList: MutableList<AnyType>): List<StringType> = anyTypeList.filter { it is StringType }.map { it as StringType }
+    @EnumStringTypes
+    fun allEnumStringTypes(anyTypeList: MutableList<AnyType>): List<StringType> = anyTypeList.filter { it is StringType && it.enum.isNotEmpty() }.map { it as StringType }
+
+    @Provides
+    @Singleton
+    @PatternStringTypes
+    fun allPatternStringTypes(anyTypeList: MutableList<AnyType>): List<StringType> = anyTypeList.filter { it is StringType && it.pattern != null }.map { it as StringType }
 
     @Provides
     @Singleton
@@ -151,7 +157,7 @@ class GeneratorModule constructor(
             override fun caseNamedElement(`object`: NamedElement): Boolean = generatorConfig.customTypeMapping[`object`.name]?.let { false }
                     ?: true
 
-            override fun caseStringType(stringType: StringType): Boolean = stringType.enum?.isNotEmpty() ?: false
+            override fun caseStringType(stringType: StringType): Boolean = stringType.enum?.isNotEmpty() ?: false || stringType.pattern != null
             override fun defaultCase(`object`: EObject?): Boolean? = false
         }
     }
