@@ -7,10 +7,8 @@ import io.vrap.rmf.codegen.types.VrapArrayType
 import io.vrap.rmf.codegen.types.VrapEnumType
 import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapType
-import io.vrap.rmf.raml.model.types.BooleanAnnotationType
 import io.vrap.rmf.raml.model.types.BooleanInstance
 import io.vrap.rmf.raml.model.types.ObjectType
-import org.omg.CORBA.Object
 
 interface JavaObjectTypeExtensions : ExtensionsBase {
 
