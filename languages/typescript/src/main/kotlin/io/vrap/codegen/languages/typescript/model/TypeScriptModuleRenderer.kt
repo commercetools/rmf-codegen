@@ -21,6 +21,7 @@ class TypeScriptModuleRenderer @Inject constructor(override val vrapTypeProvider
 
     override fun produceFiles(): List<TemplateFile> {
         return allAnyTypes.filter { it is ObjectType || it is StringType }
+                .filterNot { it is StringType && it.pattern != null }
                 .groupBy {
                     moduleName(it)
                 }

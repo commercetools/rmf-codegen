@@ -4,6 +4,7 @@ import com.google.inject.Inject
 import io.vrap.codegen.languages.java.base.extensions.JavaEObjectTypeExtensions
 import io.vrap.codegen.languages.java.base.extensions.JavaObjectTypeExtensions
 import io.vrap.codegen.languages.java.base.extensions.simpleName
+import io.vrap.rmf.codegen.di.EnumStringTypes
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.FileProducer
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
@@ -20,6 +21,7 @@ class PlantUmlDiagramProducer @Inject constructor(override val vrapTypeProvider:
     lateinit var allObjectTypes: MutableList<ObjectType>
 
     @Inject
+    @EnumStringTypes
     lateinit var allStringTypes: MutableList<StringType>
 
 

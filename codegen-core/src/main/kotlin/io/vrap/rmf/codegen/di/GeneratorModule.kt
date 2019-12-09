@@ -117,7 +117,13 @@ class GeneratorModule constructor(
 
     @Provides
     @Singleton
-    fun allStringTypes(anyTypeList: MutableList<AnyType>): List<StringType> = anyTypeList.filter { it is StringType }.map { it as StringType }
+    @EnumStringTypes
+    fun allEnumStringTypes(anyTypeList: MutableList<AnyType>): List<StringType> = anyTypeList.filter { it is StringType && it.enum.isNotEmpty() }.map { it as StringType }
+
+    @Provides
+    @Singleton
+    @PatternStringTypes
+    fun allPatternStringTypes(anyTypeList: MutableList<AnyType>): List<StringType> = anyTypeList.filter { it is StringType && it.pattern != null }.map { it as StringType }
 
     @Provides
     @Singleton
