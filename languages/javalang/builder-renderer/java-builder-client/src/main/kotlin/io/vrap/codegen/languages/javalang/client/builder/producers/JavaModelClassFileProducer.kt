@@ -18,7 +18,7 @@ import io.vrap.rmf.raml.model.types.Property
 class JavaModelClassFileProducer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider, private val allObjectTypes: MutableList<ObjectType>) : JavaObjectTypeExtensions, JavaEObjectTypeExtensions, FileProducer {
     
     override fun produceFiles(): List<TemplateFile> {
-        return allObjectTypes.filter { !it.isAbstract() }.map { render(it) }
+        return allObjectTypes.map { render(it) }
     }
 
     fun render(type: ObjectType): TemplateFile {
