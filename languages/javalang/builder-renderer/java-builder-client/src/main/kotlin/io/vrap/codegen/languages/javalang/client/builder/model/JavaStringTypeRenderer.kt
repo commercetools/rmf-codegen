@@ -48,7 +48,12 @@ class JavaStringTypeRenderer @Inject constructor(override val vrapTypeProvider: 
                 |  }
                 |
                 |  public static Optional\<${vrapType.simpleClassName}\> findEnumViaJsonName(String jsonName) {
-                |    return Arrays.stream(values()).filter(t -\> t.getJsonName().equals(jsonName)).findFirst();
+                |    Optional\<${vrapType.simpleClassName}\> optional = Arrays.stream(values()).filter(t -\> t.getJsonName().equals(jsonName)).findFirst();
+                |    if(!optional.isPresent()) {
+                |      return Optional.of(UNKNOWN);
+                |    }else {
+                |      return optional;
+                |    }
                 |  }
                 |}
                 """.trimMargin().keepIndentation()
@@ -68,6 +73,10 @@ class JavaStringTypeRenderer @Inject constructor(override val vrapTypeProvider: 
                 |${it.value.enumValueName()}("${it.value}")
             """.trimMargin()
             }
+            ?.plus("""
+                |@JsonProperty("unknown")
+                |UNKNOWN("unknown")
+            """.trimMargin())
             ?.joinToString(separator = ",\n\n", postfix = ";")
 
     fun StringType.enumValues() =  enum?.filter { it is StringInstance }
