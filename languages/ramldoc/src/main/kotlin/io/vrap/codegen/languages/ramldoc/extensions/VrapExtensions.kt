@@ -73,7 +73,7 @@ fun AnyType.renderType(withDescription: Boolean = true): String {
         """
         |description: |-
         |  <<${this.description.value.trim()}>>
-        """.trimEnd().keepIndentation("<<", ">>")
+        """.trimMargin().keepIndentation("<<", ">>")
     } else {
         ""
     }
@@ -82,8 +82,9 @@ fun AnyType.renderType(withDescription: Boolean = true): String {
             is ArrayType -> this.renderArrayType()
             is UnionType -> this.renderUnionType()
             else -> this.renderScalarType()}}
-        |$builtinType$description
-        """.trimMargin()
+        |$builtinType
+        |$description
+        """.trimMargin().trimEnd()
 }
 
 class InstanceSerializer : JsonSerializer<Instance>() {

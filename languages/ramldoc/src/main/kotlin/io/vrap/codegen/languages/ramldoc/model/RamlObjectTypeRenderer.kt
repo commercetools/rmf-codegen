@@ -55,7 +55,9 @@ class RamlObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: 
             |(oneOf):
             |${type.subTypes.filterNot { it.isInlineType }.sortedWith(compareBy { it.name }).joinToString("\n") { "- ${it.name}" }}""" else ""}${if (examples.isNotEmpty()) """
             |examples:
-            |  <<${examples.joinToString("\n") { renderExample(vrapType, it) }}>>""" else ""}
+            |  <<${examples.joinToString("\n") { renderExample(vrapType, it) }}>>""" else ""}${if (type.description?.value != null) """
+            |description: |-
+            |  <<${type.description.value.trim()}>>""" else ""}
             |properties:
             |  <<${properties.joinToString("\n") { renderProperty(type, it) }}>>
             """.trimMargin().keepIndentation("<<", ">>")

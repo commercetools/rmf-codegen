@@ -35,7 +35,7 @@ class RamlScalarTypeRenderer @Inject constructor(override val vrapTypeProvider: 
             |#%RAML 1.0 DataType
             |displayName: ${type.displayName?.value ?: vrapType.simpleClassName}
             |${if (type.description != null) """description: |-
-            |  <<${type.description.value.trim()}>>""".trimMargin() else ""}
+            |  <<${type.description.value.trim()}>>""" else ""}
             |type: ${type.type?.name?: "string"}
             |enum:
             |${type.enum.joinToString("\n") { "- ${it.value}" }}
@@ -53,7 +53,7 @@ class RamlScalarTypeRenderer @Inject constructor(override val vrapTypeProvider: 
             |(builtinType): string
             |type: ${type.type?.name?: "string"}
             |${if (type.description != null) """description: |-
-            |  <<${type.description.value.trim()}>>""".trimMargin() else ""}
+            |  <<${type.description.value.trim()}>>""" else ""}
             |${type.renderEAttributes().joinToString("\n")}
         """.trimMargin().keepIndentation("<<", ">>")
         return TemplateFile(
