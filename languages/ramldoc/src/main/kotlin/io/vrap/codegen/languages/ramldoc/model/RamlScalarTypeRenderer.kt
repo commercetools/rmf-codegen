@@ -2,21 +2,21 @@ package io.vrap.codegen.languages.ramldoc.model
 
 import com.google.inject.Inject
 import io.vrap.codegen.languages.extensions.ExtensionsBase
+import io.vrap.codegen.languages.ramldoc.extensions.packageDir
 import io.vrap.codegen.languages.ramldoc.extensions.renderEAttributes
 import io.vrap.rmf.codegen.di.ModelPackageName
 import io.vrap.rmf.codegen.io.TemplateFile
-import io.vrap.rmf.codegen.rendring.ObjectTypeRenderer
+import io.vrap.rmf.codegen.rendring.NamedScalarTypeRenderer
 import io.vrap.rmf.codegen.rendring.PatternStringTypeRenderer
 import io.vrap.rmf.codegen.rendring.StringTypeRenderer
 import io.vrap.rmf.codegen.rendring.utils.keepIndentation
 import io.vrap.rmf.codegen.types.VrapEnumType
-import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapScalarType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.types.*
 import java.lang.Exception
 
-class RamlScalarTypeRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : ExtensionsBase, StringTypeRenderer, PatternStringTypeRenderer {
+class RamlScalarTypeRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : ExtensionsBase, StringTypeRenderer, PatternStringTypeRenderer, NamedScalarTypeRenderer {
 
     @Inject
     @ModelPackageName
@@ -41,7 +41,7 @@ class RamlScalarTypeRenderer @Inject constructor(override val vrapTypeProvider: 
             |${type.enum.joinToString("\n") { "- ${it.value}" }}
         """.trimMargin().keepIndentation("<<", ">>")
         return TemplateFile(
-                relativePath = "types/" + vrapType.`package`.replace(modelPackageName, "").trim('/') + "/" + vrapType.simpleClassName + ".raml",
+                relativePath = "types/" + vrapType.packageDir(modelPackageName) + vrapType.simpleClassName + ".raml",
                 content = content
         )
     }

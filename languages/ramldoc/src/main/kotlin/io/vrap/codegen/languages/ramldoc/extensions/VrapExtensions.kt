@@ -6,9 +6,13 @@ import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.databind.JsonSerializer
 import com.fasterxml.jackson.databind.SerializerProvider
 import io.vrap.rmf.codegen.rendring.utils.keepIndentation
+import io.vrap.rmf.codegen.types.VrapEnumType
+import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.types.*
 import io.vrap.rmf.raml.model.util.StringCaseFormat
+import io.vrap.rmf.raml.model.values.RegExp
+import org.eclipse.emf.ecore.EDataType
 import java.io.IOException
 import java.util.stream.Collectors
 
@@ -34,13 +38,24 @@ fun AnyType.renderScalarType(): String {
     if (!this.isInlineType) {
         return "type: ${this.name}"
     }
-    return this.renderEAttributes().plus("type: ${this.name}").joinToString("\n")
+    return this.renderEAttributes().plus("type: ${this.name ?: BuiltinType.of(this.eClass()).get().getName()}").joinToString("\n")
+}
+
+fun AnyType.renderObjectType(): String {
+    if (!this.isInlineType) {
+        return "type: ${this.name}"
+    }
+    return this.renderEAttributes().plus("type: ${this.name ?: "object"}").joinToString("\n")
 }
 
 fun AnyType.renderEAttributes(): List<String> {
     val eAttributes = this.eClass().eAllAttributes
     return eAttributes.filter { eAttribute -> eAttribute.name != "name" && this.eGet(eAttribute) != null}
-            .map { eAttribute -> "${eAttribute.name}: ${this.eGet(eAttribute)}" }
+            .map { eAttribute -> when(val eValue = this.eGet(eAttribute)) {
+                is RegExp -> "${eAttribute.name}: \"${eValue}\""
+                is String -> "${eAttribute.name}: \"${eValue}\""
+                else -> "${eAttribute.name}: ${this.eGet(eAttribute)}"
+            } }
 
 }
 
@@ -49,7 +64,7 @@ fun ArrayType.renderArrayType(): String {
     if (this.items != null) {
         t += """
                 |items:
-                |  <<${this.items.renderScalarType()}>>
+                |  <<${this.items.renderTypeFacet()}>>
             """
     }
     return t.trimMargin().keepIndentation("<<", ">>")
@@ -67,6 +82,14 @@ fun UnionType.renderUnionType(): String {
     return t.trimMargin().keepIndentation("<<", ">>")
 }
 
+fun AnyType.renderTypeFacet(): String {
+    return when (this) {
+        is ArrayType -> this.renderArrayType()
+        is UnionType -> this.renderUnionType()
+        is ObjectType -> this.renderObjectType()
+        else -> this.renderScalarType()}
+}
+
 fun AnyType.renderType(withDescription: Boolean = true): String {
     val builtinType = "(builtinType): ${BuiltinType.of(this.eClass()).map { it.getName() }.orElse("any")}"
     val description = if (withDescription && this.description?.value.isNullOrBlank().not()) {
@@ -78,14 +101,22 @@ fun AnyType.renderType(withDescription: Boolean = true): String {
         ""
     }
     return """
-        |${when (this) {
-            is ArrayType -> this.renderArrayType()
-            is UnionType -> this.renderUnionType()
-            else -> this.renderScalarType()}}
+        |${this.renderTypeFacet()}
         |$builtinType
         |$description
         """.trimMargin().trimEnd()
 }
+
+fun VrapEnumType.packageDir(prefix: String): String {
+    val dir = this.`package`.replace(prefix, "").trim('/')
+    return dir + if (dir.isNotEmpty()) "/" else ""
+}
+
+fun VrapObjectType.packageDir(prefix: String): String {
+    val dir = this.`package`.replace(prefix, "").trim('/')
+    return dir + if (dir.isNotEmpty()) "/" else ""
+}
+
 
 class InstanceSerializer : JsonSerializer<Instance>() {
 

@@ -3,6 +3,7 @@ package io.vrap.codegen.languages.ramldoc.model
 import com.google.inject.Inject
 import io.vrap.codegen.languages.extensions.EObjectExtensions
 import io.vrap.codegen.languages.extensions.toResourceName
+import io.vrap.codegen.languages.ramldoc.extensions.packageDir
 import io.vrap.rmf.codegen.di.ModelPackageName
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.FileProducer
@@ -121,9 +122,9 @@ class ApiRamlRenderer @Inject constructor(val api: Api, override val vrapTypePro
     private fun ramlFileName(type: AnyType): String {
         when (val vrapType = type.toVrapType()) {
             is VrapObjectType ->
-                return "types/" + vrapType.`package`.replace(modelPackageName, "").trim('/') + "/" + vrapType.simpleClassName + ".raml"
+                return "types/" + vrapType.packageDir(modelPackageName) + vrapType.simpleClassName + ".raml"
             is VrapEnumType ->
-                return "types/" + vrapType.`package`.replace(modelPackageName, "").trim('/') + "/" + vrapType.simpleClassName + ".raml"
+                return "types/" + vrapType.packageDir(modelPackageName) + vrapType.simpleClassName + ".raml"
             is VrapScalarType ->
                 return "types/" + type.name + ".raml"
             else -> return ""

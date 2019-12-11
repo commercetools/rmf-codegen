@@ -3,7 +3,6 @@ package io.vrap.rmf.codegen.di
 import com.google.inject.AbstractModule
 import com.google.inject.Provides
 import com.google.inject.Singleton
-import com.google.inject.name.Named
 import io.vrap.rmf.codegen.common.generator.core.ResourceCollection
 import io.vrap.rmf.codegen.io.DataSink
 import io.vrap.rmf.codegen.io.FileDataSink
@@ -127,6 +126,13 @@ class GeneratorModule constructor(
 
     @Provides
     @Singleton
+    @NamedScalarTypes
+    fun allNamedScalarTypes(anyTypeList: MutableList<AnyType>): List<StringType> = anyTypeList.filter {
+        it is StringType && it.pattern == null && it.enum.isNullOrEmpty()
+    }.map { it as StringType }
+
+    @Provides
+    @Singleton
     fun allResources(ramlApi: Api): List<Resource> = ramlApi.allContainedResources
 
     @Provides
@@ -157,7 +163,7 @@ class GeneratorModule constructor(
             override fun caseNamedElement(`object`: NamedElement): Boolean = generatorConfig.customTypeMapping[`object`.name]?.let { false }
                     ?: true
 
-            override fun caseStringType(stringType: StringType): Boolean = stringType.enum?.isNotEmpty() ?: false || stringType.pattern != null
+            override fun caseStringType(stringType: StringType): Boolean = true
             override fun defaultCase(`object`: EObject?): Boolean? = false
         }
     }

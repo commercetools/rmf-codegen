@@ -3,6 +3,7 @@ package io.vrap.codegen.languages.ramldoc.model
 import com.google.inject.Inject
 import io.vrap.codegen.languages.extensions.ExtensionsBase
 import io.vrap.codegen.languages.extensions.discriminatorProperty
+import io.vrap.codegen.languages.ramldoc.extensions.packageDir
 import io.vrap.codegen.languages.ramldoc.extensions.renderType
 import io.vrap.rmf.codegen.di.ModelPackageName
 import io.vrap.rmf.codegen.io.TemplateFile
@@ -63,13 +64,14 @@ class RamlObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: 
             """.trimMargin().keepIndentation("<<", ">>")
 
         return TemplateFile(
-                relativePath = "types/" + vrapType.`package`.replace(modelPackageName, "").trim('/') + "/" + vrapType.simpleClassName + ".raml",
+                relativePath = "types/" + vrapType.packageDir(modelPackageName) + vrapType.simpleClassName + ".raml",
                 content = content
         )
     }
 
     private fun renderExample(type: VrapObjectType, example: Example): String {
-        val exampleName = "../../examples/" + type.`package`.replace(modelPackageName, "").trim('/') + "/" + type.simpleClassName + "-${if (example.name.isNotEmpty()) example.name else "default"}.json"
+        val t = if (type.packageDir(modelPackageName).isNotEmpty()) "../.." else ".."
+        val exampleName = "${t}/examples/" + type.packageDir(modelPackageName) + type.simpleClassName + "-${if (example.name.isNotEmpty()) example.name else "default"}.json"
         return """
             |${if (example.name.isNotEmpty()) example.name else "default"}: !include $exampleName
         """.trimMargin()
