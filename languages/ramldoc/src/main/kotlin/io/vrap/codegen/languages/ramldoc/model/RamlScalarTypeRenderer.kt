@@ -3,6 +3,7 @@ package io.vrap.codegen.languages.ramldoc.model
 import com.google.inject.Inject
 import io.vrap.codegen.languages.extensions.ExtensionsBase
 import io.vrap.codegen.languages.ramldoc.extensions.packageDir
+import io.vrap.codegen.languages.ramldoc.extensions.renderAnnotation
 import io.vrap.codegen.languages.ramldoc.extensions.renderEAttributes
 import io.vrap.rmf.codegen.di.ModelPackageName
 import io.vrap.rmf.codegen.io.TemplateFile
@@ -14,6 +15,7 @@ import io.vrap.rmf.codegen.types.VrapEnumType
 import io.vrap.rmf.codegen.types.VrapScalarType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.types.*
+import io.vrap.rmf.raml.model.types.Annotation
 import java.lang.Exception
 
 class RamlScalarTypeRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : ExtensionsBase, StringTypeRenderer, PatternStringTypeRenderer, NamedScalarTypeRenderer {
@@ -39,6 +41,7 @@ class RamlScalarTypeRenderer @Inject constructor(override val vrapTypeProvider: 
             |type: ${type.type?.name?: "string"}
             |enum:
             |${type.enum.joinToString("\n") { "- ${it.value}" }}
+            |<<${type.annotations.joinToString("\n") { it.renderAnnotation() }}>>
         """.trimMargin().keepIndentation("<<", ">>")
         return TemplateFile(
                 relativePath = "types/" + vrapType.packageDir(modelPackageName) + vrapType.simpleClassName + ".raml",
@@ -51,6 +54,7 @@ class RamlScalarTypeRenderer @Inject constructor(override val vrapTypeProvider: 
             |#%RAML 1.0 DataType
             |displayName: ${type.displayName?.value ?: type.name}
             |(builtinType): string
+            |<<${type.annotations.joinToString("\n") { it.renderAnnotation() }}>>
             |type: ${type.type?.name?: "string"}
             |${if (type.description != null) """description: |-
             |  <<${type.description.value.trim()}>>""" else ""}

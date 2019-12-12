@@ -4,6 +4,7 @@ import com.google.inject.Inject
 import io.vrap.codegen.languages.extensions.EObjectExtensions
 import io.vrap.codegen.languages.extensions.toResourceName
 import io.vrap.codegen.languages.ramldoc.extensions.packageDir
+import io.vrap.codegen.languages.ramldoc.extensions.renderType
 import io.vrap.rmf.codegen.di.AllAnyTypes
 import io.vrap.rmf.codegen.di.ModelPackageName
 import io.vrap.rmf.codegen.io.TemplateFile
@@ -44,6 +45,7 @@ class ApiRamlRenderer @Inject constructor(val api: Api, override val vrapTypePro
             |    type: array
             |    items: string
             |    allowedTargets: TypeDeclaration
+            |  <<${api.annotationTypes.joinToString("\n") { renderAnnotationType(it) }}>>
             |securitySchemes:
             |  oauth_2_0: !include oauth2.raml
             |securedBy:
@@ -118,6 +120,13 @@ class ApiRamlRenderer @Inject constructor(val api: Api, override val vrapTypePro
         return TemplateFile(relativePath = "oauth2.raml",
                 content = content
         )
+    }
+
+    private fun renderAnnotationType(annotation: AnyAnnotationType): String {
+        return """
+            |${annotation.name}:
+            |   <<${annotation.renderType()}>>
+        """.trimMargin().keepIndentation("<<", ">>")
     }
 
     private fun ramlFileName(type: AnyType): String {

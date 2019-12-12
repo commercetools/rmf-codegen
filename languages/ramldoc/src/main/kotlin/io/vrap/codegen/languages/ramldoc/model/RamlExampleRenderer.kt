@@ -2,21 +2,14 @@ package io.vrap.codegen.languages.ramldoc.model
 
 import com.google.inject.Inject
 import io.vrap.codegen.languages.extensions.ExtensionsBase
-import io.vrap.codegen.languages.extensions.discriminatorProperty
 import io.vrap.codegen.languages.ramldoc.extensions.packageDir
-import io.vrap.codegen.languages.ramldoc.extensions.renderType
+import io.vrap.codegen.languages.ramldoc.extensions.toJson
 import io.vrap.rmf.codegen.di.ModelPackageName
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.FileProducer
-import io.vrap.rmf.codegen.rendring.ObjectTypeRenderer
-import io.vrap.rmf.codegen.rendring.utils.keepIndentation
 import io.vrap.rmf.codegen.types.VrapObjectType
-import io.vrap.rmf.codegen.types.VrapType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
-import io.vrap.rmf.raml.model.modules.Api
 import io.vrap.rmf.raml.model.types.*
-import io.vrap.rmf.raml.model.types.impl.ExampleImpl
-import io.vrap.rmf.raml.model.types.impl.StringInstanceImpl
 import org.eclipse.emf.ecore.util.EcoreUtil
 
 class RamlExampleRenderer @Inject constructor(val allObjectTypes: MutableList<ObjectType>, override val vrapTypeProvider: VrapTypeProvider) : ExtensionsBase, FileProducer {
