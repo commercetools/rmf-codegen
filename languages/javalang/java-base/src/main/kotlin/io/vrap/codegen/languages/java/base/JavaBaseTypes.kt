@@ -1,5 +1,6 @@
 package io.vrap.codegen.languages.java.base
 
+import com.fasterxml.jackson.databind.JsonNode
 import io.vrap.rmf.codegen.types.LanguageBaseTypes
 import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapScalarType
@@ -15,7 +16,7 @@ import kotlin.reflect.KClass
 
 object JavaBaseTypes : LanguageBaseTypes(
 
-    objectType = fromDefaultJavaType(Object::class),
+    objectType = fromDefaultJavaType(JsonNode::class),
     integerType = fromDefaultJavaType(Integer::class),
     longType = fromDefaultJavaType(Long::class),
     doubleType = fromDefaultJavaType(Double::class),
