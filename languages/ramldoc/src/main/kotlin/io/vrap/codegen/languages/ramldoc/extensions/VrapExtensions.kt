@@ -194,10 +194,19 @@ fun VrapObjectType.packageDir(prefix: String): String {
 }
 
 fun Annotation.renderAnnotation(): String {
-    return """
-            |(${this.type.name}): ${when (this.type) { is ObjectAnnotationType -> """
-            |  <<${this.value.toYaml()}>>""" else -> this.value.toYaml()}}
-        """.trimMargin().keepIndentation("<<", ">>")
+    return when (this.type) {
+        is ObjectAnnotationType -> """
+            |(${this.type.name}):
+            |  <<${this.value.toYaml()}>>""".trimMargin().keepIndentation("<<", ">>")
+        is StringAnnotationType ->
+            when(this.value) {
+                is ObjectInstance -> """
+                    |(${this.type.name}): |-
+                    |  <<${this.value.toJson()}>>""".trimMargin().keepIndentation("<<", ">>")
+                else -> "(${this.type.name}): ${this.value.toYaml()}"
+            }
+        else -> "(${this.type.name}): ${this.value.toYaml()}"
+    }
 }
 
 class InstanceSerializer : JsonSerializer<Instance>() {

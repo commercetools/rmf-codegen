@@ -5,6 +5,7 @@ import io.vrap.codegen.languages.extensions.getSuperTypes
 import io.vrap.codegen.languages.extensions.isPatternProperty
 import io.vrap.codegen.languages.extensions.sortedByTopology
 import io.vrap.codegen.languages.typescript.toTsComment
+import io.vrap.rmf.codegen.di.AllAnyTypes
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.FileProducer
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
@@ -17,6 +18,7 @@ import io.vrap.rmf.raml.model.types.*
 class TypeScriptModuleRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : TsObjectTypeExtensions, FileProducer {
 
     @Inject
+    @AllAnyTypes
     lateinit var allAnyTypes: MutableList<AnyType>
 
     override fun produceFiles(): List<TemplateFile> {

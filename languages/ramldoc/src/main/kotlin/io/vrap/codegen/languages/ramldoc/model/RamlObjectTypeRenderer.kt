@@ -58,7 +58,7 @@ class RamlObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: 
             |discriminatorValue: ${type.discriminatorValue}""" else ""}${if (type.subTypes.filterNot { it.isInlineType }.isNotEmpty()) """
             |(oneOf):
             |${type.subTypes.filterNot { it.isInlineType }.sortedWith(compareBy { it.name }).joinToString("\n") { "- ${it.name}" }}""" else ""}${if (examples.isNotEmpty()) """
-            |<<${type.annotations.joinToString("\n") { it.renderAnnotation() }}>>
+            |<<${type.annotations.filterNot { annotation -> annotation.type.name == "postman-example" }.joinToString("\n") { it.renderAnnotation() }}>>
             |examples:
             |  <<${examples.joinToString("\n") { renderExample(vrapType, it) }}>>""" else ""}${if (type.description?.value != null) """
             |description: |-
@@ -101,7 +101,7 @@ class RamlObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: 
             |  <<${property.type.renderType()}>>${if (discriminatorProp == property.name && discriminatorValue.isNullOrBlank().not()) """
             |  enum:
             |  - $discriminatorValue""" else ""}${if (property.type.default != null) """
-            |  default: ${property.type.default.toYaml()}""" else ""}${if (property.type?.annotations != null) """
+            |  default: ${property.type.default.toYaml()}""" else ""}${if (property.type?.isInlineType == true && property.type?.annotations != null) """
             |  <<${property.type.annotations.joinToString("\n") { it.renderAnnotation() }}>>""" else ""}
             |  required: ${property.required}
         """.trimMargin().keepIndentation("<<", ">>")
