@@ -46,6 +46,15 @@ fun AnyType.renderScalarType(): String {
     return this.renderEAttributes().plus("type: ${this.name ?: BuiltinType.of(this.eClass()).get().getName()}").joinToString("\n")
 }
 
+fun NumberType.renderNumberType(): String {
+    val name = this.name ?: BuiltinType.of(this.eClass()).get().getName()
+    val typeName = if (name == "number" && this.format.literal.findAnyOf(listOf("int", "long")) != null) "integer" else name
+    if (!this.isInlineType) {
+        return "type: $typeName"
+    }
+    return this.renderEAttributes().plus("type: $typeName").joinToString("\n")
+}
+
 fun ObjectType.renderObjectType(): String {
     if (!this.isInlineType) {
         return "type: ${this.name}"
@@ -91,11 +100,14 @@ fun AnyType.renderTypeFacet(): String {
         is ArrayType -> this.renderArrayType()
         is UnionType -> this.renderUnionType()
         is ObjectType -> this.renderObjectType()
+        is NumberType -> this.renderNumberType()
         else -> this.renderScalarType()}
 }
 
 fun AnyType.renderType(withDescription: Boolean = true): String {
-    val builtinType = "(builtinType): ${BuiltinType.of(this.eClass()).map { it.getName() }.orElse("any")}"
+    val builtinTypeName = BuiltinType.of(this.eClass()).map { it.getName() }.orElse("any")
+    val typeName = if (this is NumberType && builtinTypeName == "number" && this.format.literal.findAnyOf(listOf("int", "long")) != null) "integer" else name
+    val builtinType = "(builtinType): $typeName"
     val description = if (withDescription && this.description?.value.isNullOrBlank().not()) {
         """
         |description: |-
