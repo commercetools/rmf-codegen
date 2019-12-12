@@ -84,3 +84,11 @@ annotation class PatternStringTypes
         AnnotationTarget.FUNCTION)
 @Retention(AnnotationRetention.RUNTIME)
 annotation class NamedScalarTypes
+
+@BindingAnnotation
+@Target(AnnotationTarget.FIELD,
+        AnnotationTarget.TYPE_PARAMETER,
+        AnnotationTarget.VALUE_PARAMETER,
+        AnnotationTarget.FUNCTION)
+@Retention(AnnotationRetention.RUNTIME)
+annotation class AllAnyTypes

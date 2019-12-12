@@ -103,6 +103,7 @@ class GeneratorModule constructor(
 
     @Provides
     @Singleton
+    @AllAnyTypes
     fun allAnyTypes(ramlApi: Api): List<AnyType> {
         val result = mutableListOf<AnyType>()
         ramlApi.types?.forEach { result.add(it) }
@@ -112,22 +113,22 @@ class GeneratorModule constructor(
 
     @Provides
     @Singleton
-    fun allObjectTypes(anyTypeList: MutableList<AnyType>): List<ObjectType> = anyTypeList.filter { it is ObjectType }.map { it as ObjectType }
+    fun allObjectTypes(@AllAnyTypes anyTypeList: MutableList<AnyType>): List<ObjectType> = anyTypeList.filter { it is ObjectType }.map { it as ObjectType }
 
     @Provides
     @Singleton
     @EnumStringTypes
-    fun allEnumStringTypes(anyTypeList: MutableList<AnyType>): List<StringType> = anyTypeList.filter { it is StringType && it.enum.isNotEmpty() }.map { it as StringType }
+    fun allEnumStringTypes(@AllAnyTypes anyTypeList: MutableList<AnyType>): List<StringType> = anyTypeList.filter { it is StringType && it.enum.isNotEmpty() }.map { it as StringType }
 
     @Provides
     @Singleton
     @PatternStringTypes
-    fun allPatternStringTypes(anyTypeList: MutableList<AnyType>): List<StringType> = anyTypeList.filter { it is StringType && it.pattern != null }.map { it as StringType }
+    fun allPatternStringTypes(@AllAnyTypes anyTypeList: MutableList<AnyType>): List<StringType> = anyTypeList.filter { it is StringType && it.pattern != null }.map { it as StringType }
 
     @Provides
     @Singleton
     @NamedScalarTypes
-    fun allNamedScalarTypes(anyTypeList: MutableList<AnyType>): List<StringType> = anyTypeList.filter {
+    fun allNamedScalarTypes(@AllAnyTypes anyTypeList: MutableList<AnyType>): List<StringType> = anyTypeList.filter {
         it is StringType && it.pattern == null && it.enum.isNullOrEmpty()
     }.map { it as StringType }
 
