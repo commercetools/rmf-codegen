@@ -114,7 +114,14 @@ class GeneratorTask : Runnable {
                 GeneratorComponent(generatorModule, PostmanModelModule())
             }
             ramldoc -> {
-                val generatorModule = GeneratorModule(apiProvider, generatorConfig, RamldocBaseTypes)
+                val ramlConfig = CodeGeneratorConfig(
+                        sharedPackage = sharedPackage,
+                        basePackageName = generatorConfig.basePackageName ?: "",
+                        modelPackage = modelPackageName,
+                        clientPackage = clientPackageName,
+                        outputFolder = outputFolder.toPath()
+                )
+                val generatorModule = GeneratorModule(apiProvider, ramlConfig, RamldocBaseTypes)
                 GeneratorComponent(generatorModule, RamldocModelModule())
             }
             else -> throw IllegalArgumentException("unsupported target '$target', allowed values are $javaModel, $springClient, $typescriptModel and $php")
