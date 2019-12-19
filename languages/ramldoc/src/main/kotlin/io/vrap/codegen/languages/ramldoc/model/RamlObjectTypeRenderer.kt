@@ -112,7 +112,7 @@ class RamlObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: 
             |${property.name}:
             |  <<${property.type.renderType()}>>${if (discriminatorProp == property.name && discriminatorValue.isNullOrBlank().not()) """
             |  enum:
-            |  - $discriminatorValue""" else if (property.type.enum.isNotEmpty()) """
+            |  - $discriminatorValue""" else if (property.type.isInlineType && property.type.enum.isNotEmpty()) """
             |  enum:
             |  <<${property.type.enum.joinToString("\n") { "- ${it.value}" }}>>""" else ""}${if (examples.isNotEmpty()) """
             |  examples:
