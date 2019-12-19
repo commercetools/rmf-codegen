@@ -35,9 +35,12 @@ class ApiRamlRenderer @Inject constructor(val api: Api, override val vrapTypePro
             |---
             |title: ${api.title}
             |annotationTypes:
+            |  resourceName:
+            |    type: string
+            |    allowedTargets: [Resource, Method]
             |  resourcePathUri:
             |    type: string
-            |    allowedTargets: Method
+            |    allowedTargets: [Resource, Method]
             |  builtinType:
             |    type: string
             |    allowedTargets: TypeDeclaration

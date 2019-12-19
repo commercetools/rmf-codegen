@@ -25,8 +25,11 @@ class RamlResourceRenderer @Inject constructor(val api: Api, val vrapTypeProvide
         val vrapType = vrapTypeProvider.doSwitch(type as EObject) as VrapObjectType
 
         val content = """
-            |#${type.toResourceName()}
-            |(resourcePathUri): ${type.fullUri.template}
+            |(resourceName): ${type.toResourceName()}
+            |(resourcePathUri): ${type.fullUri.template}${if (type.displayName != null) """
+            |displayName: ${type.displayName.value.trim()}""" else ""}${if (type.description != null) """
+            |description: |-
+            |  <<${type.description.value.trim()}>>""" else ""}
             |${if (type.fullUriParameters.size > 0) """
             |uriParameters:
             |  <<${type.fullUriParameters.joinToString("\n") { renderUriParameter(it) }}>>""" else ""}
@@ -43,7 +46,8 @@ class RamlResourceRenderer @Inject constructor(val api: Api, val vrapTypeProvide
         return """
             |${method.methodName}:${if (method.securedBy.isNotEmpty()) """
             |  securedBy:
-            |  <<${method.securedBy.joinToString("\n") { renderScheme(it)}}>>""" else ""}${if (method.description != null) """
+            |  <<${method.securedBy.joinToString("\n") { renderScheme(it)}}>>""" else ""}${if (method.displayName != null) """
+            |  displayName: ${method.displayName.value.trim()}""" else ""}${if (method.description != null) """
             |  description: |-
             |    <<${method.description.value.trim()}>>""" else ""}${if (method.queryParameters.isNotEmpty()) """
             |  queryParameters:
@@ -64,7 +68,9 @@ class RamlResourceRenderer @Inject constructor(val api: Api, val vrapTypeProvide
 
     private fun renderResponse(response: Response): String {
         return """
-            |${response.statusCode}:
+            |${response.statusCode}:${if (response.description != null) """
+            |  description: |-
+            |    <<${response.description.value.trim()}>>""" else ""}
             |  body:
             |    <<${response.bodies.joinToString("\n") { renderBody(it) } }>>
         """.trimMargin().keepIndentation("<<", ">>")
@@ -73,7 +79,7 @@ class RamlResourceRenderer @Inject constructor(val api: Api, val vrapTypeProvide
     private fun renderBody(body: Body): String {
         return """
             |${body.contentType}:
-            |  <<${body.type.renderType()}>>
+            |  <<${body.type.renderType(false)}>>
         """.trimMargin().keepIndentation("<<", ">>")
     }
     private fun renderUriParameter(uriParameter: UriParameter): String {

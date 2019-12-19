@@ -210,9 +210,15 @@ fun Annotation.renderAnnotation(): String {
         is ObjectAnnotationType -> """
             |(${this.type.name}):
             |  <<${this.value.toYaml()}>>""".trimMargin().keepIndentation("<<", ">>")
+        is ArrayAnnotationType -> """
+            |(${this.type.name}):
+            |  <<${this.value.toYaml()}>>""".trimMargin().keepIndentation("<<", ">>")
         is StringAnnotationType ->
             when(this.value) {
                 is ObjectInstance -> """
+                    |(${this.type.name}): |-
+                    |  <<${this.value.toJson()}>>""".trimMargin().keepIndentation("<<", ">>")
+                is ArrayInstance -> """
                     |(${this.type.name}): |-
                     |  <<${this.value.toJson()}>>""".trimMargin().keepIndentation("<<", ">>")
                 else -> "(${this.type.name}): ${this.value.toYaml()}"
