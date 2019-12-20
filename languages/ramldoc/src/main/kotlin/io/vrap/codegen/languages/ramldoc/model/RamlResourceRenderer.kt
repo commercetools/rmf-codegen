@@ -25,7 +25,7 @@ class RamlResourceRenderer @Inject constructor(val api: Api, val vrapTypeProvide
         val vrapType = vrapTypeProvider.doSwitch(type as EObject) as VrapObjectType
 
         val content = """
-            |# ${type.toResourceName()}
+            |# Resource
             |(resourceName): ${type.toResourceName()}
             |(resourcePathUri): ${type.fullUri.template}${if (type.displayName != null) """
             |displayName: ${type.displayName.value.trim()}""" else ""}${if (type.description != null) """

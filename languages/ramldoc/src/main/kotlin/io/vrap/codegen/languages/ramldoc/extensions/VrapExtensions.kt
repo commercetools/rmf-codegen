@@ -64,7 +64,7 @@ fun ObjectType.renderObjectType(): String {
 
 fun AnyType.renderEAttributes(): List<String> {
     val eAttributes = this.eClass().eAllAttributes
-    return eAttributes.filter { eAttribute -> eAttribute.name != "name" && this.eGet(eAttribute) != null}
+    return eAttributes.filter { eAttribute -> eAttribute.name !in listOf("name", "discriminator", "discriminatorValue") && this.eGet(eAttribute) != null}
             .map { eAttribute -> when(val eValue = this.eGet(eAttribute)) {
                 is RegExp -> "${eAttribute.name}: \"${eValue}\""
                 is String -> "${eAttribute.name}: \"${eValue}\""
