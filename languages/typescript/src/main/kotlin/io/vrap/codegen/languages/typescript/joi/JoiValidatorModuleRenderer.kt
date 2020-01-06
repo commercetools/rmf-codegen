@@ -7,6 +7,7 @@ import io.vrap.codegen.languages.extensions.hasSubtypes
 import io.vrap.codegen.languages.typescript.model.TsObjectTypeExtensions
 import io.vrap.codegen.languages.typescript.model.simpleTSName
 import io.vrap.codegen.languages.typescript.toJoiPackageName
+import io.vrap.rmf.codegen.di.AllAnyTypes
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.FileProducer
 import io.vrap.rmf.codegen.rendring.utils.keepIndentation
@@ -15,6 +16,7 @@ import io.vrap.rmf.raml.model.types.*
 
 class JoiValidatorModuleRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : JoiObjectTypeExtensions, TsObjectTypeExtensions, FileProducer {
     @Inject
+    @AllAnyTypes
     lateinit var allAnyTypes: MutableList<AnyType>
 
     override fun produceFiles(): List<TemplateFile> {

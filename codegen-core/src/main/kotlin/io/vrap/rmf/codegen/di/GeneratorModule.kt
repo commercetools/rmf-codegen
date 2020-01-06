@@ -3,7 +3,6 @@ package io.vrap.rmf.codegen.di
 import com.google.inject.AbstractModule
 import com.google.inject.Provides
 import com.google.inject.Singleton
-import com.google.inject.name.Named
 import io.vrap.rmf.codegen.common.generator.core.ResourceCollection
 import io.vrap.rmf.codegen.io.DataSink
 import io.vrap.rmf.codegen.io.FileDataSink
@@ -104,6 +103,7 @@ class GeneratorModule constructor(
 
     @Provides
     @Singleton
+    @AllAnyTypes
     fun allAnyTypes(ramlApi: Api): List<AnyType> {
         val result = mutableListOf<AnyType>()
         ramlApi.types?.forEach { result.add(it) }
@@ -113,17 +113,24 @@ class GeneratorModule constructor(
 
     @Provides
     @Singleton
-    fun allObjectTypes(anyTypeList: MutableList<AnyType>): List<ObjectType> = anyTypeList.filter { it is ObjectType }.map { it as ObjectType }
+    fun allObjectTypes(@AllAnyTypes anyTypeList: MutableList<AnyType>): List<ObjectType> = anyTypeList.filter { it is ObjectType }.map { it as ObjectType }
 
     @Provides
     @Singleton
     @EnumStringTypes
-    fun allEnumStringTypes(anyTypeList: MutableList<AnyType>): List<StringType> = anyTypeList.filter { it is StringType && it.enum.isNotEmpty() }.map { it as StringType }
+    fun allEnumStringTypes(@AllAnyTypes anyTypeList: MutableList<AnyType>): List<StringType> = anyTypeList.filter { it is StringType && it.enum.isNotEmpty() }.map { it as StringType }
 
     @Provides
     @Singleton
     @PatternStringTypes
-    fun allPatternStringTypes(anyTypeList: MutableList<AnyType>): List<StringType> = anyTypeList.filter { it is StringType && it.pattern != null }.map { it as StringType }
+    fun allPatternStringTypes(@AllAnyTypes anyTypeList: MutableList<AnyType>): List<StringType> = anyTypeList.filter { it is StringType && it.pattern != null }.map { it as StringType }
+
+    @Provides
+    @Singleton
+    @NamedScalarTypes
+    fun allNamedScalarTypes(@AllAnyTypes anyTypeList: MutableList<AnyType>): List<StringType> = anyTypeList.filter {
+        it is StringType && it.pattern == null && it.enum.isNullOrEmpty()
+    }.map { it as StringType }
 
     @Provides
     @Singleton
@@ -157,7 +164,7 @@ class GeneratorModule constructor(
             override fun caseNamedElement(`object`: NamedElement): Boolean = generatorConfig.customTypeMapping[`object`.name]?.let { false }
                     ?: true
 
-            override fun caseStringType(stringType: StringType): Boolean = stringType.enum?.isNotEmpty() ?: false || stringType.pattern != null
+            override fun caseStringType(stringType: StringType): Boolean = true
             override fun defaultCase(`object`: EObject?): Boolean? = false
         }
     }

@@ -24,7 +24,7 @@ class TestCodeGenerator {
     fun generateRamldocModels() {
         val generatorConfig = CodeGeneratorConfig(
                 basePackageName = "com/commercetools/importer",
-                outputFolder = Paths.get("${outputFolder}/api")
+                outputFolder = Paths.get("${outputFolder}")
         )
 
         val generatorModule = GeneratorModule(apiProvider, generatorConfig, RamldocBaseTypes)

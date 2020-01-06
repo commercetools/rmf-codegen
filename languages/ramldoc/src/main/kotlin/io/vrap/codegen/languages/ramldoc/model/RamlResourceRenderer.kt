@@ -1,16 +1,10 @@
 package io.vrap.codegen.languages.ramldoc.model
 
-import com.fasterxml.jackson.core.JsonProcessingException
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.module.SimpleModule
-import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator
-import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
 import com.google.inject.Inject
 import io.vrap.codegen.languages.extensions.isSuccessfull
 import io.vrap.codegen.languages.extensions.toResourceName
-import io.vrap.codegen.languages.ramldoc.extensions.InstanceSerializer
-import io.vrap.codegen.languages.ramldoc.extensions.ObjectInstanceSerializer
 import io.vrap.codegen.languages.ramldoc.extensions.renderType
+import io.vrap.codegen.languages.ramldoc.extensions.toYaml
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.ResourceRenderer
 import io.vrap.rmf.codegen.rendring.utils.keepIndentation
@@ -31,8 +25,12 @@ class RamlResourceRenderer @Inject constructor(val api: Api, val vrapTypeProvide
         val vrapType = vrapTypeProvider.doSwitch(type as EObject) as VrapObjectType
 
         val content = """
-            |#${type.toResourceName()}
-            |(resourcePathUri): ${type.fullUri.template}
+            |# Resource
+            |(resourceName): ${type.toResourceName()}
+            |(resourcePathUri): ${type.fullUri.template}${if (type.displayName != null) """
+            |displayName: ${type.displayName.value.trim()}""" else ""}${if (type.description != null) """
+            |description: |-
+            |  <<${type.description.value.trim()}>>""" else ""}
             |${if (type.fullUriParameters.size > 0) """
             |uriParameters:
             |  <<${type.fullUriParameters.joinToString("\n") { renderUriParameter(it) }}>>""" else ""}
@@ -49,7 +47,8 @@ class RamlResourceRenderer @Inject constructor(val api: Api, val vrapTypeProvide
         return """
             |${method.methodName}:${if (method.securedBy.isNotEmpty()) """
             |  securedBy:
-            |  <<${method.securedBy.joinToString("\n") { renderScheme(it)}}>>""" else ""}${if (method.description != null) """
+            |  <<${method.securedBy.joinToString("\n") { renderScheme(it)}}>>""" else ""}${if (method.displayName != null) """
+            |  displayName: ${method.displayName.value.trim()}""" else ""}${if (method.description != null) """
             |  description: |-
             |    <<${method.description.value.trim()}>>""" else ""}${if (method.queryParameters.isNotEmpty()) """
             |  queryParameters:
@@ -70,7 +69,9 @@ class RamlResourceRenderer @Inject constructor(val api: Api, val vrapTypeProvide
 
     private fun renderResponse(response: Response): String {
         return """
-            |${response.statusCode}:
+            |${response.statusCode}:${if (response.description != null) """
+            |  description: |-
+            |    <<${response.description.value.trim()}>>""" else ""}
             |  body:
             |    <<${response.bodies.joinToString("\n") { renderBody(it) } }>>
         """.trimMargin().keepIndentation("<<", ">>")
@@ -79,7 +80,7 @@ class RamlResourceRenderer @Inject constructor(val api: Api, val vrapTypeProvide
     private fun renderBody(body: Body): String {
         return """
             |${body.contentType}:
-            |  <<${body.type.renderType()}>>
+            |  <<${body.type.renderType(false)}>>
         """.trimMargin().keepIndentation("<<", ">>")
     }
     private fun renderUriParameter(uriParameter: UriParameter): String {
@@ -92,60 +93,9 @@ class RamlResourceRenderer @Inject constructor(val api: Api, val vrapTypeProvide
     private fun renderQueryParameter(queryParameter: QueryParameter): String {
         return """
             |${queryParameter.name}:${if (queryParameter.type.default != null) """
-            |  default: ${queryParameter.type.default.value}""" else ""}
+            |  default: ${queryParameter.type.default.toYaml()}""" else ""}
             |  required: ${queryParameter.required}
             |  <<${queryParameter.type.renderType()}>>
         """.trimMargin().keepIndentation("<<", ">>")
     }
-}
-
-fun Instance.toYaml(): String {
-    var example = ""
-    val mapper = YAMLMapper()
-    mapper.disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER)
-
-    val module = SimpleModule()
-    module.addSerializer(ObjectInstance::class.java, ObjectInstanceSerializer())
-    module.addSerializer<Instance>(ArrayInstance::class.java, InstanceSerializer())
-    module.addSerializer<Instance>(IntegerInstance::class.java, InstanceSerializer())
-    module.addSerializer<Instance>(BooleanInstance::class.java, InstanceSerializer())
-    module.addSerializer<Instance>(StringInstance::class.java, InstanceSerializer())
-    module.addSerializer<Instance>(NumberInstance::class.java, InstanceSerializer())
-    mapper.registerModule(module)
-
-    if (this is StringInstance) {
-        example = mapper.writeValueAsString(this.value)
-    } else if (this is ObjectInstance) {
-        try {
-            example = mapper.writeValueAsString(this)
-        } catch (e: JsonProcessingException) {
-        }
-    }
-
-    return example.trim()
-}
-
-fun Instance.toJson(): String {
-    var example = ""
-    val mapper = ObjectMapper()
-
-    val module = SimpleModule()
-    module.addSerializer(ObjectInstance::class.java, ObjectInstanceSerializer())
-    module.addSerializer<Instance>(ArrayInstance::class.java, InstanceSerializer())
-    module.addSerializer<Instance>(IntegerInstance::class.java, InstanceSerializer())
-    module.addSerializer<Instance>(BooleanInstance::class.java, InstanceSerializer())
-    module.addSerializer<Instance>(StringInstance::class.java, InstanceSerializer())
-    module.addSerializer<Instance>(NumberInstance::class.java, InstanceSerializer())
-    mapper.registerModule(module)
-
-    if (this is StringInstance) {
-        example = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(this.value)
-    } else if (this is ObjectInstance) {
-        try {
-            example = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(this)
-        } catch (e: JsonProcessingException) {
-        }
-    }
-
-    return example.trim()
 }

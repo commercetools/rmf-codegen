@@ -15,6 +15,7 @@ class CoreCodeGenerator @Inject constructor(val dataSink: DataSink,
                                             private val allObjectTypes: MutableList<ObjectType>,
                                             @EnumStringTypes private val allEnumStringTypes : MutableList<StringType>,
                                             @PatternStringTypes private val allPatternStringTypes : MutableList<StringType>,
+                                            @NamedScalarTypes private val allNamedScalarTypes: MutableList<StringType>,
                                             private val allResourceCollections: MutableList<ResourceCollection>,
                                             private val allResourceMethods: MutableList<Method>,
                                             private val allResources: MutableList<Resource>
@@ -30,6 +31,9 @@ class CoreCodeGenerator @Inject constructor(val dataSink: DataSink,
 
     @Inject(optional = true)
     lateinit var patternStringTypeGenerators: MutableSet<PatternStringTypeRenderer>
+
+    @Inject(optional = true)
+    lateinit var namedScalarTypeGenerators: MutableSet<NamedScalarTypeRenderer>
 
     @Inject(optional = true)
     lateinit var allResourcesGenerators: MutableSet<ResourceCollectionRenderer>
@@ -77,6 +81,13 @@ class CoreCodeGenerator @Inject constructor(val dataSink: DataSink,
             LOGGER.info("generating files for pattern string types")
             patternStringTypeGenerators.flatMap { stringTypeRenderer ->
                 allPatternStringTypes.map { stringTypeRenderer.render(it) }
+            }.map { dataSink.write(it) }
+        }
+
+        if (::namedScalarTypeGenerators.isInitialized) {
+            LOGGER.info("generating files for named string types")
+            namedScalarTypeGenerators.flatMap { scalarTypeRenderer ->
+                allNamedScalarTypes.map { scalarTypeRenderer.render(it) }
             }.map { dataSink.write(it) }
         }
 

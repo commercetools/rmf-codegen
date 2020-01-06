@@ -3,7 +3,7 @@ package io.vrap.codegen.languages.ramldoc.model
 import com.google.inject.Inject
 import io.vrap.codegen.languages.extensions.ExtensionsBase
 import io.vrap.codegen.languages.extensions.discriminatorProperty
-import io.vrap.codegen.languages.ramldoc.extensions.renderType
+import io.vrap.codegen.languages.ramldoc.extensions.*
 import io.vrap.rmf.codegen.di.ModelPackageName
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.ObjectTypeRenderer
@@ -12,6 +12,7 @@ import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.types.*
+import io.vrap.rmf.raml.model.types.Annotation
 import io.vrap.rmf.raml.model.types.impl.ExampleImpl
 import io.vrap.rmf.raml.model.types.impl.StringInstanceImpl
 
@@ -53,24 +54,42 @@ class RamlObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: 
             |discriminator: ${type.discriminatorProperty()?.name}""" else ""}${if (type.discriminatorValue.isNullOrBlank().not()) """
             |discriminatorValue: ${type.discriminatorValue}""" else ""}${if (type.subTypes.filterNot { it.isInlineType }.isNotEmpty()) """
             |(oneOf):
-            |${type.subTypes.filterNot { it.isInlineType }.sortedWith(compareBy { it.name }).joinToString("\n") { "- ${it.name}" }}""" else ""}${if (examples.isNotEmpty()) """
+            |${type.subTypes.filterNot { it.isInlineType }.sortedWith(compareBy { it.name }).joinToString("\n") { "- ${it.name}" }}""" else ""}${if (type.annotations.isNotEmpty()) """
+            |<<${type.annotations.filterNot { annotation -> annotation.type.name == "postman-example" }.joinToString("\n") { it.renderAnnotation() }}>>""" else ""}${if (examples.isNotEmpty()) """
             |examples:
-            |  <<${examples.joinToString("\n") { renderExample(vrapType, it) }}>>""" else ""}
+            |  <<${examples.joinToString("\n") { renderExample(vrapType, it) }}>>""" else ""}${if (type.description?.value != null) """
+            |description: |-
+            |  <<${type.description.value.trim()}>>""" else ""}
             |properties:
             |  <<${properties.joinToString("\n") { renderProperty(type, it) }}>>
             """.trimMargin().keepIndentation("<<", ">>")
 
         return TemplateFile(
-                relativePath = "types/" + vrapType.`package`.replace(modelPackageName, "").trim('/') + "/" + vrapType.simpleClassName + ".raml",
+                relativePath = "types/" + vrapType.packageDir(modelPackageName) + vrapType.simpleClassName + ".raml",
                 content = content
         )
     }
 
     private fun renderExample(type: VrapObjectType, example: Example): String {
-        val exampleName = "../../examples/" + type.`package`.replace(modelPackageName, "").trim('/') + "/" + type.simpleClassName + "-${if (example.name.isNotEmpty()) example.name else "default"}.json"
+        val t = if (type.packageDir(modelPackageName).isNotEmpty()) "../.." else ".."
+        val exampleName = "${t}/examples/" + type.packageDir(modelPackageName) + type.simpleClassName + "-${if (example.name.isNotEmpty()) example.name else "default"}.json"
         return """
-            |${if (example.name.isNotEmpty()) example.name else "default"}: !include $exampleName
+            |${if (example.name.isNotEmpty()) example.name else "default"}:${if (example.displayName != null) """
+            |  displayName: ${example.displayName.value.trim()}""" else ""}${if (example.description != null) """
+            |  description: |-
+            |    <<${example.description.value.trim()}>>""" else ""}${if (example.annotations.isNotEmpty()) """
+            |  <<${example.annotations.joinToString("\n") { it.renderAnnotation() }}>>""" else ""}
+            |  strict: ${example.strict.value}
+            |  value: !include $exampleName
         """.trimMargin()
+    }
+
+    private fun renderExample(example: Example): String {
+        return """
+            |${if (example.name.isNotEmpty()) example.name else "default"}: 
+            |  value: ${if (example.value is ObjectInstance) """|-
+            |    <<${example.value.toJson()}>>""" else example.value.toJson() }
+        """.trimMargin().keepIndentation("<<", ">>")
     }
 
 //    private fun renderDiscriminatorTypeAsUnion(type: ObjectType): String {
@@ -88,15 +107,19 @@ class RamlObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: 
     private fun renderProperty(type: ObjectType, property: Property): String {
         val discriminatorProp = type.discriminatorProperty()?.name
         val discriminatorValue = type.discriminatorValue
+        val examples = if (property.type.isInlineType) property.type.examples.filterNotNull().sortedWith(compareBy { it.name }) else listOf()
         return """
             |${property.name}:
             |  <<${property.type.renderType()}>>${if (discriminatorProp == property.name && discriminatorValue.isNullOrBlank().not()) """
             |  enum:
-            |  - $discriminatorValue""" else ""}${if (property.type.default != null) """
-            |  default: ${property.type.default.value}""" else ""}
+            |  - $discriminatorValue""" else if (property.type.isInlineType && property.type.enum.isNotEmpty()) """
+            |  enum:
+            |  <<${property.type.enum.joinToString("\n") { "- ${it.value}" }}>>""" else ""}${if (examples.isNotEmpty()) """
+            |  examples:
+            |    <<${examples.joinToString("\n") { renderExample(it) }}>>""" else ""}${if (property.type.default != null) """
+            |  default: ${property.type.default.toYaml()}""" else ""}${if (property.type?.isInlineType == true && property.type?.annotations != null) """
+            |  <<${property.type.annotations.joinToString("\n") { it.renderAnnotation() }}>>""" else ""}
             |  required: ${property.required}
         """.trimMargin().keepIndentation("<<", ">>")
     }
-
-
 }
