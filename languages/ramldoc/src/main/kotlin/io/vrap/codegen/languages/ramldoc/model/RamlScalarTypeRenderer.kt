@@ -10,10 +10,9 @@ import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.NamedScalarTypeRenderer
 import io.vrap.rmf.codegen.rendring.PatternStringTypeRenderer
 import io.vrap.rmf.codegen.rendring.StringTypeRenderer
-import io.vrap.rmf.codegen.rendring.utils.keepIndentation
+import io.vrap.rmf.codegen.rendring.utils.keepAngleIndent
 import io.vrap.rmf.codegen.types.*
 import io.vrap.rmf.raml.model.types.*
-import io.vrap.rmf.raml.model.types.Annotation
 import java.lang.Exception
 
 class RamlScalarTypeRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : ExtensionsBase, StringTypeRenderer, PatternStringTypeRenderer, NamedScalarTypeRenderer {
@@ -55,7 +54,7 @@ class RamlScalarTypeRenderer @Inject constructor(override val vrapTypeProvider: 
             |<<${type.annotations.joinToString("\n") { it.renderAnnotation() }}>>${if (examples.isNotEmpty()) """
             |examples:
             |  <<${examples.joinToString("\n") { renderExample(vrapType, it) }}>>""" else ""}
-        """.trimMargin().keepIndentation("<<", ">>")
+        """.trimMargin().keepAngleIndent()
         return TemplateFile(
                 relativePath = "types/" + vrapType.packageDir(modelPackageName) + vrapType.simpleClassName + ".raml",
                 content = content
@@ -87,7 +86,7 @@ class RamlScalarTypeRenderer @Inject constructor(override val vrapTypeProvider: 
             |${type.renderEAttributes().joinToString("\n")}${if (examples.isNotEmpty()) """
             |examples:
             |  <<${examples.joinToString("\n") { renderExample(type, it) }}>>""" else ""}
-        """.trimMargin().keepIndentation("<<", ">>")
+        """.trimMargin().keepAngleIndent()
         return TemplateFile(
                 relativePath = "types/" + type.name + ".raml",
                 content = content

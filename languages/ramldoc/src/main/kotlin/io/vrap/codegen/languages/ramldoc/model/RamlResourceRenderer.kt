@@ -7,7 +7,7 @@ import io.vrap.codegen.languages.ramldoc.extensions.renderType
 import io.vrap.codegen.languages.ramldoc.extensions.toYaml
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.ResourceRenderer
-import io.vrap.rmf.codegen.rendring.utils.keepIndentation
+import io.vrap.rmf.codegen.rendring.utils.keepAngleIndent
 import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.modules.Api
@@ -35,7 +35,7 @@ class RamlResourceRenderer @Inject constructor(val api: Api, val vrapTypeProvide
             |uriParameters:
             |  <<${type.fullUriParameters.joinToString("\n") { renderUriParameter(it) }}>>""" else ""}
             |${type.methods.joinToString("\n") { renderMethod(it) }}
-        """.trimMargin().keepIndentation("<<", ">>")
+        """.trimMargin().keepAngleIndent()
         val relativePath = "resources/" + type.toResourceName()+ ".raml"
         return TemplateFile(
                 relativePath = relativePath,
@@ -57,14 +57,14 @@ class RamlResourceRenderer @Inject constructor(val api: Api, val vrapTypeProvide
             |    <<${method.bodies.filter { it.type != null }.joinToString("\n") { renderBody(it) } }>>""" else ""}${if (method.responses.any { response -> response.isSuccessfull() }) """
             |  responses:
             |    <<${method.responses.filter { response -> response.isSuccessfull() }.joinToString("\n") { renderResponse(it) }}>>""" else ""}
-        """.trimMargin().keepIndentation("<<", ">>")
+        """.trimMargin().keepAngleIndent()
     }
 
     private fun renderScheme(securedBy: SecuredBy): String {
         return """
             |- ${securedBy.scheme.name}:
             |    <<${securedBy.parameters.toYaml()}>>
-        """.trimMargin().keepIndentation("<<", ">>")
+        """.trimMargin().keepAngleIndent()
     }
 
     private fun renderResponse(response: Response): String {
@@ -74,20 +74,20 @@ class RamlResourceRenderer @Inject constructor(val api: Api, val vrapTypeProvide
             |    <<${response.description.value.trim()}>>""" else ""}
             |  body:
             |    <<${response.bodies.joinToString("\n") { renderBody(it) } }>>
-        """.trimMargin().keepIndentation("<<", ">>")
+        """.trimMargin().keepAngleIndent()
     }
 
     private fun renderBody(body: Body): String {
         return """
             |${body.contentType}:
             |  <<${body.type.renderType(false)}>>
-        """.trimMargin().keepIndentation("<<", ">>")
+        """.trimMargin().keepAngleIndent()
     }
     private fun renderUriParameter(uriParameter: UriParameter): String {
         return """
             |${uriParameter.name}:
             |  <<${uriParameter.type.renderType()}>>
-        """.trimMargin().keepIndentation("<<", ">>")
+        """.trimMargin().keepAngleIndent()
     }
 
     private fun renderQueryParameter(queryParameter: QueryParameter): String {
@@ -96,6 +96,6 @@ class RamlResourceRenderer @Inject constructor(val api: Api, val vrapTypeProvide
             |  default: ${queryParameter.type.default.toYaml()}""" else ""}
             |  required: ${queryParameter.required}
             |  <<${queryParameter.type.renderType()}>>
-        """.trimMargin().keepIndentation("<<", ">>")
+        """.trimMargin().keepAngleIndent()
     }
 }

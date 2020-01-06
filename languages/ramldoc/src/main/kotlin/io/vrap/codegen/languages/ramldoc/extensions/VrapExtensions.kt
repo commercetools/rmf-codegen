@@ -10,7 +10,7 @@ import com.fasterxml.jackson.databind.SerializerProvider
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
-import io.vrap.rmf.codegen.rendring.utils.keepIndentation
+import io.vrap.rmf.codegen.rendring.utils.keepAngleIndent
 import io.vrap.rmf.codegen.types.VrapEnumType
 import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.raml.model.resources.Resource
@@ -80,7 +80,7 @@ fun ArrayType.renderArrayType(): String {
                 |  <<${this.items.renderTypeFacet()}>>
             """
     }
-    return t.trimMargin().keepIndentation("<<", ">>")
+    return t.trimMargin().keepAngleIndent()
 }
 
 fun UnionType.renderUnionType(): String {
@@ -92,7 +92,7 @@ fun UnionType.renderUnionType(): String {
     """.trimMargin()
 
     val t = listOf<String>().plus("type: ${typeString}").plus(unionString).plus(this.renderEAttributes()).joinToString("\n")
-    return t.trimMargin().keepIndentation("<<", ">>")
+    return t.trimMargin().keepAngleIndent()
 }
 
 fun AnyType.renderTypeFacet(): String {
@@ -112,7 +112,7 @@ fun AnyType.renderType(withDescription: Boolean = true): String {
         """
         |description: |-
         |  <<${this.description.value.trim()}>>
-        """.trimMargin().keepIndentation("<<", ">>")
+        """.trimMargin().keepAngleIndent()
     } else {
         ""
     }
@@ -155,7 +155,7 @@ fun ArrayAnnotationType.renderArrayType(): String {
                 |  <<${this.items.renderTypeFacet()}>>
             """
     }
-    return t.trimMargin().keepIndentation("<<", ">>")
+    return t.trimMargin().keepAngleIndent()
 }
 
 fun UnionAnnotationType.renderUnionType(): String {
@@ -167,7 +167,7 @@ fun UnionAnnotationType.renderUnionType(): String {
     """.trimMargin()
 
     val t = listOf<String>().plus("type: ${typeString}").plus(unionString).plus(this.renderEAttributes()).joinToString("\n")
-    return t.trimMargin().keepIndentation("<<", ">>")
+    return t.trimMargin().keepAngleIndent()
 }
 
 fun AnyAnnotationType.renderTypeFacet(): String {
@@ -184,7 +184,7 @@ fun AnyAnnotationType.renderType(withDescription: Boolean = true): String {
         """
         |description: |-
         |  <<${this.description.value.trim()}>>
-        """.trimMargin().keepIndentation("<<", ">>")
+        """.trimMargin().keepAngleIndent()
     } else {
         ""
     }
@@ -209,18 +209,18 @@ fun Annotation.renderAnnotation(): String {
     return when (this.type) {
         is ObjectAnnotationType -> """
             |(${this.type.name}):
-            |  <<${this.value.toYaml()}>>""".trimMargin().keepIndentation("<<", ">>")
+            |  <<${this.value.toYaml()}>>""".trimMargin().keepAngleIndent()
         is ArrayAnnotationType -> """
             |(${this.type.name}):
-            |  <<${this.value.toYaml()}>>""".trimMargin().keepIndentation("<<", ">>")
+            |  <<${this.value.toYaml()}>>""".trimMargin().keepAngleIndent()
         is StringAnnotationType ->
             when(this.value) {
                 is ObjectInstance -> """
                     |(${this.type.name}): |-
-                    |  <<${this.value.toJson()}>>""".trimMargin().keepIndentation("<<", ">>")
+                    |  <<${this.value.toJson()}>>""".trimMargin().keepAngleIndent()
                 is ArrayInstance -> """
                     |(${this.type.name}): |-
-                    |  <<${this.value.toJson()}>>""".trimMargin().keepIndentation("<<", ">>")
+                    |  <<${this.value.toJson()}>>""".trimMargin().keepAngleIndent()
                 else -> "(${this.type.name}): ${this.value.toYaml()}"
             }
         else -> "(${this.type.name}): ${this.value.toYaml()}"

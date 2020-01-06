@@ -10,7 +10,7 @@ import io.vrap.rmf.codegen.di.SharedPackageName
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.ObjectTypeRenderer
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
-import io.vrap.rmf.codegen.rendring.utils.keepIndentation
+import io.vrap.rmf.codegen.rendring.utils.keepAngleIndent
 import io.vrap.rmf.codegen.types.*
 import io.vrap.rmf.raml.model.types.*
 import io.vrap.rmf.raml.model.types.Annotation
@@ -74,7 +74,7 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
             |            };
             |    }
             |}
-        """.trimMargin().keepIndentation("<<", ">>").forcedLiteralEscape()
+        """.trimMargin().keepAngleIndent().forcedLiteralEscape()
     }
 
     fun content(type: ObjectType): String {
@@ -107,7 +107,7 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
             |    <<${type.discriminatorClasses()}>>
             |    <<${type.discriminatorResolver()}>>
             |}
-        """.trimMargin().keepIndentation("<<", ">>").forcedLiteralEscape()
+        """.trimMargin().keepAngleIndent().forcedLiteralEscape()
     }
 
 

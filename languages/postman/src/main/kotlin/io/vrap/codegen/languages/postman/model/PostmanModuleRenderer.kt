@@ -14,18 +14,16 @@ import io.vrap.codegen.languages.extensions.EObjectExtensions
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.FileProducer
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
-import io.vrap.rmf.codegen.rendring.utils.keepIndentation
+import io.vrap.rmf.codegen.rendring.utils.keepAngleIndent
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.modules.Api
 import io.vrap.rmf.raml.model.resources.HttpMethod
 import io.vrap.rmf.raml.model.resources.Method
-import io.vrap.rmf.raml.model.resources.Parameter
 import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.security.OAuth20Settings
 import io.vrap.rmf.raml.model.types.*
 import io.vrap.rmf.raml.model.util.StringCaseFormat
 import org.apache.commons.lang3.StringEscapeUtils
-import org.apache.commons.lang3.StringUtils
 import org.eclipse.emf.ecore.EObject
 import java.io.IOException
 import java.net.URI
@@ -107,7 +105,7 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
                     |        <<${api.resources().joinToString(",") { folder(it) }}>>
                     |    ]
                     |}
-                """.trimMargin().keepIndentation("<<",">>"))
+                """.trimMargin().keepAngleIndent())
     }
 
     private fun folder(resource: ResourceModel): String {
@@ -529,7 +527,7 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
             |        |}""".trimMargin()}>>
             |    ]
             |}
-        """.trimMargin().keepIndentation("<<", ">>")
+        """.trimMargin().keepAngleIndent()
     }
 
     private fun updateProjectActionExample(item: ItemGenModel): String {
@@ -554,7 +552,7 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
             |        |}""".trimMargin()}>>
             |    ]
             |}
-        """.trimMargin().keepIndentation("<<", ">>")
+        """.trimMargin().keepAngleIndent()
     }
 
 
@@ -980,7 +978,7 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
             |        }
             |    ]
             |}
-        """.trimMargin().keepIndentation("<<", ">>").escapeAll()
+        """.trimMargin().keepAngleIndent().escapeAll()
     }
 
     private fun readme(): String {
