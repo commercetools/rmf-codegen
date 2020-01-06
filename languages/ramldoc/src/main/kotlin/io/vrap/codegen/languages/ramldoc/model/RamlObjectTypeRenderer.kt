@@ -7,14 +7,10 @@ import io.vrap.codegen.languages.ramldoc.extensions.*
 import io.vrap.rmf.codegen.di.ModelPackageName
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.ObjectTypeRenderer
-import io.vrap.rmf.codegen.rendring.utils.keepIndentation
+import io.vrap.rmf.codegen.rendring.utils.keepAngleIndent
 import io.vrap.rmf.codegen.types.VrapObjectType
-import io.vrap.rmf.codegen.types.VrapType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.types.*
-import io.vrap.rmf.raml.model.types.Annotation
-import io.vrap.rmf.raml.model.types.impl.ExampleImpl
-import io.vrap.rmf.raml.model.types.impl.StringInstanceImpl
 
 class RamlObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : ExtensionsBase, ObjectTypeRenderer {
 
@@ -62,7 +58,7 @@ class RamlObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: 
             |  <<${type.description.value.trim()}>>""" else ""}
             |properties:
             |  <<${properties.joinToString("\n") { renderProperty(type, it) }}>>
-            """.trimMargin().keepIndentation("<<", ">>")
+            """.trimMargin().keepAngleIndent()
 
         return TemplateFile(
                 relativePath = "types/" + vrapType.packageDir(modelPackageName) + vrapType.simpleClassName + ".raml",
@@ -89,7 +85,7 @@ class RamlObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: 
             |${if (example.name.isNotEmpty()) example.name else "default"}: 
             |  value: ${if (example.value is ObjectInstance) """|-
             |    <<${example.value.toJson()}>>""" else example.value.toJson() }
-        """.trimMargin().keepIndentation("<<", ">>")
+        """.trimMargin().keepAngleIndent()
     }
 
 //    private fun renderDiscriminatorTypeAsUnion(type: ObjectType): String {
@@ -101,7 +97,7 @@ class RamlObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: 
 //            |type: ${type.subTypes.filterNot { it.isInlineType }.joinToString(" | ") { it.name }}${if (type.discriminatorProperty() != null) """
 //            |(oneOf):
 //            |${type.subTypes.filterNot { it.isInlineType }.joinToString("\n") { "- ${it.name}" }}""" else ""}
-//        """.trimMargin().keepIndentation("<<", ">>")
+//        """.trimMargin().keepAngleIndent()
 //    }
 
     private fun renderProperty(type: ObjectType, property: Property): String {
@@ -120,6 +116,6 @@ class RamlObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: 
             |  default: ${property.type.default.toYaml()}""" else ""}${if (property.type?.isInlineType == true && property.type?.annotations != null) """
             |  <<${property.type.annotations.joinToString("\n") { it.renderAnnotation() }}>>""" else ""}
             |  required: ${property.required}
-        """.trimMargin().keepIndentation("<<", ">>")
+        """.trimMargin().keepAngleIndent()
     }
 }

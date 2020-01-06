@@ -6,12 +6,11 @@ import io.vrap.codegen.languages.php.PhpSubTemplates
 import io.vrap.codegen.languages.php.extensions.*
 import io.vrap.rmf.codegen.di.BasePackageName
 import io.vrap.rmf.codegen.di.ClientPackageName
-import io.vrap.rmf.codegen.di.ModelPackageName
 import io.vrap.rmf.codegen.di.SharedPackageName
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.FileProducer
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
-import io.vrap.rmf.codegen.rendring.utils.keepIndentation
+import io.vrap.rmf.codegen.rendring.utils.keepAngleIndent
 import io.vrap.rmf.raml.model.modules.Api
 import io.vrap.rmf.raml.model.util.StringCaseFormat
 
@@ -177,7 +176,7 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |        );
                     |    }
                     |}
-                """.trimMargin().keepIndentation("<<", ">>").forcedLiteralEscape())
+                """.trimMargin().keepAngleIndent().forcedLiteralEscape())
     }
 
     fun UriTemplate.replaceValues(): String = variables

@@ -9,7 +9,7 @@ import io.vrap.rmf.codegen.di.AllAnyTypes
 import io.vrap.rmf.codegen.di.ModelPackageName
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.FileProducer
-import io.vrap.rmf.codegen.rendring.utils.keepIndentation
+import io.vrap.rmf.codegen.rendring.utils.keepAngleIndent
 import io.vrap.rmf.codegen.types.VrapEnumType
 import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapScalarType
@@ -57,7 +57,7 @@ class ApiRamlRenderer @Inject constructor(val api: Api, override val vrapTypePro
             |  <<${anyTypeList.filterNot { it is UnionType }.sortedWith(compareBy { it.name }).joinToString("\n") { "${it.name}: !include ${ramlFileName(it)}" }}>>
             |  
             |${api.allContainedResources.sortedWith(compareBy { it.resourcePath }).joinToString("\n") { "${it.fullUri.template}: !include resources/${it.toResourceName()}.raml" }}
-        """.trimMargin().keepIndentation("<<", ">>")
+        """.trimMargin().keepAngleIndent()
 
         return TemplateFile(relativePath = "api.raml",
                 content = content
@@ -129,7 +129,7 @@ class ApiRamlRenderer @Inject constructor(val api: Api, override val vrapTypePro
         return """
             |${annotation.name}:
             |   <<${annotation.renderType()}>>
-        """.trimMargin().keepIndentation("<<", ">>")
+        """.trimMargin().keepAngleIndent()
     }
 
     private fun ramlFileName(type: AnyType): String {
