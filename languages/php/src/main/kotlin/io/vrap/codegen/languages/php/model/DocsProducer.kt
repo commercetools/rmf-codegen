@@ -6,6 +6,7 @@ import io.vrap.codegen.languages.extensions.getMethodName
 import io.vrap.codegen.languages.php.extensions.*
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.FileProducer
+import io.vrap.rmf.codegen.rendring.utils.keepAngleIndent
 import io.vrap.rmf.codegen.rendring.utils.keepIndentation
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.modules.Api
@@ -33,7 +34,7 @@ class DocsProducer @Inject constructor(api: Api, vrapTypeProvider: VrapTypeProvi
                     |```
                     |
                     |<<${resources.values.flatMap { resource -> resource.methods.map { method -> resourceInfo(resource, method) }}.joinToString("\n")}>>
-                """.trimMargin().keepIndentation("<<", ">>").forcedLiteralEscape())
+                """.trimMargin().keepAngleIndent().forcedLiteralEscape())
     }
 
     private fun resourceInfo(resource: Resource, method: Method): String {

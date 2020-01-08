@@ -8,6 +8,7 @@ import io.vrap.codegen.languages.php.extensions.*
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.ResourceRenderer
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
+import io.vrap.rmf.codegen.rendring.utils.keepAngleIndent
 import io.vrap.rmf.codegen.rendring.utils.keepIndentation
 import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
@@ -60,7 +61,7 @@ class PhpRequestTestRenderer @Inject constructor(api: Api, vrapTypeProvider: Vra
             |        };
             |    }
             |}
-        """.trimMargin().keepIndentation("<<", ">>").forcedLiteralEscape()
+        """.trimMargin().keepAngleIndent().forcedLiteralEscape()
 
         val relativeTypeNamespace = vrapType.`package`.toNamespaceName().replace(basePackagePrefix.toNamespaceName() + "\\", "").replace("\\", "/") + "/$resourcePackage"
         val relativePath = "test/unit/" + relativeTypeNamespace + "/" + type.resourceBuilderName() + "Test.php"
