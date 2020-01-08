@@ -155,7 +155,7 @@ fun QueryParameter.methodParam(): String {
         val o = anno.value as ObjectInstance
         val placeholder = o.value.stream().filter { propertyValue -> propertyValue.name == "placeholder" }.findFirst().orElse(null).value as StringInstance
         val paramName = o.value.stream().filter { propertyValue -> propertyValue.name == "paramName" }.findFirst().orElse(null).value as StringInstance
-        return "$" + StringCaseFormat.LOWER_CAMEL_CASE.apply(placeholder.value) + ", $" + paramName.value
+        return "string $" + StringCaseFormat.LOWER_CAMEL_CASE.apply(placeholder.value) + ", $" + paramName.value
     }
     return "$" + StringCaseFormat.LOWER_CAMEL_CASE.apply(this.name.replace(".", "-"))
 }
@@ -200,7 +200,7 @@ fun QueryParameter.placeholderDocBlock(): String {
     if (anno != null) {
         val o = anno.value as ObjectInstance
         val placeholder = o.value.stream().filter { propertyValue -> propertyValue.name == "placeholder" }.findFirst().orElse(null).value as StringInstance
-        return "@psalm-param scalar $" + placeholder.value
+        return "@psalm-param string $" + placeholder.value
     }
     return ""
 }

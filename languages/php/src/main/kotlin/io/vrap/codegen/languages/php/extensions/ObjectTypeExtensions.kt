@@ -113,4 +113,4 @@ fun getImportsForType(vrapType: VrapType): String? {
     }
 }
 
-fun ObjectType.namedSubTypes() = this.subTypes.asSequence().toList()
+fun ObjectType.namedSubTypes() = this.subTypes.filterNot { it.isInlineType }.asSequence().toList()

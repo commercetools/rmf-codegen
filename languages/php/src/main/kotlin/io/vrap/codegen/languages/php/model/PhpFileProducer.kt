@@ -130,15 +130,15 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |
                     |    <<${if (api.baseUri.value.variables.isNotEmpty()) { api.baseUri.value.constVariables()} else ""}>>
                     |
-                    |    /** @var string */
+                    |    /** @psalm-var string */
                     |    private $!apiUri;
                     |
-                    |    /** @var array */
+                    |    /** @psalm-var array */
                     |    private $!clientOptions;
                     |
                     |    public function __construct(${if (api.baseUri.value.variables.isNotEmpty()) { api.baseUri.value.params() } else ""}array $!clientOptions = [], string $!baseUri = null)
                     |    {
-                    |        /** @var string $!apiUri */
+                    |        /** @psalm-var string $!apiUri */
                     |        $!apiUri = $!baseUri ?? static::API_URI;
                     |        <<${if (api.baseUri.value.variables.isNotEmpty()) { api.baseUri.value.replaceValues()} else ""}>>
                     |        $!this->apiUri = $!apiUri;
@@ -195,22 +195,22 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |
                     |    const GRANT_TYPE = '';
                     |    
-                    |    /** @var string */
+                    |    /** @psalm-var string */
                     |    private $!authUri;
                     |
-                    |    /** @var array */
+                    |    /** @psalm-var array */
                     |    private $!clientOptions;
                     |
                     |    public function __construct(array $!clientOptions = [], string $!authUri = self::AUTH_URI)
                     |    {
-                    |        /** @var string authUri */
+                    |        /** @psalm-var string authUri */
                     |        $!this->authUri = $!authUri;
                     |        $!this->clientOptions = $!clientOptions;
                     |    }
                     |
                     |    public function getGrantType(): string
                     |    {
-                    |        /** @var string */
+                    |        /** @psalm-var string */
                     |        return static::GRANT_TYPE;
                     |    }
                     |
@@ -252,7 +252,7 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |
                     |    const GRANT_TYPE = 'client_credentials';
                     |
-                    |    /** @var ClientCredentials */
+                    |    /** @psalm-var ClientCredentials */
                     |    private $!credentials;
                     |
                     |    public function __construct(ClientCredentials $!credentials, array $!clientOptions = [], string $!authUri = self::AUTH_URI)

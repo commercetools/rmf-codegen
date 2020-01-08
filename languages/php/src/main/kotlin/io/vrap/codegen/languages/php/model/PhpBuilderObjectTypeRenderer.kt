@@ -52,6 +52,7 @@ class PhpBuilderObjectTypeRenderer @Inject constructor(override val vrapTypeProv
             |${PhpSubTemplates.generatorInfo}
             |namespace ${vrapType.namespaceName().escapeAll()};
             |
+            |use stdClass;
             |use ${sharedPackageName.toNamespaceName().escapeAll()}\\Base\\MapperMap;
             |use ${sharedPackageName.toNamespaceName().escapeAll()}\\Base\\Builder;
             |
@@ -62,16 +63,20 @@ class PhpBuilderObjectTypeRenderer @Inject constructor(override val vrapTypeProv
             |final class ${vrapType.simpleClassName}Builder extends MapperMap implements Builder
             |{
             |    /**
-            |     * @psalm-return callable(string):?mixed
+            |     * @psalm-return callable(string):?${vrapType.simpleClassName}
             |     */
             |    protected function mapper()
             |    {
             |        return
             |            /**
-            |             * @psalm-return ?mixed
+            |             * @psalm-return ?${vrapType.simpleClassName}
             |             */
             |            function(string $!key) {
-            |               return $!this->get($!key);
+            |                $!data = $!this->get($!key);
+            |                if ($!data instanceof stdClass) {
+            |                    $!data = ${vrapType.simpleName()}Model::of($!data);
+            |                }
+            |                return $!data;
             |            };
             |    }
             |    
