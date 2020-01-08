@@ -203,19 +203,23 @@ data class IndentationTokens(val startToken: String = "{{", val stopToken: Strin
 }
 
 fun String.keepSingleAngleIndent(): String {
-    return this keepIndentWith IndentMarker.SingleAngle.tokens
+    return this keepIndentWith IndentMarker.SingleAngle
 }
 
 fun String.keepAngleIndent(): String {
-    return this keepIndentWith IndentMarker.DoubleAngle.tokens
+    return this keepIndentWith IndentMarker.DoubleAngle
 }
 
 fun String.keepSingleCurlyIndent(): String {
-    return this keepIndentWith IndentMarker.SingleCurly.tokens
+    return this keepIndentWith IndentMarker.SingleCurly
 }
 
 fun String.keepCurlyIndent(): String {
-    return this keepIndentWith IndentMarker.DoubleCurly.tokens
+    return this keepIndentWith IndentMarker.DoubleCurly
+}
+
+infix fun String.keepIndentWith(indentMarker: IndentMarker): String {
+    return this keepIndentWith indentMarker.tokens
 }
 
 infix fun String.keepIndentWith(indentMarker: IndentationTokens): String {
