@@ -11,6 +11,8 @@ import io.vrap.codegen.languages.php.model.PhpModelModule
 import io.vrap.codegen.languages.typescript.model.TypeScriptBaseTypes
 import io.vrap.codegen.languages.postman.model.PostmanBaseTypes
 import io.vrap.codegen.languages.postman.model.PostmanModelModule
+import io.vrap.codegen.languages.ramldoc.model.RamldocBaseTypes
+import io.vrap.codegen.languages.ramldoc.model.RamldocModelModule
 import io.vrap.codegen.languages.typescript.model.TypescriptModelModule
 import io.vrap.rmf.codegen.CodeGeneratorConfig
 import io.vrap.rmf.codegen.di.ApiProvider
@@ -39,6 +41,7 @@ const val springClient = "spring-client"
 const val typescriptModel = "typescript-model"
 const val php = "php"
 const val postman = "postman"
+const val ramldoc = "ramldoc"
 
 
 @Command(name = "generate", description = "Generate source code from a RAML specification.")
@@ -109,6 +112,17 @@ class GeneratorTask : Runnable {
             postman -> {
                 val generatorModule = GeneratorModule(apiProvider, generatorConfig, PostmanBaseTypes)
                 GeneratorComponent(generatorModule, PostmanModelModule())
+            }
+            ramldoc -> {
+                val ramlConfig = CodeGeneratorConfig(
+                        sharedPackage = sharedPackage,
+                        basePackageName = generatorConfig.basePackageName ?: "",
+                        modelPackage = modelPackageName,
+                        clientPackage = clientPackageName,
+                        outputFolder = outputFolder.toPath()
+                )
+                val generatorModule = GeneratorModule(apiProvider, ramlConfig, RamldocBaseTypes)
+                GeneratorComponent(generatorModule, RamldocModelModule())
             }
             else -> throw IllegalArgumentException("unsupported target '$target', allowed values are $javaModel, $springClient, $typescriptModel and $php")
         }

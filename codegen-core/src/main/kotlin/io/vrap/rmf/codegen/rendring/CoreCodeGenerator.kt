@@ -2,9 +2,7 @@ package io.vrap.rmf.codegen.rendring
 
 import com.google.inject.Inject
 import io.vrap.rmf.codegen.common.generator.core.ResourceCollection
-import io.vrap.rmf.codegen.di.ApiGitHash
-import io.vrap.rmf.codegen.di.ApiProvider
-import io.vrap.rmf.codegen.di.GeneratorModule
+import io.vrap.rmf.codegen.di.*
 import io.vrap.rmf.codegen.io.DataSink
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.raml.model.resources.Method
@@ -15,7 +13,9 @@ import org.slf4j.LoggerFactory
 
 class CoreCodeGenerator @Inject constructor(val dataSink: DataSink,
                                             private val allObjectTypes: MutableList<ObjectType>,
-                                            private val allStringTypes : MutableList<StringType>,
+                                            @EnumStringTypes private val allEnumStringTypes : MutableList<StringType>,
+                                            @PatternStringTypes private val allPatternStringTypes : MutableList<StringType>,
+                                            @NamedScalarTypes private val allNamedScalarTypes: MutableList<StringType>,
                                             private val allResourceCollections: MutableList<ResourceCollection>,
                                             private val allResourceMethods: MutableList<Method>,
                                             private val allResources: MutableList<Resource>
@@ -27,7 +27,13 @@ class CoreCodeGenerator @Inject constructor(val dataSink: DataSink,
     lateinit var objectTypeGenerators: MutableSet<ObjectTypeRenderer>
 
     @Inject(optional = true)
-    lateinit var stringTypeGenerators: MutableSet<StringTypeRenderer>
+    lateinit var enumStringTypeGenerators: MutableSet<StringTypeRenderer>
+
+    @Inject(optional = true)
+    lateinit var patternStringTypeGenerators: MutableSet<PatternStringTypeRenderer>
+
+    @Inject(optional = true)
+    lateinit var namedScalarTypeGenerators: MutableSet<NamedScalarTypeRenderer>
 
     @Inject(optional = true)
     lateinit var allResourcesGenerators: MutableSet<ResourceCollectionRenderer>
@@ -64,10 +70,24 @@ class CoreCodeGenerator @Inject constructor(val dataSink: DataSink,
             }. map { dataSink.write(it) }
         }
 
-        if (::stringTypeGenerators.isInitialized) {
-            LOGGER.info("generating files for string types")
-            stringTypeGenerators.flatMap { stringTypeRenderer ->
-                allStringTypes.map { stringTypeRenderer.render(it) }
+        if (::enumStringTypeGenerators.isInitialized) {
+            LOGGER.info("generating files for enum string types")
+            enumStringTypeGenerators.flatMap { stringTypeRenderer ->
+                allEnumStringTypes.map { stringTypeRenderer.render(it) }
+            }.map { dataSink.write(it) }
+        }
+
+        if (::patternStringTypeGenerators.isInitialized) {
+            LOGGER.info("generating files for pattern string types")
+            patternStringTypeGenerators.flatMap { stringTypeRenderer ->
+                allPatternStringTypes.map { stringTypeRenderer.render(it) }
+            }.map { dataSink.write(it) }
+        }
+
+        if (::namedScalarTypeGenerators.isInitialized) {
+            LOGGER.info("generating files for named string types")
+            namedScalarTypeGenerators.flatMap { scalarTypeRenderer ->
+                allNamedScalarTypes.map { scalarTypeRenderer.render(it) }
             }.map { dataSink.write(it) }
         }
 
@@ -96,6 +116,8 @@ class CoreCodeGenerator @Inject constructor(val dataSink: DataSink,
             LOGGER.info("generating types for file producers")
             fileProducers.flatMap { it.produceFiles() }.map { dataSink.write(it) }
         }
+
+        dataSink.postClean()
 
         LOGGER.info("files generation ended")
     }

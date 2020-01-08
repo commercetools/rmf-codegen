@@ -73,6 +73,7 @@ class JavaModelInterfaceRenderer @Inject constructor(override val vrapTypeProvid
     }
     
     private fun ObjectType.subTypesAnnotations(): String {
+        val vrapType = vrapTypeProvider.doSwitch(this).toJavaVType() as VrapObjectType
         return if (this.hasSubtypes())
             """
             |@JsonSubTypes({
@@ -87,7 +88,8 @@ class JavaModelInterfaceRenderer @Inject constructor(override val vrapTypeProvid
             |@JsonTypeInfo(
             |   use = JsonTypeInfo.Id.NAME,
             |   include = JsonTypeInfo.As.PROPERTY,
-            |   property = "${this.discriminator}"
+            |   property = "${this.discriminator}",
+            |   defaultImpl = ${vrapType.simpleClassName}Impl.class
             |)
             """.trimMargin()
         else

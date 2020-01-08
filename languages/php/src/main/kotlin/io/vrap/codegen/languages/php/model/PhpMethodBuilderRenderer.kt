@@ -6,7 +6,7 @@ import io.vrap.codegen.languages.php.extensions.*
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.ResourceRenderer
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
-import io.vrap.rmf.codegen.rendring.utils.keepIndentation
+import io.vrap.rmf.codegen.rendring.utils.keepAngleIndent
 import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.modules.Api
@@ -36,7 +36,7 @@ class PhpMethodBuilderRenderer @Inject constructor(api: Api, vrapTypeProvider: V
             |   <<${type.subResources()}>>
             |   <<${type.methods()}>>
             |}
-        """.trimMargin().keepIndentation("<<", ">>").forcedLiteralEscape()
+        """.trimMargin().keepAngleIndent().forcedLiteralEscape()
         val relativeTypeNamespace = vrapType.`package`.toNamespaceName().replace(basePackagePrefix.toNamespaceName() + "\\", "").replace("\\", "/") + "/$resourcePackage"
         val relativePath = "src/" + relativeTypeNamespace + "/" + type.resourceBuilderName() + ".php"
         return TemplateFile(

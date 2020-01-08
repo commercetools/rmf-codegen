@@ -24,6 +24,7 @@ dependencies {
     compile project(':languages:typescript')
     compile project(':languages:postman')
     compile project(':languages:php')
+    compile project(':languages:ramldoc')
 
     compile 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
     compile 'com.google.guava:guava:27.0.1-jre'

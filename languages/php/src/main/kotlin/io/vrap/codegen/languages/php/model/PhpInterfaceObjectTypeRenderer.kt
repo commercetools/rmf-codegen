@@ -10,7 +10,7 @@ import io.vrap.rmf.codegen.di.SharedPackageName
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.ObjectTypeRenderer
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
-import io.vrap.rmf.codegen.rendring.utils.keepIndentation
+import io.vrap.rmf.codegen.rendring.utils.keepAngleIndent
 import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.types.Annotation
@@ -61,7 +61,7 @@ class PhpInterfaceObjectTypeRenderer @Inject constructor(override val vrapTypePr
             |interface ${vrapType.simpleClassName} extends Collection
             |{
             |}
-        """.trimMargin().keepIndentation("<<", ">>").forcedLiteralEscape()
+        """.trimMargin().keepAngleIndent().forcedLiteralEscape()
     }
 
     fun content(type: ObjectType): String {
@@ -84,7 +84,7 @@ class PhpInterfaceObjectTypeRenderer @Inject constructor(override val vrapTypePr
             |    <<${type.getters()}>>
             |    <<${type.setters()}>>
             |}
-        """.trimMargin().keepIndentation("<<", ">>").forcedLiteralEscape()
+        """.trimMargin().keepAngleIndent().forcedLiteralEscape()
     }
 
     fun ObjectType.imports() = this.getImports().map { "use ${it.escapeAll()};" }.joinToString(separator = "\n")

@@ -3,7 +3,6 @@ package io.vrap.codegen.languages.php.model;
 import com.google.inject.Inject
 import io.vrap.codegen.languages.extensions.discriminatorProperty
 import io.vrap.codegen.languages.extensions.isPatternProperty
-import io.vrap.codegen.languages.php.PhpBaseTypes
 import io.vrap.codegen.languages.php.PhpSubTemplates
 import io.vrap.codegen.languages.php.extensions.*
 import io.vrap.rmf.codegen.di.BasePackageName
@@ -11,14 +10,11 @@ import io.vrap.rmf.codegen.di.SharedPackageName
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.ObjectTypeRenderer
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
-import io.vrap.rmf.codegen.rendring.utils.keepIndentation
+import io.vrap.rmf.codegen.rendring.utils.keepAngleIndent
 import io.vrap.rmf.codegen.types.*
 import io.vrap.rmf.raml.model.types.*
 import io.vrap.rmf.raml.model.types.Annotation
-import io.vrap.rmf.raml.model.types.util.TypesSwitch
 import io.vrap.rmf.raml.model.util.StringCaseFormat
-import org.eclipse.emf.ecore.EObject
-import java.util.*
 
 class PhpBuilderObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : ObjectTypeExtensions, EObjectTypeExtensions, ObjectTypeRenderer {
 
@@ -86,7 +82,7 @@ class PhpBuilderObjectTypeRenderer @Inject constructor(override val vrapTypeProv
             |        return new ${vrapType.simpleClassName}Model($!this->toArray());
             |    }
             |}
-        """.trimMargin().keepIndentation("<<", ">>").forcedLiteralEscape()
+        """.trimMargin().keepAngleIndent().forcedLiteralEscape()
     }
 
     fun content(type: ObjectType): String {
@@ -123,7 +119,7 @@ class PhpBuilderObjectTypeRenderer @Inject constructor(override val vrapTypeProv
             |        return new self();
             |    }
             |}
-        """.trimMargin().keepIndentation("<<", ">>").forcedLiteralEscape()
+        """.trimMargin().keepAngleIndent().forcedLiteralEscape()
     }
 
     fun ObjectType.build(): String {
