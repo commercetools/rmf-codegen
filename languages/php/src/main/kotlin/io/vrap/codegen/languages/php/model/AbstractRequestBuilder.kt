@@ -45,9 +45,11 @@ abstract class AbstractRequestBuilder constructor(
                 | * @psalm-param ${it.bodyType() ?: "?object "}$!body
                 | * @psalm-param array<string, scalar|scalar[]> $!headers
                 | */
-                |public function ${it.methodName}(${it.bodyType() ?: ""}$!body = null, array $!headers = []): ${it.toRequestName()} {
-                |   $!args = $!this->getArgs();
-                |   return new ${it.toRequestName()}(${it.allParams()?.map { "$!args['${it}'], " }?.joinToString("")}$!body, $!headers, $!this->getClient());
+                |public function ${it.methodName}(${it.bodyType() ?: ""}$!body = null, array $!headers = []): ${it.toRequestName()}
+                |{
+                |    $!args = $!this->getArgs();
+                |
+                |    return new ${it.toRequestName()}(${it.allParams()?.map { "(string)$!args['${it}'], " }?.joinToString("")}$!body, $!headers, $!this->getClient());
                 |}
                 |
             """.trimMargin()
@@ -57,13 +59,14 @@ abstract class AbstractRequestBuilder constructor(
     protected fun ResourceContainer.subResources(): String {
         return this.resources.map {
             """
-                |/**
-                | <<* ${it.relativeUri.paramValues().map { "@psalm-param scalar $$it" }.joinToString(separator = "\n* ")}>>
-                | */
-                |public function ${it.getMethodName()}(${it.relativeUri.paramValues().joinToString(", ") { "$$it = null" }}): ${it.resourceBuilderName()} {
-                |   $!args = $!this->getArgs();
-                |   ${it.relativeUri.paramValues().joinToString("\n") { "if (!is_null($$it)) { $!args['$it'] = $$it; }" }}
-                |   return new ${it.resourceBuilderName()}($!this->getUri() . '${it.relativeUri.template}', $!args, $!this->getClient());
+                |public function ${it.getMethodName()}(${it.relativeUri.paramValues().joinToString(", ") { "string $$it = null" }}): ${it.resourceBuilderName()}
+                |{
+                |    $!args = $!this->getArgs();${it.relativeUri.paramValues().joinToString("\n") { """
+                |    if (!is_null($$it)) {
+                |        $!args['$it'] = $$it;
+                |    }""" }}
+                |
+                |    return new ${it.resourceBuilderName()}($!this->getUri().'${it.relativeUri.template}', $!args, $!this->getClient());
                 |}
                 |
             """.trimMargin()

@@ -11,6 +11,7 @@ import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.ObjectTypeRenderer
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
 import io.vrap.rmf.codegen.rendring.utils.keepAngleIndent
+import io.vrap.rmf.codegen.rendring.utils.keepCurlyIndent
 import io.vrap.rmf.codegen.types.*
 import io.vrap.rmf.raml.model.types.*
 import io.vrap.rmf.raml.model.types.Annotation
@@ -83,7 +84,8 @@ class PhpBuilderObjectTypeRenderer @Inject constructor(override val vrapTypeProv
             |    /**
             |     * @return ${vrapType.simpleClassName}
             |     */
-            |    public function build() {
+            |    public function build()
+            |    {
             |        return new ${vrapType.simpleClassName}Model($!this->toArray());
             |    }
             |}
@@ -114,7 +116,9 @@ class PhpBuilderObjectTypeRenderer @Inject constructor(override val vrapTypeProv
             |    <<${type.toBeanFields()}>>
             |
             |    <<${type.getters()}>>
+            |
             |    <<${type.withers()}>>
+            |
             |    <<${type.withBuilders()}>>
             |    
             |    <<${type.build()}>>
@@ -131,7 +135,8 @@ class PhpBuilderObjectTypeRenderer @Inject constructor(override val vrapTypeProv
         val vrapType = this.toVrapType() as VrapObjectType
         val discriminator = this.discriminatorProperty()
         return """
-                |public function build(): ${vrapType.simpleClassName} {
+                |public function build(): ${vrapType.simpleClassName}
+                |{
                 |    return new ${vrapType.simpleClassName}Model(
                 |        <<${this.allProperties.filter { property -> property != discriminator }.filter { !it.isPatternProperty() }.joinToString(",\n") { it.buildProperty() }}>>
                 |    );
@@ -143,7 +148,7 @@ class PhpBuilderObjectTypeRenderer @Inject constructor(override val vrapTypeProv
         if (this.type.isScalar() || this.type is ArrayType || this.type.toVrapType().simpleName() == "stdClass") {
             return "$!this->${this.name}"
         }
-        return "($!this->${this.name} instanceof ${this.type.toVrapType().simpleBuilderName()} ? $!this->${this.name}->build() : $!this->${this.name})"
+        return "$!this->${this.name} instanceof ${this.type.toVrapType().simpleBuilderName()} ? $!this->${this.name}->build() : $!this->${this.name}"
     }
 
     fun ObjectType.imports() = this.getImports(this.allProperties).map { "use ${it.escapeAll()};" }
@@ -158,14 +163,14 @@ class PhpBuilderObjectTypeRenderer @Inject constructor(override val vrapTypeProv
                 |/**
                 | * @var ?${if (this.type.toVrapType().simpleName() != "stdClass") this.type.toVrapType().simpleName() else "JsonObject" }
                 | */
-                |protected $${this.name};
+                |private $${this.name};
             """.trimMargin();
         }
         return """
             |/**
-            | * @var ?${this.type.toVrapType().simpleBuilderName()}|${this.type.toVrapType().simpleName()}
+            | * @var null|${this.type.toVrapType().simpleName()}|${this.type.toVrapType().simpleBuilderName()}
             | */
-            |protected $${this.name};
+            |private $${this.name};
         """.trimMargin();
     }
 
@@ -234,7 +239,7 @@ class PhpBuilderObjectTypeRenderer @Inject constructor(override val vrapTypeProv
             |/**
             | * @return $!this
             | */
-            |final public function with${this.name.capitalize()}(?${if (this.type.toVrapType().simpleName() != "stdClass") this.type.toVrapType().simpleName() else "JsonObject" } $${this.name})
+            |public function with${this.name.capitalize()}(?${if (this.type.toVrapType().simpleName() != "stdClass") this.type.toVrapType().simpleName() else "JsonObject" } $${this.name})
             |{
             |    $!this->${this.name} = $${this.name};
             |    
@@ -248,7 +253,7 @@ class PhpBuilderObjectTypeRenderer @Inject constructor(override val vrapTypeProv
             |/**
             | * @return $!this
             | */
-            |final public function with${this.name.capitalize()}Builder(?${this.type.toVrapType().simpleBuilderName()} $${this.name})
+            |public function with${this.name.capitalize()}Builder(?${this.type.toVrapType().simpleBuilderName()} $${this.name})
             |{
             |    $!this->${this.name} = $${this.name};
             |    
@@ -259,15 +264,16 @@ class PhpBuilderObjectTypeRenderer @Inject constructor(override val vrapTypeProv
 
     fun Property.getter(): String {
         return """
-                |/**
-                | ${this.type.toPhpComment()}
-                | * @return ${if (this.type.toVrapType().simpleName() != "stdClass") this.type.toVrapType().simpleName() else "JsonObject" }|null
+                |/**${if (this.type.description?.value?.isNotBlank() == true) """
+                | {{${this.type.toPhpComment()}}}
+                | *""" else ""}
+                | * @return null|${if (this.type.toVrapType().simpleName() != "stdClass") this.type.toVrapType().simpleName() else "JsonObject" }
                 | */
-                |final public function get${this.name.capitalize()}()
+                |public function get${this.name.capitalize()}()
                 |{
-                |   return ${this.buildProperty()};
+                |    return ${this.buildProperty()};
                 |}
-        """.trimMargin()
+        """.trimMargin().keepCurlyIndent()
     }
 }
 

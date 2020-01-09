@@ -44,8 +44,9 @@ class PhpCollectionRenderer @Inject constructor(override val vrapTypeProvider: V
             |    /**
             |     * @psalm-assert ${vrapType.simpleClassName} $!value
             |     * @psalm-param ${vrapType.simpleClassName}|stdClass $!value
-            |     * @return ${vrapType.simpleClassName}Collection
             |     * @throws InvalidArgumentException
+            |     *
+            |     * @return ${vrapType.simpleClassName}Collection
             |     */
             |    public function add($!value)
             |    {
@@ -62,12 +63,13 @@ class PhpCollectionRenderer @Inject constructor(override val vrapTypeProvider: V
             |     */
             |    protected function mapper()
             |    {
-            |        return function(int $!index): ?${vrapType.simpleClassName} {
+            |        return function (int $!index): ?${vrapType.simpleClassName} {
             |            $!data = $!this->get($!index);
             |            if ($!data instanceof stdClass) {
             |                $!data = ${vrapType.simpleName()}Model::of($!data);
             |                $!this->set($!data, $!index);
             |            }
+            |
             |            return $!data;
             |        };
             |    }

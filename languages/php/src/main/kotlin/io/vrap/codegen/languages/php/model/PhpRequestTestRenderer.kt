@@ -5,6 +5,7 @@ import com.google.inject.Inject
 import io.vrap.codegen.languages.extensions.getMethodName
 import io.vrap.codegen.languages.php.PhpSubTemplates
 import io.vrap.codegen.languages.php.extensions.*
+import io.vrap.rmf.codegen.di.ClientPackageName
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.ResourceRenderer
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
@@ -21,7 +22,6 @@ import io.vrap.rmf.raml.model.types.StringInstance
 import org.eclipse.emf.ecore.EObject
 
 class PhpRequestTestRenderer @Inject constructor(api: Api, vrapTypeProvider: VrapTypeProvider) : ResourceRenderer, AbstractRequestBuilder(api, vrapTypeProvider), EObjectTypeExtensions {
-
     private val resourcePackage = "Resource";
 
     override fun render(type: Resource): TemplateFile {
@@ -35,9 +35,12 @@ class PhpRequestTestRenderer @Inject constructor(api: Api, vrapTypeProvider: Vra
             |
             |use PHPUnit\\Framework\\TestCase;
             |use ${clientPackageName.toNamespaceName().escapeAll()}\\${rootResource()};
-            |use ${clientPackageName.toNamespaceName().escapeAll()}\\$resourcePackage\\${type.resourceBuilderName()};
             |use Psr\\Http\\Message\\RequestInterface;
             |
+            |
+            |/**
+            | <<${type.methods.map { "* @covers \\${clientPackageName.toNamespaceName()}\\$resourcePackage\\${it.toRequestName()}".escapeAll() }.joinToString("\n")}>>
+            | */
             |class ${type.resourceBuilderName()}Test extends TestCase
             |{
             |    public function getRequests()
@@ -55,9 +58,9 @@ class PhpRequestTestRenderer @Inject constructor(api: Api, vrapTypeProvider: Vra
             |        $!builder = new ${rootResource()}();
             |        $!request = $!builderFunction($!builder);
             |        $!this->assertSame(strtolower($!method), strtolower($!request->getMethod()));
-            |        $!this->assertStringContainsString(str_replace(['{', '}'], '', $!relativeUri), (string)$!request->getUri());
+            |        $!this->assertStringContainsString(str_replace(['{', '}'], '', $!relativeUri), (string) $!request->getUri());
             |        if (!is_null($!body)) {
-            |            $!this->assertJsonStringEqualsJsonString($!body, (string)$!request->getBody());
+            |            $!this->assertJsonStringEqualsJsonString($!body, (string) $!request->getBody());
             |        };
             |    }
             |}
@@ -101,12 +104,12 @@ class PhpRequestTestRenderer @Inject constructor(api: Api, vrapTypeProvider: Vra
             template = "'${placeholder.value}', '${paramName}'"
         }
 
-        val builderChain = resource.resourcePathList().map { r -> "${r.getMethodName()}(${if (r.relativeUri.paramValues().isNotEmpty()) "\"${r.relativeUri.paramValues().joinToString("\", \"") }\"" else ""})" }
+        val builderChain = resource.resourcePathList().map { r -> "${r.getMethodName()}(${if (r.relativeUri.paramValues().isNotEmpty()) "\'${r.relativeUri.paramValues().joinToString("\', \'") }\'" else ""})" }
                 .plus("${method.method}(${if (method.firstBody() != null) "null" else ""})")
                 .plus("${parameter.methodName()}(${template})")
         return """
             |'${method.toRequestName()}_${parameter.methodName()}' => [
-            |    function(${rootResource()} $!builder): RequestInterface {
+            |    function (${rootResource()} $!builder): RequestInterface {
             |        return $!builder
             |            <<${builderChain.joinToString("\n->", "->")}>>;
             |    },

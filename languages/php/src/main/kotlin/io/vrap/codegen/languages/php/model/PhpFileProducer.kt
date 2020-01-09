@@ -194,7 +194,7 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |    const AUTH_URI = '${api.authUri()}';
                     |
                     |    const GRANT_TYPE = '';
-                    |    
+                    |
                     |    /** @psalm-var string */
                     |    private $!authUri;
                     |

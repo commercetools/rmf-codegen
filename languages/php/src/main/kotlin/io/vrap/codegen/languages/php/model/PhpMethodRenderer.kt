@@ -72,12 +72,10 @@ class PhpMethodRenderer @Inject constructor(override val vrapTypeProvider: VrapT
             |class ${type.toRequestName()} extends ApiRequest
             |{
             |    /**
-            |     <<${type.allParams()?.asSequence()?.map { "* @psalm-param scalar $$it" }?.joinToString(separator = "\n") ?: "*"}>>
             |     * @param ${if (type.firstBody()?.type is FileType) "?UploadedFileInterface " else "?object"} $!body
             |     * @psalm-param array<string, scalar|scalar[]> $!headers
-            |     * @param array $!headers
             |     */
-            |    public function __construct(${type.allParams()?.asSequence()?.map { "$$it, "  }?.joinToString(separator = "") ?: ""}${if (type.firstBody()?.type is FileType) "UploadedFileInterface " else ""}$!body = null, array $!headers = [], Client $!client = null)
+            |    public function __construct(${type.allParams()?.asSequence()?.map { "string $$it, "  }?.joinToString(separator = "") ?: ""}${if (type.firstBody()?.type is FileType) "UploadedFileInterface " else ""}$!body = null, array $!headers = [], Client $!client = null)
             |    {
             |        $!uri = str_replace([${type.allParams()?.asSequence()?.map { "'{$it}'"  }?.joinToString(separator = ", ") ?: ""}], [${type.allParams()?.asSequence()?.map { "$$it"  }?.joinToString(separator = ", ") ?: ""}], '${type.apiResource().fullUri.template.trimStart('/')}');
             |        <<${type.firstBody()?.ensureContentType() ?: ""}>>
@@ -97,37 +95,45 @@ class PhpMethodRenderer @Inject constructor(override val vrapTypeProvider: VrapT
             |        }
             |        $!mapper = new ResultMapper();
             |        if (is_null($!resultType)) {
-            |            switch ($!response->getStatusCode()) {
-            |                <<${resultTypes.map { response -> "case \"${response.statusCode}\":\n    $!resultType = ${response.bodies[0].returnType().returnTypeModelClass()}::class;\n    break;" }.joinToString("\n")}>>
+            |            switch ($!response->getStatusCode()) {${resultTypes.map { response -> """
+            |                case '${response.statusCode}':
+            |                    $!resultType = ${response.bodies[0].returnType().returnTypeModelClass()}::class;
+            |
+            |                    break;""" }.joinToString("")}
             |                default:
             |                    $!resultType = JsonObjectModel::class;
+            |
             |                    break;
             |            }
             |        }
+            |
             |        return $!mapper->mapResponseToClass($!resultType, $!response);
             |    }
-            |    
+            |
             |    /**
             |     * @template T of JsonObject
             |     * @psalm-param ?class-string<T> $!resultType
-            |     * @param array $!options
-            |     * @return ${returnTypes.joinToString("|")}|null
+            |     *
+            |     * @return null|${returnTypes.joinToString("|")}
             |     */
             |    public function execute(array $!options = [], string $!resultType = null)
             |    {
             |        try {
-            |           $!response = $!this->send($!options);
-            |        } catch(ServerException $!e) {
+            |            $!response = $!this->send($!options);
+            |        } catch (ServerException $!e) {
             |            $!result = $!this->mapFromResponse($!e->getResponse());
+            |
             |            throw new ApiServerException($!e->getMessage(), $!result, $!this, $!e->getResponse(), $!e, []);
-            |        } catch(ClientException $!e) {
+            |        } catch (ClientException $!e) {
             |            $!result = $!this->mapFromResponse($!e->getResponse());
+            |
             |            throw new ApiClientException($!e->getMessage(), $!result, $!this, $!e->getResponse(), $!e, []);
             |        }
+            |
             |        return $!this->mapFromResponse($!response, $!resultType);
             |    }
             |
-            |   <<${type.queryParameters.map { it.withParam(type) }.joinToString("\n\n")}>>
+            |    <<${type.queryParameters.map { it.withParam(type) }.joinToString("\n\n")}>>
             |}
         """.trimMargin().keepAngleIndent().forcedLiteralEscape()
         val relativeTypeNamespace = vrapType.`package`.toNamespaceName().replace(basePackagePrefix.toNamespaceName() + "\\", "").replace("\\", "/") + "/$resourcePackage"

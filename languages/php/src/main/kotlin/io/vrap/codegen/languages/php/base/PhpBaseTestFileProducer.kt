@@ -1,16 +1,12 @@
 package io.vrap.codegen.languages.php.base
 
-import com.damnhandy.uri.template.UriTemplate
 import com.google.inject.Inject
 import io.vrap.codegen.languages.php.PhpSubTemplates
 import io.vrap.codegen.languages.php.extensions.*
 import io.vrap.rmf.codegen.di.BasePackageName
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.FileProducer
-import io.vrap.rmf.codegen.rendring.utils.escapeAll
-import io.vrap.rmf.codegen.rendring.utils.keepIndentation
 import io.vrap.rmf.raml.model.modules.Api
-import io.vrap.rmf.raml.model.util.StringCaseFormat
 
 class PhpBaseTestFileProducer @Inject constructor(val api: Api) : FileProducer {
 
@@ -38,6 +34,9 @@ class PhpBaseTestFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |use Psr\Http\Message\ResponseInterface;
                     |use GuzzleHttp\Client;
                     |
+                    |/**
+                    | * @covers \${packagePrefix.toNamespaceName()}\Client\ApiRequest
+                    | */
                     |class ApiRequestTest extends TestCase
                     |{
                     |    public function testWithQueryParam()

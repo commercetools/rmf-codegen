@@ -33,8 +33,8 @@ class PhpMethodBuilderRenderer @Inject constructor(api: Api, vrapTypeProvider: V
             |/** @psalm-suppress PropertyNotSetInConstructor */
             |class ${type.resourceBuilderName()} extends ApiResource
             |{
-            |   <<${type.subResources()}>>
-            |   <<${type.methods()}>>
+            |    <<${type.subResources()}>>
+            |    <<${type.methods()}>>
             |}
         """.trimMargin().keepAngleIndent().forcedLiteralEscape()
         val relativeTypeNamespace = vrapType.`package`.toNamespaceName().replace(basePackagePrefix.toNamespaceName() + "\\", "").replace("\\", "/") + "/$resourcePackage"

@@ -11,6 +11,7 @@ import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.ObjectTypeRenderer
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
 import io.vrap.rmf.codegen.rendring.utils.keepAngleIndent
+import io.vrap.rmf.codegen.rendring.utils.keepCurlyIndent
 import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.types.Annotation
@@ -82,6 +83,7 @@ class PhpInterfaceObjectTypeRenderer @Inject constructor(override val vrapTypePr
             |    <<${type.toBeanConstant()}>>
             |
             |    <<${type.getters()}>>
+            |
             |    <<${type.setters()}>>
             |}
         """.trimMargin().keepAngleIndent().forcedLiteralEscape()
@@ -141,12 +143,13 @@ class PhpInterfaceObjectTypeRenderer @Inject constructor(override val vrapTypePr
 
     fun Property.getter(): String {
         return """
-            |/**
-            | ${this.type.toPhpComment()}
-            | * @return ${if (this.type.toVrapType().simpleName() != "stdClass") this.type.toVrapType().simpleName() else "JsonObject" }|null
+            |/**${if (this.type.description?.value?.isNotBlank() == true) """
+            | {{${this.type.toPhpComment()}}}
+            | *""" else ""}
+            | * @return null|${if (this.type.toVrapType().simpleName() != "stdClass") this.type.toVrapType().simpleName() else "JsonObject" }
             | */
             |public function get${this.name.capitalize()}();
-        """.trimMargin()
+        """.trimMargin().keepCurlyIndent()
     }
 
     private fun Property.patternName(): String {

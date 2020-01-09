@@ -33,16 +33,16 @@ class ApiRootFileProducer @Inject constructor(api: Api, vrapTypeProvider: VrapTy
                     |
                     |class ${rootResource()} extends ApiResource
                     |{
-                    |   /**
-                    |    * @psalm-param array<string, scalar> $!args
-                    |    */
-                    |   public function __construct(Client $!client = null, array $!args = [])
-                    |   {
-                    |       parent::__construct('', $!args, $!client);
-                    |   }
+                    |    /**
+                    |     * @psalm-param array<string, scalar> $!args
+                    |     */
+                    |    public function __construct(Client $!client = null, array $!args = [])
+                    |    {
+                    |        parent::__construct('', $!args, $!client);
+                    |    }
                     |
-                    |   <<${if (rootResource != null && type.resources.size == 1) rootResource.subResources() else type.subResources()}>>
-                    |   <<${rootResource?.methods() ?: ""}>>
+                    |    <<${if (rootResource != null && type.resources.size == 1) rootResource.subResources() else type.subResources()}>>
+                    |    <<${rootResource?.methods() ?: ""}>>
                     |}
                 """.trimMargin().keepAngleIndent().forcedLiteralEscape())
     }
