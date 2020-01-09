@@ -2,6 +2,5 @@
 set -e
 composer install
 vendor/bin/psalm --threads=4
-# find src -name "*.php" | xargs prettier --write
-vendor/bin/php-cs-fixer fix
+time ./prettify.sh
 vendor/bin/psalm --threads=4
