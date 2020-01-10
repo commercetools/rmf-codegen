@@ -487,9 +487,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |use ${packagePrefix.toNamespaceName()}\Exception\InvalidArgumentException;
                     |use GuzzleHttp\Client as HttpClient;
                     |use GuzzleHttp\HandlerStack;
-                    |use Psr\Cache\CacheItemPoolInterface;
                     |use Psr\Log\LoggerInterface;
-                    |use Psr\SimpleCache\CacheInterface;
                     |
                     |class ClientFactory
                     |{
@@ -514,10 +512,10 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |    public function createGuzzleClientForHandler(Config $!config, ?OAuth2Handler $!handler = null, ?LoggerInterface $!logger = null, array $!middlewares = []): HttpClient
                     |    {
                     |        $!middlewares = array_merge(
-                    |           MiddlewareFactory::createDefaultMiddlewares($!handler, $!logger),
+                    |           MiddlewareFactory::createDefaultMiddlewares($!handler, $!logger, (int) ($!config->getOptions()['maxRetries'] ?? 0)),
                     |           $!middlewares
                     |        );
-                    |        return $!this->createGuzzle6Client($!config->getOptions(), $!middlewares);
+                    |        return $!this->createGuzzleClientWithOptions($!config->getOptions(), $!middlewares);
                     |    }
                     |
                     |    /**
@@ -528,14 +526,14 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |       Config $!config,
                     |       array $!middlewares = []): HttpClient
                     |    {
-                    |        return $!this->createGuzzle6Client($!config->getOptions(), $!middlewares);
+                    |        return $!this->createGuzzleClientWithOptions($!config->getOptions(), $!middlewares);
                     |    }
                     |
                     |    /**
                     |     * @throws InvalidArgumentException
                     |     * @psalm-param array<int|string, callable> $!middlewares
                     |     */
-                    |    private function createGuzzle6Client(array $!options, array $!middlewares = []): HttpClient
+                    |    private function createGuzzleClientWithOptions(array $!options, array $!middlewares = []): HttpClient
                     |    {
                     |        if (isset($!options['handler']) && $!options['handler'] instanceof HandlerStack) {
                     |            $!stack = $!options['handler'];
@@ -862,7 +860,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |     * @param string $!message
                     |     * @param ?JsonObject $!result
                     |     */
-                    |    public function __construct($!message, $!result, RequestInterface $!request, ResponseInterface $!response = null, \Exception $!previous = null, array $!handlerContext = [])
+                    |    public function __construct($!message, $!result, RequestInterface $!request, ResponseInterface $!response, \Exception $!previous = null, array $!handlerContext = [])
                     |    {
                     |        $!this->result = $!result;
                     |        parent::__construct($!message, $!request, $!response, $!previous, $!handlerContext);
@@ -903,7 +901,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |     * @param string $!message
                     |     * @param ?JsonObject $!result
                     |     */
-                    |    public function __construct($!message, $!result, RequestInterface $!request, ResponseInterface $!response = null, \Exception $!previous = null, array $!handlerContext = [])
+                    |    public function __construct($!message, $!result, RequestInterface $!request, ResponseInterface $!response, \Exception $!previous = null, array $!handlerContext = [])
                     |    {
                     |        $!this->result = $!result;
                     |        parent::__construct($!message, $!request, $!response, $!previous, $!handlerContext);
@@ -2330,15 +2328,14 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |
                     |namespace ${packagePrefix.toNamespaceName()}\Client;
                     |
+                    |use GuzzleHttp\Exception\ServerException;
                     |use GuzzleHttp\MessageFormatter;
                     |use GuzzleHttp\Middleware;
                     |use GuzzleHttp\Promise\PromiseInterface;
-                    |use Psr\Cache\CacheItemPoolInterface;
                     |use Psr\Http\Message\RequestInterface;
                     |use Psr\Http\Message\ResponseInterface;
                     |use Psr\Log\LoggerInterface;
                     |use Psr\Log\LogLevel;
-                    |use Psr\SimpleCache\CacheInterface;
                     |
                     |class MiddlewareFactory
                     |{
@@ -2347,17 +2344,51 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |     */
                     |    public static function createDefaultMiddlewares(
                     |        ?OAuth2Handler $!handler = null,
-                    |        ?LoggerInterface $!logger = null
+                    |        ?LoggerInterface $!logger = null,
+                    |        int $!maxRetries = 0
                     |    ) {
                     |        $!middlewares = [];
                     |        if (!is_null($!handler)) {
                     |            $!middlewares['oauth'] = self::createMiddlewareForOAuthHandler($!handler);
-                    |           $!middlewares['reauth'] = self::createReauthenticateMiddleware($!handler);
+                    |            $!middlewares['reauth'] = self::createReauthenticateMiddleware($!handler);
                     |        }
                     |        if (!is_null($!logger)) {
                     |            $!middlewares['logger'] = self::createLoggerMiddleware($!logger);
                     |        }
+                    |        if ($!maxRetries > 0) {
+                    |            $!middlewares['retryNA'] = self::createRetryNAMiddleware($!maxRetries);
+                    |        }
+                    |        
                     |        return $!middlewares;
+                    |    }
+                    |
+                    |    /**
+                    |     * @psalm-return callable
+                    |     */
+                    |    public static function createRetryNAMiddleware(int $!maxRetries)
+                    |    {
+                    |        return Middleware::retry(
+                    |            function (
+                    |                int $!retries,
+                    |                RequestInterface $!request,
+                    |                ResponseInterface $!response = null,
+                    |                \Exception $!error = null
+                    |            ) use ($!maxRetries) {
+                    |                if ($!response instanceof ResponseInterface && $!response->getStatusCode() < 500) {
+                    |                    return false;
+                    |                }
+                    |                if ($!retries < $!maxRetries) {
+                    |                    return false;
+                    |                }
+                    |                if ($!error instanceof ServerException && $!error->getCode() == 503) {
+                    |                    return true;
+                    |                }
+                    |                if ($!response instanceof ResponseInterface && $!response->getStatusCode() == 503) {
+                    |                    return true;
+                    |                }
+                    |                return false;
+                    |            }
+                    |        );
                     |    }
                     |
                     |    /**

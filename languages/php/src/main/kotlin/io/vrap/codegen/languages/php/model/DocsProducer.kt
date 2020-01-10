@@ -6,6 +6,7 @@ import io.vrap.codegen.languages.extensions.getMethodName
 import io.vrap.codegen.languages.php.extensions.*
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.FileProducer
+import io.vrap.rmf.codegen.rendring.utils.escapeAll
 import io.vrap.rmf.codegen.rendring.utils.keepAngleIndent
 import io.vrap.rmf.codegen.rendring.utils.keepIndentation
 import io.vrap.rmf.codegen.types.VrapTypeProvider
@@ -28,7 +29,7 @@ class DocsProducer @Inject constructor(api: Api, vrapTypeProvider: VrapTypeProvi
                     |In order to be able to build request objects you can use the RequestBuilder. The following methods return a HTTP request instance of Guzzle [PSR-7](https://github.com/guzzle/psr7).
                     |
                     |```php
-                    |use ${clientPackageName.toNamespaceName()}\Client\${rootResource()};
+                    |use ${clientPackageName.toNamespaceName().escapeAll()}\\${rootResource()};
                     |
                     |$!root = new ${rootResource()}();
                     |```

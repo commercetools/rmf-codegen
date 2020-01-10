@@ -34,9 +34,11 @@ class PhpRequestTestRenderer @Inject constructor(api: Api, vrapTypeProvider: Vra
             |namespace ${clientTestPackageName.toNamespaceName().escapeAll()}\\$resourcePackage;
             |
             |use PHPUnit\\Framework\\TestCase;
+            |use ${sharedPackageName.toNamespaceName().escapeAll()}\\Client\\ApiRequest;
             |use ${clientPackageName.toNamespaceName().escapeAll()}\\${rootResource()};
             |use Psr\\Http\\Message\\RequestInterface;
-            |
+            |use GuzzleHttp\\Psr7\\Response;
+            |use ${sharedPackageName.toNamespaceName().escapeAll()}\\Base\\JsonObject;
             |
             |/**
             | <<${type.methods.map { "* @covers \\${clientPackageName.toNamespaceName()}\\$resourcePackage\\${it.toRequestName()}".escapeAll() }.joinToString("\n")}>>
@@ -63,6 +65,26 @@ class PhpRequestTestRenderer @Inject constructor(api: Api, vrapTypeProvider: Vra
             |            $!this->assertJsonStringEqualsJsonString($!body, (string) $!request->getBody());
             |        };
             |    }
+            |
+            |    public function getRequestBuilders()
+            |    {
+            |        return [
+            |            <<${type.methods.map { method -> requestTestProvider(type, method) }.joinToString(",\n")}>>
+            |        ];
+            |    }
+            |
+            |    /**
+            |     * @dataProvider getRequests()
+            |     */
+            |    public function testMapFromResponse(callable $!builderFunction)
+            |    {
+            |        $!builder = new ${rootResource()}();
+            |        $!request = $!builderFunction($!builder);
+            |        $!this->assertInstanceOf(ApiRequest::class, $!request);
+            |
+            |        $!response = new Response(200, [], "{}");
+            |        $!this->assertInstanceOf(JsonObject::class, $!request->mapFromResponse($!response));
+            |    }
             |}
         """.trimMargin().keepAngleIndent().forcedLiteralEscape()
 
@@ -87,6 +109,20 @@ class PhpRequestTestRenderer @Inject constructor(api: Api, vrapTypeProvider: Vra
             |    },
             |    '${method.method}',
             |    '${resource.fullUri.template.trimStart('/')}',
+            |]
+        """.trimMargin()
+    }
+
+    private fun requestTestProvider(resource: Resource, method: Method): String {
+        val builderChain = resource.resourcePathList().map { r -> "${r.getMethodName()}(${if (r.relativeUri.paramValues().isNotEmpty()) "\"${r.relativeUri.paramValues().joinToString("\", \"") }\"" else ""})" }
+                .plus("${method.method}(${if (method.firstBody() != null) "null" else ""})")
+
+        return """
+            |'${method.toRequestName()}' => [
+            |    function(${rootResource()} $!builder): RequestInterface {
+            |        return $!builder
+            |            <<${builderChain.joinToString("\n->", "->")}>>;
+            |    }
             |]
         """.trimMargin()
     }
