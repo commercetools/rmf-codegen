@@ -599,6 +599,9 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |
                     |namespace ${packagePrefix.toNamespaceName()}\Client;
                     |
+                    |/**
+                    | * @psalm-immutable
+                    | */
                     |interface Token
                     |{
                     |    public function getValue(): string;
@@ -673,6 +676,9 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |
                     |namespace ${packagePrefix.toNamespaceName()}\Client;
                     |
+                    |/**
+                    | * @psalm-immutable
+                    | */
                     |class PreAuthTokenProvider implements TokenProvider
                     |{
                     |    const TOKEN = 'token';
@@ -707,12 +713,21 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |
                     |namespace ${packagePrefix.toNamespaceName()}\Client;
                     |
+                    |/**
+                    | * @psalm-immutable
+                    | */
                     |class TokenModel implements Token
                     |{
-                    |    /** @psalm-var string */
+                    |    /**
+                    |     * @psalm-var string
+                    |     * @readonly
+                    |     */
                     |    private $!value;
                     |
-                    |    /** @psalm-var int */
+                    |    /**
+                    |     * @psalm-var int
+                    |     * @readonly
+                    |     */
                     |    private $!expiresIn;
                     |
                     |    public function __construct(string $!value, int $!expiresIn = null)
@@ -780,7 +795,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |           case $!authConfig instanceof ClientCredentialsConfig:
                     |               $!provider = new CachedTokenProvider(
                     |                   new ClientCredentialTokenProvider(
-                    |                       new Client($!authConfig->getClientOptions()),
+                    |                       new Client($!authConfig->getOptions()),
                     |                       $!authConfig->getAuthUri(),
                     |                       $!authConfig->getCredentials()
                     |                   ),
@@ -814,6 +829,9 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |
                     |use Exception;
                     |
+                    |/**
+                    | * @psalm-immutable
+                    | */
                     |abstract class BaseException extends Exception
                     |{
                     |}
@@ -830,6 +848,9 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |
                     |use Exception;
                     |
+                    |/**
+                    | * @psalm-immutable
+                    | */
                     |class InvalidArgumentException extends BaseException
                     |{
                     |}
@@ -849,10 +870,14 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |use Psr\Http\Message\ResponseInterface;
                     |use ${packagePrefix.toNamespaceName()}\Base\JsonObject;
                     |
+                    |/**
+                    | * @psalm-immutable
+                    | */
                     |class ApiServerException extends ServerException
                     |{
                     |    /**
                     |     * @var ?JsonObject
+                    |     * @readonly
                     |     */
                     |    private $!result;
                     |    
@@ -890,10 +915,14 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |use Psr\Http\Message\ResponseInterface;
                     |use ${packagePrefix.toNamespaceName()}\Base\JsonObject;
                     |
+                    |/**
+                    | * @psalm-immutable
+                    | */
                     |class ApiClientException extends ClientException
                     |{
                     |    /**
                     |     * @var ?JsonObject
+                    |     * @readonly
                     |     */
                     |    private $!result;
                     |    
@@ -942,7 +971,11 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |    private $!queryParts;
                     |    /** @psalm-var string */
                     |    private $!query;
-                    |    /** @psalm-var Client|null */
+                    |
+                    |    /**
+                    |     * @psalm-var Client|null
+                    |     * @readonly
+                    |     */
                     |    private $!client;
                     |
                     |    /**
@@ -1027,7 +1060,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |        }
                     |        return $!this->client->send($!this, $!options);
                     |    }
-                    |    
+                    |
                     |    public function getClient(): ?Client
                     |    {
                     |       return $!this->client;
@@ -1939,6 +1972,9 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |
                     |use GuzzleHttp\Client;
                     |
+                    |/**
+                    | * @psalm-immutable
+                    | */
                     |class ApiResource
                     |{
                     |    /**
@@ -2008,8 +2044,6 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |
                     |    public function getAuthUri(): string;
                     |
-                    |    public function getClientOptions(): array;
-                    |
                     |    public function getOptions(): array;
                     |}
                 """.trimMargin().forcedLiteralEscape())
@@ -2039,6 +2073,9 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |
                     |namespace ${packagePrefix.toNamespaceName()}\Client;
                     |
+                    |/**
+                    | * @psalm-immutable
+                    | */
                     |class ClientCredentials
                     |{
                     |    /** @psalm-var string */
@@ -2049,12 +2086,16 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |
                     |    /** @psalm-var ?string */
                     |    private $!scope;
+                    |    
+                    |    /** @psalm-var string */
+                    |    private $!cacheKey;
                     |
                     |    public function __construct(string $!clientId, string $!clientSecret, string $!scope = null)
                     |    {
                     |        $!this->clientId = $!clientId;
                     |        $!this->clientSecret = $!clientSecret;
                     |        $!this->scope = $!scope;
+                    |        $!this->cacheKey = sha1($!clientId . (string)$!scope);
                     |    }
                     |
                     |    public function getClientId(): string
@@ -2074,7 +2115,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |
                     |    public function getCacheKey(): string
                     |    {
-                    |        return sha1($!this->clientId . (string)$!this->scope);
+                    |        return $!this->cacheKey;
                     |    }
                     |}
                 """.trimMargin().forcedLiteralEscape()
@@ -2095,8 +2136,6 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |    const OPT_CLIENT_OPTIONS = 'options';
                     |
                     |    public function getApiUri(): string;
-                    |
-                    |    public function getClientOptions(): array;
                     |
                     |    public function getOptions(): array;
                     |}

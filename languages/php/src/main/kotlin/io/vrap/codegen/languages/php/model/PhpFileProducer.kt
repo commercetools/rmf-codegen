@@ -134,7 +134,7 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |    private $!apiUri;
                     |
                     |    /** @psalm-var array */
-                    |    private $!clientOptions;
+                    |    private $!options;
                     |
                     |    public function __construct(${if (api.baseUri.value.variables.isNotEmpty()) { api.baseUri.value.params() } else ""}array $!clientOptions = [], string $!baseUri = null)
                     |    {
@@ -142,7 +142,10 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |        $!apiUri = $!baseUri ?? static::API_URI;
                     |        <<${if (api.baseUri.value.variables.isNotEmpty()) { api.baseUri.value.replaceValues()} else ""}>>
                     |        $!this->apiUri = $!apiUri;
-                    |        $!this->clientOptions = $!clientOptions;
+                    |        $!this->options = array_replace(
+                    |            [self::OPT_BASE_URI => $!this->apiUri],
+                    |            $!clientOptions
+                    |        );
                     |    }
                     |
                     |    public function getApiUri(): string
@@ -150,17 +153,9 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |        return $!this->apiUri;
                     |    }
                     |
-                    |    public function getClientOptions(): array
-                    |    {
-                    |        return $!this->clientOptions;
-                    |    }
-                    |
                     |    public function getOptions(): array
                     |    {
-                    |        return array_replace(
-                    |            [self::OPT_BASE_URI => $!this->apiUri],
-                    |            $!this->clientOptions
-                    |        );
+                    |        return $!this->options;
                     |    }
                     |}
                 """.trimMargin().keepAngleIndent().forcedLiteralEscape())
@@ -199,13 +194,16 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |    private $!authUri;
                     |
                     |    /** @psalm-var array */
-                    |    private $!clientOptions;
+                    |    private $!options;
                     |
                     |    public function __construct(array $!clientOptions = [], string $!authUri = self::AUTH_URI)
                     |    {
                     |        /** @psalm-var string authUri */
                     |        $!this->authUri = $!authUri;
-                    |        $!this->clientOptions = $!clientOptions;
+                    |        $!this->options = array_replace(
+                    |            [self::OPT_BASE_URI => $!this->authUri],
+                    |            $!clientOptions
+                    |        );
                     |    }
                     |
                     |    public function getGrantType(): string
@@ -219,17 +217,9 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |        return $!this->authUri;
                     |    }
                     |
-                    |    public function getClientOptions(): array
-                    |    {
-                    |        return $!this->clientOptions;
-                    |    }
-                    |
                     |    public function getOptions(): array
                     |    {
-                    |        return array_replace(
-                    |            [self::OPT_BASE_URI => $!this->authUri],
-                    |            $!this->clientOptions
-                    |        );
+                    |        return $!this->options;
                     |    }
                     |}
                 """.trimMargin().forcedLiteralEscape())

@@ -30,7 +30,10 @@ class PhpMethodBuilderRenderer @Inject constructor(api: Api, vrapTypeProvider: V
             |use Psr\\Http\\Message\\UploadedFileInterface;
             |<<${type.imports()}>>
             |
-            |/** @psalm-suppress PropertyNotSetInConstructor */
+            |/**
+            | * @psalm-suppress PropertyNotSetInConstructor
+            | * @psalm-immutable
+            | */
             |class ${type.resourceBuilderName()} extends ApiResource
             |{
             |    <<${type.subResources()}>>
