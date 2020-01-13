@@ -136,33 +136,36 @@ function reduceMiddleware(op1: Middleware, op2: Middleware): Middleware {
 }
 
 function getURI(commonRequest: CommonRequest): string {
-
-  
-  const pathMap = commonRequest.pathVariables;
-  const queryMap = commonRequest.queryParams;
-  var uri: String = commonRequest.uriTemplate;
-  var queryParams : string[]= [];
+  const pathMap = commonRequest.pathVariables
+  const queryMap = commonRequest.queryParams
+  var uri: String = commonRequest.uriTemplate
+  var queryParams: string[] = []
   for (const param in pathMap) {
-    uri = uri.replace(`{${'$'}{param}}`, `${'$'}{pathMap[param]}`);
+    uri = uri.replace(`{${'$'}{param}}`, `${'$'}{pathMap[param]}`)
   }
   for (const query in queryMap) {
     const queryParameter = queryMap[query]
-    if(queryParameter instanceof Array){
-      for(const element in queryParameter){
-        queryParams.push(`${'$'}{query}=${'$'}{encodeURIComponent(`${'$'}{queryParameter[element]}`)}`)
-      }
+    if (queryParameter === null || queryParameter === undefined) {
+      continue
     }
-    else {
+    if (queryParameter instanceof Array) {
+      ;(queryParameter as [])
+        .filter(value => value !== null && value !== undefined)
+        .forEach(value =>
+          queryParams.push(
+            `${'$'}{query}=${'$'}{encodeURIComponent(`${'$'}{queryParameter[value]}`)}`
+          )
+        )
+    } else {
       queryParams.push(`${'$'}{query}=${'$'}{encodeURIComponent(`${'$'}{queryParameter}`)}`)
     }
   }
-  const resQuery = queryParams.join("&");
-  if (resQuery == "") {
-    return `${'$'}{commonRequest.baseURL}${'$'}{uri}`;
+  const resQuery = queryParams.join('&')
+  if (resQuery == '') {
+    return `${'$'}{commonRequest.baseURL}${'$'}{uri}`
   }
-  return `${'$'}{commonRequest.baseURL}${'$'}{uri}?${'$'}{resQuery}`;
+  return `${'$'}{commonRequest.baseURL}${'$'}{uri}?${'$'}{resQuery}`
 }
-
 
 const noOpMiddleware = async (x: MiddlewareArg) => x;
 """.trim())
