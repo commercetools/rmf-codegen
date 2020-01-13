@@ -1,19 +1,13 @@
 package io.vrap.codegen.languages.ramldoc.model
 
-import com.fasterxml.jackson.core.JsonProcessingException
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.module.SimpleModule
-import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator
-import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
 import com.google.inject.Inject
 import io.vrap.codegen.languages.extensions.isSuccessfull
 import io.vrap.codegen.languages.extensions.toResourceName
-import io.vrap.codegen.languages.ramldoc.extensions.InstanceSerializer
-import io.vrap.codegen.languages.ramldoc.extensions.ObjectInstanceSerializer
 import io.vrap.codegen.languages.ramldoc.extensions.renderType
+import io.vrap.codegen.languages.ramldoc.extensions.toYaml
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.ResourceRenderer
-import io.vrap.rmf.codegen.rendring.utils.keepIndentation
+import io.vrap.rmf.codegen.rendring.utils.keepAngleIndent
 import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.modules.Api
@@ -31,13 +25,17 @@ class RamlResourceRenderer @Inject constructor(val api: Api, val vrapTypeProvide
         val vrapType = vrapTypeProvider.doSwitch(type as EObject) as VrapObjectType
 
         val content = """
-            |#${type.toResourceName()}
-            |(resourcePathUri): ${type.fullUri.template}
+            |# Resource
+            |(resourceName): ${type.toResourceName()}
+            |(resourcePathUri): ${type.fullUri.template}${if (type.displayName != null) """
+            |displayName: ${type.displayName.value.trim()}""" else ""}${if (type.description != null) """
+            |description: |-
+            |  <<${type.description.value.trim()}>>""" else ""}
             |${if (type.fullUriParameters.size > 0) """
             |uriParameters:
             |  <<${type.fullUriParameters.joinToString("\n") { renderUriParameter(it) }}>>""" else ""}
             |${type.methods.joinToString("\n") { renderMethod(it) }}
-        """.trimMargin().keepIndentation("<<", ">>")
+        """.trimMargin().keepAngleIndent()
         val relativePath = "resources/" + type.toResourceName()+ ".raml"
         return TemplateFile(
                 relativePath = relativePath,
@@ -49,7 +47,8 @@ class RamlResourceRenderer @Inject constructor(val api: Api, val vrapTypeProvide
         return """
             |${method.methodName}:${if (method.securedBy.isNotEmpty()) """
             |  securedBy:
-            |  <<${method.securedBy.joinToString("\n") { renderScheme(it)}}>>""" else ""}${if (method.description != null) """
+            |  <<${method.securedBy.joinToString("\n") { renderScheme(it)}}>>""" else ""}${if (method.displayName != null) """
+            |  displayName: ${method.displayName.value.trim()}""" else ""}${if (method.description != null) """
             |  description: |-
             |    <<${method.description.value.trim()}>>""" else ""}${if (method.queryParameters.isNotEmpty()) """
             |  queryParameters:
@@ -58,94 +57,45 @@ class RamlResourceRenderer @Inject constructor(val api: Api, val vrapTypeProvide
             |    <<${method.bodies.filter { it.type != null }.joinToString("\n") { renderBody(it) } }>>""" else ""}${if (method.responses.any { response -> response.isSuccessfull() }) """
             |  responses:
             |    <<${method.responses.filter { response -> response.isSuccessfull() }.joinToString("\n") { renderResponse(it) }}>>""" else ""}
-        """.trimMargin().keepIndentation("<<", ">>")
+        """.trimMargin().keepAngleIndent()
     }
 
     private fun renderScheme(securedBy: SecuredBy): String {
         return """
             |- ${securedBy.scheme.name}:
             |    <<${securedBy.parameters.toYaml()}>>
-        """.trimMargin().keepIndentation("<<", ">>")
+        """.trimMargin().keepAngleIndent()
     }
 
     private fun renderResponse(response: Response): String {
         return """
-            |${response.statusCode}:
+            |${response.statusCode}:${if (response.description != null) """
+            |  description: |-
+            |    <<${response.description.value.trim()}>>""" else ""}
             |  body:
             |    <<${response.bodies.joinToString("\n") { renderBody(it) } }>>
-        """.trimMargin().keepIndentation("<<", ">>")
+        """.trimMargin().keepAngleIndent()
     }
 
     private fun renderBody(body: Body): String {
         return """
             |${body.contentType}:
-            |  <<${body.type.renderType()}>>
-        """.trimMargin().keepIndentation("<<", ">>")
+            |  <<${body.type.renderType(false)}>>
+        """.trimMargin().keepAngleIndent()
     }
     private fun renderUriParameter(uriParameter: UriParameter): String {
         return """
             |${uriParameter.name}:
             |  <<${uriParameter.type.renderType()}>>
-        """.trimMargin().keepIndentation("<<", ">>")
+        """.trimMargin().keepAngleIndent()
     }
 
     private fun renderQueryParameter(queryParameter: QueryParameter): String {
         return """
             |${queryParameter.name}:${if (queryParameter.type.default != null) """
-            |  default: ${queryParameter.type.default.value}""" else ""}
+            |  default: ${queryParameter.type.default.toYaml()}""" else ""}
             |  required: ${queryParameter.required}
             |  <<${queryParameter.type.renderType()}>>
-        """.trimMargin().keepIndentation("<<", ">>")
+        """.trimMargin().keepAngleIndent()
     }
-}
-
-fun Instance.toYaml(): String {
-    var example = ""
-    val mapper = YAMLMapper()
-    mapper.disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER)
-
-    val module = SimpleModule()
-    module.addSerializer(ObjectInstance::class.java, ObjectInstanceSerializer())
-    module.addSerializer<Instance>(ArrayInstance::class.java, InstanceSerializer())
-    module.addSerializer<Instance>(IntegerInstance::class.java, InstanceSerializer())
-    module.addSerializer<Instance>(BooleanInstance::class.java, InstanceSerializer())
-    module.addSerializer<Instance>(StringInstance::class.java, InstanceSerializer())
-    module.addSerializer<Instance>(NumberInstance::class.java, InstanceSerializer())
-    mapper.registerModule(module)
-
-    if (this is StringInstance) {
-        example = mapper.writeValueAsString(this.value)
-    } else if (this is ObjectInstance) {
-        try {
-            example = mapper.writeValueAsString(this)
-        } catch (e: JsonProcessingException) {
-        }
-    }
-
-    return example.trim()
-}
-
-fun Instance.toJson(): String {
-    var example = ""
-    val mapper = ObjectMapper()
-
-    val module = SimpleModule()
-    module.addSerializer(ObjectInstance::class.java, ObjectInstanceSerializer())
-    module.addSerializer<Instance>(ArrayInstance::class.java, InstanceSerializer())
-    module.addSerializer<Instance>(IntegerInstance::class.java, InstanceSerializer())
-    module.addSerializer<Instance>(BooleanInstance::class.java, InstanceSerializer())
-    module.addSerializer<Instance>(StringInstance::class.java, InstanceSerializer())
-    module.addSerializer<Instance>(NumberInstance::class.java, InstanceSerializer())
-    mapper.registerModule(module)
-
-    if (this is StringInstance) {
-        example = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(this.value)
-    } else if (this is ObjectInstance) {
-        try {
-            example = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(this)
-        } catch (e: JsonProcessingException) {
-        }
-    }
-
-    return example.trim()
 }

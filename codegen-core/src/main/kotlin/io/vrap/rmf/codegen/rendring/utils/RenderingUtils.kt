@@ -192,6 +192,40 @@ fun generateTemplate(input: String, indStartToken: String = "<", indStopToken: S
 fun String.keepIndentation() = generateTemplate(this)
 fun String.keepIndentation(indStartToken: String, indStopToken: String) = generateTemplate(this, indStartToken, indStopToken)
 
+enum class IndentMarker(val tokens: IndentationTokens) {
+    SingleAngle(IndentationTokens("<", ">")),
+    DoubleAngle(IndentationTokens("<<", ">>")),
+    SingleCurly(IndentationTokens("{", "}")),
+    DoubleCurly(IndentationTokens("{{", "}}")),
+}
+
+data class IndentationTokens(val startToken: String = "{{", val stopToken: String = "}}") {
+}
+
+fun String.keepSingleAngleIndent(): String {
+    return this keepIndentWith IndentMarker.SingleAngle
+}
+
+fun String.keepAngleIndent(): String {
+    return this keepIndentWith IndentMarker.DoubleAngle
+}
+
+fun String.keepSingleCurlyIndent(): String {
+    return this keepIndentWith IndentMarker.SingleCurly
+}
+
+fun String.keepCurlyIndent(): String {
+    return this keepIndentWith IndentMarker.DoubleCurly
+}
+
+infix fun String.keepIndentWith(indentMarker: IndentMarker): String {
+    return this keepIndentWith indentMarker.tokens
+}
+
+infix fun String.keepIndentWith(indentMarker: IndentationTokens): String {
+    return generateTemplate(this, indentMarker.startToken, indentMarker.stopToken)
+}
+
 /**
  * Escape all special characters such as '<' '>' '\'
  */

@@ -3,10 +3,13 @@ package io.vrap.codegen.languages.ramldoc.model
 import com.google.inject.Inject
 import io.vrap.codegen.languages.extensions.EObjectExtensions
 import io.vrap.codegen.languages.extensions.toResourceName
+import io.vrap.codegen.languages.ramldoc.extensions.packageDir
+import io.vrap.codegen.languages.ramldoc.extensions.renderType
+import io.vrap.rmf.codegen.di.AllAnyTypes
 import io.vrap.rmf.codegen.di.ModelPackageName
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.FileProducer
-import io.vrap.rmf.codegen.rendring.utils.keepIndentation
+import io.vrap.rmf.codegen.rendring.utils.keepAngleIndent
 import io.vrap.rmf.codegen.types.VrapEnumType
 import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapScalarType
@@ -14,7 +17,7 @@ import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.modules.Api
 import io.vrap.rmf.raml.model.types.*
 
-class ApiRamlRenderer @Inject constructor(val api: Api, override val vrapTypeProvider: VrapTypeProvider) : EObjectExtensions, FileProducer {
+class ApiRamlRenderer @Inject constructor(val api: Api, override val vrapTypeProvider: VrapTypeProvider, @AllAnyTypes val anyTypeList: MutableList<AnyType>) : EObjectExtensions, FileProducer {
     @Inject
     @ModelPackageName
     lateinit var modelPackageName: String
@@ -32,9 +35,12 @@ class ApiRamlRenderer @Inject constructor(val api: Api, override val vrapTypePro
             |---
             |title: ${api.title}
             |annotationTypes:
+            |  resourceName:
+            |    type: string
+            |    allowedTargets: [Resource, Method]
             |  resourcePathUri:
             |    type: string
-            |    allowedTargets: Method
+            |    allowedTargets: [Resource, Method]
             |  builtinType:
             |    type: string
             |    allowedTargets: TypeDeclaration
@@ -42,15 +48,16 @@ class ApiRamlRenderer @Inject constructor(val api: Api, override val vrapTypePro
             |    type: array
             |    items: string
             |    allowedTargets: TypeDeclaration
+            |  <<${api.annotationTypes.plus(api.uses.flatMap { libraryUse -> libraryUse.library.annotationTypes }).joinToString("\n") { renderAnnotationType(it) }}>>
             |securitySchemes:
             |  oauth_2_0: !include oauth2.raml
             |securedBy:
             |- oauth_2_0
             |types:
-            |  <<${api.types.filterNot { it is UnionType }.sortedWith(compareBy { it.name }).joinToString("\n") { "${it.name}: !include ${ramlFileName(it)}" }}>>
+            |  <<${anyTypeList.filterNot { it is UnionType }.sortedWith(compareBy { it.name }).joinToString("\n") { "${it.name}: !include ${ramlFileName(it)}" }}>>
             |  
             |${api.allContainedResources.sortedWith(compareBy { it.resourcePath }).joinToString("\n") { "${it.fullUri.template}: !include resources/${it.toResourceName()}.raml" }}
-        """.trimMargin().keepIndentation("<<", ">>")
+        """.trimMargin().keepAngleIndent()
 
         return TemplateFile(relativePath = "api.raml",
                 content = content
@@ -118,12 +125,19 @@ class ApiRamlRenderer @Inject constructor(val api: Api, override val vrapTypePro
         )
     }
 
+    private fun renderAnnotationType(annotation: AnyAnnotationType): String {
+        return """
+            |${annotation.name}:
+            |   <<${annotation.renderType()}>>
+        """.trimMargin().keepAngleIndent()
+    }
+
     private fun ramlFileName(type: AnyType): String {
         when (val vrapType = type.toVrapType()) {
             is VrapObjectType ->
-                return "types/" + vrapType.`package`.replace(modelPackageName, "").trim('/') + "/" + vrapType.simpleClassName + ".raml"
+                return "types/" + vrapType.packageDir(modelPackageName) + vrapType.simpleClassName + ".raml"
             is VrapEnumType ->
-                return "types/" + vrapType.`package`.replace(modelPackageName, "").trim('/') + "/" + vrapType.simpleClassName + ".raml"
+                return "types/" + vrapType.packageDir(modelPackageName) + vrapType.simpleClassName + ".raml"
             is VrapScalarType ->
                 return "types/" + type.name + ".raml"
             else -> return ""

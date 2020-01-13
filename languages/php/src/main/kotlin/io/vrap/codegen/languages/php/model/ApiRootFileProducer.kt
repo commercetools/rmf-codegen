@@ -8,7 +8,7 @@ import io.vrap.codegen.languages.php.extensions.toNamespaceName
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.FileProducer
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
-import io.vrap.rmf.codegen.rendring.utils.keepIndentation
+import io.vrap.rmf.codegen.rendring.utils.keepAngleIndent
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.modules.Api
 
@@ -42,6 +42,6 @@ class ApiRootFileProducer @Inject constructor(api: Api, vrapTypeProvider: VrapTy
                     |
                     |   <<${type.subResources()}>>
                     |}
-                """.trimMargin().keepIndentation("<<", ">>").forcedLiteralEscape())
+                """.trimMargin().keepAngleIndent().forcedLiteralEscape())
     }
 }

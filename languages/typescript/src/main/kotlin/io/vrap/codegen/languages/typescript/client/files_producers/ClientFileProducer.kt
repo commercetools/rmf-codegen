@@ -2,8 +2,6 @@ package io.vrap.codegen.languages.typescript.client.files_producers
 
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.FileProducer
-import jdk.nashorn.internal.runtime.GlobalFunctions.encodeURIComponent
-import scala.annotation.meta.param
 
 class ClientFileProducer : FileProducer {
 
