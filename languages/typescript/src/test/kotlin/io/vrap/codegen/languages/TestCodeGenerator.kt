@@ -20,9 +20,9 @@ class TestCodeGenerator {
 
     companion object {
         private val userProvidedPath = System.getenv("TEST_RAML_FILE")
-        private val apiPath : Path = Paths.get(userProvidedPath ?: "../../api-spec/api.raml")
+        private val apiPath : Path = Paths.get(if (userProvidedPath == null) "../../api-spec/api.raml" else userProvidedPath)
         val apiProvider: ApiProvider = ApiProvider(apiPath)
-        val generatorConfig = CodeGeneratorConfig(basePackageName = "",outputFolder = Paths.get("/Users/abeniasaad/IdeaProjects/nodejs/packages/typescript-sdk/src/generated"))
+        val generatorConfig = CodeGeneratorConfig(basePackageName = "")
     }
 
 
