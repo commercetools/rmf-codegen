@@ -7,8 +7,6 @@ import io.vrap.rmf.raml.model.types.ObjectType
 import io.vrap.rmf.raml.model.types.UnionType
 import io.vrap.rmf.raml.model.util.StringCaseFormat
 import org.eclipse.emf.ecore.EObject
-import java.nio.file.Path
-import java.nio.file.Paths
 import java.util.*
 
 interface TsObjectTypeExtensions : ExtensionsBase {
@@ -21,6 +19,14 @@ interface TsObjectTypeExtensions : ExtensionsBase {
                 .getImportsForModuleVrapTypes(moduleName)
     }
 
+    fun AnyType.moduleName(): String {
+        val type = this.toVrapType()
+        return when (type) {
+            is VrapObjectType -> type.`package`
+            is VrapEnumType -> type.`package`
+            else -> ""
+        }
+    }
 
     fun List<VrapType>.getImportsForModuleVrapTypes(moduleName: String): String {
         return this
@@ -43,15 +49,9 @@ interface TsObjectTypeExtensions : ExtensionsBase {
                 .toSortedMap()
                 .map {
                     val allImportedClasses = it.value.map { it.simpleTSName() }.sorted().joinToString(", ")
-                    "import { $allImportedClasses } from '${relativizePaths(moduleName, it.key)}'"
+                    "import { $allImportedClasses } from '${it.key}'"
                 }
                 .joinToString(separator = "\n")
-    }
-
-    private fun relativizePaths(currentModule: String, targetModule: String): String {
-        val currentRelative: Path = Paths.get(currentModule)
-        val targetRelative: Path = Paths.get(targetModule)
-        return currentRelative.relativize(targetRelative).toString().replaceFirst("../", "./")
     }
 
     private fun ObjectType.getDependencies(): List<VrapType> {

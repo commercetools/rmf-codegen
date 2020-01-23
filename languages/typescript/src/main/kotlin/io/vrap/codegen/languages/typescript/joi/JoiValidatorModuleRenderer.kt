@@ -19,20 +19,12 @@ class JoiValidatorModuleRenderer @Inject constructor(override val vrapTypeProvid
     lateinit var allAnyTypes: MutableList<AnyType>
 
     override fun produceFiles(): List<TemplateFile> {
-        return allAnyTypes.groupBy { moduleName(it) }
+        return allAnyTypes.groupBy { it.moduleName() }
                 .filter { it.key.isNotBlank() }
                 .map { entry -> buildModule(entry.key.toJoiPackageName(), entry.value) }
                 .toList()
     }
 
-    private fun moduleName(it: AnyType): String {
-        val t = it.toVrapType()
-        return when (t) {
-            is VrapObjectType -> t.`package`
-            is VrapEnumType -> t.`package`
-            else -> ""
-        }
-    }
 
     fun buildModule(moduleName: String, types: List<AnyType>): TemplateFile {
         val content = """

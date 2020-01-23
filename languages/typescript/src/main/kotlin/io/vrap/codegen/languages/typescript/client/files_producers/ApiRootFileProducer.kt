@@ -3,6 +3,7 @@ package io.vrap.codegen.languages.typescript.client.files_producers
 import com.google.inject.Inject
 import io.vrap.codegen.languages.extensions.getMethodName
 import io.vrap.codegen.languages.typescript.model.TsObjectTypeExtensions
+import io.vrap.codegen.languages.typescript.tsGeneratedComment
 import io.vrap.codegen.languages.typescript.toRequestBuilderName
 import io.vrap.codegen.languages.typescript.toTsComment
 import io.vrap.codegen.languages.typescript.tsRequestVrapType
@@ -17,6 +18,7 @@ import io.vrap.rmf.raml.model.resources.ResourceContainer
 
 class ApiRootFileProducer @Inject constructor(
         @ClientPackageName val client_package: String,
+        val clientConstants: ClientConstants,
         val api: Api,
         override val vrapTypeProvider: VrapTypeProvider
 ) : FileProducer, TsObjectTypeExtensions {
@@ -28,13 +30,14 @@ class ApiRootFileProducer @Inject constructor(
     }
 
     fun produceApiRoot(type: Api): TemplateFile {
-        val moduleName = "$client_package/api-root"
+        val moduleName = clientConstants.apiRoot
         return TemplateFile(
                 relativePath = "$moduleName.ts",
                 content = """|
+                |$tsGeneratedComment
                 |${type.imports(moduleName)}
-                |import { Middleware } from '../base/common-types'
-                |import { ApiRequestExecutor } from '../base/requests-utils'
+                |import { Middleware } from '${clientConstants.commonTypesPackage}'
+                |import { ApiRequestExecutor, ApiRequest } from '${clientConstants.requestUtilsPackage}'
                 |
                 |export class ApiRoot {
                 |  private apiRequestExecutor: ApiRequestExecutor
