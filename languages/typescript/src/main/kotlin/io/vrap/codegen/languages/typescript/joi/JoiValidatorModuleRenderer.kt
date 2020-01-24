@@ -1,7 +1,6 @@
 package io.vrap.codegen.languages.typescript.joi
 
 import com.google.inject.Inject
-import io.vrap.codegen.languages.extensions.EObjectExtensions
 import io.vrap.codegen.languages.extensions.discriminatorProperty
 import io.vrap.codegen.languages.extensions.hasSubtypes
 import io.vrap.codegen.languages.typescript.model.TsObjectTypeExtensions
@@ -21,8 +20,9 @@ class JoiValidatorModuleRenderer @Inject constructor(override val vrapTypeProvid
 
     override fun produceFiles(): List<TemplateFile> {
         return allAnyTypes.groupBy { moduleName(it) }
-            .map { entry -> buildModule(entry.key.toJoiPackageName(), entry.value) }
-            .toList()
+                .filter { it.key.isNotBlank() }
+                .map { entry -> buildModule(entry.key.toJoiPackageName(), entry.value) }
+                .toList()
     }
 
     private fun moduleName(it: AnyType): String {
@@ -30,7 +30,6 @@ class JoiValidatorModuleRenderer @Inject constructor(override val vrapTypeProvid
         return when (t) {
             is VrapObjectType -> t.`package`
             is VrapEnumType -> t.`package`
-            is UnionType -> ""
             else -> ""
         }
     }

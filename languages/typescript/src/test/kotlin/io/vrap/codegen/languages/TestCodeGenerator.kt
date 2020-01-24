@@ -25,6 +25,7 @@ class TestCodeGenerator {
         val generatorConfig = CodeGeneratorConfig(basePackageName = "")
     }
 
+
     @Test
     fun generateTsModels() {
         val generatorModule = GeneratorModule(apiProvider, generatorConfig, TypeScriptBaseTypes)
