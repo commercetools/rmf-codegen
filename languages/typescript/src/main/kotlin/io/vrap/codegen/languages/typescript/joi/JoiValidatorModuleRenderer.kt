@@ -6,6 +6,7 @@ import io.vrap.codegen.languages.extensions.hasSubtypes
 import io.vrap.codegen.languages.typescript.model.TsObjectTypeExtensions
 import io.vrap.codegen.languages.typescript.model.simpleTSName
 import io.vrap.codegen.languages.typescript.toJoiPackageName
+import io.vrap.codegen.languages.typescript.tsGeneratedComment
 import io.vrap.rmf.codegen.di.AllAnyTypes
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.FileProducer
@@ -28,7 +29,7 @@ class JoiValidatorModuleRenderer @Inject constructor(override val vrapTypeProvid
 
     fun buildModule(moduleName: String, types: List<AnyType>): TemplateFile {
         val content = """
-           |//Generated file, please do not change
+           |$tsGeneratedComment
            |
            |import * as Joi from 'joi'
            |${getImportsForJoiModule(moduleName, types)}

@@ -24,16 +24,16 @@ class ServerRenderer @Inject constructor(
 
     override fun produceFiles(): List<TemplateFile> = listOf(apiServer())
 
-    val joiValidatorLocation = "../joi"
 
     val moduleFileName = "${constantsProvider.serverModule}.ts"
-    val moduleFilePath = Paths.get("$moduleFileName.ts")
 
 
     fun apiServer(): TemplateFile {
         val moduleName = "$client_package/joi-server"
 
         val content = """
+            |$tsGeneratedComment
+            |
             |import * as Joi from 'joi'
             |<${handlerImports(moduleName)}>
             |<${joiValidatorImports(moduleName)}>
@@ -177,7 +177,7 @@ class ServerRenderer @Inject constructor(
                         )
                 )
                 .map {
-                    it.toImportStatement(moduleName)
+                    it.toImportStatement()
                 }
                 .joinToString(separator = "\n")
 
@@ -191,21 +191,20 @@ class ServerRenderer @Inject constructor(
                 .map { it.type.toVrapType() }
                 .distinct()
                 .map {
-                    it.joiImportStatement(moduleName)
+                    it.joiImportStatement()
                 }
                 .joinToString(separator = "\n")
 
     }
 
-    private fun VrapType.joiImportStatement(moduleName:String):String {
+    private fun VrapType.joiImportStatement():String {
         return when (this) {
             is VrapObjectType -> {
                 val joiType = this.toJoiVrapType()
-                val relativePath = relativizePaths("./${moduleFilePath.parent}", "$joiValidatorLocation${joiType.`package`}")
-                "import { ${joiType.simpleClassName} } from '$relativePath'"
+                "import { ${joiType.simpleClassName} } from '@joi/${joiType.`package`}'"
             }
             is VrapArrayType -> {
-                return this.itemType.joiImportStatement(moduleName)
+                return this.itemType.joiImportStatement()
             }
             is VrapScalarType -> {
                 return ""
