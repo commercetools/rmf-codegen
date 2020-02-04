@@ -14,6 +14,7 @@ import io.vrap.rmf.codegen.rendring.utils.keepAngleIndent
 import io.vrap.rmf.codegen.types.VrapEnumType
 import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.raml.model.resources.Resource
+import io.vrap.rmf.raml.model.resources.UriParameter
 import io.vrap.rmf.raml.model.types.*
 import io.vrap.rmf.raml.model.types.Annotation
 import io.vrap.rmf.raml.model.util.StringCaseFormat
@@ -103,6 +104,17 @@ fun AnyType.renderTypeFacet(): String {
         is NumberType -> this.renderNumberType()
         else -> this.renderScalarType()}
 }
+
+fun UriParameter.renderUriParameter(): String {
+    return """
+            |${this.name}:${if (this.type.enum.size > 0) """
+            |  enum:
+            |  <<${this.type.enum.joinToString("\n") { "- ${it.value}"}}>>""" else ""}
+            |  <<${this.type.renderType()}>>
+            |  required: ${this.required}
+        """.trimMargin().keepAngleIndent()
+}
+
 
 fun AnyType.renderType(withDescription: Boolean = true): String {
     val builtinTypeName = BuiltinType.of(this.eClass()).map { it.getName() }.orElse("any")

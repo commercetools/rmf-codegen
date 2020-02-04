@@ -5,6 +5,7 @@ import io.vrap.codegen.languages.extensions.EObjectExtensions
 import io.vrap.codegen.languages.extensions.toResourceName
 import io.vrap.codegen.languages.ramldoc.extensions.packageDir
 import io.vrap.codegen.languages.ramldoc.extensions.renderType
+import io.vrap.codegen.languages.ramldoc.extensions.renderUriParameter
 import io.vrap.rmf.codegen.di.AllAnyTypes
 import io.vrap.rmf.codegen.di.ModelPackageName
 import io.vrap.rmf.codegen.io.TemplateFile
@@ -53,6 +54,9 @@ class ApiRamlRenderer @Inject constructor(val api: Api, override val vrapTypePro
             |  oauth_2_0: !include oauth2.raml
             |securedBy:
             |- oauth_2_0
+            |baseUri: ${api.baseUri.template}${if (api.baseUriParameters.size > 0) """
+            |baseUriParameters:
+            |  <<${api.baseUriParameters.joinToString("\n") { it.renderUriParameter() }}>>""" else ""}
             |types:
             |  <<${anyTypeList.filterNot { it is UnionType }.sortedWith(compareBy { it.name }).joinToString("\n") { "${it.name}: !include ${ramlFileName(it)}" }}>>
             |  

@@ -4,6 +4,7 @@ import com.google.inject.Inject
 import io.vrap.codegen.languages.extensions.isSuccessfull
 import io.vrap.codegen.languages.extensions.toResourceName
 import io.vrap.codegen.languages.ramldoc.extensions.renderType
+import io.vrap.codegen.languages.ramldoc.extensions.renderUriParameter
 import io.vrap.codegen.languages.ramldoc.extensions.toYaml
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.ResourceRenderer
@@ -33,7 +34,7 @@ class RamlResourceRenderer @Inject constructor(val api: Api, val vrapTypeProvide
             |  <<${type.description.value.trim()}>>""" else ""}
             |${if (type.fullUriParameters.size > 0) """
             |uriParameters:
-            |  <<${type.fullUriParameters.joinToString("\n") { renderUriParameter(it) }}>>""" else ""}
+            |  <<${type.fullUriParameters.joinToString("\n") { it.renderUriParameter() }}>>""" else ""}
             |${type.methods.joinToString("\n") { renderMethod(it) }}
         """.trimMargin().keepAngleIndent()
         val relativePath = "resources/" + type.toResourceName()+ ".raml"
@@ -83,10 +84,14 @@ class RamlResourceRenderer @Inject constructor(val api: Api, val vrapTypeProvide
             |  <<${body.type.renderType(false)}>>
         """.trimMargin().keepAngleIndent()
     }
-    private fun renderUriParameter(uriParameter: UriParameter): String {
+
+    public fun renderUriParameter(uriParameter: UriParameter): String {
         return """
-            |${uriParameter.name}:
+            |${uriParameter.name}:${if (uriParameter.type.enum.size > 0) """
+            |  enum:
+            |  <<${uriParameter.type.enum.joinToString("\n") { "- ${it.value}"}}>>""" else ""}
             |  <<${uriParameter.type.renderType()}>>
+            |  required: ${uriParameter.required}
         """.trimMargin().keepAngleIndent()
     }
 
