@@ -66,32 +66,22 @@ fun DescriptionFacet.toTsComment(): String {
 
 fun Resource.toRequestBuilderName(): String = "${this.toResourceName()}RequestBuilder"
 
-fun Resource.tsRequestModuleName(clientPackageName: String): String = "$clientPackageName/${this.resourcePathName}/${StringCaseFormat.LOWER_HYPHEN_CASE.apply(this.toRequestBuilderName())}"
+fun Resource.tsRequestModuleName(clientPackageName: String): String = "$clientPackageName${if(this.resourcePathName.isNullOrEmpty()) "" else "/${this.resourcePathName}"}/${StringCaseFormat.LOWER_HYPHEN_CASE.apply(this.toRequestBuilderName())}"
 
 fun Resource.tsRequestVrapType(clientPackageName: String): VrapObjectType = VrapObjectType(`package` = this.tsRequestModuleName(clientPackageName), simpleClassName = this.toRequestBuilderName())
 
-
-fun relativizePaths(currentModule: String, targetModule: String): String {
-    val currentRelative: Path = Paths.get(currentModule)
-    val targetRelative: Path = Paths.get(targetModule)
-    return "./" + currentRelative.relativize(targetRelative).toString().replaceFirst("../", "")
-}
-
-fun VrapType.toImportStatement(moduleName: String): String {
+fun VrapType.toImportStatement(): String {
     return when (this) {
         is VrapLibraryType -> "import { ${this.simpleClassName} } from '${this.`package`}'"
         is VrapObjectType -> {
-            val relativePath = relativizePaths(moduleName, this.`package`)
-            "import { ${this.simpleTSName()} } from '$relativePath'"
+            "import { ${this.simpleTSName()} } from '${this.`package`}'"
         }
         is VrapEnumType -> {
-            val relativePath = relativizePaths(moduleName, this.`package`)
-            "import { ${this.simpleTSName()} } from '$relativePath'"
+            "import { ${this.simpleTSName()} } from '${this.`package`}'"
         }
         is VrapArrayType -> {
             val objType = this.itemType as VrapObjectType
-            val relativePath = relativizePaths(moduleName, objType.`package`)
-            return "import { ${objType.simpleTSName()} } from '$relativePath'"
+            return "import { ${objType.simpleTSName()} } from '$${objType.`package`}'"
         }
         else -> throw Error("not supposed to arrive here")
     }

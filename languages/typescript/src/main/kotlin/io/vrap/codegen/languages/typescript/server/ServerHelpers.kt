@@ -1,6 +1,7 @@
 package io.vrap.codegen.languages.typescript.server
 
 import com.google.inject.Inject
+import io.vrap.codegen.languages.typescript.tsGeneratedComment
 import io.vrap.rmf.codegen.di.ClientPackageName
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.FileProducer
@@ -17,7 +18,9 @@ class ServerHelpers @Inject constructor(
         val moduleName = constantsProvider.commonModule
         return TemplateFile(
                 content = """
-import { Request, ResponseToolkit, Lifecycle } from "@hapi/hapi";
+$tsGeneratedComment
+
+import { Lifecycle } from "@hapi/hapi";
 
 export type MethodType =
   | "GET"

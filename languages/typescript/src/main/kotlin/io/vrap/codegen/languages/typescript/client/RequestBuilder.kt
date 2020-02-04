@@ -3,10 +3,10 @@ package io.vrap.codegen.languages.typescript.client
 import com.google.inject.Inject
 import io.vrap.codegen.languages.extensions.*
 import io.vrap.codegen.languages.typescript.*
-import io.vrap.codegen.languages.typescript.client.files_producers.apiRequestExecutor
-import io.vrap.codegen.languages.typescript.client.files_producers.apiRequest
+import io.vrap.codegen.languages.typescript.client.files_producers.ClientConstants
 import io.vrap.codegen.languages.typescript.model.TsObjectTypeExtensions
 import io.vrap.codegen.languages.typescript.model.simpleTSName
+import io.vrap.codegen.languages.typescript.tsGeneratedComment
 import io.vrap.rmf.codegen.di.ClientPackageName
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.ResourceRenderer
@@ -25,6 +25,7 @@ import io.vrap.rmf.raml.model.types.StringType
 
 class RequestBuilder @Inject constructor(
         @ClientPackageName val client_package: String,
+        private val clientConstants: ClientConstants,
         val api: Api,
         override val vrapTypeProvider: VrapTypeProvider
 ) : ResourceRenderer, TsObjectTypeExtensions {
@@ -34,10 +35,11 @@ class RequestBuilder @Inject constructor(
         val pakage = (type.toVrapType() as VrapObjectType).`package`
 
         return TemplateFile(
-                relativePath = type.tsRequestModuleName(pakage).replace(".", "/") + ".ts",
+                relativePath = type.tsRequestModuleName(pakage) + ".ts",
                 content = """|
+                |$tsGeneratedComment
                 |${type.imports(type.tsRequestModuleName(pakage))}
-                |import { ${apiRequestExecutor.simpleClassName}, ${apiRequest.simpleClassName} } from '${relativizePaths(type.tsRequestModuleName(pakage), apiRequestExecutor.`package`)}'
+                |import { ApiRequestExecutor, ApiRequest } from '${clientConstants.requestUtilsPackage}'
                 |
                 |export class ${type.toRequestBuilderName()} {
                 |
@@ -118,7 +120,8 @@ class RequestBuilder @Inject constructor(
                         val allQueryParamsOptional = it.queryParameters.map { !it.required }.reduce(Boolean::and)
                         queryParamsArg =
                                 """|queryArgs${if (allQueryParamsOptional) "?" else ""}: {
-                            |   <${it.queryParameters.map { "'${it.name.tsRemoveRegexp()}'${if (it.required) "" else "?"}: ${it.type.toVrapType().simpleTSName()} | ${it.type.toVrapType().simpleTSName()}[]" }.joinToString(separator = "\n")}>
+                            |   <${it.queryParameters.filter { !it.isPatternProperty() }.map { "'${it.name}'${if (it.required) "" else "?"}: ${it.type.toVrapType().simpleTSName()} | ${it.type.toVrapType().simpleTSName()}[]" }.joinToString(separator = "\n")}>
+                            |   [key: string]: boolean | boolean[] | string | string[]|number | number[] | undefined
                             |},""".trimMargin()
                     }
                     if (!it.bodies.isEmpty()) {

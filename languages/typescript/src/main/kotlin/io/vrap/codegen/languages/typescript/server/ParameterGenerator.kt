@@ -35,15 +35,17 @@ class ParameterGenerator @Inject constructor(
 
 
         val content = """
-                    |${imports(moduleFileName)}
-                    |
-                    |${api.parameters()}
-                    |
-                    |${api.responses()}
-                    |
-                    |${api.handlers()}
-                    |
-                    """
+            |$tsGeneratedComment
+            |
+            |${imports()}
+            |
+            |${api.parameters()}
+            |
+            |${api.responses()}
+            |
+            |${api.handlers()}
+            |
+            """
                 .trimMargin()
                 .keepIndentation()
 
@@ -136,7 +138,7 @@ class ParameterGenerator @Inject constructor(
 
 
 
-    private fun imports(moduleName:String):String {
+    private fun imports():String {
         return api.allMethods()
                 .flatMap { method ->
 
@@ -163,29 +165,23 @@ class ParameterGenerator @Inject constructor(
                 .filter { it is VrapObjectType || it is VrapEnumType}
                 .distinct()
                 .map {
-                    it.importModelsStatements(moduleName)
+                    it.importModelsStatements()
                 }
-                .plus(
-                        constantsProvider.ScalarValue.toImportStatement(moduleName)
-                )
                 .joinToString(separator = "\n")
 
     }
 
-    private fun VrapType.importModelsStatements(moduleName:String):String {
+    private fun VrapType.importModelsStatements():String {
         return when (this) {
             is VrapObjectType -> {
-                val relativePath = relativizePaths("./${moduleFilePath.parent}", "$modelsLocation${this.`package`}")
-                "import { ${this.simpleTSName()} } from '$relativePath'"
+                "import { ${this.simpleTSName()} } from '${this.`package`}'"
             }
             is VrapEnumType -> {
-                val relativePath = relativizePaths("./${moduleFilePath.parent}", "$modelsLocation${this.`package`}")
-                "import { ${this.simpleTSName()} } from '$relativePath'"
+                "import { ${this.simpleTSName()} } from '${this.`package`}'"
             }
             is VrapArrayType -> {
                 val objType = this.itemType as VrapObjectType
-                val relativePath = relativizePaths(moduleName, objType.`package`)
-                return "import { ${objType.simpleTSName()} } from '$relativePath'"
+                return "import { ${objType.simpleTSName()} } from '${objType.`package`}'"
             }
             else -> throw Error("not supposed to arrive here")
         }

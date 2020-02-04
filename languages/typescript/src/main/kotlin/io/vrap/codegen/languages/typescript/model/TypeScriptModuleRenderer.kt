@@ -4,6 +4,7 @@ import com.google.inject.Inject
 import io.vrap.codegen.languages.extensions.getSuperTypes
 import io.vrap.codegen.languages.extensions.isPatternProperty
 import io.vrap.codegen.languages.extensions.sortedByTopology
+import io.vrap.codegen.languages.typescript.tsGeneratedComment
 import io.vrap.codegen.languages.typescript.toTsComment
 import io.vrap.rmf.codegen.di.AllAnyTypes
 import io.vrap.rmf.codegen.io.TemplateFile
@@ -11,7 +12,6 @@ import io.vrap.rmf.codegen.rendring.FileProducer
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
 import io.vrap.rmf.codegen.rendring.utils.keepIndentation
 import io.vrap.rmf.codegen.types.VrapEnumType
-import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.types.*
 
@@ -22,36 +22,26 @@ class TypeScriptModuleRenderer @Inject constructor(override val vrapTypeProvider
     lateinit var allAnyTypes: MutableList<AnyType>
 
     override fun produceFiles(): List<TemplateFile> {
-        return allAnyTypes.filter { it is ObjectType || it is StringType }
-                .filterNot { it is StringType && it.pattern != null }
+        return allAnyTypes.filter { it is ObjectType || (it is StringType && it.pattern == null) }
                 .groupBy {
-                    moduleName(it)
+                    it.moduleName()
                 }
             .map { entry: Map.Entry<String, List<AnyType>> ->
                 buildModule(entry.key, entry.value) }
             .toList()
     }
 
-    private fun moduleName(it: AnyType): String {
-        val type = it.toVrapType()
-        return when (type) {
-            is VrapObjectType -> type.`package`
-            is VrapEnumType -> type.`package`
-            else -> throw IllegalArgumentException("Unsupported type ${type}")
-        }
-    }
-
     private fun buildModule(moduleName: String, types: List<AnyType>): TemplateFile {
         var sortedTypes = types.filter { it !is UnionType }.sortedByTopology(AnyType::getSuperTypes)
         val content = """
-           |//Generated file, please do not change
+           |$tsGeneratedComment
            |
            |${sortedTypes.getImportsForModule(moduleName)}
            |
            |${sortedTypes.map { it.renderAnyType() }.joinToString(separator = "\n")}
        """.trimMargin().keepIndentation()
 
-        return TemplateFile(content, moduleName.replace(".", "/") + ".ts")
+        return TemplateFile(content, moduleName + ".ts")
 
     }
 
