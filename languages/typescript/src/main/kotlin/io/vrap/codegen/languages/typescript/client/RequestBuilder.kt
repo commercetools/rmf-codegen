@@ -121,7 +121,7 @@ class RequestBuilder @Inject constructor(
                         queryParamsArg =
                                 """|queryArgs${if (allQueryParamsOptional) "?" else ""}: {
                             |   <${it.queryParameters.filter { !it.isPatternProperty() }.map { "'${it.name}'${if (it.required) "" else "?"}: ${it.type.toVrapType().simpleTSName()} | ${it.type.toVrapType().simpleTSName()}[]" }.joinToString(separator = "\n")}>
-                            |   [key: string]: boolean | boolean[] | string | string[]|number | number[] | undefined
+                            |   [key: string]: QueryParamType
                             |},""".trimMargin()
                     }
                     if (!it.bodies.isEmpty()) {
@@ -218,6 +218,9 @@ class RequestBuilder @Inject constructor(
                                 .map { it.returnType().toVrapType() }
                                 .filter { it is VrapObjectType || (it is VrapArrayType && it.itemType is VrapObjectType) }
 
+                )
+                .plus(
+                        VrapObjectType(clientConstants.commonTypesPackage,"QueryParamType")
                 )
                 .getImportsForModuleVrapTypes(moduleName)
     }
