@@ -12,6 +12,7 @@ import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.FileProducer
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
 import io.vrap.rmf.codegen.rendring.utils.keepIndentation
+import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.modules.Api
 import io.vrap.rmf.raml.model.resources.ResourceContainer
@@ -88,6 +89,9 @@ class ApiRootFileProducer @Inject constructor(
                 .map {
                     it.tsRequestVrapType(client_package)
                 }
+                .plus(
+                        VrapObjectType(clientConstants.commonTypesPackage,"QueryParamType")
+                )
                 .getImportsForModuleVrapTypes(moduleName)
     }
 
