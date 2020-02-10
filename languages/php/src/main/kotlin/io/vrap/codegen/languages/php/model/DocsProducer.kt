@@ -49,6 +49,8 @@ class DocsProducer @Inject constructor(api: Api, vrapTypeProvider: VrapTypeProvi
             |
             |### Example
             |```php
+            |use ${clientPackageName.toNamespaceName().escapeAll()}\\${rootResource()};
+            |
             |$!builder =  new ${rootResource()}();
             |$!request = $!builder
             |                <<${builderChain.joinToString("\n->", "->")}>>;

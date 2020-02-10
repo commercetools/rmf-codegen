@@ -8,6 +8,7 @@ import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.responses.Body
 import io.vrap.rmf.raml.model.security.OAuth20Settings
+import io.vrap.rmf.raml.model.security.SecurityScheme
 import io.vrap.rmf.raml.model.types.*
 import io.vrap.rmf.raml.model.util.StringCaseFormat
 import java.util.stream.Collectors
@@ -92,11 +93,29 @@ fun VrapType.isScalar(): Boolean {
 }
 
 
-fun Api.authUri(): String {
-    return this.getSecuritySchemes().stream()
-            .filter { securityScheme -> securityScheme.getSettings() is OAuth20Settings }
-            .map { securityScheme -> (securityScheme.getSettings() as OAuth20Settings).accessTokenUri }
-            .findFirst().orElse("")
+fun Api.accessTokenUri(): UriTemplate {
+    return UriTemplate.fromTemplate(this.securitySchemes.map { s -> s.settings }.filterIsInstance<OAuth20Settings>()
+            .map { securityScheme -> securityScheme.accessTokenUri() }
+            .firstOrNull() ?: "")
+}
+
+fun Api.accessTokenUriParams(): ObjectInstance? {
+    return this.securitySchemes.map { s -> s.settings }.filterIsInstance<OAuth20Settings>()
+            .map { securityScheme -> securityScheme.accessTokenUriParams() }
+            .first()
+}
+
+private fun OAuth20Settings.accessTokenUri(): String {
+    val authInfo = this.getAnnotation("authInfo");
+    if (authInfo != null) {
+        return ((authInfo.value as ObjectInstance).getValue("authUri") as StringInstance).value ?: ""
+    }
+    return this.accessTokenUri
+}
+
+private fun OAuth20Settings.accessTokenUriParams(): ObjectInstance? {
+    val authInfo = this.getAnnotation("authInfo");
+    return (authInfo.value as ObjectInstance).getValue("authUriParameters") as? ObjectInstance
 }
 
 fun Method.apiResource(): Resource = this.eContainer() as Resource
