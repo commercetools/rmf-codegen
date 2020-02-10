@@ -39,7 +39,7 @@ abstract class AbstractRequestBuilder constructor(
     lateinit var clientPackageName: String
 
     protected fun Resource.methods(): String {
-        return this.methods.map {
+        return this.methods.joinToString(separator = "") {
             """
                 |/**
                 | * @psalm-param ${it.bodyType() ?: "?object "}$!body
@@ -49,19 +49,19 @@ abstract class AbstractRequestBuilder constructor(
                 |{
                 |    $!args = $!this->getArgs();
                 |
-                |    return new ${it.toRequestName()}(${it.allParams()?.map { "(string) $!args['${it}'], " }?.joinToString("")}$!body, $!headers, $!this->getClient());
+                |    return new ${it.toRequestName()}(${it.allParams()?.joinToString("") { "(string) $!args['${it}'], " }}$!body, $!headers, $!this->getClient());
                 |}
                 |
             """.trimMargin()
-        }.joinToString(separator = "")
+        }
     }
 
     protected fun ResourceContainer.subResources(): String {
-        return this.resources.map {
+        return this.resources.joinToString(separator = "") {
             """
                 |public function ${it.getMethodName()}(${it.relativeUri.paramValues().joinToString(", ") { "string $$it = null" }}): ${it.resourceBuilderName()}
                 |{
-                |    $!args = $!this->getArgs();${it.relativeUri.paramValues().joinToString("\n") { """
+                |    $!args = $!this->getArgs();${it.relativeUri.paramValues().joinToString("\n") {"""
                 |    if (!is_null($$it)) {
                 |        $!args['$it'] = $$it;
                 |    }""" }}
@@ -70,7 +70,7 @@ abstract class AbstractRequestBuilder constructor(
                 |}
                 |
             """.trimMargin()
-        }.joinToString(separator = "")
+        }
     }
 
     protected fun rootResource() = basePackagePrefix.replace(sharedPackageName, "").trim('/').toNamespaceName() + "RequestBuilder"
@@ -118,6 +118,7 @@ abstract class AbstractRequestBuilder constructor(
             }
             .filter { it != "" }
             .map { "use ${it.escapeAll()};" }
+
     protected fun Resource.imports() = this.methodReturnTypeImports()
             .distinct()
             .sorted()

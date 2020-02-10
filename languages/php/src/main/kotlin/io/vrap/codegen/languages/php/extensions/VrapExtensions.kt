@@ -15,12 +15,12 @@ import java.util.stream.Collectors
 
 fun String.toNamespaceName():String{
     val `package` = this.split("/")
-    return `package`.takeLast(maxOf(`package`.size, 1)).map { s -> s.capitalize() }.joinToString("\\")
+    return `package`.takeLast(maxOf(`package`.size, 1)).joinToString("\\") { s -> s.capitalize() }
 }
 
 fun String.toNamespaceDir():String{
     val `package` = this.split("/")
-    return `package`.takeLast(maxOf(`package`.size, 1)).map { s -> s.capitalize() }.joinToString("/")
+    return `package`.takeLast(maxOf(`package`.size, 1)).joinToString("/") { s -> s.capitalize() }
 }
 
 fun VrapType.namespaceName():String{

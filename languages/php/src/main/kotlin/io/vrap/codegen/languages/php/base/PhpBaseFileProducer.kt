@@ -657,17 +657,6 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                 """.trimMargin())
     }
 
-    fun UriTemplate.replaceValues(): String = variables
-            .map { """
-                |/** @psalm-var string $!${StringCaseFormat.LOWER_CAMEL_CASE.apply(it)} */
-                |$!${StringCaseFormat.LOWER_CAMEL_CASE.apply(it)} = isset($!config[self::OPT_${StringCaseFormat.UPPER_UNDERSCORE_CASE.apply(it)}]) ? $!config[self::OPT_${StringCaseFormat.UPPER_UNDERSCORE_CASE.apply(it)}] : '{$it}';
-                |$!apiUri = str_replace('{$it}', $!${StringCaseFormat.LOWER_CAMEL_CASE.apply(it)}, $!apiUri);""".trimMargin() }
-            .joinToString(separator = "\n")
-
-    fun UriTemplate.constVariables(): String = variables
-            .map { "const OPT_${StringCaseFormat.UPPER_UNDERSCORE_CASE.apply(it)}= '$it';" }
-            .joinToString(separator = "\n")
-
     private fun PreAuthTokenProvider(): TemplateFile {
         return TemplateFile(relativePath = "src/Client/PreAuthTokenProvider.php",
                 content = """

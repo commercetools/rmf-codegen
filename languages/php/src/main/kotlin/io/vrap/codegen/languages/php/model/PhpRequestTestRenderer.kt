@@ -41,7 +41,7 @@ class PhpRequestTestRenderer @Inject constructor(api: Api, vrapTypeProvider: Vra
             |use ${sharedPackageName.toNamespaceName().escapeAll()}\\Base\\JsonObject;
             |
             |/**
-            | <<${type.methods.map { "* @covers \\${clientPackageName.toNamespaceName()}\\$resourcePackage\\${it.toRequestName()}".escapeAll() }.joinToString("\n")}>>
+            | <<${type.methods.joinToString("\n") { "* @covers \\${clientPackageName.toNamespaceName()}\\$resourcePackage\\${it.toRequestName()}".escapeAll() }}>>
             | */
             |class ${type.resourceBuilderName()}Test extends TestCase
             |{
@@ -69,7 +69,7 @@ class PhpRequestTestRenderer @Inject constructor(api: Api, vrapTypeProvider: Vra
             |    public function getRequestBuilders()
             |    {
             |        return [
-            |            <<${type.methods.map { method -> requestTestProvider(type, method) }.joinToString(",\n")}>>
+            |            <<${type.methods.joinToString(",\n") { method -> requestTestProvider(type, method) }}>>
             |        ];
             |    }
             |

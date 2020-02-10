@@ -191,16 +191,14 @@ class PhpBuilderObjectTypeRenderer @Inject constructor(override val vrapTypeProv
             this.name
     }
 
-    fun ObjectType.toBeanConstant() = this.properties
-            .map { it.toPhpConstant() }.joinToString(separator = "\n")
+    fun ObjectType.toBeanConstant() = this.properties.joinToString(separator = "\n") { it.toPhpConstant() }
 
     fun ObjectType.toBeanFields(): String {
         val discriminator = this.discriminatorProperty()
 
         return this.allProperties
                 .filter { property -> property != discriminator }
-                .filter { !it.isPatternProperty() }
-                .map { it.toPhpField() }.joinToString(separator = "\n\n")
+                .filter { !it.isPatternProperty() }.joinToString(separator = "\n\n") { it.toPhpField() }
     }
 
     fun ObjectType.withers(): String {
@@ -208,9 +206,7 @@ class PhpBuilderObjectTypeRenderer @Inject constructor(override val vrapTypeProv
 
         return this.allProperties
                 .filter { property -> property != discriminator }
-                .filter { !it.isPatternProperty() }
-                .map { it.wither() }
-                .joinToString(separator = "\n\n")
+                .filter { !it.isPatternProperty() }.joinToString(separator = "\n\n") { it.wither() }
     }
 
     fun ObjectType.withBuilders(): String {
@@ -219,9 +215,7 @@ class PhpBuilderObjectTypeRenderer @Inject constructor(override val vrapTypeProv
         return this.allProperties
                 .filter { property -> property != discriminator }
                 .filter { !it.isPatternProperty() }
-                .filter { !it.type.isScalar() && !(it.type is ArrayType) && !(it.type.toVrapType().simpleName() == "stdClass") }
-                .map { it.withBuilder() }
-                .joinToString(separator = "\n\n")
+                .filter { !it.type.isScalar() && !(it.type is ArrayType) && !(it.type.toVrapType().simpleName() == "stdClass") }.joinToString(separator = "\n\n") { it.withBuilder() }
     }
 
     fun ObjectType.getters(): String {
@@ -229,9 +223,7 @@ class PhpBuilderObjectTypeRenderer @Inject constructor(override val vrapTypeProv
 
         return this.allProperties
                 .filter { property -> property != discriminator }
-                .filter { !it.isPatternProperty() }
-                .map { it.getter() }
-                .joinToString(separator = "\n\n")
+                .filter { !it.isPatternProperty() }.joinToString(separator = "\n\n") { it.getter() }
     }
 
     fun Property.wither(): String {

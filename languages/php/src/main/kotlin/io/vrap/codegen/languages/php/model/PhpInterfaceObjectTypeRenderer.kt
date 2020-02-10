@@ -89,7 +89,7 @@ class PhpInterfaceObjectTypeRenderer @Inject constructor(override val vrapTypePr
         """.trimMargin().keepAngleIndent().forcedLiteralEscape()
     }
 
-    fun ObjectType.imports() = this.getImports().map { "use ${it.escapeAll()};" }.joinToString(separator = "\n")
+    fun ObjectType.imports() = this.getImports().joinToString(separator = "\n") { "use ${it.escapeAll()};" }
 
     fun Property.toPhpConstant(): String {
 
@@ -104,9 +104,8 @@ class PhpInterfaceObjectTypeRenderer @Inject constructor(override val vrapTypePr
             else -> emptyList<Property>()
         };
         return this.properties
-                .asSequence()
-                .filter { it -> superTypeAllProperties.none { property -> it.name == property.name } }
-                .map { it.toPhpConstant() }.joinToString(separator = "\n")
+                .filter { superTypeAllProperties.none { property -> it.name == property.name } }
+                .joinToString(separator = "\n") { it.toPhpConstant() }
     }
 
     private fun ObjectType.patternGetter(): String {
@@ -125,15 +124,11 @@ class PhpInterfaceObjectTypeRenderer @Inject constructor(override val vrapTypePr
         val discriminator = this.discriminatorProperty()
         return this.properties
                 .filter { property -> property != discriminator }
-                .filter { !it.isPatternProperty() }
-                .map { it.setter() }
-                .joinToString(separator = "\n\n")
+                .filter { !it.isPatternProperty() }.joinToString(separator = "\n\n") { it.setter() }
     }
 
     fun ObjectType.getters() = this.properties
-            .filter { !it.isPatternProperty() }
-            .map { it.getter() }
-            .joinToString(separator = "\n\n")
+            .filter { !it.isPatternProperty() }.joinToString(separator = "\n\n") { it.getter() }
 
     fun Property.setter(): String {
         return """

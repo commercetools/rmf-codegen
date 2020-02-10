@@ -39,13 +39,13 @@ class PhpMethodRenderer @Inject constructor(override val vrapTypeProvider: VrapT
     override fun render(type: Method): TemplateFile {
         val vrapType = vrapTypeProvider.doSwitch(type as EObject) as VrapObjectType
 
-        val resultTypes = type.responses.asSequence().filter { it.bodies.asSequence().filter { body -> MediaType.JSON_UTF_8.`is`(body.contentMediaType) }.toList().isNotEmpty() };
-        val importTypes = resultTypes.map { response -> "use ${response.bodies.asSequence().filter { body -> MediaType.JSON_UTF_8.`is`(body.contentMediaType) }.first().returnType().returnTypeModelFullClass().escapeAll()};" }
-                .plus(resultTypes.map { response -> "use ${response.bodies.asSequence().filter { body -> MediaType.JSON_UTF_8.`is`(body.contentMediaType) }.first().returnType().returnTypeFullClass().escapeAll()};" })
+        val resultTypes = type.responses.filter { it.bodies.filter { body -> MediaType.JSON_UTF_8.`is`(body.contentMediaType) }.toList().isNotEmpty() };
+        val importTypes = resultTypes.map { response -> "use ${response.bodies.first { body -> MediaType.JSON_UTF_8.`is`(body.contentMediaType) }.returnType().returnTypeModelFullClass().escapeAll()};" }
+                .plus(resultTypes.map { response -> "use ${response.bodies.first { body -> MediaType.JSON_UTF_8.`is`(body.contentMediaType) }.returnType().returnTypeFullClass().escapeAll()};" })
                 .plus("use ${sharedPackageName.toNamespaceName()}\\Base\\JsonObject;".escapeAll())
                 .plus("use ${sharedPackageName.toNamespaceName()}\\Base\\JsonObjectModel;".escapeAll())
                 .distinct().sorted()
-        val returnTypes = resultTypes.map { response -> response.bodies.asSequence().filter { body -> MediaType.JSON_UTF_8.`is`(body.contentMediaType) }.first().returnType().returnTypeClass() }
+        val returnTypes = resultTypes.map { response -> response.bodies.first { body -> MediaType.JSON_UTF_8.`is`(body.contentMediaType) }.returnType().returnTypeClass() }
                 .plus("JsonObject")
                 .distinct().sorted()
 
@@ -75,11 +75,11 @@ class PhpMethodRenderer @Inject constructor(override val vrapTypeProvider: VrapT
             |     * @param ${if (type.firstBody()?.type is FileType) "?UploadedFileInterface " else "?object"} $!body
             |     * @psalm-param array<string, scalar|scalar[]> $!headers
             |     */
-            |    public function __construct(${type.allParams()?.asSequence()?.map { "string $$it, "  }?.joinToString(separator = "") ?: ""}${if (type.firstBody()?.type is FileType) "UploadedFileInterface " else ""}$!body = null, array $!headers = [], Client $!client = null)
+            |    public function __construct(${type.allParams()?.joinToString(separator = "") { "string $$it, " } ?: ""}${if (type.firstBody()?.type is FileType) "UploadedFileInterface " else ""}$!body = null, array $!headers = [], Client $!client = null)
             |    {
-            |        $!uri = str_replace([${type.allParams()?.asSequence()?.map { "'{$it}'"  }?.joinToString(separator = ", ") ?: ""}], [${type.allParams()?.asSequence()?.map { "$$it"  }?.joinToString(separator = ", ") ?: ""}], '${type.apiResource().fullUri.template.trimStart('/')}');
+            |        $!uri = str_replace([${type.allParams()?.joinToString(separator = ", ") { "'{$it}'" } ?: ""}], [${type.allParams()?.joinToString(separator = ", ") { "$$it" } ?: ""}], '${type.apiResource().fullUri.template.trimStart('/')}');
             |        <<${type.firstBody()?.ensureContentType() ?: ""}>>
-            |        <<${type.headers.filter { it.type?.default != null }.map { "\$headers = \$this->ensureHeader(\$headers, '${it.name}', '${it.type.default.value}');" }.joinToString("\n\n")}>>
+            |        <<${type.headers.filter { it.type?.default != null }.joinToString("\n\n") { "\$headers = \$this->ensureHeader(\$headers, '${it.name}', '${it.type.default.value}');" }}>>
             |        parent::__construct($!client, '${type.methodName.toUpperCase()}', $!uri, $!headers, ${type.firstBody()?.serialize()?: "!is_null(\$body) ? json_encode(\$body) : null"});
             |    }
             |
@@ -133,7 +133,7 @@ class PhpMethodRenderer @Inject constructor(override val vrapTypeProvider: VrapT
             |        return $!this->mapFromResponse($!response, $!resultType);
             |    }
             |
-            |    <<${type.queryParameters.map { it.withParam(type) }.joinToString("\n\n")}>>
+            |    <<${type.queryParameters.joinToString("\n\n") { it.withParam(type) }}>>
             |}
         """.trimMargin().keepAngleIndent().forcedLiteralEscape()
         val relativeTypeNamespace = vrapType.`package`.toNamespaceName().replace(basePackagePrefix.toNamespaceName() + "\\", "").replace("\\", "/") + "/$resourcePackage"

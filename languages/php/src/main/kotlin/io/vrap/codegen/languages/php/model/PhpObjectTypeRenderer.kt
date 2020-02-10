@@ -100,6 +100,8 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
             |    ${if (type.discriminator != null || type.discriminatorValue != null) {"const DISCRIMINATOR_VALUE = '${type.discriminatorValue ?: ""}';"} else ""}
             |    <<${type.toBeanFields()}>>
             |
+            |    <<${type.discriminatorClasses()}>>
+            |
             |    <<${type.constructor()}>>
             |
             |    <<${type.getters()}>>
@@ -110,7 +112,6 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
             |
             |    <<${type.serializer()}>>
             |    
-            |    <<${type.discriminatorClasses()}>>
             |    <<${type.discriminatorResolver()}>>
             |}
         """.trimMargin().keepAngleIndent().forcedLiteralEscape()
@@ -168,26 +169,20 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
             this.name
     }
 
-    fun ObjectType.toBeanConstant() = this.properties
-            .map { it.toPhpConstant() }.joinToString(separator = "\n")
+    fun ObjectType.toBeanConstant() = this.properties.joinToString(separator = "\n") { it.toPhpConstant() }
 
     fun ObjectType.toBeanFields() = this.allProperties
-            .filter { !it.isPatternProperty() }
-            .map { it.toPhpField() }.joinToString(separator = "\n\n")
+            .filter { !it.isPatternProperty() }.joinToString(separator = "\n\n") { it.toPhpField() }
 
     fun ObjectType.setters(): String {
         val discriminator = this.discriminatorProperty()
         return this.allProperties
                 .filter { property -> property != discriminator }
-                .filter { !it.isPatternProperty() }
-                .map { it.setter() }
-                .joinToString(separator = "\n\n")
+                .filter { !it.isPatternProperty() }.joinToString(separator = "\n\n") { it.setter() }
     }
 
     fun ObjectType.getters() = this.allProperties
-            .filter { !it.isPatternProperty() }
-            .map { it.getter() }
-            .joinToString(separator = "\n\n")
+            .filter { !it.isPatternProperty() }.joinToString(separator = "\n\n") { it.getter() }
 
     fun ObjectType.serializer(): String {
         val dtProperties = this.allProperties
@@ -198,7 +193,7 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
                 |public function jsonSerialize()
                 |{
                 |    $!data = $!this->toArray();
-                |    <<${dtProperties.map { it.serializer() }.joinToString(separator = "\n\n")}>>
+                |    <<${dtProperties.joinToString(separator = "\n\n") { it.serializer() }}>>
                 |    return (object) $!data;
                 |}
             """.trimMargin()
@@ -248,7 +243,7 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
             |    if (is_null($!data)) {
             |        return null;
             |    }
-            |    <<${this.properties.filter { it.isPatternProperty() }.map { it.patternGet() }.joinToString("\n")}>>
+            |    <<${this.properties.filter { it.isPatternProperty() }.joinToString("\n") { it.patternGet() }}>>
             |
             |    return $!data;
             |}
@@ -553,7 +548,7 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
             | * ${if (this.namedSubTypes().filterIsInstance<ObjectType>().count() > 50) "@psalm-suppress InvalidPropertyAssignmentValue" else ""}
             | */
             |private static $!discriminatorClasses = [
-            |   <<${this.namedSubTypes().filterIsInstance<ObjectType>().map { "'${it.discriminatorValue}' => ${it.toVrapType().simpleName()}Model::class," }.joinToString(separator = "\n")}>>
+            |   <<${this.namedSubTypes().filterIsInstance<ObjectType>().joinToString(separator = "\n") { "'${it.discriminatorValue}' => ${it.toVrapType().simpleName()}Model::class," }}>>
             |];
         """.trimMargin()
     }
