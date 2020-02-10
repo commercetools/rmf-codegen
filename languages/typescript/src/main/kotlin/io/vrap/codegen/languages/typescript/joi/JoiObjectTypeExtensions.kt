@@ -33,19 +33,12 @@ interface JoiObjectTypeExtensions : TsObjectTypeExtensions {
                 }
                 .map {
                     when (it) {
-                        is VrapObjectType -> "import { ${it.simpleJoiName()} } from '${relativisePaths(moduleName,"${it.`package`}-types")}'"
-                        is VrapEnumType -> "import { ${it.simpleJoiName()} } from '${relativisePaths(moduleName,"${it.`package`}-types")}'"
+                        is VrapObjectType -> "import { ${it.simpleJoiName()} } from '${it.`package`}-types'"
+                        is VrapEnumType -> "import { ${it.simpleJoiName()} } from '${it.`package`}-types'"
                         else -> throw IllegalStateException("Unhandled case $it")
                     }
                 }
                 .joinToString(separator = "\n")
-    }
-
-
-    fun relativisePaths(currentModule:String, targetModule : String) : String {
-        val currentRelative :Path = Paths.get(currentModule.replace(".","/"))
-        val targetRelative : Path = Paths.get(targetModule.replace(".","/"))
-        return currentRelative.relativize(targetRelative).toString().replaceFirst("../","./")
     }
 
     private fun UnionType.getDependencies(): List<VrapType> {

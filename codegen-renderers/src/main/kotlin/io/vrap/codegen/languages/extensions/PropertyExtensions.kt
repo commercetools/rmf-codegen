@@ -1,10 +1,10 @@
 package io.vrap.codegen.languages.extensions
 
-import io.vrap.rmf.raml.model.types.Property
+import io.vrap.rmf.raml.model.elements.NamedElement
 
 /**
  * Returns true if this property is a pattern property.
  *
  * @return true iff. this is a pattern property
  */
-fun Property.isPatternProperty() = this.name.startsWith("/") && this.name.endsWith("/")
+fun NamedElement.isPatternProperty() = this.name.startsWith("/") && this.name.endsWith("/")

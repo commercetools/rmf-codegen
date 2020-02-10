@@ -96,6 +96,10 @@ open class RamlCodeGeneratorTask : DefaultTask() {
                 val generatorModule = GeneratorModule(apiProvider, generatorConfig, JoiBaseTypes)
                 GeneratorComponent(generatorModule, JoiModule)
             }
+            TargetType.JAVA_COMPLETE -> {
+                val generatorModule = GeneratorModule(apiProvider, generatorConfig, JavaBaseTypes)
+                GeneratorComponent(generatorModule, JavaCompleteModule)
+            }
             else -> throw IllegalArgumentException("unsupported target value '${target.target}', allowed values is one of ${TargetType.values().toList()}")
         }
         logger.warn("generating files for target $target, ${generatorConfig.outputFolder}")

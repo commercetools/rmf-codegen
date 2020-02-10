@@ -37,4 +37,6 @@ shadowJar {
     }
     append "plugin.properties"
     archiveFileName = 'rmf-gen.jar'
+    minimize()
+    destinationDirectory = file("../..")
 }

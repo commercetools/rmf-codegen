@@ -1,16 +1,18 @@
 package io.vrap.codegen.languages.typescript.client.files_producers
 
+import com.google.inject.Inject
+import io.vrap.rmf.codegen.di.ClientPackageName
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.FileProducer
 
-class ClientFileProducer : FileProducer {
+class ClientFileProducer @Inject constructor(val clientConstants: ClientConstants) : FileProducer {
 
 
     override fun produceFiles(): List<TemplateFile> {
-        return listOf(commonTypes(), localCommonTypes(),produceRequestUtils())
+        return listOf(commonTypes(), localCommonTypesFile(), requestUtilsFile())
     }
 
-    fun commonTypes() = TemplateFile(relativePath = "base/common-types.ts", content = """
+    fun commonTypes() = TemplateFile(relativePath = "${clientConstants.commonTypesPackage}.ts", content = """
 export type MethodType =
   | "GET"
   | "HEAD"
@@ -21,8 +23,10 @@ export type MethodType =
   | "OPTIONS"
   | "TRACE";
 
+export type QueryParamType = string | string[] | number | number[] | boolean | boolean[] | undefined
+
 export type VariableMap = {
-  [key: string]: string | string[] | number | number[] | boolean | boolean[] | undefined
+  [key: string]: QueryParamType
 }
 
 export type MiddlewareArg = {
@@ -47,10 +51,10 @@ export type ClientResponse<T> = {
 
 export type Middleware = (arg: MiddlewareArg) => Promise<MiddlewareArg>;
 """.trim())
-}
 
-fun localCommonTypes() = TemplateFile(relativePath = "base/local-common-types.ts", content = """
-import { MethodType, VariableMap } from "./common-types";
+
+    fun localCommonTypesFile() = TemplateFile(relativePath = "${clientConstants.localCommonTypesPackage}.ts", content = """
+import { MethodType, VariableMap } from '${clientConstants.commonTypesPackage}';
 
 export interface CommonRequest {
   baseURL: string;
@@ -64,9 +68,9 @@ export interface CommonRequest {
 }
 """.trim())
 
-fun produceRequestUtils() = TemplateFile(relativePath = "base/requests-utils.ts", content = """
-import { Middleware, MiddlewareArg, ClientResponse, VariableMap } from './common-types'
-import { CommonRequest } from './local-common-types'
+    fun requestUtilsFile() = TemplateFile(relativePath = "${clientConstants.requestUtilsPackage}.ts", content = """
+import { Middleware, MiddlewareArg, ClientResponse, VariableMap } from '${clientConstants.commonTypesPackage}'
+import { CommonRequest } from '${clientConstants.localCommonTypesPackage}'
 import { stringify } from "querystring"
 
 export class ApiRequestExecutor {
@@ -141,9 +145,14 @@ function cleanObject<T extends VariableMap>(obj: T): T {
     const value = obj[key]
 
     if (Array.isArray(value)) {
+      const values = (value as unknown[]).filter(isDefined);
+      if (!values.length) {
+        return result;
+      }
+
       return {
         ...result,
-        [key]: (value as unknown[]).filter(isDefined)
+        [key]: values
       }
     }
 
@@ -177,5 +186,5 @@ function getURI(commonRequest: CommonRequest): string {
 }
 
 const noOpMiddleware = async (x: MiddlewareArg) => x
-
 """.trim())
+}
