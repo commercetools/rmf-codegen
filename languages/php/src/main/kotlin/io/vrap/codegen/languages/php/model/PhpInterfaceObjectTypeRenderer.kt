@@ -79,7 +79,7 @@ class PhpInterfaceObjectTypeRenderer @Inject constructor(override val vrapTypePr
             |
             |interface ${vrapType.simpleClassName} ${type.type?.toVrapType()?.simpleName()?.let { "extends $it" } ?: "extends JsonObject"}
             |{
-            |    ${if (type.discriminator != null) {"const DISCRIMINATOR_FIELD = '${type.discriminator}';"} else ""}
+            |    ${if (type.discriminator != null) {"public const DISCRIMINATOR_FIELD = '${type.discriminator}';"} else ""}
             |    <<${type.toBeanConstant()}>>
             |
             |    <<${type.getters()}>>
@@ -94,7 +94,7 @@ class PhpInterfaceObjectTypeRenderer @Inject constructor(override val vrapTypePr
     fun Property.toPhpConstant(): String {
 
         return """
-            |const FIELD_${StringCaseFormat.UPPER_UNDERSCORE_CASE.apply(this.patternName())} = '${this.name}';
+            |public const FIELD_${StringCaseFormat.UPPER_UNDERSCORE_CASE.apply(this.patternName())} = '${this.name}';
         """.trimMargin();
     }
 

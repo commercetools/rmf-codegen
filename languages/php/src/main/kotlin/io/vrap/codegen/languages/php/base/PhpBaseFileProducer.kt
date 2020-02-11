@@ -88,7 +88,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |use ReflectionParameter;
                     |use ReflectionException;
                     |
-                    |class ResultMapper implements MapperInterface
+                    |class ResultMapper
                     |{
                     |    /**
                     |     * @template T of JsonObject
@@ -178,9 +178,9 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |
                     |class MapperFactory
                     |{
-                    |    const TIME_FORMAT = "H:i:s.u";
-                    |    const DATE_FORMAT = "Y-m-d";
-                    |    const DATETIME_FORMAT = "Y-m-d?H:i:s.uT";
+                    |    public const TIME_FORMAT = "H:i:s.u";
+                    |    public const DATE_FORMAT = "Y-m-d";
+                    |    public const DATETIME_FORMAT = "Y-m-d?H:i:s.uT";
                     |
                     |    /**
                     |     * @psalm-return callable(mixed): ?string
@@ -486,6 +486,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |
                     |use ${packagePrefix.toNamespaceName()}\Exception\InvalidArgumentException;
                     |use GuzzleHttp\Client as HttpClient;
+                    |use GuzzleHttp\ClientInterface;
                     |use GuzzleHttp\HandlerStack;
                     |use Psr\Log\LoggerInterface;
                     |
@@ -495,7 +496,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |     * @psalm-param array<string, callable> $!middlewares
                     |     * @throws InvalidArgumentException
                     |     */
-                    |    public function createGuzzleClient(Config $!config, ?AuthConfig $!authConfig = null, ?LoggerInterface $!logger = null, array $!middlewares = []): HttpClient
+                    |    public function createGuzzleClient(Config $!config, ?AuthConfig $!authConfig = null, ?LoggerInterface $!logger = null, array $!middlewares = []): ClientInterface
                     |    {
                     |        $!handler = null;
                     |        if (!is_null($!authConfig)) {
@@ -509,7 +510,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |     * @psalm-param array<string, callable> $!middlewares
                     |     * @throws InvalidArgumentException
                     |     */
-                    |    public function createGuzzleClientForHandler(Config $!config, ?OAuth2Handler $!handler = null, ?LoggerInterface $!logger = null, array $!middlewares = []): HttpClient
+                    |    public function createGuzzleClientForHandler(Config $!config, ?OAuth2Handler $!handler = null, ?LoggerInterface $!logger = null, array $!middlewares = []): ClientInterface
                     |    {
                     |        $!middlewares = array_merge(
                     |           MiddlewareFactory::createDefaultMiddlewares($!handler, $!logger, (int) ($!config->getOptions()['maxRetries'] ?? 0)),
@@ -524,7 +525,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |     */
                     |    public function createGuzzleClientForMiddlewares(
                     |       Config $!config,
-                    |       array $!middlewares = []): HttpClient
+                    |       array $!middlewares = []): ClientInterface
                     |    {
                     |        return $!this->createGuzzleClientWithOptions($!config->getOptions(), $!middlewares);
                     |    }
@@ -533,7 +534,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |     * @throws InvalidArgumentException
                     |     * @psalm-param array<int|string, callable> $!middlewares
                     |     */
-                    |    private function createGuzzleClientWithOptions(array $!options, array $!middlewares = []): HttpClient
+                    |    private function createGuzzleClientWithOptions(array $!options, array $!middlewares = []): ClientInterface
                     |    {
                     |        if (isset($!options['handler']) && $!options['handler'] instanceof HandlerStack) {
                     |            $!stack = $!options['handler'];
@@ -670,7 +671,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     | */
                     |class PreAuthTokenProvider implements TokenProvider
                     |{
-                    |    const TOKEN = 'token';
+                    |    public const TOKEN = 'token';
                     |
                     |    /** @psalm-var Token */
                     |    private $!token;
@@ -944,11 +945,10 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |
                     |namespace ${packagePrefix.toNamespaceName()}\Client;
                     |
-                    |use ${packagePrefix.toNamespaceName()}\Base\JsonObjectModel;
-                    |use ${packagePrefix.toNamespaceName()}\Base\ResultMapper;
                     |use ${packagePrefix.toNamespaceName()}\Exception\InvalidArgumentException;
-                    |use GuzzleHttp\Client;
+                    |use GuzzleHttp\ClientInterface;
                     |use GuzzleHttp\Exception\GuzzleException;
+                    |use GuzzleHttp\Promise\PromiseInterface;
                     |use GuzzleHttp\Psr7;
                     |use GuzzleHttp\Psr7\Request;
                     |use Psr\Http\Message\ResponseInterface;
@@ -962,7 +962,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |    private $!query;
                     |
                     |    /**
-                    |     * @psalm-var Client|null
+                    |     * @psalm-var ClientInterface|null
                     |     * @readonly
                     |     */
                     |    private $!client;
@@ -971,7 +971,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |     * @psalm-param array<string, scalar|scalar[]> $!headers
                     |     * @param string|null|resource|\Psr\Http\Message\StreamInterface $!body
                     |     */
-                    |    public function __construct(?Client $!client, string $!method, string $!uri, array $!headers = [], $!body = null, string $!version = '1.1')
+                    |    public function __construct(?ClientInterface $!client, string $!method, string $!uri, array $!headers = [], $!body = null, string $!version = '1.1')
                     |    {
                     |        $!this->client = $!client;
                     |        $!headers = $!this->ensureHeader($!headers, 'Content-Type', 'application/json');
@@ -1037,12 +1037,11 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |    
                     |    /**
                     |     * @param array $!options
-                    |     * @return ResponseInterface
                     |     * @throws InvalidArgumentException
                     |     * @throws GuzzleException
                     |     * @psalm-suppress InvalidThrow
                     |     */
-                    |    public function send(array $!options = [])
+                    |    public function send(array $!options = []): ResponseInterface
                     |    {
                     |        if (is_null($!this->client)) {
                     |           throw new InvalidArgumentException();
@@ -1050,7 +1049,21 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |        return $!this->client->send($!this, $!options);
                     |    }
                     |
-                    |    public function getClient(): ?Client
+                    |    /**
+                    |     * @param array $!options
+                    |     * @throws InvalidArgumentException
+                    |     * @throws GuzzleException
+                    |     * @psalm-suppress InvalidThrow
+                    |     */
+                    |    public function sendAsync(array $!options = []): PromiseInterface
+                    |    {
+                    |        if (is_null($!this->client)) {
+                    |           throw new InvalidArgumentException();
+                    |        }
+                    |        return $!this->client->sendAsync($!this, $!options);
+                    |    }
+                    |
+                    |    public function getClient(): ?ClientInterface
                     |    {
                     |       return $!this->client;
                     |    }
@@ -1959,7 +1972,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |
                     |namespace ${packagePrefix.toNamespaceName()}\Client;
                     |
-                    |use GuzzleHttp\Client;
+                    |use GuzzleHttp\ClientInterface;
                     |
                     |/**
                     | * @psalm-immutable
@@ -1977,7 +1990,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |    private $!args = [];
                     |
                     |    /**
-                    |     * @var ?Client
+                    |     * @var ?ClientInterface
                     |     */
                     |    private $!client;
                     |
@@ -1985,7 +1998,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |     * @param string $!uri
                     |     * @psalm-param array<string, scalar> $!args
                     |     */
-                    |    public function __construct(string $!uri = '', array $!args = [], Client $!client = null)
+                    |    public function __construct(string $!uri = '', array $!args = [], ClientInterface $!client = null)
                     |    {
                     |        $!this->uri = $!uri;
                     |        $!this->args = $!args;
@@ -2008,7 +2021,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |        return $!this->args;
                     |    }
                     |
-                    |    public function getClient(): ?Client
+                    |    public function getClient(): ?ClientInterface
                     |    {
                     |       return $!this->client;
                     |    }
@@ -2027,7 +2040,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |
                     |interface AuthConfig
                     |{
-                    |    const OPT_BASE_URI = 'base_uri';
+                    |    public const OPT_BASE_URI = 'base_uri';
                     |
                     |    public function getGrantType(): string;
                     |
@@ -2121,8 +2134,8 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |
                     |interface Config
                     |{
-                    |    const OPT_BASE_URI = 'base_uri';
-                    |    const OPT_CLIENT_OPTIONS = 'options';
+                    |    public const OPT_BASE_URI = 'base_uri';
+                    |    public const OPT_CLIENT_OPTIONS = 'options';
                     |
                     |    public function getApiUri(): string;
                     |
@@ -2140,14 +2153,13 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |namespace ${packagePrefix.toNamespaceName()}\Client;
                     |
                     |use ${packagePrefix.toNamespaceName()}\Exception\InvalidArgumentException;
-                    |use GuzzleHttp\Client;
                     |use Psr\Cache\CacheItemPoolInterface;
                     |use Psr\Cache\CacheItemInterface;
                     |use Psr\SimpleCache\CacheInterface;
                     |
                     |class CachedTokenProvider implements TokenProvider
                     |{
-                    |    const TOKEN_CACHE_KEY = 'access_token';
+                    |    public const TOKEN_CACHE_KEY = 'access_token';
                     |    
                     |    /** @psalm-var TokenProvider */
                     |    private $!provider;
@@ -2247,17 +2259,17 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |
                     |namespace ${packagePrefix.toNamespaceName()}\Client;
                     |
-                    |use GuzzleHttp\Client;
+                    |use GuzzleHttp\ClientInterface;
                     |
                     |class ClientCredentialTokenProvider implements TokenProvider
                     |{
-                    |    const GRANT_TYPE_CLIENT_CREDENTIALS = 'client_credentials';
-                    |    const GRANT_TYPE = 'grant_type';
-                    |    const SCOPE = 'scope';
-                    |    const ACCESS_TOKEN = 'access_token';
-                    |    const EXPIRES_IN = 'expires_in';
+                    |    public const GRANT_TYPE_CLIENT_CREDENTIALS = 'client_credentials';
+                    |    public const GRANT_TYPE = 'grant_type';
+                    |    public const SCOPE = 'scope';
+                    |    public const ACCESS_TOKEN = 'access_token';
+                    |    public const EXPIRES_IN = 'expires_in';
                     |
-                    |    /** @psalm-var Client */
+                    |    /** @psalm-var ClientInterface */
                     |    private $!client;
                     |
                     |    /** @psalm-var string */
@@ -2266,7 +2278,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |    /** @psalm-var ClientCredentials */
                     |    private $!credentials;
                     |
-                    |    public function __construct(Client $!client, string $!accessTokenUrl, ClientCredentials $!credentials)
+                    |    public function __construct(ClientInterface $!client, string $!accessTokenUrl, ClientCredentials $!credentials)
                     |    {
                     |        $!this->client = $!client;
                     |        $!this->accessTokenUrl = $!accessTokenUrl;
@@ -2286,7 +2298,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |            'auth' => [$!this->credentials->getClientId(), $!this->credentials->getClientSecret()]
                     |        ];
                     |
-                    |        $!result = $!this->client->post($!this->accessTokenUrl, $!options);
+                    |        $!result = $!this->client->request("post", $!this->accessTokenUrl, $!options);
                     |
                     |        /** @psalm-var array $!body */
                     |        $!body = json_decode((string)$!result->getBody(), true);
@@ -2311,7 +2323,6 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |${PhpSubTemplates.generatorInfo}
                     |namespace ${packagePrefix.toNamespaceName()}\Client;
                     |
-                    |use GuzzleHttp\Client;
                     |use Psr\Cache\CacheItemInterface;
                     |use Psr\Cache\CacheItemPoolInterface;
                     |use Psr\Http\Message\RequestInterface;

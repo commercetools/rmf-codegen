@@ -27,6 +27,7 @@ abstract class AbstractRequestBuilder constructor(
 
     @Inject
     @BasePackageName
+
     lateinit var basePackagePrefix: String
 
     @Inject
@@ -66,7 +67,7 @@ abstract class AbstractRequestBuilder constructor(
                 |        $!args['$it'] = $$it;
                 |    }""" }}
                 |
-                |    return new ${it.resourceBuilderName()}($!this->getUri().'${it.relativeUri.template}', $!args, $!this->getClient());
+                |    return new ${it.resourceBuilderName()}($!this->getUri() . '${it.relativeUri.template}', $!args, $!this->getClient());
                 |}
                 |
             """.trimMargin()

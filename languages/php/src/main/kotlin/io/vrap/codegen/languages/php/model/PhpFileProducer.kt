@@ -128,7 +128,7 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |
                     |class Config implements BaseConfig
                     |{
-                    |    const API_URI = '${api.baseUri.template}';
+                    |    public const API_URI = '${api.baseUri.template}';
                     |
                     |    <<${if (api.baseUri.value.variables.isNotEmpty()) { api.baseUri.value.constVariables()} else ""}>>
                     |
@@ -138,11 +138,11 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |    /** @psalm-var array */
                     |    private $!options;
                     |
-                    |    public function __construct(${if (api.baseUri.value.variables.isNotEmpty()) { api.baseUri.value.params(api.baseUriParameters) } else ""}array $!clientOptions = [], string $!baseUri = null)
+                    |    public function __construct(${if (api.baseUri.value.variables.isNotEmpty()) { api.baseUri.value.paramDefinitions() } else ""}array $!clientOptions = [], string $!baseUri = null)
                     |    {
                     |        /** @psalm-var string $!apiUri */
                     |        $!apiUri = $!baseUri ?? static::API_URI;
-                    |        <<${if (api.baseUri.value.variables.isNotEmpty()) { api.baseUri.value.replaceValues()} else ""}>>
+                    |        <<${if (api.baseUri.value.variables.isNotEmpty()) { api.baseUri.value.replaceValues(api.baseUriParameters.defaultValues())} else ""}>>
                     |        $!this->apiUri = $!apiUri;
                     |        $!this->options = array_replace(
                     |            [self::OPT_BASE_URI => $!this->apiUri],
@@ -163,38 +163,44 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                 """.trimMargin().keepAngleIndent().forcedLiteralEscape())
     }
 
-    fun UriTemplate.replaceValues(): String = replaceValues("apiUri")
+    fun UriTemplate.replaceValues(defaultValues: Map<String, String>): String = replaceValues("apiUri", defaultValues)
 
-    fun UriTemplate.replaceValues(variableName: String): String {
+    fun UriTemplate.replaceValues(variableName: String, defaultValues: Map<String, String>): String {
         return """
             |$!$variableName = str_replace(
-            |   [
-            |       ${variables.joinToString(",\n") { "self::OPT_${StringCaseFormat.UPPER_UNDERSCORE_CASE.apply(it)}" }}
-            |   ],
-            |   [
-            |       ${variables.joinToString(",\n") { "$${StringCaseFormat.LOWER_CAMEL_CASE.apply(it)}" }}
-            |   ],
-            |   $!$variableName
+            |    [
+            |        ${variables.joinToString(",\n") { "self::OPT_${StringCaseFormat.UPPER_UNDERSCORE_CASE.apply(it)}" }}
+            |    ],
+            |    [
+            |        ${variables.joinToString(",\n") { "$${StringCaseFormat.LOWER_CAMEL_CASE.apply(it)} ?? \"${defaultValues.getOrDefault(it, "")}\"" }}
+            |    ],
+            |    $!$variableName
             |);""".trimMargin()
     }
 
-    fun UriTemplate.params(parameters: List<UriParameter>): String = variables.joinToString(separator = ", ", postfix = ", ") {
-        "string $${StringCaseFormat.LOWER_CAMEL_CASE.apply(it)} = \"${parameters.find { uriParameter -> uriParameter.name == it }?.type?.default?.value}\""
+    private fun List<UriParameter>.defaultValues(): Map<String, String> = this.associateBy( {it.name}, { it.type?.default?.value.toString() })
+
+    private fun UriTemplate.defaultValues(accessTokenUriParams: ObjectInstance?): Map<String, String> {
+        return variables.associateBy({it}, {(accessTokenUriParams?.getValue(it) as? ObjectInstance)?.getValue("default")?.value.toString() } )
     }
 
-    fun UriTemplate.params(accessTokenUriParams: ObjectInstance?): String {
-        return variables.joinToString(separator = ", ", postfix = ", ") {
-            "string $${StringCaseFormat.LOWER_CAMEL_CASE.apply(it)} = \"${(accessTokenUriParams?.getValue(it) as? ObjectInstance)?.getValue("default")?.value}\""
-        }
+    private fun UriTemplate.paramDefinitions(): String = variables.joinToString(separator = ", ", postfix = ", ") {
+        "string $${StringCaseFormat.LOWER_CAMEL_CASE.apply(it)} = null"
     }
 
-    private fun UriTemplate.params(): String = variables.joinToString(separator = ", ", postfix = ", ") { "$${StringCaseFormat.LOWER_CAMEL_CASE.apply(it)}" }
+//    fun UriTemplate.params(accessTokenUriParams: ObjectInstance?): String {
+//        return variables.joinToString(separator = ", ", postfix = ", ") {
+//            "string $${StringCaseFormat.LOWER_CAMEL_CASE.apply(it)} = \"${(accessTokenUriParams?.getValue(it) as? ObjectInstance)?.getValue("default")?.value}\""
+//        }
+//    }
 
-    private fun UriTemplate.constVariables(): String = variables.joinToString(separator = "\n") { "const OPT_${StringCaseFormat.UPPER_UNDERSCORE_CASE.apply(it)} = '{$it}';" }
+    private fun UriTemplate.paramVariables(): String = variables.joinToString(separator = ", ", postfix = ", ") { "$${StringCaseFormat.LOWER_CAMEL_CASE.apply(it)}" }
+
+    private fun UriTemplate.constVariables(): String = variables.joinToString(separator = "\n") { "public const OPT_${StringCaseFormat.UPPER_UNDERSCORE_CASE.apply(it)} = '{$it}';" }
 
     private fun authConfig(api: Api): TemplateFile {
 
-        return TemplateFile(relativePath = "src/${clientPackageName.replace(packagePrefix, "").toNamespaceDir()}/AuthConfig.php",
+        return TemplateFile(relativePath = "src/${clientPackageName.replace(packagePrefix, "").toNamespaceDir()}/BaseAuthConfig.php",
                 content = """
                     |<?php
                     |${PhpSubTemplates.generatorInfo}
@@ -205,11 +211,11 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |
                     |abstract class BaseAuthConfig implements AuthConfig
                     |{
-                    |    const AUTH_URI = '${api.accessTokenUri().template}';
+                    |    public const AUTH_URI = '${api.accessTokenUri().template}';
                     |
                     |    <<${if (api.accessTokenUri().variables.isNotEmpty()) { api.accessTokenUri().constVariables()} else ""}>>
                     |
-                    |    const GRANT_TYPE = '';
+                    |    public const GRANT_TYPE = '';
                     |
                     |    /** @psalm-var string */
                     |    private $!authUri;
@@ -217,10 +223,10 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |    /** @psalm-var array */
                     |    private $!options;
                     |
-                    |    public function __construct(${if (api.accessTokenUri().variables.isNotEmpty()) { api.accessTokenUri().params(api.accessTokenUriParams()) } else ""}array $!clientOptions = [], string $!authUri = self::AUTH_URI)
+                    |    public function __construct(${if (api.accessTokenUri().variables.isNotEmpty()) { api.accessTokenUri().paramDefinitions() } else ""}array $!clientOptions = [], string $!authUri = self::AUTH_URI)
                     |    {
                     |        /** @psalm-var string authUri */
-                    |        <<${if (api.accessTokenUri().variables.isNotEmpty()) { api.accessTokenUri().replaceValues("authUri")} else ""}>>
+                    |        <<${if (api.accessTokenUri().variables.isNotEmpty()) { api.accessTokenUri().replaceValues("authUri", api.accessTokenUri().defaultValues(api.accessTokenUriParams()))} else ""}>>
                     |        $!this->authUri = $!authUri;
                     |        $!this->options = array_replace(
                     |            [self::OPT_BASE_URI => $!this->authUri],
@@ -260,16 +266,16 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |
                     |class ClientCredentialsConfig extends BaseAuthConfig implements BaseClientCredentialsConfig
                     |{
-                    |    const AUTH_URI = '${api.accessTokenUri().template}';
+                    |    public const AUTH_URI = '${api.accessTokenUri().template}';
                     |
-                    |    const GRANT_TYPE = 'client_credentials';
+                    |    public const GRANT_TYPE = 'client_credentials';
                     |
                     |    /** @psalm-var ClientCredentials */
                     |    private $!credentials;
                     |
-                    |    public function __construct(ClientCredentials $!credentials, ${if (api.accessTokenUri().variables.isNotEmpty()) { api.accessTokenUri().params(api.accessTokenUriParams()) } else ""}array $!clientOptions = [], string $!authUri = self::AUTH_URI)
+                    |    public function __construct(ClientCredentials $!credentials, ${if (api.accessTokenUri().variables.isNotEmpty()) { api.accessTokenUri().paramDefinitions() } else ""}array $!clientOptions = [], string $!authUri = self::AUTH_URI)
                     |    {
-                    |        parent::__construct(${if (api.accessTokenUri().variables.isNotEmpty()) { api.accessTokenUri().params() } else ""}$!clientOptions, $!authUri);
+                    |        parent::__construct(${if (api.accessTokenUri().variables.isNotEmpty()) { api.accessTokenUri().paramVariables() } else ""}$!clientOptions, $!authUri);
                     |        $!this->credentials = $!credentials;
                     |    }
                     |

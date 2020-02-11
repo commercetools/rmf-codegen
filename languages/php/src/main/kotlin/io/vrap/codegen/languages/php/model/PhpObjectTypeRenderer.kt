@@ -97,7 +97,7 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
             |
             |final class ${vrapType.simpleClassName}Model extends JsonObjectModel implements ${vrapType.simpleClassName}
             |{
-            |    ${if (type.discriminator != null || type.discriminatorValue != null) {"const DISCRIMINATOR_VALUE = '${type.discriminatorValue ?: ""}';"} else ""}
+            |    ${if (type.discriminator != null || type.discriminatorValue != null) {"public const DISCRIMINATOR_VALUE = '${type.discriminatorValue ?: ""}';"} else ""}
             |    <<${type.toBeanFields()}>>
             |
             |    <<${type.discriminatorClasses()}>>
@@ -158,7 +158,7 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
     fun Property.toPhpConstant(): String {
 
         return """
-            |const ${this.toPhpConstantName()} = '${this.name}';
+            |public const ${this.toPhpConstantName()} = '${this.name}';
         """.trimMargin();
     }
 
@@ -548,7 +548,7 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
             | * ${if (this.namedSubTypes().filterIsInstance<ObjectType>().count() > 50) "@psalm-suppress InvalidPropertyAssignmentValue" else ""}
             | */
             |private static $!discriminatorClasses = [
-            |   <<${this.namedSubTypes().filterIsInstance<ObjectType>().joinToString(separator = "\n") { "'${it.discriminatorValue}' => ${it.toVrapType().simpleName()}Model::class," }}>>
+            |   <<${this.namedSubTypes().filterIsInstance<ObjectType>().map { "'${it.discriminatorValue}' => ${it.toVrapType().simpleName()}Model::class," }.sorted().joinToString(separator = "\n")}>>
             |];
         """.trimMargin()
     }

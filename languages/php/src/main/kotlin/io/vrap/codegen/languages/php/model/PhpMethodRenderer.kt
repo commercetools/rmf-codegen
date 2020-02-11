@@ -39,7 +39,7 @@ class PhpMethodRenderer @Inject constructor(override val vrapTypeProvider: VrapT
     override fun render(type: Method): TemplateFile {
         val vrapType = vrapTypeProvider.doSwitch(type as EObject) as VrapObjectType
 
-        val resultTypes = type.responses.filter { it.bodies.filter { body -> MediaType.JSON_UTF_8.`is`(body.contentMediaType) }.toList().isNotEmpty() };
+        val resultTypes = type.responses.filter { it.bodies.filter { body -> MediaType.JSON_UTF_8.`is`(body.contentMediaType) }.isNotEmpty() };
         val importTypes = resultTypes.map { response -> "use ${response.bodies.first { body -> MediaType.JSON_UTF_8.`is`(body.contentMediaType) }.returnType().returnTypeModelFullClass().escapeAll()};" }
                 .plus(resultTypes.map { response -> "use ${response.bodies.first { body -> MediaType.JSON_UTF_8.`is`(body.contentMediaType) }.returnType().returnTypeFullClass().escapeAll()};" })
                 .plus("use ${sharedPackageName.toNamespaceName()}\\Base\\JsonObject;".escapeAll())
@@ -55,7 +55,7 @@ class PhpMethodRenderer @Inject constructor(override val vrapTypeProvider: VrapT
             |${PhpSubTemplates.generatorInfo}
             |namespace ${clientPackageName.toNamespaceName().escapeAll()}\\$resourcePackage;
             |
-            |use GuzzleHttp\\Client;
+            |use GuzzleHttp\\ClientInterface;
             |use GuzzleHttp\\Exception\\ServerException;
             |use GuzzleHttp\\Exception\\ClientException;
             |use ${sharedPackageName.toNamespaceName().escapeAll()}\\Base\\MapperInterface;
@@ -75,7 +75,7 @@ class PhpMethodRenderer @Inject constructor(override val vrapTypeProvider: VrapT
             |     * @param ${if (type.firstBody()?.type is FileType) "?UploadedFileInterface " else "?object"} $!body
             |     * @psalm-param array<string, scalar|scalar[]> $!headers
             |     */
-            |    public function __construct(${type.allParams()?.joinToString(separator = "") { "string $$it, " } ?: ""}${if (type.firstBody()?.type is FileType) "UploadedFileInterface " else ""}$!body = null, array $!headers = [], Client $!client = null)
+            |    public function __construct(${type.allParams()?.joinToString(separator = "") { "string $$it, " } ?: ""}${if (type.firstBody()?.type is FileType) "UploadedFileInterface " else ""}$!body = null, array $!headers = [], ClientInterface $!client = null)
             |    {
             |        $!uri = str_replace([${type.allParams()?.joinToString(separator = ", ") { "'{$it}'" } ?: ""}], [${type.allParams()?.joinToString(separator = ", ") { "$$it" } ?: ""}], '${type.apiResource().fullUri.template.trimStart('/')}');
             |        <<${type.firstBody()?.ensureContentType() ?: ""}>>

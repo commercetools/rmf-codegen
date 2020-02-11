@@ -180,7 +180,7 @@ class PhpBuilderObjectTypeRenderer @Inject constructor(override val vrapTypeProv
 
     fun Property.toPhpConstant(): String {
         return """
-            |const ${this.toPhpConstantName()} = '${this.name}';
+            |public const ${this.toPhpConstantName()} = '${this.name}';
         """.trimMargin();
     }
 
