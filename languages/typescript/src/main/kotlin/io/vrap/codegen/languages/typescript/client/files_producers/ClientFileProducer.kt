@@ -9,7 +9,7 @@ class ClientFileProducer @Inject constructor(val clientConstants: ClientConstant
 
 
     override fun produceFiles(): List<TemplateFile> {
-        return listOf(commonTypes(), localCommonTypesFile(), requestUtilsFile())
+        return listOf(commonTypes(), requestUtilsFile(),uriUtilsFile())
     }
 
     fun commonTypes() = TemplateFile(relativePath = "${clientConstants.commonTypesPackage}.ts", content = """
@@ -23,121 +23,71 @@ export type MethodType =
   | "OPTIONS"
   | "TRACE";
 
-export type QueryParamType = string | string[] | number | number[] | boolean | boolean[] | undefined
+export type QueryParam =
+  | string
+  | string[]
+  | number
+  | number[]
+  | boolean
+  | boolean[]
+  | undefined;
 
 export type VariableMap = {
-  [key: string]: QueryParamType
-}
-
-export type MiddlewareArg = {
-  request: ClientRequest;
-  response?: ClientResponse<any>;
-  error?: Error;
-  next: Middleware;
+  [key: string]: QueryParam;
 };
 
-export type ClientRequest = {
-  uri: string,
-  method: MethodType,
-  body?: any,
-  headers?: VariableMap,
-}
-
-export type ClientResponse<T> = {
-  body: T,
-  statusCode?: number,
-  headers?: Object
-}
-
-export type Middleware = (arg: MiddlewareArg) => Promise<MiddlewareArg>;
-""".trim())
-
-
-    fun localCommonTypesFile() = TemplateFile(relativePath = "${clientConstants.localCommonTypesPackage}.ts", content = """
-import { MethodType, VariableMap } from '${clientConstants.commonTypesPackage}';
-
-export interface CommonRequest {
-  baseURL: string;
-  url?: string,
+export interface ClientRequest {
+  baseUri?: string;
+  uri?: string,
   headers?: VariableMap;
   method: MethodType;
-  uriTemplate: string;
+  uriTemplate?: string;
   pathVariables?: VariableMap;
   queryParams?: VariableMap;
   body?: any
 }
-""".trim())
+
+export type ClientResponse<T = any> = {
+  body: T;
+  statusCode?: number;
+  headers?: Object;
+};
+
+export type executeRequest = (request: ClientRequest) => Promise<ClientResponse>
+""")
 
     fun requestUtilsFile() = TemplateFile(relativePath = "${clientConstants.requestUtilsPackage}.ts", content = """
-import { Middleware, MiddlewareArg, ClientResponse, VariableMap } from '${clientConstants.commonTypesPackage}'
-import { CommonRequest } from '${clientConstants.localCommonTypesPackage}'
+import { ClientResponse, VariableMap, executeRequest, ClientRequest } from '${clientConstants.commonTypesPackage}'
+import { buildRelativeUri } from '${clientConstants.uriUtilsPackage}'
 import { stringify } from "querystring"
 
-export class ApiRequestExecutor {
-  private middleware: Middleware
-  constructor(middlewares: Middleware[]) {
-    if (!middlewares || middlewares.length == 0) {
-      middlewares = [noOpMiddleware]
-    }
-    this.middleware = middlewares.reduce(reduceMiddleware)
-  }
-
-  public async execute<O>(request: CommonRequest): Promise<ClientResponse<O>> {
-    const { body, headers, method } = request
-    const req = {
-      headers,
-      method,
-      body,
-      uri: getURI(request),
-    }
-
-    const res: MiddlewareArg = await this.middleware({
-      request: req,
-      next: noOpMiddleware,
-    })
-
-    if (res.error) {
-      throw res.error
-    }
-
-    if (res.response) {
-      return res.response
-    }
-
-    return {
-      body: {} as O,
-    }
-  }
-}
-
 export class ApiRequest<O> {
+  private request: ClientRequest
   constructor(
-    private readonly commonRequest: CommonRequest,
-    private readonly apiRequestExecutor: ApiRequestExecutor
-  ) { }
+    request: ClientRequest,
+    private readonly requestExecutor: executeRequest
+  ) { 
+    this.request = {
+      ...request,
+      uri: buildRelativeUri(request)
+    }
+  }
 
   public execute(): Promise<ClientResponse<O>> {
-    return this.apiRequestExecutor.execute(this.commonRequest)
+    return this.requestExecutor(this.request)
   }
 }
+""")
 
-function reduceMiddleware(op1: Middleware, op2: Middleware): Middleware {
-  return async (arg: MiddlewareArg) => {
-    const { next, ...rest } = arg
-    const intermediateOp: Middleware = (tmpArg: MiddlewareArg) => {
-      const { next, ...rest } = tmpArg
-      return op2({ ...rest, next: arg.next })
-    }
-
-    return op1({
-      ...rest,
-      next: intermediateOp
-    })
-  }
-}
+    fun uriUtilsFile() = TemplateFile(relativePath = "${clientConstants.uriUtilsPackage}.ts", content = """
+import { stringify } from 'querystring'
+import {
+  VariableMap,
+  ClientRequest,
+} from '${clientConstants.commonTypesPackage}'
 
 function isDefined<T>(value: T | undefined | null): value is T {
-  return typeof value !== "undefined" && value !== null
+  return typeof value !== 'undefined' && value !== null
 }
 
 function cleanObject<T extends VariableMap>(obj: T): T {
@@ -145,14 +95,14 @@ function cleanObject<T extends VariableMap>(obj: T): T {
     const value = obj[key]
 
     if (Array.isArray(value)) {
-      const values = (value as unknown[]).filter(isDefined);
+      const values = (value as unknown[]).filter(isDefined)
       if (!values.length) {
-        return result;
+        return result
       }
 
       return {
         ...result,
-        [key]: values
+        [key]: values,
       }
     }
 
@@ -165,7 +115,7 @@ function cleanObject<T extends VariableMap>(obj: T): T {
 }
 
 function formatQueryString(variableMap: VariableMap) {
-  const map = cleanObject(variableMap);
+  const map = cleanObject(variableMap)
   const result = stringify(map)
   if (result === '') {
     return ''
@@ -173,18 +123,17 @@ function formatQueryString(variableMap: VariableMap) {
   return `?${'$'}{result}`
 }
 
-function getURI(commonRequest: CommonRequest): string {
+export function buildRelativeUri(commonRequest: ClientRequest): string {
   const pathMap = commonRequest.pathVariables
-  var uri: String = commonRequest.uriTemplate
+  var uri: string = commonRequest.uriTemplate as string
 
   for (const param in pathMap) {
     uri = uri.replace(`{${'$'}{param}}`, `${'$'}{pathMap[param]}`)
   }
 
   const resQuery = formatQueryString(commonRequest.queryParams || {})
-  return `${'$'}{commonRequest.baseURL}${'$'}{uri}${'$'}{resQuery}`
+  return `${'$'}{uri}${'$'}{resQuery}`
 }
 
-const noOpMiddleware = async (x: MiddlewareArg) => x
-""".trim())
+""")
 }
