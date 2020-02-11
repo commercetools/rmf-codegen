@@ -1,12 +1,14 @@
 package io.vrap.codegen.languages.typescript.client
 
 import com.google.inject.Inject
-import io.vrap.codegen.languages.extensions.*
+import io.vrap.codegen.languages.extensions.getMethodName
+import io.vrap.codegen.languages.extensions.isPatternProperty
+import io.vrap.codegen.languages.extensions.resource
+import io.vrap.codegen.languages.extensions.returnType
 import io.vrap.codegen.languages.typescript.*
 import io.vrap.codegen.languages.typescript.client.files_producers.ClientConstants
 import io.vrap.codegen.languages.typescript.model.TsObjectTypeExtensions
 import io.vrap.codegen.languages.typescript.model.simpleTSName
-import io.vrap.codegen.languages.typescript.tsGeneratedComment
 import io.vrap.rmf.codegen.di.ClientPackageName
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.ResourceRenderer
@@ -39,7 +41,6 @@ class RequestBuilder @Inject constructor(
                 content = """|
                 |$tsGeneratedComment
                 |${type.imports(type.tsRequestModuleName(pakage))}
-                |import { ApiRequestExecutor, ApiRequest } from '${clientConstants.requestUtilsPackage}'
                 |
                 |export class ${type.toRequestBuilderName()} {
                 |
@@ -73,7 +74,8 @@ class RequestBuilder @Inject constructor(
                     |  constructor(
                     |    protected readonly args: {
                     |      <$pathArgs>,
-                    |      apiRequestExecutor: ApiRequestExecutor;
+                    |      executeRequest: executeRequest,
+                    |      baseUri?: string
                     |    }
                     |  ) {}
                     """.trimMargin()
@@ -99,7 +101,8 @@ class RequestBuilder @Inject constructor(
                     |               ...this.args.pathArgs,
                     |               <${if (it.relativeUri.variables.isNotEmpty()) "...childPathArgs" else ""}>
                     |            },
-                    |            apiRequestExecutor: this.args.apiRequestExecutor
+                    |            executeRequest: this.args.executeRequest,
+                    |            baseUri: this.args.baseUri
                     |         }
                     |   )
                     |}
@@ -121,7 +124,7 @@ class RequestBuilder @Inject constructor(
                         queryParamsArg =
                                 """|queryArgs${if (allQueryParamsOptional) "?" else ""}: {
                             |   <${it.queryParameters.filter { !it.isPatternProperty() }.map { "'${it.name}'${if (it.required) "" else "?"}: ${it.type.toVrapType().simpleTSName()} | ${it.type.toVrapType().simpleTSName()}[]" }.joinToString(separator = "\n")}>
-                            |   [key: string]: QueryParamType
+                            |   [key: string]: QueryParam
                             |},""".trimMargin()
                     }
                     if (!it.bodies.isEmpty()) {
@@ -149,7 +152,7 @@ class RequestBuilder @Inject constructor(
                     val methodReturn = "ApiRequest\\<${it.returnType().toVrapType().simpleTSName()}\\>"
 
                     val bodyLiteral = """|{
-                        |   baseURL: '${api.baseUri.template}',
+                        |   baseUri: this.args.baseUri,
                         |   method: '${it.methodName.toUpperCase()}',
                         |   uriTemplate: '${it.resource().fullUri.template}',
                         |   pathVariables: this.args.pathArgs,
@@ -168,7 +171,7 @@ class RequestBuilder @Inject constructor(
                     |public ${it.methodName}(<$methodArgs>): $methodReturn {
                     |   return new $methodReturn(
                     |       <$bodyLiteral>,
-                    |       this.args.apiRequestExecutor
+                    |       this.args.executeRequest
                     |   )
                     |}
                     |
@@ -220,7 +223,11 @@ class RequestBuilder @Inject constructor(
 
                 )
                 .plus(
-                        VrapObjectType(clientConstants.commonTypesPackage,"QueryParamType")
+                        listOf(
+                                VrapObjectType(clientConstants.commonTypesPackage, "QueryParam"),
+                                VrapObjectType(clientConstants.commonTypesPackage, "executeRequest"),
+                                VrapObjectType(clientConstants.requestUtilsPackage, "ApiRequest")
+                        )
                 )
                 .getImportsForModuleVrapTypes(moduleName)
     }

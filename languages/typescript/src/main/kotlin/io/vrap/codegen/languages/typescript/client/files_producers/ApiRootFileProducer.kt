@@ -37,13 +37,18 @@ class ApiRootFileProducer @Inject constructor(
                 content = """|
                 |$tsGeneratedComment
                 |${type.imports(moduleName)}
-                |import { Middleware } from '${clientConstants.commonTypesPackage}'
-                |import { ApiRequestExecutor, ApiRequest } from '${clientConstants.requestUtilsPackage}'
                 |
                 |export class ApiRoot {
-                |  private apiRequestExecutor: ApiRequestExecutor
-                |  constructor(args: { middlewares: Middleware[] }) {
-                |    this.apiRequestExecutor = new ApiRequestExecutor(args.middlewares)
+                |
+                |  private executeRequest: executeRequest;
+                |  private baseUri: string;
+                |
+                |  constructor(args: {
+                |    executeRequest: executeRequest;
+                |    baseUri?: string;
+                |  }) {
+                |    this.executeRequest = args.executeRequest
+                |    this.baseUri = args.baseUri${if(api.baseUri?.template.isNullOrEmpty()) "" else " ?? '${api.baseUri?.template}'"}
                 |  }
                 |
                 |  <${type.subResources()}>
@@ -74,7 +79,8 @@ class ApiRootFileProducer @Inject constructor(
                     |            pathArgs: {
                     |               <${if (it.relativeUri.variables.isNotEmpty()) "...childPathArgs" else ""}>
                     |            },
-                    |            apiRequestExecutor: this.apiRequestExecutor
+                    |            executeRequest: this.executeRequest,
+                    |            baseUri: this.baseUri
                     |         }
                     |   )
                     |}
@@ -90,7 +96,11 @@ class ApiRootFileProducer @Inject constructor(
                     it.tsRequestVrapType(client_package)
                 }
                 .plus(
-                        VrapObjectType(clientConstants.commonTypesPackage,"QueryParamType")
+                        listOf(
+                                VrapObjectType(clientConstants.commonTypesPackage,"QueryParam"),
+                                VrapObjectType(clientConstants.commonTypesPackage,"executeRequest"),
+                                VrapObjectType(clientConstants.requestUtilsPackage,"ApiRequest")
+                        )
                 )
                 .getImportsForModuleVrapTypes(moduleName)
     }
