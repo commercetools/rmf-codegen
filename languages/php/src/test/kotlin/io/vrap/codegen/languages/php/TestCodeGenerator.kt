@@ -7,10 +7,12 @@ import io.vrap.rmf.codegen.CodeGeneratorConfig
 import io.vrap.rmf.codegen.di.ApiProvider
 import io.vrap.rmf.codegen.di.GeneratorComponent
 import io.vrap.rmf.codegen.di.GeneratorModule
+import org.apache.commons.io.IOUtils
+import org.junit.Assert
 import org.junit.Test
+import java.nio.charset.StandardCharsets
 import java.nio.file.Path
 import java.nio.file.Paths
-
 
 class TestCodeGenerator {
 
@@ -22,6 +24,7 @@ class TestCodeGenerator {
         private val importerPath : Path = Paths.get(if (importerUserProvidedPath == null) "../../api-spec/api.raml" else importerUserProvidedPath)
         private val outputFolder : Path = Paths.get(if (userProvidedOutputPath == null) "build/gensrc" else userProvidedOutputPath)
         val apiProvider: ApiProvider = ApiProvider(apiPath)
+        val importProvider: ApiProvider = ApiProvider(importerPath)
     }
 
     @Test
@@ -35,20 +38,18 @@ class TestCodeGenerator {
         val generatorModule = GeneratorModule(apiProvider, generatorConfig, PhpBaseTypes)
         val generatorComponent = GeneratorComponent(generatorModule, PhpModelModule())
         generatorComponent.generateFiles()
-    }
 
-    @Test
-    fun generateApiSdkTests() {
-        val generatorConfig = CodeGeneratorConfig(
+        runPHPUnitTests(outputFolder.parent)
+
+        val generatorConfigTests = CodeGeneratorConfig(
                 basePackageName = "commercetools/api",
                 sharedPackage = "commercetools",
                 outputFolder = Paths.get("${outputFolder}/commercetools-api-tests")
         )
 
-        val generatorModule = GeneratorModule(apiProvider, generatorConfig, PhpBaseTypes)
-
-        val generatorComponent = GeneratorComponent(generatorModule, PhpTestModule())
-        generatorComponent.generateFiles()
+        val generatorModuleTests = GeneratorModule(apiProvider, generatorConfigTests, PhpBaseTypes)
+        val generatorComponentTests = GeneratorComponent(generatorModuleTests, PhpTestModule())
+        generatorComponentTests.generateFiles()
     }
 
     @Test
@@ -59,22 +60,21 @@ class TestCodeGenerator {
                 outputFolder = Paths.get("${outputFolder}/commercetools-import")
         )
 
-        val generatorModule = GeneratorModule(ApiProvider(importerPath), generatorConfig, PhpBaseTypes)
+        val generatorModule = GeneratorModule(importProvider, generatorConfig, PhpBaseTypes)
         val generatorComponent = GeneratorComponent(generatorModule, PhpModelModule())
         generatorComponent.generateFiles()
-    }
 
-    @Test
-    fun generateImportTestSdk() {
-        val generatorConfig = CodeGeneratorConfig(
+        runPHPUnitTests(outputFolder.parent)
+
+        val generatorConfigTests = CodeGeneratorConfig(
                 basePackageName = "commercetools/import",
                 sharedPackage = "commercetools",
                 outputFolder = Paths.get("${outputFolder}/commercetools-import-tests")
         )
 
-        val generatorModule = GeneratorModule(ApiProvider(importerPath), generatorConfig, PhpBaseTypes)
-        val generatorComponent = GeneratorComponent(generatorModule, PhpTestModule())
-        generatorComponent.generateFiles()
+        val generatorModuleTests = GeneratorModule(importProvider, generatorConfigTests, PhpBaseTypes)
+        val generatorComponentTests = GeneratorComponent(generatorModuleTests, PhpTestModule())
+        generatorComponentTests.generateFiles()
     }
 
     @Test
@@ -89,11 +89,12 @@ class TestCodeGenerator {
         generatorComponent.generateFiles()
     }
 
-    private fun cleanGenTestFolder() {
-        cleanFolder(outputFolder.toString())
-    }
+    private fun runPHPUnitTests(workingDir: Path) {
+        val process = ProcessBuilder("sh", "-c", "vendor/bin/phpunit --testsuite=unit")
+                .directory(workingDir.toFile())
+                .start()
 
-    private fun cleanFolder(path: String) {
-        Paths.get(path).toFile().deleteRecursively()
+        val output: String = IOUtils.toString(process.inputStream, StandardCharsets.UTF_8)
+        Assert.assertEquals("Unit tests didn't ran successful!\n$output",0, process.waitFor())
     }
 }
