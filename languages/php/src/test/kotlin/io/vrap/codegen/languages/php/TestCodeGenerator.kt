@@ -39,7 +39,9 @@ class TestCodeGenerator {
         val generatorComponent = GeneratorComponent(generatorModule, PhpModelModule())
         generatorComponent.generateFiles()
 
-        runPHPUnitTests(outputFolder.parent)
+        if (userProvidedPath != null) {
+            runPHPUnitTests(outputFolder.parent)
+        }
 
         val generatorConfigTests = CodeGeneratorConfig(
                 basePackageName = "commercetools/api",
@@ -64,7 +66,9 @@ class TestCodeGenerator {
         val generatorComponent = GeneratorComponent(generatorModule, PhpModelModule())
         generatorComponent.generateFiles()
 
-        runPHPUnitTests(outputFolder.parent)
+        if (importerUserProvidedPath != null) {
+            runPHPUnitTests(outputFolder.parent)
+        }
 
         val generatorConfigTests = CodeGeneratorConfig(
                 basePackageName = "commercetools/import",
