@@ -1,6 +1,7 @@
 package io.vrap.codegen.languages.php.model
 
 import com.google.inject.Inject
+import io.vrap.codegen.languages.php.AbstractRequestBuilder
 import io.vrap.codegen.languages.php.PhpSubTemplates
 import io.vrap.codegen.languages.php.extensions.*
 import io.vrap.rmf.codegen.io.TemplateFile

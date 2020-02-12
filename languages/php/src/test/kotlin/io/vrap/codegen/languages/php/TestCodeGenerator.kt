@@ -2,6 +2,7 @@ package io.vrap.codegen.languages.php
 
 import io.vrap.codegen.languages.php.base.PhpBaseModule
 import io.vrap.codegen.languages.php.model.PhpModelModule
+import io.vrap.codegen.languages.php.test.PhpTestModule
 import io.vrap.rmf.codegen.CodeGeneratorConfig
 import io.vrap.rmf.codegen.di.ApiProvider
 import io.vrap.rmf.codegen.di.GeneratorComponent
@@ -37,6 +38,20 @@ class TestCodeGenerator {
     }
 
     @Test
+    fun generateApiSdkTests() {
+        val generatorConfig = CodeGeneratorConfig(
+                basePackageName = "commercetools/api",
+                sharedPackage = "commercetools",
+                outputFolder = Paths.get("${outputFolder}/commercetools-api-tests")
+        )
+
+        val generatorModule = GeneratorModule(apiProvider, generatorConfig, PhpBaseTypes)
+
+        val generatorComponent = GeneratorComponent(generatorModule, PhpTestModule())
+        generatorComponent.generateFiles()
+    }
+
+    @Test
     fun generateImportSdk() {
         val generatorConfig = CodeGeneratorConfig(
                 basePackageName = "commercetools/import",
@@ -46,6 +61,19 @@ class TestCodeGenerator {
 
         val generatorModule = GeneratorModule(ApiProvider(importerPath), generatorConfig, PhpBaseTypes)
         val generatorComponent = GeneratorComponent(generatorModule, PhpModelModule())
+        generatorComponent.generateFiles()
+    }
+
+    @Test
+    fun generateImportTestSdk() {
+        val generatorConfig = CodeGeneratorConfig(
+                basePackageName = "commercetools/import",
+                sharedPackage = "commercetools",
+                outputFolder = Paths.get("${outputFolder}/commercetools-import-tests")
+        )
+
+        val generatorModule = GeneratorModule(ApiProvider(importerPath), generatorConfig, PhpBaseTypes)
+        val generatorComponent = GeneratorComponent(generatorModule, PhpTestModule())
         generatorComponent.generateFiles()
     }
 

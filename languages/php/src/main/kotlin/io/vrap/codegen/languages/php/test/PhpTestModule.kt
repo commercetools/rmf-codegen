@@ -1,0 +1,18 @@
+
+package io.vrap.codegen.languages.php.test
+
+import com.google.inject.AbstractModule
+import com.google.inject.multibindings.Multibinder
+import io.vrap.codegen.languages.php.test.PhpRequestTestRenderer
+import io.vrap.rmf.codegen.rendring.FileProducer
+import io.vrap.rmf.codegen.rendring.ObjectTypeRenderer
+import io.vrap.rmf.codegen.rendring.MethodRenderer
+import io.vrap.rmf.codegen.rendring.ResourceRenderer
+
+class PhpTestModule: AbstractModule() {
+
+    override fun configure() {
+        val resourceBinder = Multibinder.newSetBinder(binder(), ResourceRenderer::class.java)
+        resourceBinder.addBinding().to(PhpRequestTestRenderer::class.java)
+    }
+}

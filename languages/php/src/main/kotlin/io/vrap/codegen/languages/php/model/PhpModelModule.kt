@@ -3,6 +3,7 @@ package io.vrap.codegen.languages.php.model
 
 import com.google.inject.AbstractModule
 import com.google.inject.multibindings.Multibinder
+import io.vrap.codegen.languages.php.test.PhpRequestTestRenderer
 import io.vrap.rmf.codegen.rendring.FileProducer
 import io.vrap.rmf.codegen.rendring.ObjectTypeRenderer
 import io.vrap.rmf.codegen.rendring.MethodRenderer
@@ -27,6 +28,5 @@ class PhpModelModule: AbstractModule() {
 
         val resourceBinder = Multibinder.newSetBinder(binder(), ResourceRenderer::class.java)
         resourceBinder.addBinding().to(PhpMethodBuilderRenderer::class.java)
-        resourceBinder.addBinding().to(PhpRequestTestRenderer::class.java)
     }
 }

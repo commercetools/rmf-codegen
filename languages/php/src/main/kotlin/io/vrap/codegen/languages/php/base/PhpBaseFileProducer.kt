@@ -90,30 +90,9 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |
                     |class ResultMapper
                     |{
-                    |    /**
-                    |     * @template T of JsonObject
-                    |     * @psalm-param class-string<T> $!type
-                    |     * @psalm-return T
-                    |     */
-                    |    public function mapResponseToClass(string $!type, ResponseInterface $!response)
-                    |    {
-                    |        return $!type::of($!this->responseData($!response));
-                    |    }
+                    |    /** @psalm-var array<class-string, array<int, string>> */
+                    |    private $!constructorParamNames = [];
                     |
-                    |    /**
-                    |     * @psalm-return stdClass
-                    |     */
-                    |    private function responseData(ResponseInterface $!response)
-                    |    {
-                    |        $!body = (string)$!response->getBody();
-                    |        /** @psalm-var ?stdClass $!data */
-                    |        $!data = json_decode($!body);
-                    |        if (is_null($!data)) {
-                    |           throw new InvalidArgumentException();
-                    |        }
-                    |        return $!data;
-                    |    }
-                    |    
                     |    /**
                     |     * @template T
                     |     * @psalm-param class-string<T> $!type
@@ -123,21 +102,39 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |     * @throws ReflectionException
                     |     */
                     |    public function mapToConstructor(string $!type, array $!data) {
-                    |        $!typeClass = new ReflectionClass($!type);
-                    |        $!constructor = $!typeClass->getConstructor();
-                    |        if (is_null($!constructor)) {
-                    |            throw new InvalidArgumentException();
-                    |        }
-                    |        $!params = $!constructor->getParameters();
-                    |
                     |        /** @psalm-var array<int, mixed> $!args */
                     |        $!args = array_map(
-                    |            function (ReflectionParameter $!param) use ($!data) {
-                    |                return ($!data[$!param->name] ?? null);
+                    |            function ($!paramName) use ($!data) {
+                    |                return ($!data[$!paramName] ?? null);
                     |            },
-                    |            $!params
+                    |            $!this->getConstructorParamNames($!type)
                     |        );
-                    |        return $!typeClass->newInstanceArgs($!args);
+                    |        return new $!type(...$!args);
+                    |    }
+                    |    
+                    |    /**
+                    |     * @psalm-param class-string $!type
+                    |     * @psalm-return array<int, string>
+                    |     * @throws InvalidArgumentException
+                    |     * @throws ReflectionException
+                    |     */
+                    |    private function getConstructorParamNames(string $!type)
+                    |    {
+                    |        if (!isset($!this->constructorParamNames[$!type])) {
+                    |            $!typeClass = new ReflectionClass($!type);
+                    |            $!constructor = $!typeClass->getConstructor();
+                    |            if (is_null($!constructor)) {
+                    |                throw new InvalidArgumentException();
+                    |            }
+                    |            $!this->constructorParamNames[$!type] = array_map(
+                    |                function (ReflectionParameter $!param) {
+                    |                    return $!param->name;
+                    |                },
+                    |                $!constructor->getParameters()
+                    |            );
+                    |        }
+                    |
+                    |        return $!this->constructorParamNames[$!type];
                     |    }
                     |}
                 """.trimMargin().forcedLiteralEscape())
@@ -952,6 +949,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |use GuzzleHttp\Psr7;
                     |use GuzzleHttp\Psr7\Request;
                     |use Psr\Http\Message\ResponseInterface;
+                    |use stdClass;
                     |
                     |/** @psalm-suppress PropertyNotSetInConstructor */
                     |class ApiRequest extends Request
@@ -1066,6 +1064,20 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |    public function getClient(): ?ClientInterface
                     |    {
                     |       return $!this->client;
+                    |    }
+                    |
+                    |    /**
+                    |     * @psalm-return stdClass
+                    |     */
+                    |    final protected function responseData(ResponseInterface $!response)
+                    |    {
+                    |        $!body = (string)$!response->getBody();
+                    |        /** @psalm-var ?stdClass $!data */
+                    |        $!data = json_decode($!body);
+                    |        if (is_null($!data)) {
+                    |           throw new InvalidArgumentException();
+                    |        }
+                    |        return $!data;
                     |    }
                     |}
                 """.trimMargin().forcedLiteralEscape())

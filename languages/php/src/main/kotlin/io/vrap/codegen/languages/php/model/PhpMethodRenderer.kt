@@ -58,8 +58,6 @@ class PhpMethodRenderer @Inject constructor(override val vrapTypeProvider: VrapT
             |use GuzzleHttp\\ClientInterface;
             |use GuzzleHttp\\Exception\\ServerException;
             |use GuzzleHttp\\Exception\\ClientException;
-            |use ${sharedPackageName.toNamespaceName().escapeAll()}\\Base\\MapperInterface;
-            |use ${sharedPackageName.toNamespaceName().escapeAll()}\\Base\\ResultMapper;
             |use ${sharedPackageName.toNamespaceName().escapeAll()}\\Exception\\InvalidArgumentException;
             |use ${sharedPackageName.toNamespaceName().escapeAll()}\\Exception\\ApiServerException;
             |use ${sharedPackageName.toNamespaceName().escapeAll()}\\Exception\\ApiClientException;
@@ -93,7 +91,6 @@ class PhpMethodRenderer @Inject constructor(override val vrapTypeProvider: VrapT
             |        if (is_null($!response)) {
             |            return null;
             |        }
-            |        $!mapper = new ResultMapper();
             |        if (is_null($!resultType)) {
             |            switch ($!response->getStatusCode()) {${resultTypes.map { response -> """
             |                case '${response.statusCode}':
@@ -107,7 +104,7 @@ class PhpMethodRenderer @Inject constructor(override val vrapTypeProvider: VrapT
             |            }
             |        }
             |
-            |        return $!mapper->mapResponseToClass($!resultType, $!response);
+            |        return $!resultType::of($!this->responseData($!response));
             |    }
             |
             |    /**

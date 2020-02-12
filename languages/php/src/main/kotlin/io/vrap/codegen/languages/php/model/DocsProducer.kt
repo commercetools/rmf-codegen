@@ -3,12 +3,12 @@ package io.vrap.codegen.languages.php.model
 import com.google.common.collect.Lists
 import com.google.inject.Inject
 import io.vrap.codegen.languages.extensions.getMethodName
+import io.vrap.codegen.languages.php.AbstractRequestBuilder
 import io.vrap.codegen.languages.php.extensions.*
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.FileProducer
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
 import io.vrap.rmf.codegen.rendring.utils.keepAngleIndent
-import io.vrap.rmf.codegen.rendring.utils.keepIndentation
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.modules.Api
 import io.vrap.rmf.raml.model.resources.Method

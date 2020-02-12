@@ -7,7 +7,9 @@ import io.vrap.codegen.languages.java.base.JavaBaseTypes
 import io.vrap.codegen.languages.javalang.client.SpringClientModule
 import io.vrap.codegen.languages.javalang.model.JavaModelModule
 import io.vrap.codegen.languages.php.PhpBaseTypes
+import io.vrap.codegen.languages.php.base.PhpBaseModule
 import io.vrap.codegen.languages.php.model.PhpModelModule
+import io.vrap.codegen.languages.php.test.PhpTestModule
 import io.vrap.codegen.languages.typescript.model.TypeScriptBaseTypes
 import io.vrap.codegen.languages.postman.model.PostmanBaseTypes
 import io.vrap.codegen.languages.postman.model.PostmanModelModule
@@ -40,6 +42,8 @@ const val javaModel = "java-model"
 const val springClient = "spring-client"
 const val typescriptModel = "typescript-model"
 const val php = "php"
+const val phpBase = "php-base"
+const val phpTest = "php-test"
 const val postman = "postman"
 const val ramldoc = "ramldoc"
 
@@ -108,6 +112,14 @@ class GeneratorTask : Runnable {
             php -> {
                 val generatorModule = GeneratorModule(apiProvider, generatorConfig, PhpBaseTypes)
                 GeneratorComponent(generatorModule, PhpModelModule())
+            }
+            phpBase -> {
+                val generatorModule = GeneratorModule(apiProvider, generatorConfig, PhpBaseTypes)
+                GeneratorComponent(generatorModule, PhpBaseModule())
+            }
+            phpTest -> {
+                val generatorModule = GeneratorModule(apiProvider, generatorConfig, PhpBaseTypes)
+                GeneratorComponent(generatorModule, PhpTestModule())
             }
             postman -> {
                 val generatorModule = GeneratorModule(apiProvider, generatorConfig, PostmanBaseTypes)
