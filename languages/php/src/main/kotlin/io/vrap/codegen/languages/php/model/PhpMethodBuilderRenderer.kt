@@ -16,7 +16,7 @@ import org.eclipse.emf.ecore.EObject
 
 class PhpMethodBuilderRenderer @Inject constructor(api: Api, vrapTypeProvider: VrapTypeProvider) : ResourceRenderer, AbstractRequestBuilder(api, vrapTypeProvider) {
 
-    private val resourcePackage = "Resource";
+    private val resourcePackage = "Resource"
 
     override fun render(type: Resource): TemplateFile {
 

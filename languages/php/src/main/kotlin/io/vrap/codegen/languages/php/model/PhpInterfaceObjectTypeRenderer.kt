@@ -1,4 +1,4 @@
-package io.vrap.codegen.languages.php.model;
+package io.vrap.codegen.languages.php.model
 
 import com.google.inject.Inject
 import io.vrap.codegen.languages.extensions.discriminatorProperty
@@ -92,14 +92,14 @@ class PhpInterfaceObjectTypeRenderer @Inject constructor(override val vrapTypePr
 
         return """
             |public const FIELD_${StringCaseFormat.UPPER_UNDERSCORE_CASE.apply(this.patternName())} = '${this.name}';
-        """.trimMargin();
+        """.trimMargin()
     }
 
     private fun ObjectType.toBeanConstant(): String {
         val superTypeAllProperties = when(this.type) {
             is ObjectType -> (this.type as ObjectType).allProperties
             else -> emptyList<Property>()
-        };
+        }
         return this.properties
                 .filter { superTypeAllProperties.none { property -> it.name == property.name } }
                 .joinToString(separator = "\n") { it.toPhpConstant() }

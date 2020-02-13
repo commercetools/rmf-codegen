@@ -1,4 +1,4 @@
-package io.vrap.codegen.languages.php.model;
+package io.vrap.codegen.languages.php.model
 
 import com.google.inject.Inject
 import io.vrap.codegen.languages.extensions.discriminatorProperty
@@ -162,14 +162,14 @@ class PhpBuilderObjectTypeRenderer @Inject constructor(override val vrapTypeProv
                 | * @var ?${if (this.type.toVrapType().simpleName() != "stdClass") this.type.toVrapType().simpleName() else "JsonObject" }
                 | */
                 |private $${this.name};
-            """.trimMargin();
+            """.trimMargin()
         }
         return """
             |/**
             | * @var null|${this.type.toVrapType().simpleName()}|${this.type.toVrapType().simpleBuilderName()}
             | */
             |private $${this.name};
-        """.trimMargin();
+        """.trimMargin()
     }
 
     fun Property.toPhpConstantName(): String {
@@ -179,7 +179,7 @@ class PhpBuilderObjectTypeRenderer @Inject constructor(override val vrapTypeProv
     fun Property.toPhpConstant(): String {
         return """
             |public const ${this.toPhpConstantName()} = '${this.name}';
-        """.trimMargin();
+        """.trimMargin()
     }
 
     private fun Property.patternName(): String {

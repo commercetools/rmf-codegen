@@ -1,4 +1,4 @@
-package io.vrap.codegen.languages.php.model;
+package io.vrap.codegen.languages.php.model
 
 import com.google.inject.Inject
 import io.vrap.codegen.languages.extensions.discriminatorProperty
@@ -143,7 +143,7 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
             | * @var ?${if (this.type.toVrapType().simpleName() != "stdClass") this.type.toVrapType().simpleName() else "JsonObject" }
             | */
             |protected $${this.name};
-        """.trimMargin();
+        """.trimMargin()
     }
 
     private fun Property.toPhpConstantName(): String {
@@ -154,7 +154,7 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
 
         return """
             |public const ${this.toPhpConstantName()} = '${this.name}';
-        """.trimMargin();
+        """.trimMargin()
     }
 
     private fun Property.patternName(): String {
@@ -244,7 +244,7 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
     }
 
     private fun Property.patternGet(): String {
-        val defineObject = this.eContainer().toVrapType();
+        val defineObject = this.eContainer().toVrapType()
         return """
             |if (preg_match(${defineObject.simpleName()}::${this.toPhpConstantName()}, $!key) === 1) {
             |    <<${this.patternMapper()}>>
@@ -254,7 +254,7 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
 
     private fun Property.serializer(): String {
         val type = this.type
-        val defineObject = this.eContainer().toVrapType();
+        val defineObject = this.eContainer().toVrapType()
         val indexName = "${defineObject.simpleName()}::${this.toPhpConstantName()}"
         return when(type) {
             is DateTimeType -> """
@@ -350,8 +350,8 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
 
     private fun Property.mapper():String {
         val type = this.type
-        val vrapType = type.toVrapType();
-        val defineObject = this.eContainer().toVrapType();
+        val vrapType = type.toVrapType()
+        val defineObject = this.eContainer().toVrapType()
         return when(type) {
             is ObjectType ->
                 if (vrapType.isScalar()) {

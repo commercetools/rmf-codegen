@@ -40,7 +40,7 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
     )
 
     private fun composerJson(): TemplateFile {
-        val vendorName = sharedPackageName.toLowerCase();
+        val vendorName = sharedPackageName.toLowerCase()
         val composerPackageName = packagePrefix.replace(sharedPackageName, "").trim('/').toLowerCase()
         return TemplateFile(relativePath = "composer.json",
                 content = """

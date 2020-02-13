@@ -1,4 +1,4 @@
-package io.vrap.codegen.languages.php.model;
+package io.vrap.codegen.languages.php.model
 
 import com.google.inject.Inject
 import io.vrap.codegen.languages.php.PhpSubTemplates

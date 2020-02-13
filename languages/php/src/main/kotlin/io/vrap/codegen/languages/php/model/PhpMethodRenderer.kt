@@ -34,12 +34,12 @@ class PhpMethodRenderer @Inject constructor(override val vrapTypeProvider: VrapT
     @ClientPackageName
     lateinit var clientPackageName: String
 
-    private val resourcePackage = "Resource";
+    private val resourcePackage = "Resource"
 
     override fun render(type: Method): TemplateFile {
         val vrapType = vrapTypeProvider.doSwitch(type as EObject) as VrapObjectType
 
-        val resultTypes = type.responses.filter { it.bodies.filter { body -> MediaType.JSON_UTF_8.`is`(body.contentMediaType) }.isNotEmpty() };
+        val resultTypes = type.responses.filter { it.bodies.filter { body -> MediaType.JSON_UTF_8.`is`(body.contentMediaType) }.isNotEmpty() }
         val importTypes = resultTypes.map { response -> "use ${response.bodies.first { body -> MediaType.JSON_UTF_8.`is`(body.contentMediaType) }.returnType().returnTypeModelFullClass().escapeAll()};" }
                 .plus(resultTypes.map { response -> "use ${response.bodies.first { body -> MediaType.JSON_UTF_8.`is`(body.contentMediaType) }.returnType().returnTypeFullClass().escapeAll()};" })
                 .plus("use ${sharedPackageName.toNamespaceName()}\\Base\\JsonObject;".escapeAll())
@@ -143,7 +143,7 @@ class PhpMethodRenderer @Inject constructor(override val vrapTypeProvider: VrapT
 
     private fun Body.ensureContentType(): String {
         if (this.type !is FileType) {
-            return "";
+            return ""
         }
         return """
             |if (!is_null($!body)) {

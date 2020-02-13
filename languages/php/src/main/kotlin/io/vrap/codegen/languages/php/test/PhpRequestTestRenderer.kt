@@ -21,12 +21,12 @@ import io.vrap.rmf.raml.model.types.StringInstance
 import org.eclipse.emf.ecore.EObject
 
 class PhpRequestTestRenderer @Inject constructor(api: Api, vrapTypeProvider: VrapTypeProvider) : ResourceRenderer, AbstractRequestBuilder(api, vrapTypeProvider), EObjectTypeExtensions {
-    private val resourcePackage = "Resource";
+    private val resourcePackage = "Resource"
 
     override fun render(type: Resource): TemplateFile {
         val vrapType = vrapTypeProvider.doSwitch(type as EObject) as VrapObjectType
 
-        val clientTestPackageName = basePackagePrefix + "/test" + clientPackageName.replace(basePackagePrefix, "");
+        val clientTestPackageName = basePackagePrefix + "/test" + clientPackageName.replace(basePackagePrefix, "")
         val content = """
             |<?php
             |${PhpSubTemplates.generatorInfo}
@@ -127,15 +127,15 @@ class PhpRequestTestRenderer @Inject constructor(api: Api, vrapTypeProvider: Vra
     }
 
     private fun parameterTestProvider(resource: Resource, method: Method, parameter: QueryParameter): String {
-        val anno = parameter.getAnnotation("placeholderParam");
+        val anno = parameter.getAnnotation("placeholderParam")
 
-        var paramName: String = parameter.name;
+        var paramName: String = parameter.name
         var template = parameter.template()
         if (anno != null) {
             val o = anno.value as ObjectInstance
             val placeholder = o.value.stream().filter { propertyValue -> propertyValue.name == "placeholder" }.findFirst().orElse(null).value as StringInstance
             val placeholderTemplate = o.value.stream().filter { propertyValue -> propertyValue.name == "template" }.findFirst().orElse(null).value as StringInstance
-            paramName = placeholderTemplate.value.replace("<${placeholder.value}>", placeholder.value);
+            paramName = placeholderTemplate.value.replace("<${placeholder.value}>", placeholder.value)
             template = "'${placeholder.value}', '${paramName}'"
         }
 

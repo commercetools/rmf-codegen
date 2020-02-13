@@ -106,7 +106,7 @@ fun Api.accessTokenUriParams(): ObjectInstance? {
 }
 
 private fun OAuth20Settings.accessTokenUri(): String {
-    val authInfo = this.getAnnotation("authInfo");
+    val authInfo = this.getAnnotation("authInfo")
     if (authInfo != null) {
         return ((authInfo.value as ObjectInstance).getValue("authUri") as StringInstance).value ?: ""
     }
@@ -114,7 +114,7 @@ private fun OAuth20Settings.accessTokenUri(): String {
 }
 
 private fun OAuth20Settings.accessTokenUriParams(): ObjectInstance? {
-    val authInfo = this.getAnnotation("authInfo");
+    val authInfo = this.getAnnotation("authInfo")
     return (authInfo.value as ObjectInstance).getValue("authUriParameters") as? ObjectInstance
 }
 
@@ -122,7 +122,7 @@ fun Method.apiResource(): Resource = this.eContainer() as Resource
 
 fun Method.toRequestName(): String {
     if (this.apiResource().fullUri.template == "/") {
-        return "ApiRoot" + this.method.toString().capitalize();
+        return "ApiRoot" + this.method.toString().capitalize()
     }
     return this.apiResource().fullUri.toParamName("By") + this.method.toString().capitalize()
 }
@@ -157,10 +157,10 @@ fun Method.firstBody(): Body? = this.bodies.stream().findFirst().orElse(null)
 fun scalarTypes():Array<String> { return arrayOf("string", "int", "float", "bool", "array", "stdClass") }
 
 fun QueryParameter.methodName(): String {
-    val anno = this.getAnnotation("placeholderParam");
+    val anno = this.getAnnotation("placeholderParam")
 
     if (anno != null) {
-        val o = anno.getValue() as ObjectInstance
+        val o = anno.value as ObjectInstance
         val paramName = o.value.stream().filter { propertyValue -> propertyValue.name == "paramName" }.findFirst().orElse(null).value as StringInstance
         return "with" + StringCaseFormat.UPPER_CAMEL_CASE.apply(paramName.value)
     }
@@ -168,7 +168,7 @@ fun QueryParameter.methodName(): String {
 }
 
 fun QueryParameter.methodParam(): String {
-    val anno = this.getAnnotation("placeholderParam");
+    val anno = this.getAnnotation("placeholderParam")
 
     if (anno != null) {
         val o = anno.value as ObjectInstance
@@ -180,7 +180,7 @@ fun QueryParameter.methodParam(): String {
 }
 
 fun QueryParameter.paramName(): String {
-    val anno = this.getAnnotation("placeholderParam");
+    val anno = this.getAnnotation("placeholderParam")
 
     if (anno != null) {
         val o = anno.value as ObjectInstance
@@ -191,7 +191,7 @@ fun QueryParameter.paramName(): String {
 }
 
 fun QueryParameter.simpleParamName(): String {
-    val anno = this.getAnnotation("placeholderParam");
+    val anno = this.getAnnotation("placeholderParam")
 
     if (anno != null) {
         val o = anno.value as ObjectInstance
@@ -202,7 +202,7 @@ fun QueryParameter.simpleParamName(): String {
 }
 
 fun QueryParameter.template(): String {
-    val anno = this.getAnnotation("placeholderParam");
+    val anno = this.getAnnotation("placeholderParam")
 
     if (anno != null) {
         val o = anno.value as ObjectInstance
@@ -214,7 +214,7 @@ fun QueryParameter.template(): String {
 }
 
 fun QueryParameter.placeholderDocBlock(): String {
-    val anno = this.getAnnotation("placeholderParam");
+    val anno = this.getAnnotation("placeholderParam")
 
     if (anno != null) {
         val o = anno.value as ObjectInstance
