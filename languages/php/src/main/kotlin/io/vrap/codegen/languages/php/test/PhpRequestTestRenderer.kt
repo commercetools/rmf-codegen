@@ -102,7 +102,7 @@ class PhpRequestTestRenderer @Inject constructor(api: Api, vrapTypeProvider: Vra
 
         return """
             |'${method.toRequestName()}' => [
-            |    function(${rootResource()} $!builder): RequestInterface {
+            |    function (${rootResource()} $!builder): RequestInterface {
             |        return $!builder
             |            <<${builderChain.joinToString("\n->", "->")}>>;
             |    },
@@ -118,7 +118,7 @@ class PhpRequestTestRenderer @Inject constructor(api: Api, vrapTypeProvider: Vra
 
         return """
             |'${method.toRequestName()}' => [
-            |    function(${rootResource()} $!builder): RequestInterface {
+            |    function (${rootResource()} $!builder): RequestInterface {
             |        return $!builder
             |            <<${builderChain.joinToString("\n->", "->")}>>;
             |    }
