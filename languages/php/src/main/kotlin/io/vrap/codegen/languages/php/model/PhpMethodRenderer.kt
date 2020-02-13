@@ -92,11 +92,11 @@ class PhpMethodRenderer @Inject constructor(override val vrapTypeProvider: VrapT
             |            return null;
             |        }
             |        if (is_null($!resultType)) {
-            |            switch ($!response->getStatusCode()) {${resultTypes.map { response -> """
+            |            switch ($!response->getStatusCode()) {${resultTypes.joinToString("") { response -> """
             |                case '${response.statusCode}':
             |                    $!resultType = ${response.bodies[0].returnType().returnTypeModelClass()}::class;
             |
-            |                    break;""" }.joinToString("")}
+            |                    break;""" }}
             |                default:
             |                    $!resultType = JsonObjectModel::class;
             |
@@ -161,9 +161,61 @@ class PhpMethodRenderer @Inject constructor(override val vrapTypeProvider: VrapT
         return "!is_null(\$body) ? json_encode(\$body) : null"
     }
 
+    private fun Response.isSuccessfull(): Boolean = this.statusCode.toInt() in (200..299)
 
+    private fun Body.returnType(): AnyType {
+        return this.type
+                ?: TypesFactoryImpl.eINSTANCE.createNilType()
+    }
 
+    private fun Method.returnType(): AnyType {
+        return this.responses
+                .filter { it.isSuccessfull() }
+                .filter { it.bodies?.isNotEmpty() ?: false }
+                .firstOrNull()
+                ?.let { it.bodies[0].type }
+                ?: TypesFactoryImpl.eINSTANCE.createNilType()
+    }
 
+    private fun AnyType.returnTypeClass(): String {
+        val vrapType = this.toVrapType()
+        if (vrapType.isScalar())
+            return "JsonObject"
+        return when (vrapType) {
+            is VrapObjectType -> vrapType.simpleName()
+            else -> "JsonObject"
+        }
+    }
+
+    private fun AnyType.returnTypeModelClass(): String {
+        val vrapType = this.toVrapType()
+        if (vrapType.isScalar())
+            return "JsonObjectModel"
+        return when (vrapType) {
+            is VrapObjectType -> vrapType.simpleName() + "Model"
+            else -> "JsonObjectModel"
+        }
+    }
+
+    private fun AnyType.returnTypeFullClass(): String {
+        val vrapType = this.toVrapType()
+        if (vrapType.isScalar())
+            return "${sharedPackageName.toNamespaceName()}\\Base\\JsonObject"
+        return when (vrapType) {
+            is VrapObjectType -> vrapType.fullClassName()
+            else -> "${sharedPackageName.toNamespaceName()}\\Base\\JsonObject"
+        }
+    }
+
+    private fun AnyType.returnTypeModelFullClass(): String {
+        val vrapType = this.toVrapType()
+        if (vrapType.isScalar())
+            return "${sharedPackageName.toNamespaceName()}\\Base\\JsonObjectModel"
+        return when (vrapType) {
+            is VrapObjectType -> vrapType.fullClassName() + "Model"
+            else -> "${sharedPackageName.toNamespaceName()}\\Base\\JsonObjectModel"
+        }
+    }
 
 //    fun getAllParamNames(): List<String>? {
 //        val params = getAbsoluteUri().getComponents().stream()
@@ -181,13 +233,13 @@ class PhpMethodRenderer @Inject constructor(override val vrapTypeProvider: VrapT
 //            placeholderParam
 //        }).collect(Collectors.toList<QueryParameter>())
 //    }
-
+//
 //    fun ResourceCollection.methods(): String {
 //        return this.resources
 //                .flatMap { resource -> resource.methods.map { javaBody(resource, it) } }
 //                .joinToString(separator = "\n\n")
 //    }
-
+//
 //    fun javaBody(resource: Resource, method: Method): String {
 //        val methodReturnType = vrapTypeProvider.doSwitch(method.retyurnType())
 //        val body = """
@@ -248,105 +300,47 @@ class PhpMethodRenderer @Inject constructor(override val vrapTypeProvider: VrapT
 //                .let { it.bodies[0].type }
 //                ?: TypesFactoryImpl.eINSTANCE.createNilType()
 //    }
-
-
-    fun Response.isSuccessfull(): Boolean = this.statusCode.toInt() in (200..299)
-
-    fun Body.returnType(): AnyType {
-        return this.type
-                ?: TypesFactoryImpl.eINSTANCE.createNilType()
-    }
-
-    fun Method.returnType(): AnyType {
-        return this.responses
-                .filter { it.isSuccessfull() }
-                .filter { it.bodies?.isNotEmpty() ?: false }
-                .firstOrNull()
-                ?.let { it.bodies[0].type }
-                ?: TypesFactoryImpl.eINSTANCE.createNilType()
-    }
-
-    fun AnyType.returnTypeClass(): String {
-        val vrapType = this.toVrapType()
-        if (vrapType.isScalar())
-            return "JsonObject"
-        return when (vrapType) {
-            is VrapObjectType -> vrapType.simpleName()
-            else -> "JsonObject"
-        }
-    }
-
-    fun AnyType.returnTypeModelClass(): String {
-        val vrapType = this.toVrapType()
-        if (vrapType.isScalar())
-            return "JsonObjectModel"
-        return when (vrapType) {
-            is VrapObjectType -> vrapType.simpleName() + "Model"
-            else -> "JsonObjectModel"
-        }
-    }
-
-    fun AnyType.returnTypeFullClass(): String {
-        val vrapType = this.toVrapType()
-        if (vrapType.isScalar())
-            return "${sharedPackageName.toNamespaceName()}\\Base\\JsonObject"
-        return when (vrapType) {
-            is VrapObjectType -> vrapType.fullClassName()
-            else -> "${sharedPackageName.toNamespaceName()}\\Base\\JsonObject"
-        }
-    }
-
-    fun AnyType.returnTypeModelFullClass(): String {
-        val vrapType = this.toVrapType()
-        if (vrapType.isScalar())
-            return "${sharedPackageName.toNamespaceName()}\\Base\\JsonObjectModel"
-        return when (vrapType) {
-            is VrapObjectType -> vrapType.fullClassName() + "Model"
-            else -> "${sharedPackageName.toNamespaceName()}\\Base\\JsonObjectModel"
-        }
-    }
-
-    fun Method.returnTypeClass(): String {
-        return this.returnType().returnTypeClass();
-    }
-
-    fun Method.returnTypeModelClass(): String {
-        val vrapType = this.returnType().toVrapType()
-        if (vrapType.isScalar())
-            return "JsonObjectModel"
-        return when (vrapType) {
-            is VrapObjectType -> vrapType.simpleName() + "Model"
-            else -> "JsonObjectModel"
-        }
-    }
-
-    fun Method.returnTypeFullClass(): String {
-        val vrapType = this.returnType().toVrapType()
-        if (vrapType.isScalar())
-            return "${sharedPackageName.toNamespaceName()}\\Base\\JsonObject"
-        return when (vrapType) {
-            is VrapObjectType -> vrapType.fullClassName()
-            else -> "${sharedPackageName.toNamespaceName()}\\Base\\JsonObject"
-        }
-    }
-
-    fun Method.returnTypeModelFullClass(): String {
-        val vrapType = this.returnType().toVrapType()
-        if (vrapType.isScalar())
-            return "${sharedPackageName.toNamespaceName()}\\Base\\JsonObjectModel"
-        return when (vrapType) {
-            is VrapObjectType -> vrapType.fullClassName() + "Model"
-            else -> "${sharedPackageName.toNamespaceName()}\\Base\\JsonObjectModel"
-        }
-    }
-
-
-    fun <T> EObject.getParent(parentClass: Class<T>): T? {
-        if (this.eContainer() == null) {
-            return null
-        }
-        return if (parentClass.isInstance(this.eContainer())) {
-            this.eContainer() as T
-        } else this.eContainer().getParent(parentClass)
-    }
+//
+//    fun Method.returnTypeClass(): String {
+//        return this.returnType().returnTypeClass();
+//    }
+//
+//    fun Method.returnTypeModelClass(): String {
+//        val vrapType = this.returnType().toVrapType()
+//        if (vrapType.isScalar())
+//            return "JsonObjectModel"
+//        return when (vrapType) {
+//            is VrapObjectType -> vrapType.simpleName() + "Model"
+//            else -> "JsonObjectModel"
+//        }
+//    }
+//
+//    fun Method.returnTypeFullClass(): String {
+//        val vrapType = this.returnType().toVrapType()
+//        if (vrapType.isScalar())
+//            return "${sharedPackageName.toNamespaceName()}\\Base\\JsonObject"
+//        return when (vrapType) {
+//            is VrapObjectType -> vrapType.fullClassName()
+//            else -> "${sharedPackageName.toNamespaceName()}\\Base\\JsonObject"
+//        }
+//    }
+//
+//    fun Method.returnTypeModelFullClass(): String {
+//        val vrapType = this.returnType().toVrapType()
+//        if (vrapType.isScalar())
+//            return "${sharedPackageName.toNamespaceName()}\\Base\\JsonObjectModel"
+//        return when (vrapType) {
+//            is VrapObjectType -> vrapType.fullClassName() + "Model"
+//            else -> "${sharedPackageName.toNamespaceName()}\\Base\\JsonObjectModel"
+//        }
+//    }
+//
+//    fun <T> EObject.getParent(parentClass: Class<T>): T? {
+//        if (this.eContainer() == null) {
+//            return null
+//        }
+//        return if (parentClass.isInstance(this.eContainer())) {
+//            this.eContainer() as T
+//        } else this.eContainer().getParent(parentClass)
+//    }
 }

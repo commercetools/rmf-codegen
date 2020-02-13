@@ -18,7 +18,6 @@ class PhpBaseTestFileProducer @Inject constructor(val api: Api) : FileProducer {
         apiRequestTest()
     )
 
-
     private fun apiRequestTest(): TemplateFile {
         return TemplateFile(relativePath = "test/unit/Client/ApiRequestTest.php",
                 content = """

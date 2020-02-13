@@ -49,14 +49,6 @@ class PhpMethodBuilderRenderer @Inject constructor(api: Api, vrapTypeProvider: V
         )
     }
 
-
-
-
-
-
-
-
-
 //    fun Method.getAllParamNames(): List<String>? {
 //        val params = this.getAbsoluteUri().getComponents().stream()
 //                .filter({ uriTemplatePart -> uriTemplatePart is ExpressioResourceByProjectKeyProductsByIDImagesn })
@@ -73,13 +65,13 @@ class PhpMethodBuilderRenderer @Inject constructor(api: Api, vrapTypeProvider: V
 //            placeholderParam
 //        }).collect(Collectors.toList<QueryParameter>())
 //    }
-
+//
 //    fun ResourceCollection.methods(): String {
 //        return this.resources
 //                .flatMap { resource -> resource.methods.map { javaBody(resource, it) } }
 //                .joinToString(separator = "\n\n")
 //    }
-
+//
 //    fun javaBody(resource: Resource, method: Method): String {
 //        val methodReturnType = vrapTypeProvider.doSwitch(method.retyurnType())
 //        val body = """
@@ -140,5 +132,4 @@ class PhpMethodBuilderRenderer @Inject constructor(api: Api, vrapTypeProvider: V
 //                .let { it.bodies[0].type }
 //                ?: TypesFactoryImpl.eINSTANCE.createNilType()
 //    }
-
 }

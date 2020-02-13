@@ -31,10 +31,8 @@ class PhpBuilderObjectTypeRenderer @Inject constructor(override val vrapTypeProv
 
         val vrapType = vrapTypeProvider.doSwitch(type) as VrapObjectType
 
-        val mapAnnotation = type.getAnnotation("asMap")
-
-        val content = when (mapAnnotation) {
-            is Annotation -> mapContent(type, mapAnnotation.type)
+        val content = when (type.getAnnotation("asMap")) {
+            is Annotation -> mapContent(type)
             else -> content(type)
         }
 
@@ -45,7 +43,7 @@ class PhpBuilderObjectTypeRenderer @Inject constructor(override val vrapTypeProv
         )
     }
 
-    fun mapContent(type: ObjectType, anno: AnyAnnotationType): String {
+    private fun mapContent(type: ObjectType): String {
         val vrapType = vrapTypeProvider.doSwitch(type) as VrapObjectType
 
         return """

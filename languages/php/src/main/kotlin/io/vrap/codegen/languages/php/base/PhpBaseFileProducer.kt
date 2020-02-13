@@ -1,6 +1,5 @@
 package io.vrap.codegen.languages.php.base
 
-import com.damnhandy.uri.template.UriTemplate
 import com.google.inject.Inject
 import io.vrap.codegen.languages.php.PhpSubTemplates
 import io.vrap.codegen.languages.php.extensions.*
@@ -9,7 +8,6 @@ import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.FileProducer
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
 import io.vrap.rmf.raml.model.modules.Api
-import io.vrap.rmf.raml.model.util.StringCaseFormat
 
 class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
 
@@ -49,14 +47,13 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
             middlewareFactory(),
             oauth2Handler(),
             oauthHandlerFactory(),
-            PreAuthTokenProvider(),
+            preAuthTokenProvider(),
             psalm(),
             resultMapper(),
             token(),
             tokenModel(),
             tokenProvider()
     )
-
 
     private fun collection(): TemplateFile {
         return TemplateFile(relativePath = "src/Base/Collection.php",
@@ -655,7 +652,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                 """.trimMargin())
     }
 
-    private fun PreAuthTokenProvider(): TemplateFile {
+    private fun preAuthTokenProvider(): TemplateFile {
         return TemplateFile(relativePath = "src/Client/PreAuthTokenProvider.php",
                 content = """
                     |<?php

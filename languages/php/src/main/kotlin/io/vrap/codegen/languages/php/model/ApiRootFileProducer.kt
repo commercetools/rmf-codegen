@@ -19,7 +19,7 @@ class ApiRootFileProducer @Inject constructor(api: Api, vrapTypeProvider: VrapTy
         produceApiRoot(api)
     )
 
-    fun produceApiRoot(type: Api): TemplateFile {
+    private fun produceApiRoot(type: Api): TemplateFile {
         val rootResource = type.resources.firstOrNull { resource -> resource.resourcePath == "/" }
         return TemplateFile(relativePath = "src/${clientPackageName.replace(basePackagePrefix, "").toNamespaceDir()}/${rootResource()}.php",
                 content = """

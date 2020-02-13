@@ -163,9 +163,9 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                 """.trimMargin().keepAngleIndent().forcedLiteralEscape())
     }
 
-    fun UriTemplate.replaceValues(defaultValues: Map<String, String>): String = replaceValues("apiUri", defaultValues)
+    private fun UriTemplate.replaceValues(defaultValues: Map<String, String>): String = replaceValues("apiUri", defaultValues)
 
-    fun UriTemplate.replaceValues(variableName: String, defaultValues: Map<String, String>): String {
+    private fun UriTemplate.replaceValues(variableName: String, defaultValues: Map<String, String>): String {
         return """
             |$!$variableName = str_replace(
             |    [
@@ -187,12 +187,6 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
     private fun UriTemplate.paramDefinitions(): String = variables.joinToString(separator = ", ", postfix = ", ") {
         "string $${StringCaseFormat.LOWER_CAMEL_CASE.apply(it)} = null"
     }
-
-//    fun UriTemplate.params(accessTokenUriParams: ObjectInstance?): String {
-//        return variables.joinToString(separator = ", ", postfix = ", ") {
-//            "string $${StringCaseFormat.LOWER_CAMEL_CASE.apply(it)} = \"${(accessTokenUriParams?.getValue(it) as? ObjectInstance)?.getValue("default")?.value}\""
-//        }
-//    }
 
     private fun UriTemplate.paramVariables(): String = variables.joinToString(separator = ", ", postfix = ", ") { "$${StringCaseFormat.LOWER_CAMEL_CASE.apply(it)}" }
 
@@ -287,4 +281,10 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                 """.trimMargin().forcedLiteralEscape().keepAngleIndent()
         )
     }
+
+//    fun UriTemplate.params(accessTokenUriParams: ObjectInstance?): String {
+//        return variables.joinToString(separator = ", ", postfix = ", ") {
+//            "string $${StringCaseFormat.LOWER_CAMEL_CASE.apply(it)} = \"${(accessTokenUriParams?.getValue(it) as? ObjectInstance)?.getValue("default")?.value}\""
+//        }
+//    }
 }

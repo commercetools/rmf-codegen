@@ -11,5 +11,4 @@ object PhpSubTemplates {
         | */
         |
     """.trimMargin()
-
 }

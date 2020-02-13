@@ -18,14 +18,14 @@ object PhpBaseTypes : LanguageBaseTypes(
         file = fromPhpType("","File")
 )
 
-fun  fromDateTimeType(`package`: String, simpleName: String, format: String):VrapDateTimeType{
+fun fromDateTimeType(`package`: String, simpleName: String, format: String):VrapDateTimeType{
    return VrapDateTimeType(`package`, simpleName, format)
 }
 
-fun  fromPhpType(`package`: String, simpleName: String):VrapObjectType{
+fun fromPhpType(`package`: String, simpleName: String):VrapObjectType{
    return VrapObjectType(`package`, simpleName)
 }
 
-fun  fromScalarPhpType(scalarType: String):VrapScalarType{
+fun fromScalarPhpType(scalarType: String):VrapScalarType{
    return VrapScalarType(scalarType)
 }

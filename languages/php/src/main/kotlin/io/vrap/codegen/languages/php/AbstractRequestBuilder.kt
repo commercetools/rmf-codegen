@@ -15,10 +15,7 @@ import io.vrap.rmf.raml.model.modules.Api
 import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.resources.ResourceContainer
-import io.vrap.rmf.raml.model.responses.Response
-import io.vrap.rmf.raml.model.types.AnyType
 import io.vrap.rmf.raml.model.types.FileType
-import io.vrap.rmf.raml.model.types.impl.TypesFactoryImpl
 
 abstract class AbstractRequestBuilder constructor(
         val api: Api,
@@ -76,38 +73,11 @@ abstract class AbstractRequestBuilder constructor(
 
     protected fun rootResource() = basePackagePrefix.replace(sharedPackageName, "").trim('/').toNamespaceName() + "RequestBuilder"
 
-    protected fun Response.isSuccessfull(): Boolean = this.statusCode.toInt() in (200..299)
+    protected fun Resource.resourceBuilderName():String = "Resource${this.toResourceName()}"
+    private fun Resource.resourceBuilderFullName():String = "${clientPackageName.toNamespaceName()}\\Resource\\Resource${this.toResourceName()}"
+    private fun Method.fullClassName():String = "${clientPackageName.toNamespaceName()}\\Resource\\${this.toRequestName()}"
 
-    protected fun Method.returnType(): AnyType {
-        return this.responses
-                .filter { it.isSuccessfull() }
-                .filter { it.bodies?.isNotEmpty() ?: false }
-                .firstOrNull()
-                ?.let { it.bodies[0].type }
-                ?: TypesFactoryImpl.eINSTANCE.createNilType()
-    }
-
-    protected fun Method.returnTypeClass(): String {
-        val vrapType = this.returnType().toVrapType()
-        return when (vrapType) {
-            is VrapObjectType -> vrapType.simpleName()
-            else -> "JsonObject"
-        }
-    }
-
-    protected fun Method.returnTypeFullClass(): String {
-        val vrapType = this.returnType().toVrapType()
-        return when (vrapType) {
-            is VrapObjectType -> vrapType.fullClassName()
-            else -> "${sharedPackageName.toNamespaceName()}\\Base\\JsonObject"
-        }
-    }
-
-    fun Resource.resourceBuilderName():String = "Resource${this.toResourceName()}"
-    fun Resource.resourceBuilderFullName():String = "${clientPackageName.toNamespaceName()}\\Resource\\Resource${this.toResourceName()}"
-    fun Method.fullClassName():String = "${clientPackageName.toNamespaceName()}\\Resource\\${this.toRequestName()}"
-
-    protected fun Resource.methodReturnTypeImports() = this.methods.asSequence().mapNotNull { it.firstBody()?.type }
+    private fun Resource.methodReturnTypeImports() = this.methods.asSequence().mapNotNull { it.firstBody()?.type }
             .map { it.toVrapType() }
             .filter { !it.isScalar() }
             .map {
@@ -137,7 +107,7 @@ abstract class AbstractRequestBuilder constructor(
                 .joinToString("\n")
     }
 
-    protected fun Method.bodyType(): String? {
+    private fun Method.bodyType(): String? {
         val firstBody = this.firstBody()?.type
         val vrapType = firstBody.toVrapType()
         if (firstBody is FileType)
@@ -146,4 +116,31 @@ abstract class AbstractRequestBuilder constructor(
             return null
         return "?${vrapType.simpleName()} "
     }
+
+//    protected fun Response.isSuccessful(): Boolean = this.statusCode.toInt() in (200..299)
+//
+//    protected fun Method.returnType(): AnyType {
+//        return this.responses
+//                .filter { it.isSuccessful() }
+//                .filter { it.bodies?.isNotEmpty() ?: false }
+//                .firstOrNull()
+//                ?.let { it.bodies[0].type }
+//                ?: TypesFactoryImpl.eINSTANCE.createNilType()
+//    }
+//
+//    protected fun Method.returnTypeClass(): String {
+//        val vrapType = this.returnType().toVrapType()
+//        return when (vrapType) {
+//            is VrapObjectType -> vrapType.simpleName()
+//            else -> "JsonObject"
+//        }
+//    }
+//
+//    protected fun Method.returnTypeFullClass(): String {
+//        val vrapType = this.returnType().toVrapType()
+//        return when (vrapType) {
+//            is VrapObjectType -> vrapType.fullClassName()
+//            else -> "${sharedPackageName.toNamespaceName()}\\Base\\JsonObject"
+//        }
+//    }
 }

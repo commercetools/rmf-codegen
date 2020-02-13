@@ -15,7 +15,6 @@ import io.vrap.rmf.codegen.rendring.utils.keepCurlyIndent
 import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.types.Annotation
-import io.vrap.rmf.raml.model.types.AnyAnnotationType
 import io.vrap.rmf.raml.model.types.ObjectType
 import io.vrap.rmf.raml.model.types.Property
 import io.vrap.rmf.raml.model.util.StringCaseFormat
@@ -34,11 +33,9 @@ class PhpInterfaceObjectTypeRenderer @Inject constructor(override val vrapTypePr
 
         val vrapType = vrapTypeProvider.doSwitch(type) as VrapObjectType
 
-        val mapAnnotation = type.getAnnotation("asMap")
 
-
-        val content = when (mapAnnotation) {
-            is Annotation -> mapContent(type, mapAnnotation.type)
+        val content = when (type.getAnnotation("asMap")) {
+            is Annotation -> mapContent(type)
             else -> content(type)
         }
 
@@ -49,7 +46,7 @@ class PhpInterfaceObjectTypeRenderer @Inject constructor(override val vrapTypePr
         )
     }
 
-    fun mapContent(type: ObjectType, anno: AnyAnnotationType): String {
+    private fun mapContent(type: ObjectType): String {
         val vrapType = vrapTypeProvider.doSwitch(type) as VrapObjectType
 
         return """
@@ -89,16 +86,16 @@ class PhpInterfaceObjectTypeRenderer @Inject constructor(override val vrapTypePr
         """.trimMargin().keepAngleIndent().forcedLiteralEscape()
     }
 
-    fun ObjectType.imports() = this.getImports().joinToString(separator = "\n") { "use ${it.escapeAll()};" }
+    private fun ObjectType.imports() = this.getImports().joinToString(separator = "\n") { "use ${it.escapeAll()};" }
 
-    fun Property.toPhpConstant(): String {
+    private fun Property.toPhpConstant(): String {
 
         return """
             |public const FIELD_${StringCaseFormat.UPPER_UNDERSCORE_CASE.apply(this.patternName())} = '${this.name}';
         """.trimMargin();
     }
 
-    fun ObjectType.toBeanConstant(): String {
+    private fun ObjectType.toBeanConstant(): String {
         val superTypeAllProperties = when(this.type) {
             is ObjectType -> (this.type as ObjectType).allProperties
             else -> emptyList<Property>()
@@ -120,23 +117,23 @@ class PhpInterfaceObjectTypeRenderer @Inject constructor(override val vrapTypePr
         """.trimMargin()
     }
 
-    fun ObjectType.setters(): String {
+    private fun ObjectType.setters(): String {
         val discriminator = this.discriminatorProperty()
         return this.properties
                 .filter { property -> property != discriminator }
                 .filter { !it.isPatternProperty() }.joinToString(separator = "\n\n") { it.setter() }
     }
 
-    fun ObjectType.getters() = this.properties
+    private fun ObjectType.getters() = this.properties
             .filter { !it.isPatternProperty() }.joinToString(separator = "\n\n") { it.getter() }
 
-    fun Property.setter(): String {
+    private fun Property.setter(): String {
         return """
             |public function set${this.name.capitalize()}(?${if (this.type.toVrapType().simpleName() != "stdClass") this.type.toVrapType().simpleName() else "JsonObject" } $${this.name}): void;
         """.trimMargin()
     }
 
-    fun Property.getter(): String {
+    private fun Property.getter(): String {
         return """
             |/**${if (this.type.description?.value?.isNotBlank() == true) """
             | {{${this.type.toPhpComment()}}}

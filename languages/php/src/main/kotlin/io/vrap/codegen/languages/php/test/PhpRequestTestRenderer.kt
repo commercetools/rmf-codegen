@@ -156,7 +156,7 @@ class PhpRequestTestRenderer @Inject constructor(api: Api, vrapTypeProvider: Vra
 
 
 
-    fun Resource.resourcePathList(): List<Resource> {
+    private fun Resource.resourcePathList(): List<Resource> {
         val path = Lists.newArrayList<Resource>()
         if (this.fullUri.template == "/") {
             return path
