@@ -17,6 +17,7 @@ class ClientConstants @Inject constructor(
     val requestUtilsPackage = "${sharedPackage}/utils/requests-utils"
     val uriUtilsPackage = "${sharedPackage}/utils/uri-utils"
     val commonTypesPackage = "${sharedPackage}/utils/common-types"
+    val middlewarePackage = "${sharedPackage}/utils/middleware"
     val apiRoot = "$clientPackage/api-root"
     val indexFile = "index"
 }
