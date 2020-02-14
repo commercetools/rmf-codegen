@@ -127,7 +127,7 @@ class PhpRequestTestRenderer @Inject constructor(api: Api, vrapTypeProvider: Vra
     }
 
     private fun parameterTestProvider(resource: Resource, method: Method, parameter: QueryParameter): String {
-        val anno = parameter.getAnnotation("placeholderParam")
+        val anno = parameter.getAnnotation("placeholderParam", true)
 
         var paramName: String = parameter.name
         var template = parameter.template()

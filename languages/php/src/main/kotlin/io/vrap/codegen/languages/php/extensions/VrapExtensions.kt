@@ -157,7 +157,7 @@ fun Method.firstBody(): Body? = this.bodies.stream().findFirst().orElse(null)
 fun scalarTypes():Array<String> { return arrayOf("string", "int", "float", "bool", "array", "stdClass") }
 
 fun QueryParameter.methodName(): String {
-    val anno = this.getAnnotation("placeholderParam")
+    val anno = this.getAnnotation("placeholderParam", true)
 
     if (anno != null) {
         val o = anno.value as ObjectInstance
@@ -168,7 +168,7 @@ fun QueryParameter.methodName(): String {
 }
 
 fun QueryParameter.methodParam(): String {
-    val anno = this.getAnnotation("placeholderParam")
+    val anno = this.getAnnotation("placeholderParam", true)
 
     if (anno != null) {
         val o = anno.value as ObjectInstance
@@ -180,7 +180,7 @@ fun QueryParameter.methodParam(): String {
 }
 
 fun QueryParameter.paramName(): String {
-    val anno = this.getAnnotation("placeholderParam")
+    val anno = this.getAnnotation("placeholderParam", true)
 
     if (anno != null) {
         val o = anno.value as ObjectInstance
@@ -191,7 +191,7 @@ fun QueryParameter.paramName(): String {
 }
 
 fun QueryParameter.simpleParamName(): String {
-    val anno = this.getAnnotation("placeholderParam")
+    val anno = this.getAnnotation("placeholderParam", true)
 
     if (anno != null) {
         val o = anno.value as ObjectInstance
@@ -202,7 +202,7 @@ fun QueryParameter.simpleParamName(): String {
 }
 
 fun QueryParameter.template(): String {
-    val anno = this.getAnnotation("placeholderParam")
+    val anno = this.getAnnotation("placeholderParam", true)
 
     if (anno != null) {
         val o = anno.value as ObjectInstance
@@ -214,7 +214,7 @@ fun QueryParameter.template(): String {
 }
 
 fun QueryParameter.placeholderDocBlock(): String {
-    val anno = this.getAnnotation("placeholderParam")
+    val anno = this.getAnnotation("placeholderParam", true)
 
     if (anno != null) {
         val o = anno.value as ObjectInstance
