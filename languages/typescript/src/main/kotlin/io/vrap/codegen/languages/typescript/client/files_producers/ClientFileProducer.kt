@@ -1,6 +1,7 @@
 package io.vrap.codegen.languages.typescript.client.files_producers
 
 import com.google.inject.Inject
+import io.vrap.codegen.languages.typescript.tsGeneratedComment
 import io.vrap.rmf.codegen.di.ClientPackageName
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.FileProducer
@@ -9,10 +10,18 @@ class ClientFileProducer @Inject constructor(val clientConstants: ClientConstant
 
 
     override fun produceFiles(): List<TemplateFile> {
-        return listOf(commonTypes(), requestUtilsFile(),uriUtilsFile())
+        return listOf(
+                commonTypes(),
+                requestUtilsFile(),
+                uriUtilsFile(),
+                middleware()
+        )
     }
 
     fun commonTypes() = TemplateFile(relativePath = "${clientConstants.commonTypesPackage}.ts", content = """
+$tsGeneratedComment
+
+
 export type MethodType =
   | "GET"
   | "HEAD"
@@ -57,9 +66,11 @@ export type executeRequest = (request: ClientRequest) => Promise<ClientResponse>
 """)
 
     fun requestUtilsFile() = TemplateFile(relativePath = "${clientConstants.requestUtilsPackage}.ts", content = """
-import { ClientResponse, VariableMap, executeRequest, ClientRequest } from '${clientConstants.commonTypesPackage}'
+$tsGeneratedComment
+
+
+import { ClientResponse, executeRequest, ClientRequest } from '${clientConstants.commonTypesPackage}'
 import { buildRelativeUri } from '${clientConstants.uriUtilsPackage}'
-import { stringify } from "querystring"
 
 export class ApiRequest<O> {
   private request: ClientRequest
@@ -80,6 +91,9 @@ export class ApiRequest<O> {
 """)
 
     fun uriUtilsFile() = TemplateFile(relativePath = "${clientConstants.uriUtilsPackage}.ts", content = """
+$tsGeneratedComment
+
+
 import { stringify } from 'querystring'
 import {
   VariableMap,
@@ -135,5 +149,47 @@ export function buildRelativeUri(commonRequest: ClientRequest): string {
   return `${'$'}{uri}${'$'}{resQuery}`
 }
 
+""")
+
+    fun middleware() = TemplateFile(relativePath = "${clientConstants.middlewarePackage}.ts", content = """
+$tsGeneratedComment
+
+
+import {
+  executeRequest,
+  ClientResponse,
+  ClientRequest
+} from '${clientConstants.commonTypesPackage}';
+
+export type Middleware = (
+  request: ClientRequest,
+  executor: executeRequest
+) => Promise<ClientResponse>;
+
+export const createExecutorFromMiddlewares = (
+  executor: executeRequest,
+  midds?: Middleware[]
+) => {
+  if (!midds || midds.length == 0) {
+    return executor;
+  }
+  const reduced: Middleware = midds.reduce(reduceMiddleware);
+  return middlewareToExecutor(reduced, executor);
+};
+
+function reduceMiddleware(
+  middleware1: Middleware,
+  middleware2: Middleware
+): Middleware {
+  return (request: ClientRequest, executor: executeRequest) =>
+    middleware1(request, middlewareToExecutor(middleware2, executor));
+}
+
+function middlewareToExecutor(
+  middleware: Middleware,
+  executor: executeRequest
+): executeRequest {
+  return (request: ClientRequest) => middleware(request, executor);
+}
 """)
 }

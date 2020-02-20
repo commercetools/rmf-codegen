@@ -29,6 +29,7 @@ class IndexFileProducer @Inject constructor(
                 |
                 |//Common package
                 |export * from '${clientConstants.commonTypesPackage}'
+                |export * from '${clientConstants.middlewarePackage}'
 
             """.trimMargin()
     ))
