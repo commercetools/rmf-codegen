@@ -30,7 +30,7 @@ fun createCliParser(): Cli<Runnable> {
     val builder = Cli.builder<Runnable>("rmf-codegen")
             .withDescription("code generator for raml")
             .withDefaultCommand(Help::class.java)
-            .withCommands(Help::class.java, GeneratorTask::class.java)
+            .withCommands(Help::class.java, VersionTask::class.java, GeneratorTask::class.java)
 
     return builder.build()
 }
@@ -130,3 +130,15 @@ class GeneratorTask : Runnable {
         generatorComponent.generateFiles()
     }
 }
+
+
+@Command(name = "-v", description = "Displays the version of the current code generator")
+class VersionTask : Runnable {
+
+    override fun run() {
+
+//        println("code generator version ${BuildInfo.VERSION}")
+    }
+}
+
+

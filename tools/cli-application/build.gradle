@@ -1,5 +1,8 @@
+import java.nio.file.Paths
+
 plugins {
     id 'org.jetbrains.kotlin.jvm' version '1.3.41'
+    id 'de.fuerstenau.buildconfig'
 }
 
 compileKotlin {
@@ -18,6 +21,8 @@ publishing {
         }
     }
 }
+
+String dire = buildDir.toString() + "/gensrc/main/kotlin/io/vrap/rmf/codegen/cli/info"
 
 dependencies {
     compile project(':languages:javalang:java-renderer')
@@ -41,4 +46,28 @@ shadowJar {
     archiveFileName = 'rmf-gen.jar'
     minimize()
     destinationDirectory = file("../..")
+}
+
+task generateBuildInfo() {
+    doFirst {
+
+        mkdir(dire)
+        file(Paths.get("$dire/BuildInfo.kt")).text = """
+package io.vrap.rmf.codegen.cli.info
+
+object BuildInfo {
+    const val VERSION = "$version"
+}
+"""
+
+    }
+}
+
+build.dependsOn generateBuildInfo
+
+
+sourceSets {
+    generated {
+        java.srcDir "${buildDir}/gensrc/main/kotlin/"
+    }
 }
