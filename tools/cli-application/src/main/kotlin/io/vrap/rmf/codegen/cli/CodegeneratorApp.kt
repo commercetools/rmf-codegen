@@ -23,11 +23,13 @@ import picocli.CommandLine.*
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.concurrent.Callable
+import kotlin.system.exitProcess
 
 fun main(args: Array<String>) {
-    CommandLine(GeneratorTask())
+    val exitCode = CommandLine(GeneratorTask())
             .setCaseInsensitiveEnumValuesAllowed(true)
             .execute(*args)
+    exitProcess(exitCode)
 }
 
 /** Targets section */
