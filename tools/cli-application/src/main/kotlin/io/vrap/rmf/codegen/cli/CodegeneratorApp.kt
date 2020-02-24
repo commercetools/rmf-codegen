@@ -30,15 +30,6 @@ fun main(args: Array<String>) {
             .execute(*args)
 }
 
-//fun createCliParser(): Cli<Runnable> {
-//    val builder = Cli.builder<Runnable>("rmf-codegen")
-//            .withDescription("code generator for raml")
-//            .withDefaultCommand(Help::class.java)
-//            .withCommands(Help::class.java, VersionTask::class.java, GeneratorTask::class.java)
-//
-//    return builder.build()
-//}
-
 /** Targets section */
 enum class GenerationTarget {
     JAVA_CLIENT,
