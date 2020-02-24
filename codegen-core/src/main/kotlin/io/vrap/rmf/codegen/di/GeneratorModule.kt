@@ -71,7 +71,11 @@ class GeneratorModule constructor(
             LOGGER.warn("Could not find proper package name configuration. Using default $defaultPackage")
             return defaultPackage
         }
-        return generatorConfig.basePackageName ?: URI(api.baseUri.expand()).host.split(".").reversed().joinToString("/")
+        return generatorConfig.basePackageName ?: return try {
+            URI(api.baseUri.expand()).host.split(".").reversed().joinToString("/")
+        } catch (e: Exception) {
+            defaultPackage
+        }
     }
 
     @Provides
