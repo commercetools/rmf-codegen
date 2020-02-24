@@ -14,7 +14,7 @@ apply plugin: 'com.github.johnrengelman.shadow'
 publishing {
     publications {
         Maven(MavenPublication) {
-            from components.java
+            publication -> project.shadow.component(publication)
         }
     }
 }
@@ -30,6 +30,8 @@ dependencies {
     compile 'com.google.guava:guava:27.0.1-jre'
     compile 'io.airlift:airline:0.8'
 }
+
+tasks.build.dependsOn tasks.shadowJar
 
 shadowJar {
     manifest {
