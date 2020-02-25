@@ -18,6 +18,8 @@ import io.vrap.rmf.codegen.cli.info.BuildInfo
 import io.vrap.rmf.codegen.di.ApiProvider
 import io.vrap.rmf.codegen.di.GeneratorComponent
 import io.vrap.rmf.codegen.di.GeneratorModule
+import io.vrap.rmf.raml.model.RamlModelBuilder
+import org.eclipse.emf.common.util.URI
 import picocli.CommandLine
 import picocli.CommandLine.*
 import java.nio.file.Files
@@ -26,11 +28,29 @@ import java.util.concurrent.Callable
 import kotlin.system.exitProcess
 
 fun main(args: Array<String>) {
-    val exitCode = CommandLine(GeneratorTask())
+    val exitCode = CommandLine(RMFCommand())
             .setCaseInsensitiveEnumValuesAllowed(true)
             .execute(*args)
     exitProcess(exitCode)
 }
+
+@Command(
+        version = [BuildInfo.VERSION],
+        description = ["Allows to validate Raml files and generate code from them"],
+        subcommands = [GeneratorTask::class,VerifyCommand::class]
+        )
+class RMFCommand : Runnable {
+
+    @Option(names = ["-v", "--version"], versionHelp = true, description = ["print version information and exit"])
+    var versionRequested = false
+
+    @Option(names = ["-h", "--help"], usageHelp = true, description = ["display this help message"])
+    var usageHelpRequested = false
+
+    override fun run() {}
+}
+
+
 
 /** Targets section */
 enum class GenerationTarget {
@@ -43,11 +63,8 @@ enum class GenerationTarget {
 const val ValidTargets = "JAVA_CLIENT, TYPESCRIPT_CLIENT, PHP_CLIENT, POSTMAN, RAML_DOC"
 
 
-@Command(version = [BuildInfo.VERSION],description = ["Generate source code from a RAML specification."], helpCommand = true)
+@Command(name = "generate",description = ["Generate source code from a RAML specification."])
 class GeneratorTask : Callable<Int> {
-
-    @Option(names = ["-v", "--version"], versionHelp = true, description = ["print version information and exit"])
-    var versionRequested = false
 
     @Option(names = ["-h", "--help"], usageHelp = true, description = ["display this help message"])
     var usageHelpRequested = false
@@ -73,18 +90,6 @@ class GeneratorTask : Callable<Int> {
 
     @Parameters(index = "0",description = ["Api file location"])
     lateinit var ramlFileLocation: Path
-
-
-    override fun toString(): String {
-        return "GeneratorTask{" +
-                ", sharedPackageName='" + sharedPackage +
-                ", basePackageName='" + basePackageName +
-                ", modelPackageName=" + modelPackageName +
-                ", clientPackageName=" + clientPackageName +
-                ", outputFolder=" + outputFolder +
-                ", ramlFileLocation=" + ramlFileLocation +
-                '}'.toString()
-    }
 
     override fun call(): Int {
         if(!(Files.exists(ramlFileLocation) && Files.isRegularFile(ramlFileLocation))){
@@ -132,6 +137,28 @@ class GeneratorTask : Callable<Int> {
         }
 
         generatorComponent.generateFiles()
+        return 0
+    }
+}
+
+@Command(name = "verify",description = ["Allows to verify if a raml spec is valid."])
+class VerifyCommand : Callable<Int> {
+
+    @Option(names = ["-h", "--help"], usageHelp = true, description = ["display this help message"])
+    var usageHelpRequested = false
+
+    @Parameters(index = "0",description = ["Api file location"])
+    lateinit var ramlFileLocation: Path
+
+    override fun call(): Int {
+        val fileURI = URI.createURI(ramlFileLocation.toUri().toString())
+        val modelResult = RamlModelBuilder().buildApi(fileURI)
+        val validationResults = modelResult.validationResults
+        if (validationResults.isNotEmpty()) {
+            validationResults.stream().forEach { validationResult -> println("Error encountered while checking Raml API $validationResult") }
+            return 1
+        }
+        println("specification at $ramlFileLocation is valid!")
         return 0
     }
 }

@@ -22,7 +22,7 @@ publishing {
     }
 }
 
-String dire = buildDir.toString() + "/gensrc/main/kotlin/io/vrap/rmf/codegen/cli/info"
+String dir = "${buildDir.toString()}/gensrc/main/kotlin/io/vrap/rmf/codegen/cli/info"
 
 dependencies {
     compile project(':languages:javalang:java-renderer')
@@ -51,8 +51,8 @@ shadowJar {
 
 task generateBuildInfo {
     doFirst {
-        mkdir(dire)
-        file(Paths.get("$dire/BuildInfo.kt")).text = """
+        mkdir(dir)
+        file(Paths.get("$dir/BuildInfo.kt")).text = """
 package io.vrap.rmf.codegen.cli.info
 
 object BuildInfo {
