@@ -74,6 +74,7 @@ class GeneratorModule constructor(
         return generatorConfig.basePackageName ?: return try {
             URI(api.baseUri.expand()).host.split(".").reversed().joinToString("/")
         } catch (e: Exception) {
+            LOGGER.warn("Error while trying to extract base package from url, resolving to default package '$defaultPackage'",e)
             defaultPackage
         }
     }
