@@ -16,8 +16,7 @@ The code generators are written in [kotlin](https://kotlinlang.org/).
 
 To install the Vrap cli, run the following command
 ```
-export VRAP_VERSION=1.0.0-20200225111016
-curl -o- -s https://raw.githubusercontent.com/vrapio/rmf-codegen/master/scripts/install.sh | bash
+export VRAP_VERSION=1.0.0-20200225111016 && curl -o- -s https://raw.githubusercontent.com/vrapio/rmf-codegen/master/scripts/install.sh | bash
 ```
 You will find a new command available  `rmf-codegen`, you can check that all is good by executing `rmf-codegen -v`
 
