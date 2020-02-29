@@ -20,6 +20,16 @@ export VRAP_VERSION=1.0.0-20200225111016 && curl -o- -s https://raw.githubuserco
 ```
 You will find a new command available  `rmf-codegen`, you can check that all is good by executing `rmf-codegen -v`
 
+# Build a native executable with GraalVM
+
+You can also build a native executable with the following commands:
+```
+cd tools/cli-application/
+../../gradlew nativeImage
+```
+The native executable can then be found at `build/graal/rmf-codegen`.
+It's currently only tested with Mac OS X.
+
 # Why did we choose kotlin for writing our code generators?
 
 We choose kotlin because of the following features:
