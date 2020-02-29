@@ -27,7 +27,7 @@ You can also build a native executable with the following commands:
 cd tools/cli-application/
 ../../gradlew nativeImage
 ```
-The native executable can then be found at `build/grall/rmf-codegen`.
+The native executable can then be found at `build/graal/rmf-codegen`.
 It's currently only tested with Mac OS X.
 
 # Why did we choose kotlin for writing our code generators?
