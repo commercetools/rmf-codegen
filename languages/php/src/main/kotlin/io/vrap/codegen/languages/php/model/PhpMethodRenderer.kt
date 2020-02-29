@@ -84,7 +84,7 @@ class PhpMethodRenderer @Inject constructor(override val vrapTypeProvider: VrapT
             |    /**
             |     * @template T of JsonObject
             |     * @psalm-param ?class-string<T> $!resultType
-            |     * @psalm-return ${returnTypes.joinToString("|")}|T|null
+            |     * @return ${returnTypes.joinToString("|")}|T|null
             |     */
             |    public function mapFromResponse(?ResponseInterface $!response, string $!resultType = null)
             |    {
