@@ -13,6 +13,12 @@ compileTestKotlin {
 }
 
 apply plugin: 'com.github.johnrengelman.shadow'
+apply plugin: 'com.palantir.graal'
+
+graal {
+    mainClass 'io.vrap.rmf.codegen.cli.MainKt'
+    outputName 'rmf-codegen'
+}
 
 publishing {
     publications {
