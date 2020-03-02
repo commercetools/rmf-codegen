@@ -1,5 +1,7 @@
 package io.vrap.rmf.codegen.di
 
+import io.vrap.rmf.codegen.executeAndMeasureTimeMillis
+import io.vrap.rmf.codegen.toSeconds
 import io.vrap.rmf.raml.model.RamlModelBuilder
 import io.vrap.rmf.raml.model.modules.Api
 import org.eclipse.emf.common.util.URI
@@ -23,7 +25,10 @@ class ApiProvider constructor(private val ramlFileLocation: Path) {
 
     val api: Api by lazy {
         val fileURI = URI.createURI(ramlFileLocation.toUri().toString())
-        val modelResult = RamlModelBuilder().buildApi(fileURI)
+        val (modelResult, duration) = executeAndMeasureTimeMillis {
+            RamlModelBuilder().buildApi(fileURI)
+        }
+        logger.info("Parsing API took ${duration.toSeconds(3)}s")
         val validationResults = modelResult.validationResults
         if (!validationResults.isEmpty()) {
             validationResults.stream().forEach { validationResult -> logger.warn("Error encountered while checking Raml API " + validationResult.toString()) }

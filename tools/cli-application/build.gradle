@@ -41,6 +41,7 @@ dependencies {
     compile 'com.google.guava:guava:27.0.1-jre'
     compile 'info.picocli:picocli:4.2.0'
     kapt 'info.picocli:picocli-codegen:4.2.0'
+    compile group: 'io.methvin', name: 'directory-watcher', version: '0.9.9'
 }
 
 
