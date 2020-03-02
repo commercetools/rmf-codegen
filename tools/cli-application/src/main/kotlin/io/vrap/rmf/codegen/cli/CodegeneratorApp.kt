@@ -4,6 +4,8 @@ package io.vrap.rmf.codegen.cli
 
 import io.methvin.watcher.DirectoryChangeEvent
 import io.methvin.watcher.DirectoryWatcher
+import io.reactivex.rxjava3.core.Observable
+import io.reactivex.rxjava3.schedulers.Schedulers
 import io.vrap.codegen.languages.java.base.JavaBaseTypes
 import io.vrap.codegen.languages.javalang.model.JavaModelModule
 import io.vrap.codegen.languages.php.PhpBaseTypes
@@ -28,6 +30,7 @@ import picocli.CommandLine.*
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.concurrent.Callable
+import java.util.concurrent.TimeUnit
 import kotlin.system.exitProcess
 import kotlin.system.measureTimeMillis
 
@@ -112,23 +115,47 @@ class GeneratorTask : Callable<Int> {
         generate(ramlFileLocation, target, generatorConfig)
         if (watch) {
             val watchDir = ramlFileLocation.parent
-            val watcher = DirectoryWatcher.builder()
-                    .path(watchDir)
-                    .listener { event -> when(event.eventType()) {
-                        DirectoryChangeEvent.EventType.CREATE,
-                        DirectoryChangeEvent.EventType.MODIFY,
-                        DirectoryChangeEvent.EventType.DELETE -> {
-                            val json = event.path().toString().endsWith("json")
-                            val raml = event.path().toString().endsWith("raml")
-                            if (json || raml) {
-                                println("File ${event.eventType().name.toLowerCase()}: ${event.path()}")
-                                generate(ramlFileLocation, target, generatorConfig)
+
+            val source = Observable.create<DirectoryChangeEvent> { emitter ->
+                run {
+                    val watcher = DirectoryWatcher.builder()
+                            .path(watchDir)
+                            .listener { event ->
+                                when (event.eventType()) {
+                                    DirectoryChangeEvent.EventType.CREATE,
+                                    DirectoryChangeEvent.EventType.MODIFY,
+                                    DirectoryChangeEvent.EventType.DELETE -> {
+                                        val json = event.path().toString().endsWith("json")
+                                        val raml = event.path().toString().endsWith("raml")
+                                        if (json || raml) {
+                                            println("Captured ${event.eventType().name.toLowerCase()}: ${event.path()}")
+                                            emitter.onNext(event)
+                                        }
+                                    }
+                                    else -> {
+                                    }
+                                }
                             }
-                        }
-                        else -> {}
-                    } }
-                    .build()
-            watcher.watch()
+                            .build()
+                    watcher.watchAsync()
+                }
+            }
+
+            source.subscribeOn(Schedulers.io())
+                    .throttleLast(1, TimeUnit.SECONDS)
+                    .blockingSubscribe(
+                            {
+                                println("Consume ${it.eventType().name.toLowerCase()}: ${it.path()}")
+                                try {
+                                    generate(ramlFileLocation, target, generatorConfig)
+                                } catch (t: Throwable) {
+                                    t.printStackTrace();
+                                }
+                            },
+                            {
+                                it.printStackTrace()
+                            }
+                    )
         }
         return 0
     }

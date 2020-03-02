@@ -42,6 +42,7 @@ dependencies {
     compile 'info.picocli:picocli:4.2.0'
     kapt 'info.picocli:picocli-codegen:4.2.0'
     compile group: 'io.methvin', name: 'directory-watcher', version: '0.9.9'
+    implementation "io.reactivex.rxjava3:rxjava:3.0.0"
 }
 
 
