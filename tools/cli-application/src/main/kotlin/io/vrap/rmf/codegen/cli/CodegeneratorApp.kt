@@ -146,7 +146,11 @@ class GeneratorTask : Callable<Int> {
                     .blockingSubscribe(
                             {
                                 println("Consume ${it.eventType().name.toLowerCase()}: ${it.path()}")
-                                generate(ramlFileLocation, target, generatorConfig)
+                                try {
+                                    generate(ramlFileLocation, target, generatorConfig)
+                                } catch (t: Throwable) {
+                                    t.printStackTrace();
+                                }
                             },
                             {
                                 it.printStackTrace()
