@@ -144,15 +144,15 @@ class GeneratorTask : Callable<Int> {
 
             source.subscribeOn(Schedulers.io())
                     .throttleLast(1, TimeUnit.SECONDS)
-                    .blockingSubscribe {
-                        event -> println("Consume ${event.eventType().name.toLowerCase()}: ${event.path()}")
-                        try{
-                            generate(ramlFileLocation, target, generatorConfig)
-                        }catch (e:Exception){
-                            println("Error occurred while parsing the spec")
-                            e.printStackTrace()
-                        }
-                    }
+                    .blockingSubscribe(
+                            {
+                                println("Consume ${it.eventType().name.toLowerCase()}: ${it.path()}")
+                                generate(ramlFileLocation, target, generatorConfig)
+                            },
+                            {
+                                it.printStackTrace()
+                            }
+                    )
         }
         return 0
     }
