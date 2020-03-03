@@ -112,7 +112,7 @@ class GeneratorTask : Callable<Int> {
                 outputFolder = outputFolder
         )
 
-        generate(ramlFileLocation, target, generatorConfig)
+        safeRun { generate(ramlFileLocation, target, generatorConfig) }
         if (watch) {
             val watchDir = ramlFileLocation.parent
 
@@ -128,7 +128,6 @@ class GeneratorTask : Callable<Int> {
                                         val json = event.path().toString().endsWith("json")
                                         val raml = event.path().toString().endsWith("raml")
                                         if (json || raml) {
-                                            println("Captured ${event.eventType().name.toLowerCase()}: ${event.path()}")
                                             emitter.onNext(event)
                                         }
                                     }
@@ -146,11 +145,7 @@ class GeneratorTask : Callable<Int> {
                     .blockingSubscribe(
                             {
                                 println("Consume ${it.eventType().name.toLowerCase()}: ${it.path()}")
-                                try {
-                                    generate(ramlFileLocation, target, generatorConfig)
-                                } catch (t: Throwable) {
-                                    t.printStackTrace();
-                                }
+                                safeRun { generate(ramlFileLocation, target, generatorConfig) }
                             },
                             {
                                 it.printStackTrace()
@@ -217,5 +212,17 @@ class VerifyCommand : Callable<Int> {
         }
         println("specification at $ramlFileLocation is valid!")
         return 0
+    }
+}
+
+/**
+ * This method tries to run a block, if failed it will log the exception and not throw it
+ */
+fun <R> safeRun(block: () -> R){
+    try{
+        block()
+    }
+    catch (e:Exception){
+        e.printStackTrace()
     }
 }
