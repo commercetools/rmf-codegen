@@ -6,6 +6,7 @@ import io.vrap.rmf.codegen.cli.info.BuildInfo
 import picocli.CommandLine
 import picocli.CommandLine.Command
 import picocli.CommandLine.Option
+import java.util.concurrent.Callable
 import kotlin.system.exitProcess
 
 fun main(args: Array<String>) {
@@ -18,9 +19,9 @@ fun main(args: Array<String>) {
 @Command(
         version = [BuildInfo.VERSION],
         description = ["Allows to validate Raml files and generate code from them"],
-        subcommands = [GenerateSubcommand::class,VerifySubcommand::class]
-        )
-class RMFCommand : Runnable {
+        subcommands = [GenerateSubcommand::class, VerifySubcommand::class]
+)
+class RMFCommand : Callable<Int> {
 
     @Option(names = ["-v", "--version"], versionHelp = true, description = ["print version information and exit"])
     var versionRequested = false
@@ -28,8 +29,9 @@ class RMFCommand : Runnable {
     @Option(names = ["-h", "--help"], usageHelp = true, description = ["display this help message"])
     var usageHelpRequested = false
 
-    override fun run() {
+    override fun call(): Int {
         println("Please invoke a subcommand");
         CommandLine(this).usage(System.err);
+        return 1
     }
 }
