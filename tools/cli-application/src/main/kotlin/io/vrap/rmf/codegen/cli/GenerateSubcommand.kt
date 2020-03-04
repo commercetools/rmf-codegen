@@ -82,7 +82,7 @@ class GenerateSubcommand : Callable<Int> {
 
         val res = safeRun { generate(ramlFileLocation, target, generatorConfig) }
         if (watch) {
-            val watchDir = ramlFileLocation.parent
+            val watchDir = ramlFileLocation.toAbsolutePath().parent
 
             val source = Observable.create<DirectoryChangeEvent> { emitter ->
                 run {
