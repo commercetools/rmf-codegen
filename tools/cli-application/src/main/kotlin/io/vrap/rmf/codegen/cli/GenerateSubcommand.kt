@@ -69,7 +69,7 @@ class GenerateSubcommand : Callable<Int> {
 
     override fun call(): Int {
         if(!(Files.exists(ramlFileLocation) && Files.isRegularFile(ramlFileLocation))){
-            println("File '$ramlFileLocation' does not exist, please provide an existing spec path.")
+            printError("File '$ramlFileLocation' does not exist, please provide an existing spec path.")
             return 1
         }
         val generatorConfig = CodeGeneratorConfig(
@@ -112,11 +112,11 @@ class GenerateSubcommand : Callable<Int> {
                     .throttleLast(1, TimeUnit.SECONDS)
                     .blockingSubscribe(
                             {
-                                println("Consume ${it.eventType().name.toLowerCase()}: ${it.path()}")
+                                printMessage("Consume ${it.eventType().name.toLowerCase()}: ${it.path()}")
                                 safeRun { generate(ramlFileLocation, target, generatorConfig) }
                             },
                             {
-                                it.printStackTrace()
+                                printError(it.toString())
                             }
                     )
         }
@@ -157,7 +157,7 @@ class GenerateSubcommand : Callable<Int> {
             }
             generatorComponent.generateFiles()
         }
-        println("Generation took: ${generateDuration.toSeconds(3)}s")
+        printMessage("Generation took: ${generateDuration.toSeconds(3)}s")
         return 0
     }
 }

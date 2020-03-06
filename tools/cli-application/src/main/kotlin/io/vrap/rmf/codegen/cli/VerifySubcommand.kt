@@ -57,11 +57,11 @@ class VerifySubcommand : Callable<Int> {
                     .throttleLast(1, TimeUnit.SECONDS)
                     .blockingSubscribe(
                             {
-                                println("Consume ${it.eventType().name.toLowerCase()}: ${it.path()}")
+                                printMessage("Consume ${it.eventType().name.toLowerCase()}: ${it.path()}")
                                 safeRun { verify() }
                             },
                             {
-                                it.printStackTrace()
+                                printError(it.toString())
                             }
                     )
         }
@@ -73,10 +73,10 @@ class VerifySubcommand : Callable<Int> {
         val modelResult = RamlModelBuilder().buildApi(fileURI)
         val validationResults = modelResult.validationResults
         if (validationResults.isNotEmpty()) {
-            validationResults.stream().forEach { validationResult -> println("Error encountered while checking Raml API $validationResult") }
+            validationResults.stream().forEach { validationResult -> printError("Error encountered while checking Raml API $validationResult") }
             return 1
         }
-        println("specification at $ramlFileLocation is valid!")
+        printMessage("specification at $ramlFileLocation is valid!")
         return 0
     }
 

@@ -9,10 +9,17 @@ import picocli.CommandLine.Option
 import java.util.concurrent.Callable
 import kotlin.system.exitProcess
 
+
+
 fun main(args: Array<String>) {
+
     val exitCode = CommandLine(RMFCommand())
             .setCaseInsensitiveEnumValuesAllowed(true)
+            .setOut(messageWriter)
+            .setErr(errorWriter)
+            .setColorScheme(CommandLine.Help.defaultColorScheme(CommandLine.Help.Ansi.ON))
             .execute(*args)
+
     exitProcess(exitCode)
 }
 
@@ -30,8 +37,8 @@ class RMFCommand : Callable<Int> {
     var usageHelpRequested = false
 
     override fun call(): Int {
-        println("Please invoke a subcommand");
-        CommandLine(this).usage(System.err);
-        return 1
+        printError("Please invoke a subcommand");
+        CommandLine(this).usage(errorWriter);
+        return 0
     }
 }
