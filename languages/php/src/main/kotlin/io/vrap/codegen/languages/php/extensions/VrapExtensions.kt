@@ -228,7 +228,7 @@ fun QueryParameter.withParam(type: Method): String {
     return """
             |/**
             | * ${this.placeholderDocBlock()}
-            | * @psalm-param scalar ${this.paramName()}
+            | * @psalm-param scalar|scalar[] ${this.paramName()}
             | */
             |public function ${this.methodName()}(${this.methodParam()}): ${type.toRequestName()}
             |{

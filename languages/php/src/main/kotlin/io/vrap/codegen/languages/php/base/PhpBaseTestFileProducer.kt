@@ -52,6 +52,18 @@ class PhpBaseTestFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |        $!this->assertSame('bar=foo&bar=baz&foo=bar&foo=baz', $!request->getUri()->getQuery());
                     |    }
                     |
+                    |    public function testWithQueryParamArray()
+                    |    {
+                    |        $!client = $!this->prophesize(ClientInterface::class);
+                    |        $!request = new ApiRequest($!client->reveal(), 'get', '/');
+                    |        $!request = $!request->withQueryParam('foo', ['bar']);
+                    |        $!this->assertSame('foo=bar', $!request->getUri()->getQuery());
+                    |        $!request = $!request->withQueryParam('foo', 'baz');
+                    |        $!this->assertSame('foo=bar&foo=baz', $!request->getUri()->getQuery());
+                    |        $!request = $!request->withQueryParam('bar', ['foo', 'baz']);
+                    |        $!this->assertSame('bar=foo&bar=baz&foo=bar&foo=baz', $!request->getUri()->getQuery());
+                    |    }
+                    |
                     |    public function testContentTypeHeader()
                     |    {
                     |        $!client = $!this->prophesize(ClientInterface::class);

@@ -1000,7 +1000,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |
                     |    /**
                     |     * @param string $!parameterName
-                    |     * @psalm-param scalar $!value
+                    |     * @psalm-param scalar|scalar[] $!value
                     |     * @param mixed $!value
                     |     * @psalm-return static
                     |     */
@@ -1023,7 +1023,13 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |                Psr7\parse_query($!query)
                     |            );
                     |        }
-                    |        $!this->queryParts[$!parameterName][] = $!value;
+                    |        if (is_array($!value)) {
+                    |            foreach ($!value as $!v) {
+                    |                $!this->queryParts[$!parameterName][] = $!v;
+                    |            }
+                    |        } else {
+                    |            $!this->queryParts[$!parameterName][] = $!value;
+                    |        }
                     |        ksort($!this->queryParts);
                     |        $!this->query = Psr7\build_query($!this->queryParts);
                     |
