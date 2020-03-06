@@ -8,7 +8,7 @@ import java.io.PrintWriter
 fun safeRun(block: () -> Int): Int {
     return try {
         return block()
-    } catch (e: Exception) {
+    } catch (e: Throwable) {
         InternalLogger.error(e)
         1
     }
