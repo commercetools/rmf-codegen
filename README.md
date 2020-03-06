@@ -12,6 +12,24 @@ The code generators are written in [kotlin](https://kotlinlang.org/).
 * TypeScript types generated from RAML types
 * TypeScript types for validating JSON payloads via [hapijs/joi](https://github.com/hapijs/joi)
 
+# Install `rmf-codegen` CLI
+
+To install the rmf-codegen cli, run the following command
+```
+export VRAP_VERSION=1.0.0-20200304142749 && curl -o- -s https://raw.githubusercontent.com/vrapio/rmf-codegen/master/scripts/install.sh | bash
+```
+You will find a new command available  `rmf-codegen`, you can check that all is good by executing `rmf-codegen -v`
+
+# Build a native executable with GraalVM
+
+You can also build a native executable with the following commands:
+```
+cd tools/cli-application/
+../../gradlew nativeImage
+```
+The native executable can then be found at `build/graal/rmf-codegen`.
+It's currently only tested with Mac OS X.
+
 # Why did we choose kotlin for writing our code generators?
 
 We choose kotlin because of the following features:

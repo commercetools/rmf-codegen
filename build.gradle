@@ -27,6 +27,7 @@ plugins {
     id 'com.gradle.plugin-publish' version '0.9.1'
     id 'org.inferred.processors' version '1.2.16'
     id 'com.github.johnrengelman.shadow' version '4.0.3'
+    id 'com.palantir.graal' version '0.6.0'
 }
 
 ext {
