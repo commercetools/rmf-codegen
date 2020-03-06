@@ -27,6 +27,7 @@ import java.util.concurrent.Callable
 import java.util.concurrent.TimeUnit
 import kotlin.system.measureTimeMillis
 
+
 /** Targets section */
 enum class GenerationTarget {
     JAVA_CLIENT,
@@ -64,12 +65,18 @@ class GenerateSubcommand : Callable<Int> {
     @CommandLine.Option(names = ["-w", "--watch"], description = ["Watches the files for changes"], required = false)
     var watch: Boolean = false
 
+    @CommandLine.Option(names = ["-v", "--verbose"], description = ["If set, this would move the verbosity level to debug."], required = false)
+    var verbose: Boolean = false
+
     @CommandLine.Parameters(index = "0",description = ["Api file location"])
     lateinit var ramlFileLocation: Path
 
     override fun call(): Int {
+        if(verbose){
+            InternalLogger.logLevel = LogLevel.DEBUG
+        }
         if(!(Files.exists(ramlFileLocation) && Files.isRegularFile(ramlFileLocation))){
-            printError("File '$ramlFileLocation' does not exist, please provide an existing spec path.")
+            InternalLogger.error("File '$ramlFileLocation' does not exist, please provide an existing spec path.")
             return 1
         }
         val generatorConfig = CodeGeneratorConfig(
@@ -112,11 +119,11 @@ class GenerateSubcommand : Callable<Int> {
                     .throttleLast(1, TimeUnit.SECONDS)
                     .blockingSubscribe(
                             {
-                                printMessage("Consume ${it.eventType().name.toLowerCase()}: ${it.path()}")
+                                InternalLogger.debug("Consume ${it.eventType().name.toLowerCase()}: ${it.path()}")
                                 safeRun { generate(ramlFileLocation, target, generatorConfig) }
                             },
                             {
-                                printError(it.toString())
+                                InternalLogger.error(it)
                             }
                     )
         }
@@ -157,7 +164,7 @@ class GenerateSubcommand : Callable<Int> {
             }
             generatorComponent.generateFiles()
         }
-        printMessage("Generation took: ${generateDuration.toSeconds(3)}s")
+        InternalLogger.info("Generation took: ${generateDuration.toSeconds(3)}s")
         return 0
     }
 }

@@ -15,8 +15,8 @@ fun main(args: Array<String>) {
 
     val exitCode = CommandLine(RMFCommand())
             .setCaseInsensitiveEnumValuesAllowed(true)
-            .setOut(messageWriter)
-            .setErr(errorWriter)
+            .setOut(InternalLogger.messageWriter)
+            .setErr(InternalLogger.errorWriter)
             .setColorScheme(CommandLine.Help.defaultColorScheme(CommandLine.Help.Ansi.ON))
             .execute(*args)
 
@@ -37,8 +37,8 @@ class RMFCommand : Callable<Int> {
     var usageHelpRequested = false
 
     override fun call(): Int {
-        printError("Please invoke a subcommand");
-        CommandLine(this).usage(errorWriter);
+        InternalLogger.error("Please invoke a subcommand");
+        CommandLine(this).usage(InternalLogger.errorWriter);
         return 0
     }
 }
