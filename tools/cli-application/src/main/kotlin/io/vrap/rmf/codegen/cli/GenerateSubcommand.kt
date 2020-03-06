@@ -112,7 +112,6 @@ class GenerateSubcommand : Callable<Int> {
                     .throttleLast(1, TimeUnit.SECONDS)
                     .blockingSubscribe(
                             {
-                                printMessage("Consume ${it.eventType().name.toLowerCase()}: ${it.path()}")
                                 safeRun { generate(ramlFileLocation, target, generatorConfig) }
                             },
                             {

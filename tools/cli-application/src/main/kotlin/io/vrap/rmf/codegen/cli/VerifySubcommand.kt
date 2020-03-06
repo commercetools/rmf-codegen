@@ -57,7 +57,6 @@ class VerifySubcommand : Callable<Int> {
                     .throttleLast(1, TimeUnit.SECONDS)
                     .blockingSubscribe(
                             {
-                                printMessage("Consume ${it.eventType().name.toLowerCase()}: ${it.path()}")
                                 safeRun { verify() }
                             },
                             {
