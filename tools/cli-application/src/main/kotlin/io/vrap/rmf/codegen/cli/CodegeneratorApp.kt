@@ -15,9 +15,6 @@ fun main(args: Array<String>) {
 
     val exitCode = CommandLine(RMFCommand())
             .setCaseInsensitiveEnumValuesAllowed(true)
-            .setOut(InternalLogger.messageWriter)
-            .setErr(InternalLogger.errorWriter)
-            .setColorScheme(CommandLine.Help.defaultColorScheme(CommandLine.Help.Ansi.ON))
             .execute(*args)
 
     exitProcess(exitCode)
@@ -38,7 +35,7 @@ class RMFCommand : Callable<Int> {
 
     override fun call(): Int {
         InternalLogger.error("Please invoke a subcommand");
-        CommandLine(this).usage(InternalLogger.errorWriter);
+        CommandLine(this).usage(System.out);
         return 0
     }
 }

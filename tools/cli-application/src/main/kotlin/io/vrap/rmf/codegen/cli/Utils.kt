@@ -23,40 +23,31 @@ enum class LogLevel constructor(val level: Int) {
 
 
 object InternalLogger {
-    val messageWriter = PrintWriter(System.out)
-    val errorWriter = PrintWriter(System.err)
 
     var logLevel = LogLevel.INFO
 
     fun debug(message: String) {
         if (logLevel.level <= LogLevel.DEBUG.level) {
-            messageWriter.print("[DEBUG] ")
-            messageWriter.println(message)
-            messageWriter.flush()
+            println("✅   $message")
         }
     }
 
     fun info(message: String) {
         if (logLevel.level <= LogLevel.INFO.level) {
-            messageWriter.print("✅   ")
-            messageWriter.println(message)
-            messageWriter.flush()
+            println("✅   $message")
         }
     }
 
     fun error(message: String) {
         if (logLevel.level <= LogLevel.ERROR.level) {
-            errorWriter.print("\uD83D\uDED1    ")
-            errorWriter.println(message)
-            errorWriter.flush()
+            println("\uD83D\uDED1   $message")
         }
     }
 
     fun error(throwable: Throwable) {
         if (logLevel.level <= LogLevel.ERROR.level) {
-            errorWriter.print("\uD83D\uDED1    ")
-            errorWriter.println(throwable)
-            errorWriter.flush()
+            println("\uD83D\uDED1   $throwable")
+
         }
     }
 }
