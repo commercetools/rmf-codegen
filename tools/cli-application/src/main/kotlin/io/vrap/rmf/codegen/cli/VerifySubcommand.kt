@@ -10,6 +10,7 @@ import picocli.CommandLine
 import java.nio.file.Path
 import java.util.concurrent.Callable
 import java.util.concurrent.TimeUnit
+import java.util.stream.Collectors
 
 
 @CommandLine.Command(name = "verify", description = ["Allows to verify if a raml spec is valid."])
@@ -57,11 +58,11 @@ class VerifySubcommand : Callable<Int> {
                     .throttleLast(1, TimeUnit.SECONDS)
                     .blockingSubscribe(
                             {
-                                println("Consume ${it.eventType().name.toLowerCase()}: ${it.path()}")
+                                InternalLogger.debug("Consume ${it.eventType().name.toLowerCase()}: ${it.path()}")
                                 safeRun { verify() }
                             },
                             {
-                                it.printStackTrace()
+                                InternalLogger.error(it)
                             }
                     )
         }
@@ -73,10 +74,11 @@ class VerifySubcommand : Callable<Int> {
         val modelResult = RamlModelBuilder().buildApi(fileURI)
         val validationResults = modelResult.validationResults
         if (validationResults.isNotEmpty()) {
-            validationResults.stream().forEach { validationResult -> println("Error encountered while checking Raml API $validationResult") }
+            val res = validationResults.stream().map { "\tvalidation error >>> $it" }.collect( Collectors.joining( "\n" ) );
+            InternalLogger.error("Error encountered while checking Raml API\n$res")
             return 1
         }
-        println("specification at $ramlFileLocation is valid!")
+        InternalLogger.info("specification at $ramlFileLocation is valid!")
         return 0
     }
 
