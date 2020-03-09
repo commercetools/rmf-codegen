@@ -40,13 +40,13 @@ object InternalLogger {
 
     fun error(message: String) {
         if (logLevel.level <= LogLevel.ERROR.level) {
-            println("\uD83D\uDED1   $message")
+            println("🛑   $message")
         }
     }
 
     fun error(throwable: Throwable) {
         if (logLevel.level <= LogLevel.ERROR.level) {
-            println("\uD83D\uDED1   $throwable")
+            println("🛑   $throwable")
 
         }
     }
