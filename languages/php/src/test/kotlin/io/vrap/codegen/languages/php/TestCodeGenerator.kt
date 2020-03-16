@@ -40,7 +40,7 @@ class TestCodeGenerator {
         generatorComponent.generateFiles()
 
         if (userProvidedPath != null) {
-            runPHPUnitTests(outputFolder.parent)
+            runPHPUnitTests(outputFolder.parent, "base,api")
         }
 
         val generatorConfigTests = CodeGeneratorConfig(
@@ -67,7 +67,7 @@ class TestCodeGenerator {
         generatorComponent.generateFiles()
 
         if (importerUserProvidedPath != null) {
-            runPHPUnitTests(outputFolder.parent)
+            runPHPUnitTests(outputFolder.parent,"base,import")
         }
 
         val generatorConfigTests = CodeGeneratorConfig(
@@ -93,8 +93,8 @@ class TestCodeGenerator {
         generatorComponent.generateFiles()
     }
 
-    private fun runPHPUnitTests(workingDir: Path) {
-        val process = ProcessBuilder("sh", "-c", "vendor/bin/phpunit --testsuite=unit")
+    private fun runPHPUnitTests(workingDir: Path, suite: String = "unit") {
+        val process = ProcessBuilder("sh", "-c", "vendor/bin/phpunit --testsuite=$suite")
                 .directory(workingDir.toFile())
                 .start()
 

@@ -33,7 +33,6 @@ class PhpMethodBuilderRenderer @Inject constructor(api: Api, vrapTypeProvider: V
             |
             |/**
             | * @psalm-suppress PropertyNotSetInConstructor
-            | * @psalm-immutable
             | */
             |class ${type.resourceBuilderName()} extends ApiResource
             |{

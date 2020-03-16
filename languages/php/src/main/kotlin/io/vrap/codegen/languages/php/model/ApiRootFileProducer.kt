@@ -32,9 +32,6 @@ class ApiRootFileProducer @Inject constructor(api: Api, vrapTypeProvider: VrapTy
                     |use GuzzleHttp\\ClientInterface;
                     |use ${sharedPackageName.toNamespaceName()}\\Client\\ApiResource;
                     |
-                    |/**
-                    | * @psalm-immutable
-                    | */
                     |class ${rootResource()} extends ApiResource
                     |{
                     |    /**

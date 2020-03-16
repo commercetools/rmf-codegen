@@ -55,6 +55,9 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
             |
             |use ${sharedPackageName.toNamespaceName().escapeAll()}\\Base\\MapperMap;
             |
+            |/**
+            | * @internal
+            | */
             |final class ${vrapType.simpleClassName}Model extends MapperMap implements ${vrapType.simpleClassName}
             |{
             |    /**
@@ -90,6 +93,9 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
             |
             |<<${type.imports()}>>
             |
+            |/**
+            | * @internal
+            | */
             |final class ${vrapType.simpleClassName}Model extends JsonObjectModel implements ${vrapType.simpleClassName}
             |{
             |    ${if (type.discriminator != null || type.discriminatorValue != null) {"public const DISCRIMINATOR_VALUE = '${type.discriminatorValue ?: ""}';"} else ""}

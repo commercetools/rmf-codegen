@@ -813,9 +813,6 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |
                     |use Exception;
                     |
-                    |/**
-                    | * @psalm-immutable
-                    | */
                     |abstract class BaseException extends Exception
                     |{
                     |}
@@ -832,9 +829,6 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |
                     |use Exception;
                     |
-                    |/**
-                    | * @psalm-immutable
-                    | */
                     |class InvalidArgumentException extends BaseException
                     |{
                     |}
@@ -854,9 +848,6 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |use Psr\Http\Message\ResponseInterface;
                     |use ${packagePrefix.toNamespaceName()}\Base\JsonObject;
                     |
-                    |/**
-                    | * @psalm-immutable
-                    | */
                     |class ApiServerException extends ServerException
                     |{
                     |    /**
@@ -869,7 +860,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |     * @param string $!message
                     |     * @param ?JsonObject $!result
                     |     */
-                    |    public function __construct($!message, $!result, RequestInterface $!request, ResponseInterface $!response, \Exception $!previous = null, array $!handlerContext = [])
+                    |    public function __construct($!message, $!result, RequestInterface $!request, ?ResponseInterface $!response, \Exception $!previous = null, array $!handlerContext = [])
                     |    {
                     |        $!this->result = $!result;
                     |        parent::__construct($!message, $!request, $!response, $!previous, $!handlerContext);
@@ -899,9 +890,6 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |use Psr\Http\Message\ResponseInterface;
                     |use ${packagePrefix.toNamespaceName()}\Base\JsonObject;
                     |
-                    |/**
-                    | * @psalm-immutable
-                    | */
                     |class ApiClientException extends ClientException
                     |{
                     |    /**
@@ -914,7 +902,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |     * @param string $!message
                     |     * @param ?JsonObject $!result
                     |     */
-                    |    public function __construct($!message, $!result, RequestInterface $!request, ResponseInterface $!response, \Exception $!previous = null, array $!handlerContext = [])
+                    |    public function __construct($!message, $!result, RequestInterface $!request, ?ResponseInterface $!response, \Exception $!previous = null, array $!handlerContext = [])
                     |    {
                     |        $!this->result = $!result;
                     |        parent::__construct($!message, $!request, $!response, $!previous, $!handlerContext);
@@ -1989,23 +1977,23 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |
                     |use GuzzleHttp\ClientInterface;
                     |
-                    |/**
-                    | * @psalm-immutable
-                    | */
                     |class ApiResource
                     |{
                     |    /**
                     |     * @var string
+                    |     * @readonly
                     |     */
                     |    private $!uri;
                     |
                     |    /**
                     |     * @psalm-var array<string, scalar>
+                    |     * @readonly
                     |     */
                     |    private $!args = [];
                     |
                     |    /**
                     |     * @var ?ClientInterface
+                    |     * @readonly
                     |     */
                     |    private $!client;
                     |
