@@ -33,24 +33,24 @@ class PhpRequestTestRenderer @Inject constructor(api: Api, vrapTypeProvider: Vra
             |namespace ${clientTestPackageName.toNamespaceName().escapeAll()}\\$resourcePackage;
             |
             |use PHPUnit\\Framework\\TestCase;
+            |use ${sharedPackageName.toNamespaceName().escapeAll()}\\Exception\\ApiClientException;
+            |use ${sharedPackageName.toNamespaceName().escapeAll()}\\Exception\\ApiServerException;
             |use ${sharedPackageName.toNamespaceName().escapeAll()}\\Client\\ApiRequest;
+            |use ${sharedPackageName.toNamespaceName().escapeAll()}\\Base\\JsonObject;
             |use ${clientPackageName.toNamespaceName().escapeAll()}\\${rootResource()};
             |use Psr\\Http\\Message\\RequestInterface;
+            |use Prophecy\\Argument;
+            |use GuzzleHttp\\Exception\\ClientException;
+            |use GuzzleHttp\\Exception\\ServerException;
+            |use GuzzleHttp\\ClientInterface;
             |use GuzzleHttp\\Psr7\\Response;
-            |use ${sharedPackageName.toNamespaceName().escapeAll()}\\Base\\JsonObject;
+            |<<${type.resources.joinToString("\n") { r -> "use ${clientPackageName.toNamespaceName()}\\$resourcePackage\\${r.resourceBuilderName()};".escapeAll() }}>>
             |
             |/**
-            | <<${type.methods.joinToString("\n") { "* @covers \\${clientPackageName.toNamespaceName()}\\$resourcePackage\\${it.toRequestName()}".escapeAll() }}>>
+            | <<${type.methods.map { it.toRequestName() }.plus(type.resourceBuilderName()).joinToString("\n") { "* @covers \\${clientPackageName.toNamespaceName()}\\$resourcePackage\\$it".escapeAll() }}>>
             | */
             |class ${type.resourceBuilderName()}Test extends TestCase
             |{
-            |    public function getRequests()
-            |    {
-            |        return [
-            |            <<${type.methods.flatMap { method -> method.queryParameters.map { parameterTestProvider(type, method, it) }.plus(parameterTestProvider(type, method)) }.joinToString(",\n")}>>
-            |        ];
-            |    }
-            |    
             |    /**
             |     * @dataProvider getRequests()
             |     */
@@ -65,6 +65,70 @@ class PhpRequestTestRenderer @Inject constructor(api: Api, vrapTypeProvider: Vra
             |        };
             |    }
             |
+            |    /**
+            |     * @dataProvider getResources()
+            |     */
+            |    public function testResources(callable $!builderFunction, string $!class)
+            |    {
+            |        $!builder = new ${rootResource()}();
+            |        $!this->assertInstanceOf($!class, $!builderFunction($!builder));
+            |    }
+            |
+            |    /**
+            |     * @dataProvider getRequestBuilderResponses()
+            |     */
+            |    public function testMapFromResponse(callable $!builderFunction, $!statusCode)
+            |    {
+            |        $!builder = new ${rootResource()}();
+            |        $!request = $!builderFunction($!builder);
+            |        $!this->assertInstanceOf(ApiRequest::class, $!request);
+            |
+            |        $!response = new Response($!statusCode, [], "{}");
+            |        $!this->assertInstanceOf(JsonObject::class, $!request->mapFromResponse($!response));
+            |    }
+            |
+            |    /**
+            |     * @dataProvider getRequestBuilders()
+            |     */
+            |    public function testExecuteClientException(callable $!builderFunction)
+            |    {
+            |        $!client = $!this->prophesize(ClientInterface::class);
+            |        $!client->send(Argument::any(), Argument::any())->willThrow(ClientException::class);
+            |        
+            |        $!builder = new ${rootResource()}($!client->reveal());
+            |        $!request = $!builderFunction($!builder);
+            |        $!this->expectException(ApiClientException::class);
+            |        $!request->execute();
+            |    }
+            |
+            |    /**
+            |     * @dataProvider getRequestBuilders()
+            |     */
+            |    public function testExecuteServerException(callable $!builderFunction)
+            |    {
+            |        $!client = $!this->prophesize(ClientInterface::class);
+            |        $!client->send(Argument::any(), Argument::any())->willThrow(ServerException::class);
+            |        
+            |        $!builder = new ${rootResource()}($!client->reveal());
+            |        $!request = $!builderFunction($!builder);
+            |        $!this->expectException(ApiServerException::class);
+            |        $!request->execute();
+            |    }
+            |
+            |    public function getRequests()
+            |    {
+            |        return [
+            |            <<${type.methods.flatMap { method -> method.queryParameters.map { parameterTestProvider(type, method, it) }.plus(parameterTestProvider(type, method)) }.joinToString(",\n")}>>
+            |        ];
+            |    }
+            |    
+            |    public function getResources()
+            |    {
+            |        return [
+            |            <<${type.resources.map { resourceTestProvider(it) }.joinToString(",\n")}>>
+            |        ];
+            |    }
+            |    
             |    public function getRequestBuilders()
             |    {
             |        return [
@@ -72,17 +136,11 @@ class PhpRequestTestRenderer @Inject constructor(api: Api, vrapTypeProvider: Vra
             |        ];
             |    }
             |
-            |    /**
-            |     * @dataProvider getRequests()
-            |     */
-            |    public function testMapFromResponse(callable $!builderFunction)
+            |    public function getRequestBuilderResponses()
             |    {
-            |        $!builder = new ${rootResource()}();
-            |        $!request = $!builderFunction($!builder);
-            |        $!this->assertInstanceOf(ApiRequest::class, $!request);
-            |
-            |        $!response = new Response(200, [], "{}");
-            |        $!this->assertInstanceOf(JsonObject::class, $!request->mapFromResponse($!response));
+            |        return [
+            |            <<${type.methods.flatMap { m -> m.responses.map { r -> requestTestProvider(type, m, r.statusCode) } }.joinToString(",\n")}>>
+            |        ];
             |    }
             |}
         """.trimMargin().keepAngleIndent().forcedLiteralEscape()
@@ -122,6 +180,35 @@ class PhpRequestTestRenderer @Inject constructor(api: Api, vrapTypeProvider: Vra
             |        return $!builder
             |            <<${builderChain.joinToString("\n->", "->")}>>;
             |    }
+            |]
+        """.trimMargin()
+    }
+
+    private fun requestTestProvider(resource: Resource, method: Method, statusCode: String): String {
+        val builderChain = resource.resourcePathList().map { r -> "${r.getMethodName()}(${if (r.relativeUri.paramValues().isNotEmpty()) "\"${r.relativeUri.paramValues().joinToString("\", \"") }\"" else ""})" }
+                .plus("${method.method}(${if (method.firstBody() != null) "null" else ""})")
+
+        return """
+            |'${method.toRequestName()}_$statusCode' => [
+            |    function (${rootResource()} $!builder): RequestInterface {
+            |        return $!builder
+            |            <<${builderChain.joinToString("\n->", "->")}>>;
+            |    },
+            |    $statusCode
+            |]
+        """.trimMargin()
+    }
+
+    private fun resourceTestProvider(resource: Resource): String {
+        val builderChain = resource.resourcePathList().map { r -> "${r.getMethodName()}(${if (r.relativeUri.paramValues().isNotEmpty()) "\"${r.relativeUri.paramValues().joinToString("\", \"") }\"" else ""})" }
+
+        return """
+            |'${resource.resourceBuilderName()}' => [
+            |    function (${rootResource()} $!builder): ${resource.resourceBuilderName()} {
+            |        return $!builder
+            |            <<${builderChain.joinToString("\n->", "->")}>>;
+            |    },
+            |    ${resource.resourceBuilderName()}::class
             |]
         """.trimMargin()
     }
