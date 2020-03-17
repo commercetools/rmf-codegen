@@ -68,10 +68,12 @@ class PhpRequestTestRenderer @Inject constructor(api: Api, vrapTypeProvider: Vra
             |    /**
             |     * @dataProvider getResources()
             |     */
-            |    public function testResources(callable $!builderFunction, string $!class)
+            |    public function testResources(callable $!builderFunction, string $!class, array $!expectedArgs)
             |    {
             |        $!builder = new ${rootResource()}();
-            |        $!this->assertInstanceOf($!class, $!builderFunction($!builder));
+            |        $!resource = $!builderFunction($!builder);
+            |        $!this->assertInstanceOf($!class, $!resource);
+            |        $!this->assertEquals($!expectedArgs, $!resource->getArgs());
             |    }
             |
             |    /**
@@ -208,7 +210,9 @@ class PhpRequestTestRenderer @Inject constructor(api: Api, vrapTypeProvider: Vra
             |        return $!builder
             |            <<${builderChain.joinToString("\n->", "->")}>>;
             |    },
-            |    ${resource.resourceBuilderName()}::class
+            |    ${resource.resourceBuilderName()}::class,
+            |    [${resource.fullUriParameters.joinToString(", ") { "'${it.name}' => '${it.name}'" }}],
+            |    '${resource.fullUri.template}'
             |]
         """.trimMargin()
     }

@@ -2011,7 +2011,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |    /**
                     |     * @return string
                     |     */
-                    |    final protected function getUri(): string
+                    |    final public function getUri(): string
                     |    {
                     |        return $!this->uri;
                     |    }
@@ -2019,12 +2019,12 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |    /**
                     |     * @psalm-return array<string, scalar>
                     |     */
-                    |    final protected function getArgs(): array
+                    |    final public function getArgs(): array
                     |    {
                     |        return $!this->args;
                     |    }
                     |
-                    |    public function getClient(): ?ClientInterface
+                    |    final public function getClient(): ?ClientInterface
                     |    {
                     |       return $!this->client;
                     |    }

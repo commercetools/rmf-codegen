@@ -28,6 +28,7 @@ class PhpMethodBuilderRenderer @Inject constructor(api: Api, vrapTypeProvider: V
             |namespace ${clientPackageName.toNamespaceName().escapeAll()}\\$resourcePackage;
             |
             |use ${sharedPackageName.toNamespaceName()}\\Client\\ApiResource;
+            |use GuzzleHttp\\ClientInterface;
             |use Psr\\Http\\Message\\UploadedFileInterface;
             |<<${type.imports()}>>
             |
@@ -36,6 +37,13 @@ class PhpMethodBuilderRenderer @Inject constructor(api: Api, vrapTypeProvider: V
             | */
             |class ${type.resourceBuilderName()} extends ApiResource
             |{
+            |    /**
+            |     * @psalm-param array<string, scalar> $!args
+            |     */
+            |    public function __construct(array $!args = [], ClientInterface $!client = null) {
+            |        parent::__construct('${type.fullUri.template}', $!args, $!client);
+            |    }
+            |
             |    <<${type.subResources()}>>
             |    <<${type.methods()}>>
             |}

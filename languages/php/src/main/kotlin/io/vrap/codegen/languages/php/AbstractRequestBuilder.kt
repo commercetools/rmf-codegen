@@ -64,7 +64,7 @@ abstract class AbstractRequestBuilder constructor(
                 |        $!args['$it'] = $$it;
                 |    }""" }}
                 |
-                |    return new ${it.resourceBuilderName()}($!this->getUri() . '${it.relativeUri.template}', $!args, $!this->getClient());
+                |    return new ${it.resourceBuilderName()}($!args, $!this->getClient());
                 |}
                 |
             """.trimMargin()
