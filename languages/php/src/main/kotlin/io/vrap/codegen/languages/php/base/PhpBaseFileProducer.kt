@@ -1986,7 +1986,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |    private $!uri;
                     |
                     |    /**
-                    |     * @psalm-var array<string, scalar>
+                    |     * @psalm-var array<string, string>
                     |     * @readonly
                     |     */
                     |    private $!args = [];
@@ -1999,7 +1999,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |
                     |    /**
                     |     * @param string $!uri
-                    |     * @psalm-param array<string, scalar> $!args
+                    |     * @psalm-param array<string, string> $!args
                     |     */
                     |    public function __construct(string $!uri = '', array $!args = [], ClientInterface $!client = null)
                     |    {
@@ -2017,7 +2017,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |    }
                     |
                     |    /**
-                    |     * @psalm-return array<string, scalar>
+                    |     * @psalm-return array<string, string>
                     |     */
                     |    final public function getArgs(): array
                     |    {

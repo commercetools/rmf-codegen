@@ -62,7 +62,9 @@ class PhpRequestTestRenderer @Inject constructor(api: Api, vrapTypeProvider: Vra
             |        $!this->assertStringContainsString(str_replace(['{', '}'], '', $!relativeUri), (string) $!request->getUri());
             |        if (!is_null($!body)) {
             |            $!this->assertJsonStringEqualsJsonString($!body, (string) $!request->getBody());
-            |        };
+            |        } else {
+            |            $!this->assertSame("", (string) $!request->getBody());
+            |        }
             |    }
             |
             |    /**
@@ -243,24 +245,5 @@ class PhpRequestTestRenderer @Inject constructor(api: Api, vrapTypeProvider: Vra
             |    '${resource.fullUri.template.trimStart('/')}?${paramName}=${paramName}',
             |]
         """.trimMargin()
-    }
-
-
-
-    private fun Resource.resourcePathList(): List<Resource> {
-        val path = Lists.newArrayList<Resource>()
-        if (this.fullUri.template == "/") {
-            return path
-        }
-        path.add(this)
-        var t = this.eContainer()
-        while (t is Resource) {
-            val template = t.fullUri.template
-            if (template != "/") {
-                path.add(t)
-            }
-            t = t.eContainer()
-        }
-        return Lists.reverse(path)
     }
 }

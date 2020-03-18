@@ -38,7 +38,7 @@ class PhpMethodBuilderRenderer @Inject constructor(api: Api, vrapTypeProvider: V
             |class ${type.resourceBuilderName()} extends ApiResource
             |{
             |    /**
-            |     * @psalm-param array<string, scalar> $!args
+            |     * @psalm-param array<string, string> $!args
             |     */
             |    public function __construct(array $!args = [], ClientInterface $!client = null) {
             |        parent::__construct('${type.fullUri.template}', $!args, $!client);

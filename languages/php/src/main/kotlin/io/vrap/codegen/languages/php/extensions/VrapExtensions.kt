@@ -2,6 +2,7 @@ package io.vrap.codegen.languages.php.extensions
 
 import com.damnhandy.uri.template.Expression
 import com.damnhandy.uri.template.UriTemplate
+import com.google.common.collect.Lists
 import io.vrap.rmf.codegen.types.*
 import io.vrap.rmf.raml.model.modules.Api
 import io.vrap.rmf.raml.model.resources.Method
@@ -239,4 +240,21 @@ fun QueryParameter.withParam(type: Method): String {
 
 fun UriTemplate.paramValues(): List<String> {
     return this.components.filterIsInstance<Expression>().flatMap { expression -> expression.varSpecs.map { varSpec -> varSpec.variableName  } }
+}
+
+fun Resource.resourcePathList(): List<Resource> {
+    val path = Lists.newArrayList<Resource>()
+    if (this.fullUri.template == "/") {
+        return path
+    }
+    path.add(this)
+    var t = this.eContainer()
+    while (t is Resource) {
+        val template = t.fullUri.template
+        if (template != "/") {
+            path.add(t)
+        }
+        t = t.eContainer()
+    }
+    return Lists.reverse(path)
 }

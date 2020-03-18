@@ -47,7 +47,7 @@ abstract class AbstractRequestBuilder constructor(
                 |{
                 |    $!args = $!this->getArgs();
                 |
-                |    return new ${it.toRequestName()}(${it.allParams()?.joinToString("") { "(string) $!args['${it}'], " }}$!body, $!headers, $!this->getClient());
+                |    return new ${it.toRequestName()}(${it.allParams()?.joinToString("") { p -> "$!args['$p'], " }}$!body, $!headers, $!this->getClient());
                 |}
                 |
             """.trimMargin()

@@ -35,7 +35,7 @@ class ApiRootFileProducer @Inject constructor(api: Api, vrapTypeProvider: VrapTy
                     |class ${rootResource()} extends ApiResource
                     |{
                     |    /**
-                    |     * @psalm-param array<string, scalar> $!args
+                    |     * @psalm-param array<string, string> $!args
                     |     */
                     |    public function __construct(ClientInterface $!client = null, array $!args = [])
                     |    {
