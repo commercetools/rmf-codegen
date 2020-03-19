@@ -112,7 +112,7 @@ class PhpTestRenderer @Inject constructor(api: Api, vrapTypeProvider: VrapTypePr
     }
 
     private fun resourceTestProvider(resource: Resource): String {
-        val builderChain = resource.resourcePathList().map { r -> "${r.getMethodName()}(${if (r.relativeUri.paramValues().isNotEmpty()) "\"${r.relativeUri.paramValues().joinToString("\", \"") }\"" else ""})" }
+        val builderChain = resource.resourcePathList().map { r -> "${r.getMethodName()}(${if (r.relativeUri.paramValues().isNotEmpty()) "\"${r.relativeUri.paramValues().joinToString("\", \"") { p -> "test_$p"} }\"" else ""})" }
 
         return """
             |'${resource.resourceBuilderName()}' => [
@@ -121,7 +121,7 @@ class PhpTestRenderer @Inject constructor(api: Api, vrapTypeProvider: VrapTypePr
             |            <<${builderChain.joinToString("\n->", "->")}>>;
             |    },
             |    ${resource.resourceBuilderName()}::class,
-            |    [${resource.fullUriParameters.joinToString(", ") { "'${it.name}' => '${it.name}'" }}],
+            |    [${resource.fullUriParameters.joinToString(", ") { "'${it.name}' => 'test_${it.name}'" }}],
             |    '${resource.fullUri.template}'
             |]
         """.trimMargin()
