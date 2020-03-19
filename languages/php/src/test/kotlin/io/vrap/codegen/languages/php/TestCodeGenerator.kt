@@ -19,12 +19,15 @@ class TestCodeGenerator {
     companion object {
         private val userProvidedPath = System.getenv("TEST_RAML_FILE")
         private val importerUserProvidedPath = System.getenv("IMPORTER_RAML_FILE")
+        private val mlUserProvidedPath = System.getenv("ML_RAML_FILE")
         private val userProvidedOutputPath = System.getenv("OUTPUT_FOLDER")
         private val apiPath : Path = Paths.get(if (userProvidedPath == null) "../../api-spec/api.raml" else userProvidedPath)
         private val importerPath : Path = Paths.get(if (importerUserProvidedPath == null) "../../api-spec/api.raml" else importerUserProvidedPath)
+        private val mlPath : Path = Paths.get(if (mlUserProvidedPath == null) "../../api-spec/api.raml" else mlUserProvidedPath)
         private val outputFolder : Path = Paths.get(if (userProvidedOutputPath == null) "build/gensrc" else userProvidedOutputPath)
         val apiProvider: ApiProvider = ApiProvider(apiPath)
         val importProvider: ApiProvider = ApiProvider(importerPath)
+        val mlProvider: ApiProvider = ApiProvider(mlPath)
     }
 
     @Test
@@ -77,6 +80,33 @@ class TestCodeGenerator {
         )
 
         val generatorModuleTests = GeneratorModule(importProvider, generatorConfigTests, PhpBaseTypes)
+        val generatorComponentTests = GeneratorComponent(generatorModuleTests, PhpTestModule())
+        generatorComponentTests.generateFiles()
+    }
+
+    @Test
+    fun generateMlSdk() {
+        val generatorConfig = CodeGeneratorConfig(
+                basePackageName = "commercetools/ml",
+                sharedPackage = "commercetools",
+                outputFolder = Paths.get("${outputFolder}/commercetools-ml")
+        )
+
+        val generatorModule = GeneratorModule(mlProvider, generatorConfig, PhpBaseTypes)
+        val generatorComponent = GeneratorComponent(generatorModule, PhpModelModule())
+        generatorComponent.generateFiles()
+
+        if (mlUserProvidedPath != null) {
+            runPHPUnitTests(outputFolder.parent, "base,ml")
+        }
+
+        val generatorConfigTests = CodeGeneratorConfig(
+                basePackageName = "commercetools/ml",
+                sharedPackage = "commercetools",
+                outputFolder = Paths.get("${outputFolder}/commercetools-ml-tests")
+        )
+
+        val generatorModuleTests = GeneratorModule(mlProvider, generatorConfigTests, PhpBaseTypes)
         val generatorComponentTests = GeneratorComponent(generatorModuleTests, PhpTestModule())
         generatorComponentTests.generateFiles()
     }

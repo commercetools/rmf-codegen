@@ -1,6 +1,6 @@
 package io.vrap.codegen.languages.php.test
 
-import com.google.common.collect.Lists
+import com.damnhandy.uri.template.UriTemplate
 import com.google.inject.Inject
 import io.vrap.codegen.languages.extensions.getMethodName
 import io.vrap.codegen.languages.php.AbstractRequestBuilder
@@ -16,15 +16,16 @@ import io.vrap.rmf.codegen.rendring.utils.keepAngleIndent
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.modules.Api
 import io.vrap.rmf.raml.model.resources.Resource
+import io.vrap.rmf.raml.model.util.StringCaseFormat
 
 class PhpTestRenderer @Inject constructor(api: Api, vrapTypeProvider: VrapTypeProvider) : FileProducer, AbstractRequestBuilder(api, vrapTypeProvider) {
 
     override fun produceFiles(): List<TemplateFile> = listOf(
-            configTest(),
+            configTest(api),
             rootResourceTest(api)
     )
 
-    private fun configTest(): TemplateFile {
+    private fun configTest(type: Api): TemplateFile {
         val clientTestPackageName = basePackagePrefix + "/test" + clientPackageName.replace(basePackagePrefix, "")
 
         return TemplateFile(relativePath = "test/unit/Client/ConfigTest.php",
@@ -41,26 +42,31 @@ class PhpTestRenderer @Inject constructor(api: Api, vrapTypeProvider: VrapTypePr
                     |{
                     |    public function testDefaultUri()
                     |    {
-                    |        $!c = new Config();
-                    |        self::assertSame(Config::API_URI, $!c->getApiUri());
-                    |        self::assertSame(Config::API_URI, $!c->getOptions()[Config::OPT_BASE_URI]);
+                    |        $!c = new Config(${if (api.baseUri.value.variables.isNotEmpty()) { api.baseUri.value.testParams().joinToString(", ") } else ""});
+                    |        $!expectedUri = "${api.baseUri.value.expand(api.baseUri.value.variables.map { it to "test_${it}" }.toMap())}";
+                    |        self::assertSame($!expectedUri, $!c->getApiUri());
+                    |        self::assertSame($!expectedUri, $!c->getOptions()[Config::OPT_BASE_URI]);
                     |    }
                     |
                     |    public function testBaseUri()
                     |    {
-                    |        $!c = new Config([], "baseUri");
+                    |        $!c = new Config(${if (api.baseUri.value.variables.isNotEmpty()) { api.baseUri.value.testParams().joinToString(", ", postfix = ", ") } else ""}[], "baseUri");
                     |        self::assertSame("baseUri", $!c->getApiUri());
                     |        self::assertSame("baseUri", $!c->getOptions()[Config::OPT_BASE_URI]);
                     |    }
                     |
                     |    public function testOptionsBaseUri()
                     |    {
-                    |        $!c = new Config([Config::OPT_BASE_URI => "optBaseUri"], "baseUri");
+                    |        $!c = new Config(${if (api.baseUri.value.variables.isNotEmpty()) { api.baseUri.value.testParams().joinToString(", ", postfix = ", ") } else ""}[Config::OPT_BASE_URI => "optBaseUri"], "baseUri");
                     |        self::assertSame("baseUri", $!c->getApiUri());
                     |        self::assertSame("optBaseUri", $!c->getOptions()[Config::OPT_BASE_URI]);
                     |    }
                     |}
                 """.trimMargin().keepAngleIndent().forcedLiteralEscape())
+    }
+
+    private fun UriTemplate.testParams(): List<String> = variables.map {
+        "\"test_${StringCaseFormat.LOWER_CAMEL_CASE.apply(it)}\""
     }
 
     private fun rootResourceTest(type: Api): TemplateFile {

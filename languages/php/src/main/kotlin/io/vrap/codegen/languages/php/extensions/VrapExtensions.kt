@@ -9,19 +9,18 @@ import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.responses.Body
 import io.vrap.rmf.raml.model.security.OAuth20Settings
-import io.vrap.rmf.raml.model.security.SecurityScheme
 import io.vrap.rmf.raml.model.types.*
 import io.vrap.rmf.raml.model.util.StringCaseFormat
 import java.util.stream.Collectors
 
 fun String.toNamespaceName():String{
     val `package` = this.split("/")
-    return `package`.takeLast(maxOf(`package`.size, 1)).joinToString("\\") { s -> s.capitalize() }
+    return `package`.takeLast(maxOf(`package`.size, 1)).joinToString("\\") { s -> StringCaseFormat.UPPER_CAMEL_CASE.apply(s) }
 }
 
 fun String.toNamespaceDir():String{
     val `package` = this.split("/")
-    return `package`.takeLast(maxOf(`package`.size, 1)).joinToString("/") { s -> s.capitalize() }
+    return `package`.takeLast(maxOf(`package`.size, 1)).joinToString("/") { s -> StringCaseFormat.UPPER_CAMEL_CASE.apply(s) }
 }
 
 fun VrapType.namespaceName():String{
