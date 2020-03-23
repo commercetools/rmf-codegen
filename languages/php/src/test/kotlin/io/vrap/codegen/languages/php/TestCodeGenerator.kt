@@ -17,6 +17,7 @@ import java.nio.file.Paths
 class TestCodeGenerator {
 
     companion object {
+        private val runPhpUnitTest = System.getenv("RUN_PHPUNIT") == "true"
         private val userProvidedPath = System.getenv("TEST_RAML_FILE")
         private val importerUserProvidedPath = System.getenv("IMPORTER_RAML_FILE")
         private val mlUserProvidedPath = System.getenv("ML_RAML_FILE")
@@ -42,7 +43,7 @@ class TestCodeGenerator {
         val generatorComponent = GeneratorComponent(generatorModule, PhpModelModule())
         generatorComponent.generateFiles()
 
-        if (userProvidedPath != null) {
+        if (runPhpUnitTest && userProvidedPath != null) {
             runPHPUnitTests(outputFolder.parent, "base,api")
         }
 
@@ -69,7 +70,7 @@ class TestCodeGenerator {
         val generatorComponent = GeneratorComponent(generatorModule, PhpModelModule())
         generatorComponent.generateFiles()
 
-        if (importerUserProvidedPath != null) {
+        if (runPhpUnitTest && importerUserProvidedPath != null) {
             runPHPUnitTests(outputFolder.parent,"base,import")
         }
 
@@ -96,7 +97,7 @@ class TestCodeGenerator {
         val generatorComponent = GeneratorComponent(generatorModule, PhpModelModule())
         generatorComponent.generateFiles()
 
-        if (mlUserProvidedPath != null) {
+        if (runPhpUnitTest && mlUserProvidedPath != null) {
             runPHPUnitTests(outputFolder.parent, "base,ml")
         }
 
