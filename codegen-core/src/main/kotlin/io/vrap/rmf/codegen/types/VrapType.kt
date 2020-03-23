@@ -28,10 +28,16 @@ open class VrapObjectType(val `package` :String, val simpleClassName:String) : V
     }
 }
 
-class VrapDateTimeType(`package` :String, simpleClassName:String, val format: String): VrapObjectType(`package`,simpleClassName) {
+enum class DateTimeTypes(val format: String) {
+    DateTime("date-time"),
+    DateOnly("date"),
+    TimeOnly("time")
+}
+
+class VrapDateTimeType(`package` :String, simpleClassName:String, val dateTimeType: DateTimeTypes): VrapObjectType(`package`,simpleClassName) {
 
     override fun toString(): String {
-        return "VrapDateTimeType(format='$format')"
+        return "VrapDateTimeType(format='${dateTimeType.format}')"
     }
 
     override fun equals(other: Any?): Boolean {
@@ -41,14 +47,14 @@ class VrapDateTimeType(`package` :String, simpleClassName:String, val format: St
 
         other as VrapDateTimeType
 
-        if (format != other.format) return false
+        if (dateTimeType != other.dateTimeType) return false
 
         return true
     }
 
     override fun hashCode(): Int {
         var result = super.hashCode()
-        result = 31 * result + format.hashCode()
+        result = 31 * result + dateTimeType.hashCode()
         return result
     }
 }

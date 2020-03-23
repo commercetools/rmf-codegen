@@ -1,9 +1,6 @@
 package io.vrap.codegen.languages.php
 
-import io.vrap.rmf.codegen.types.VrapScalarType
-import io.vrap.rmf.codegen.types.LanguageBaseTypes
-import io.vrap.rmf.codegen.types.VrapDateTimeType
-import io.vrap.rmf.codegen.types.VrapObjectType
+import io.vrap.rmf.codegen.types.*
 
 object PhpBaseTypes : LanguageBaseTypes(
         objectType = fromPhpType("", "stdClass"),
@@ -12,14 +9,14 @@ object PhpBaseTypes : LanguageBaseTypes(
         doubleType = fromScalarPhpType("float"),
         stringType = fromScalarPhpType("string"),
         booleanType = fromScalarPhpType("bool"),
-        dateTimeType = fromDateTimeType("","DateTimeImmutable", "date-time"),
-        dateOnlyType = fromDateTimeType("","DateTimeImmutable","date"),
-        timeOnlyType = fromDateTimeType("","DateTimeImmutable","time"),
+        dateTimeType = fromDateTimeType("","DateTimeImmutable", DateTimeTypes.DateTime),
+        dateOnlyType = fromDateTimeType("","DateTimeImmutable",DateTimeTypes.DateOnly),
+        timeOnlyType = fromDateTimeType("","DateTimeImmutable",DateTimeTypes.TimeOnly),
         file = fromPhpType("","File")
 )
 
-fun fromDateTimeType(`package`: String, simpleName: String, format: String):VrapDateTimeType{
-   return VrapDateTimeType(`package`, simpleName, format)
+fun fromDateTimeType(`package`: String, simpleName: String, dateTimeType: DateTimeTypes):VrapDateTimeType{
+   return VrapDateTimeType(`package`, simpleName, dateTimeType)
 }
 
 fun fromPhpType(`package`: String, simpleName: String):VrapObjectType{
