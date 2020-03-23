@@ -1,6 +1,7 @@
-package io.vrap.codegen.languages.php.model;
+package io.vrap.codegen.languages.php.model
 
 import com.google.inject.Inject
+import io.vrap.codegen.languages.extensions.discriminatorProperty
 import io.vrap.codegen.languages.extensions.isPatternProperty
 import io.vrap.codegen.languages.php.PhpSubTemplates
 import io.vrap.codegen.languages.php.extensions.*
@@ -10,10 +11,10 @@ import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.ObjectTypeRenderer
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
 import io.vrap.rmf.codegen.rendring.utils.keepAngleIndent
+import io.vrap.rmf.codegen.rendring.utils.keepCurlyIndent
 import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.types.Annotation
-import io.vrap.rmf.raml.model.types.AnyAnnotationType
 import io.vrap.rmf.raml.model.types.ObjectType
 import io.vrap.rmf.raml.model.types.Property
 import io.vrap.rmf.raml.model.util.StringCaseFormat
@@ -32,11 +33,9 @@ class PhpInterfaceObjectTypeRenderer @Inject constructor(override val vrapTypePr
 
         val vrapType = vrapTypeProvider.doSwitch(type) as VrapObjectType
 
-        val mapAnnotation = type.getAnnotation("asMap")
 
-
-        val content = when (mapAnnotation) {
-            is Annotation -> mapContent(type, mapAnnotation.type)
+        val content = when (type.getAnnotation("asMap")) {
+            is Annotation -> mapContent(type)
             else -> content(type)
         }
 
@@ -47,7 +46,7 @@ class PhpInterfaceObjectTypeRenderer @Inject constructor(override val vrapTypePr
         )
     }
 
-    fun mapContent(type: ObjectType, anno: AnyAnnotationType): String {
+    private fun mapContent(type: ObjectType): String {
         val vrapType = vrapTypeProvider.doSwitch(type) as VrapObjectType
 
         return """
@@ -72,37 +71,38 @@ class PhpInterfaceObjectTypeRenderer @Inject constructor(override val vrapTypePr
             |namespace ${vrapType.namespaceName().escapeAll()};
             |
             |use ${sharedPackageName.toNamespaceName().escapeAll()}\\Base\\JsonObject;
+            |use ${sharedPackageName.toNamespaceName().escapeAll()}\\Base\\DateTimeImmutableCollection;
             |<<${type.imports()}>>
             |
             |interface ${vrapType.simpleClassName} ${type.type?.toVrapType()?.simpleName()?.let { "extends $it" } ?: "extends JsonObject"}
             |{
-            |    ${if (type.discriminator != null) {"const DISCRIMINATOR_FIELD = '${type.discriminator}';"} else ""}
+            |    ${if (type.discriminator != null) {"public const DISCRIMINATOR_FIELD = '${type.discriminator}';"} else ""}
             |    <<${type.toBeanConstant()}>>
             |
             |    <<${type.getters()}>>
+            |
             |    <<${type.setters()}>>
             |}
         """.trimMargin().keepAngleIndent().forcedLiteralEscape()
     }
 
-    fun ObjectType.imports() = this.getImports().map { "use ${it.escapeAll()};" }.joinToString(separator = "\n")
+    private fun ObjectType.imports() = this.getImports().joinToString(separator = "\n") { "use ${it.escapeAll()};" }
 
-    fun Property.toPhpConstant(): String {
+    private fun Property.toPhpConstant(): String {
 
         return """
-            |const FIELD_${StringCaseFormat.UPPER_UNDERSCORE_CASE.apply(this.patternName())} = '${this.name}';
-        """.trimMargin();
+            |public const FIELD_${StringCaseFormat.UPPER_UNDERSCORE_CASE.apply(this.patternName())} = '${this.name}';
+        """.trimMargin()
     }
 
-    fun ObjectType.toBeanConstant(): String {
+    private fun ObjectType.toBeanConstant(): String {
         val superTypeAllProperties = when(this.type) {
             is ObjectType -> (this.type as ObjectType).allProperties
             else -> emptyList<Property>()
-        };
+        }
         return this.properties
-                .asSequence()
-                .filter { it -> superTypeAllProperties.none { property -> it.name == property.name } }
-                .map { it.toPhpConstant() }.joinToString(separator = "\n")
+                .filter { superTypeAllProperties.none { property -> it.name == property.name } }
+                .joinToString(separator = "\n") { it.toPhpConstant() }
     }
 
     private fun ObjectType.patternGetter(): String {
@@ -117,31 +117,31 @@ class PhpInterfaceObjectTypeRenderer @Inject constructor(override val vrapTypePr
         """.trimMargin()
     }
 
-    fun ObjectType.setters() = this.properties
-            .filter { !it.isPatternProperty() }
-            .map { it.setter() }
-            .joinToString(separator = "\n\n")
+    private fun ObjectType.setters(): String {
+        val discriminator = this.discriminatorProperty()
+        return this.properties
+                .filter { property -> property != discriminator }
+                .filter { !it.isPatternProperty() }.joinToString(separator = "\n\n") { it.setter() }
+    }
 
+    private fun ObjectType.getters() = this.properties
+            .filter { !it.isPatternProperty() }.joinToString(separator = "\n\n") { it.getter() }
 
-    fun ObjectType.getters() = this.properties
-            .filter { !it.isPatternProperty() }
-            .map { it.getter() }
-            .joinToString(separator = "\n\n")
-
-    fun Property.setter(): String {
+    private fun Property.setter(): String {
         return """
             |public function set${this.name.capitalize()}(?${if (this.type.toVrapType().simpleName() != "stdClass") this.type.toVrapType().simpleName() else "JsonObject" } $${this.name}): void;
         """.trimMargin()
     }
 
-    fun Property.getter(): String {
+    private fun Property.getter(): String {
         return """
-            |/**
-            | ${this.type.toPhpComment()}
-            | * @return ${if (this.type.toVrapType().simpleName() != "stdClass") this.type.toVrapType().simpleName() else "JsonObject" }|null
+            |/**${if (this.type.description?.value?.isNotBlank() == true) """
+            | {{${this.type.toPhpComment()}}}
+            | *""" else ""}
+            | * @return null|${if (this.type.toVrapType().simpleName() != "stdClass") this.type.toVrapType().simpleName() else "JsonObject" }
             | */
             |public function get${this.name.capitalize()}();
-        """.trimMargin()
+        """.trimMargin().keepCurlyIndent()
     }
 
     private fun Property.patternName(): String {

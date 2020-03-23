@@ -2,6 +2,7 @@ package io.vrap.codegen.languages.php.extensions
 
 import com.damnhandy.uri.template.Expression
 import com.damnhandy.uri.template.UriTemplate
+import com.google.common.collect.Lists
 import io.vrap.rmf.codegen.types.*
 import io.vrap.rmf.raml.model.modules.Api
 import io.vrap.rmf.raml.model.resources.Method
@@ -14,12 +15,12 @@ import java.util.stream.Collectors
 
 fun String.toNamespaceName():String{
     val `package` = this.split("/")
-    return `package`.takeLast(maxOf(`package`.size, 1)).map { s -> s.capitalize() }.joinToString("\\")
+    return `package`.takeLast(maxOf(`package`.size, 1)).joinToString("\\") { s -> StringCaseFormat.UPPER_CAMEL_CASE.apply(s) }
 }
 
 fun String.toNamespaceDir():String{
     val `package` = this.split("/")
-    return `package`.takeLast(maxOf(`package`.size, 1)).map { s -> s.capitalize() }.joinToString("/")
+    return `package`.takeLast(maxOf(`package`.size, 1)).joinToString("/") { s -> StringCaseFormat.UPPER_CAMEL_CASE.apply(s) }
 }
 
 fun VrapType.namespaceName():String{
@@ -92,17 +93,38 @@ fun VrapType.isScalar(): Boolean {
 }
 
 
-fun Api.authUri(): String {
-    return this.getSecuritySchemes().stream()
-            .filter { securityScheme -> securityScheme.getSettings() is OAuth20Settings }
-            .map { securityScheme -> (securityScheme.getSettings() as OAuth20Settings).accessTokenUri }
-            .findFirst().orElse("")
+fun Api.accessTokenUri(): UriTemplate {
+    return UriTemplate.fromTemplate(this.securitySchemes.map { s -> s.settings }.filterIsInstance<OAuth20Settings>()
+            .map { securityScheme -> securityScheme.accessTokenUri() }
+            .firstOrNull() ?: "")
 }
 
-fun Method.resource(): Resource = this.eContainer() as Resource
+fun Api.accessTokenUriParams(): ObjectInstance? {
+    return this.securitySchemes.map { s -> s.settings }.filterIsInstance<OAuth20Settings>()
+            .map { securityScheme -> securityScheme.accessTokenUriParams() }
+            .first()
+}
+
+private fun OAuth20Settings.accessTokenUri(): String {
+    val authInfo = this.getAnnotation("authInfo")
+    if (authInfo != null) {
+        return ((authInfo.value as ObjectInstance).getValue("authUri") as StringInstance).value ?: ""
+    }
+    return this.accessTokenUri
+}
+
+private fun OAuth20Settings.accessTokenUriParams(): ObjectInstance? {
+    val authInfo = this.getAnnotation("authInfo")
+    return (authInfo.value as ObjectInstance).getValue("authUriParameters") as? ObjectInstance
+}
+
+fun Method.apiResource(): Resource = this.eContainer() as Resource
 
 fun Method.toRequestName(): String {
-    return this.resource().fullUri.toParamName("By") + this.method.toString().capitalize()
+    if (this.apiResource().fullUri.template == "/") {
+        return "ApiRoot" + this.method.toString().capitalize()
+    }
+    return this.apiResource().fullUri.toParamName("By") + this.method.toString().capitalize()
 }
 
 fun Resource.toResourceName(): String {
@@ -124,7 +146,7 @@ fun UriTemplate.toParamName(delimiter: String, suffix: String): String {
 }
 
 fun Method.allParams(): List<String>? {
-    return this.resource().fullUri.components.stream()
+    return this.apiResource().fullUri.components.stream()
             .filter { uriTemplatePart -> uriTemplatePart is Expression }
             .flatMap { uriTemplatePart -> (uriTemplatePart as Expression).varSpecs.stream().map { it.variableName } }
             .collect(Collectors.toList())
@@ -133,3 +155,105 @@ fun Method.allParams(): List<String>? {
 fun Method.firstBody(): Body? = this.bodies.stream().findFirst().orElse(null)
 
 fun scalarTypes():Array<String> { return arrayOf("string", "int", "float", "bool", "array", "stdClass") }
+
+fun QueryParameter.methodName(): String {
+    val anno = this.getAnnotation("placeholderParam", true)
+
+    if (anno != null) {
+        val o = anno.value as ObjectInstance
+        val paramName = o.value.stream().filter { propertyValue -> propertyValue.name == "paramName" }.findFirst().orElse(null).value as StringInstance
+        return "with" + StringCaseFormat.UPPER_CAMEL_CASE.apply(paramName.value)
+    }
+    return "with" + StringCaseFormat.UPPER_CAMEL_CASE.apply(this.name.replace(".", "-"))
+}
+
+fun QueryParameter.methodParam(): String {
+    val anno = this.getAnnotation("placeholderParam", true)
+
+    if (anno != null) {
+        val o = anno.value as ObjectInstance
+        val placeholder = o.value.stream().filter { propertyValue -> propertyValue.name == "placeholder" }.findFirst().orElse(null).value as StringInstance
+        val paramName = o.value.stream().filter { propertyValue -> propertyValue.name == "paramName" }.findFirst().orElse(null).value as StringInstance
+        return "string $" + StringCaseFormat.LOWER_CAMEL_CASE.apply(placeholder.value) + ", $" + paramName.value
+    }
+    return "$" + StringCaseFormat.LOWER_CAMEL_CASE.apply(this.name.replace(".", "-"))
+}
+
+fun QueryParameter.paramName(): String {
+    val anno = this.getAnnotation("placeholderParam", true)
+
+    if (anno != null) {
+        val o = anno.value as ObjectInstance
+        val paramName = o.value.stream().filter { propertyValue -> propertyValue.name == "paramName" }.findFirst().orElse(null).value as StringInstance
+        return "$" + paramName.value
+    }
+    return "$" + StringCaseFormat.LOWER_CAMEL_CASE.apply(this.name.replace(".", "-"))
+}
+
+fun QueryParameter.simpleParamName(): String {
+    val anno = this.getAnnotation("placeholderParam", true)
+
+    if (anno != null) {
+        val o = anno.value as ObjectInstance
+        val paramName = o.value.stream().filter { propertyValue -> propertyValue.name == "paramName" }.findFirst().orElse(null).value as StringInstance
+        return paramName.value
+    }
+    return StringCaseFormat.LOWER_CAMEL_CASE.apply(this.name.replace(".", "-"))
+}
+
+fun QueryParameter.template(): String {
+    val anno = this.getAnnotation("placeholderParam", true)
+
+    if (anno != null) {
+        val o = anno.value as ObjectInstance
+        val template = o.value.stream().filter { propertyValue -> propertyValue.name == "template" }.findFirst().orElse(null).value as StringInstance
+        val placeholder = o.value.stream().filter { propertyValue -> propertyValue.name == "placeholder" }.findFirst().orElse(null).value as StringInstance
+        return "sprintf('" + template.value.replace("<" + placeholder.value + ">", "%s") + "', $" + placeholder.value + ")"
+    }
+    return "'" + this.name + "'"
+}
+
+fun QueryParameter.placeholderDocBlock(): String {
+    val anno = this.getAnnotation("placeholderParam", true)
+
+    if (anno != null) {
+        val o = anno.value as ObjectInstance
+        val placeholder = o.value.stream().filter { propertyValue -> propertyValue.name == "placeholder" }.findFirst().orElse(null).value as StringInstance
+        return "@psalm-param string $" + placeholder.value
+    }
+    return ""
+}
+
+fun QueryParameter.withParam(type: Method): String {
+    return """
+            |/**
+            | * ${this.placeholderDocBlock()}
+            | * @psalm-param scalar|scalar[] ${this.paramName()}
+            | */
+            |public function ${this.methodName()}(${this.methodParam()}): ${type.toRequestName()}
+            |{
+            |    return $!this->withQueryParam(${this.template()}, ${this.paramName()});
+            |}
+        """.trimMargin()
+}
+
+fun UriTemplate.paramValues(): List<String> {
+    return this.components.filterIsInstance<Expression>().flatMap { expression -> expression.varSpecs.map { varSpec -> varSpec.variableName  } }
+}
+
+fun Resource.resourcePathList(): List<Resource> {
+    val path = Lists.newArrayList<Resource>()
+    if (this.fullUri.template == "/") {
+        return path
+    }
+    path.add(this)
+    var t = this.eContainer()
+    while (t is Resource) {
+        val template = t.fullUri.template
+        if (template != "/") {
+            path.add(t)
+        }
+        t = t.eContainer()
+    }
+    return Lists.reverse(path)
+}

@@ -3,6 +3,7 @@ package io.vrap.codegen.languages.php.model
 
 import com.google.inject.AbstractModule
 import com.google.inject.multibindings.Multibinder
+import io.vrap.codegen.languages.php.test.PhpRequestTestRenderer
 import io.vrap.rmf.codegen.rendring.FileProducer
 import io.vrap.rmf.codegen.rendring.ObjectTypeRenderer
 import io.vrap.rmf.codegen.rendring.MethodRenderer
@@ -20,6 +21,7 @@ class PhpModelModule: AbstractModule() {
         val fileBinder = Multibinder.newSetBinder(binder(), FileProducer::class.java)
         fileBinder.addBinding().to(PhpFileProducer::class.java)
         fileBinder.addBinding().to(ApiRootFileProducer::class.java)
+        fileBinder.addBinding().to(DocsProducer::class.java)
 
         val methodBinder = Multibinder.newSetBinder(binder(), MethodRenderer::class.java)
         methodBinder.addBinding().to(PhpMethodRenderer::class.java)

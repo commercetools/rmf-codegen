@@ -15,7 +15,7 @@ class FileDataSink @Inject constructor(val outputFolder:Path): DataSink {
         val outputFile = File("$outputFolder/${templateFile.relativePath}")
         outputFile.parentFile.mkdirs()
         outputFile.createNewFile()
-        outputFile.bufferedWriter().use { it.write(templateFile.content) }
+        outputFile.bufferedWriter().use { it.write(templateFile.content.trimEnd().plus("\n")) }
         generatedFiles.add(outputFile)
     }
 

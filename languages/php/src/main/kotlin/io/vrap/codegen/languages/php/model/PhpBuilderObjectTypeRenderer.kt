@@ -1,6 +1,7 @@
-package io.vrap.codegen.languages.php.model;
+package io.vrap.codegen.languages.php.model
 
 import com.google.inject.Inject
+import io.vrap.codegen.languages.extensions.discriminatorProperty
 import io.vrap.codegen.languages.extensions.isPatternProperty
 import io.vrap.codegen.languages.php.PhpSubTemplates
 import io.vrap.codegen.languages.php.extensions.*
@@ -10,6 +11,7 @@ import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.ObjectTypeRenderer
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
 import io.vrap.rmf.codegen.rendring.utils.keepAngleIndent
+import io.vrap.rmf.codegen.rendring.utils.keepCurlyIndent
 import io.vrap.rmf.codegen.types.*
 import io.vrap.rmf.raml.model.types.*
 import io.vrap.rmf.raml.model.types.Annotation
@@ -29,10 +31,8 @@ class PhpBuilderObjectTypeRenderer @Inject constructor(override val vrapTypeProv
 
         val vrapType = vrapTypeProvider.doSwitch(type) as VrapObjectType
 
-        val mapAnnotation = type.getAnnotation("asMap")
-
-        val content = when (mapAnnotation) {
-            is Annotation -> mapContent(type, mapAnnotation.type)
+        val content = when (type.getAnnotation("asMap")) {
+            is Annotation -> mapContent(type)
             else -> content(type)
         }
 
@@ -43,7 +43,7 @@ class PhpBuilderObjectTypeRenderer @Inject constructor(override val vrapTypeProv
         )
     }
 
-    fun mapContent(type: ObjectType, anno: AnyAnnotationType): String {
+    private fun mapContent(type: ObjectType): String {
         val vrapType = vrapTypeProvider.doSwitch(type) as VrapObjectType
 
         return """
@@ -51,32 +51,39 @@ class PhpBuilderObjectTypeRenderer @Inject constructor(override val vrapTypeProv
             |${PhpSubTemplates.generatorInfo}
             |namespace ${vrapType.namespaceName().escapeAll()};
             |
+            |use stdClass;
             |use ${sharedPackageName.toNamespaceName().escapeAll()}\\Base\\MapperMap;
             |use ${sharedPackageName.toNamespaceName().escapeAll()}\\Base\\Builder;
             |
             |/**
-            | * @extends Builder<${vrapType.simpleClassName}>
+            | * @implements Builder<${vrapType.simpleClassName}>
+            | * @extends MapperMap<${vrapType.simpleClassName}>
             | */
             |final class ${vrapType.simpleClassName}Builder extends MapperMap implements Builder
             |{
             |    /**
-            |     * @psalm-return callable(string):?mixed
+            |     * @psalm-return callable(string):?${vrapType.simpleClassName}
             |     */
             |    protected function mapper()
             |    {
             |        return
             |            /**
-            |             * @psalm-return ?mixed
+            |             * @psalm-return ?${vrapType.simpleClassName}
             |             */
             |            function(string $!key) {
-            |               return $!this->get($!key);
+            |                $!data = $!this->get($!key);
+            |                if ($!data instanceof stdClass) {
+            |                    $!data = ${vrapType.simpleName()}Model::of($!data);
+            |                }
+            |                return $!data;
             |            };
             |    }
             |    
             |    /**
             |     * @return ${vrapType.simpleClassName}
             |     */
-            |    public function build() {
+            |    public function build()
+            |    {
             |        return new ${vrapType.simpleClassName}Model($!this->toArray());
             |    }
             |}
@@ -92,6 +99,7 @@ class PhpBuilderObjectTypeRenderer @Inject constructor(override val vrapTypeProv
             |namespace ${vrapType.namespaceName().escapeAll()};
             |
             |use ${sharedPackageName.toNamespaceName().escapeAll()}\\Base\\Builder;
+            |use ${sharedPackageName.toNamespaceName().escapeAll()}\\Base\\DateTimeImmutableCollection;
             |use ${sharedPackageName.toNamespaceName().escapeAll()}\\Base\\JsonObject;
             |use ${sharedPackageName.toNamespaceName().escapeAll()}\\Base\\JsonObjectModel;
             |use ${sharedPackageName.toNamespaceName().escapeAll()}\\Base\\MapperFactory;
@@ -103,12 +111,12 @@ class PhpBuilderObjectTypeRenderer @Inject constructor(override val vrapTypeProv
             | */
             |final class ${vrapType.simpleClassName}Builder implements Builder
             |{
-            |    <<${type.constructor()}>>
-            |
             |    <<${type.toBeanFields()}>>
             |
             |    <<${type.getters()}>>
+            |
             |    <<${type.withers()}>>
+            |
             |    <<${type.withBuilders()}>>
             |    
             |    <<${type.build()}>>
@@ -121,21 +129,14 @@ class PhpBuilderObjectTypeRenderer @Inject constructor(override val vrapTypeProv
         """.trimMargin().keepAngleIndent().forcedLiteralEscape()
     }
 
-
-    fun ObjectType.constructor(): String {
-        return """
-                |public function __construct() {
-                |}
-            """.trimMargin()
-    }
-
     fun ObjectType.build(): String {
         val vrapType = this.toVrapType() as VrapObjectType
-
+        val discriminator = this.discriminatorProperty()
         return """
-                |public function build(): ${vrapType.simpleClassName} {
+                |public function build(): ${vrapType.simpleClassName}
+                |{
                 |    return new ${vrapType.simpleClassName}Model(
-                |        <<${this.allProperties.filter { !it.isPatternProperty() }.joinToString(",\n") { it.buildProperty() }}>>
+                |        <<${this.allProperties.filter { property -> property != discriminator }.filter { !it.isPatternProperty() }.joinToString(",\n") { it.buildProperty() }}>>
                 |    );
                 |}
             """.trimMargin()
@@ -145,7 +146,7 @@ class PhpBuilderObjectTypeRenderer @Inject constructor(override val vrapTypeProv
         if (this.type.isScalar() || this.type is ArrayType || this.type.toVrapType().simpleName() == "stdClass") {
             return "$!this->${this.name}"
         }
-        return "($!this->${this.name} instanceof ${this.type.toVrapType().simpleBuilderName()} ? $!this->${this.name}->build() : $!this->${this.name})"
+        return "$!this->${this.name} instanceof ${this.type.toVrapType().simpleBuilderName()} ? $!this->${this.name}->build() : $!this->${this.name}"
     }
 
     fun ObjectType.imports() = this.getImports(this.allProperties).map { "use ${it.escapeAll()};" }
@@ -160,15 +161,15 @@ class PhpBuilderObjectTypeRenderer @Inject constructor(override val vrapTypeProv
                 |/**
                 | * @var ?${if (this.type.toVrapType().simpleName() != "stdClass") this.type.toVrapType().simpleName() else "JsonObject" }
                 | */
-                |protected $${this.name};
-            """.trimMargin();
+                |private $${this.name};
+            """.trimMargin()
         }
         return """
             |/**
-            | * @var ?${this.type.toVrapType().simpleBuilderName()}|${this.type.toVrapType().simpleName()}
+            | * @var null|${this.type.toVrapType().simpleName()}|${this.type.toVrapType().simpleBuilderName()}
             | */
-            |protected $${this.name};
-        """.trimMargin();
+            |private $${this.name};
+        """.trimMargin()
     }
 
     fun Property.toPhpConstantName(): String {
@@ -177,8 +178,8 @@ class PhpBuilderObjectTypeRenderer @Inject constructor(override val vrapTypeProv
 
     fun Property.toPhpConstant(): String {
         return """
-            |const ${this.toPhpConstantName()} = '${this.name}';
-        """.trimMargin();
+            |public const ${this.toPhpConstantName()} = '${this.name}';
+        """.trimMargin()
     }
 
     private fun Property.patternName(): String {
@@ -188,35 +189,47 @@ class PhpBuilderObjectTypeRenderer @Inject constructor(override val vrapTypeProv
             this.name
     }
 
-    fun ObjectType.toBeanConstant() = this.properties
-            .map { it.toPhpConstant() }.joinToString(separator = "\n")
+    fun ObjectType.toBeanConstant() = this.properties.joinToString(separator = "\n") { it.toPhpConstant() }
 
-    fun ObjectType.toBeanFields() = this.allProperties
-            .filter { !it.isPatternProperty() }
-            .map { it.toPhpField() }.joinToString(separator = "\n\n")
+    fun ObjectType.toBeanFields(): String {
+        val discriminator = this.discriminatorProperty()
 
-    fun ObjectType.withers() = this.allProperties
-            .filter { !it.isPatternProperty() }
-            .map { it.wither() }
-            .joinToString(separator = "\n\n")
+        return this.allProperties
+                .filter { property -> property != discriminator }
+                .filter { !it.isPatternProperty() }.joinToString(separator = "\n\n") { it.toPhpField() }
+    }
 
-    fun ObjectType.withBuilders() = this.allProperties
-            .filter { !it.isPatternProperty() }
-            .filter { !it.type.isScalar() && !(it.type is ArrayType) && !(it.type.toVrapType().simpleName() == "stdClass")}
-            .map { it.withBuilder() }
-            .joinToString(separator = "\n\n")
+    fun ObjectType.withers(): String {
+        val discriminator = this.discriminatorProperty()
 
-    fun ObjectType.getters() = this.allProperties
-            .filter { !it.isPatternProperty() }
-            .map { it.getter() }
-            .joinToString(separator = "\n\n")
+        return this.allProperties
+                .filter { property -> property != discriminator }
+                .filter { !it.isPatternProperty() }.joinToString(separator = "\n\n") { it.wither() }
+    }
+
+    fun ObjectType.withBuilders(): String {
+        val discriminator = this.discriminatorProperty()
+
+        return this.allProperties
+                .filter { property -> property != discriminator }
+                .filter { !it.isPatternProperty() }
+                .filter { !it.type.isScalar() && !(it.type is ArrayType) && !(it.type.toVrapType().simpleName() == "stdClass") }.joinToString(separator = "\n\n") { it.withBuilder() }
+    }
+
+    fun ObjectType.getters(): String {
+        val discriminator = this.discriminatorProperty()
+
+        return this.allProperties
+                .filter { property -> property != discriminator }
+                .filter { !it.isPatternProperty() }.joinToString(separator = "\n\n") { it.getter() }
+    }
 
     fun Property.wither(): String {
         return """
             |/**
             | * @return $!this
             | */
-            |final public function with${this.name.capitalize()}(?${if (this.type.toVrapType().simpleName() != "stdClass") this.type.toVrapType().simpleName() else "JsonObject" } $${this.name})
+            |public function with${this.name.capitalize()}(?${if (this.type.toVrapType().simpleName() != "stdClass") this.type.toVrapType().simpleName() else "JsonObject" } $${this.name})
             |{
             |    $!this->${this.name} = $${this.name};
             |    
@@ -230,7 +243,7 @@ class PhpBuilderObjectTypeRenderer @Inject constructor(override val vrapTypeProv
             |/**
             | * @return $!this
             | */
-            |final public function with${this.name.capitalize()}Builder(?${this.type.toVrapType().simpleBuilderName()} $${this.name})
+            |public function with${this.name.capitalize()}Builder(?${this.type.toVrapType().simpleBuilderName()} $${this.name})
             |{
             |    $!this->${this.name} = $${this.name};
             |    
@@ -241,15 +254,16 @@ class PhpBuilderObjectTypeRenderer @Inject constructor(override val vrapTypeProv
 
     fun Property.getter(): String {
         return """
-                |/**
-                | ${this.type.toPhpComment()}
-                | * @return ${if (this.type.toVrapType().simpleName() != "stdClass") this.type.toVrapType().simpleName() else "JsonObject" }|null
+                |/**${if (this.type.description?.value?.isNotBlank() == true) """
+                | {{${this.type.toPhpComment()}}}
+                | *""" else ""}
+                | * @return null|${if (this.type.toVrapType().simpleName() != "stdClass") this.type.toVrapType().simpleName() else "JsonObject" }
                 | */
-                |final public function get${this.name.capitalize()}()
+                |public function get${this.name.capitalize()}()
                 |{
-                |   return ${this.buildProperty()};
+                |    return ${this.buildProperty()};
                 |}
-        """.trimMargin()
+        """.trimMargin().keepCurlyIndent()
     }
 }
 

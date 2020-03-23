@@ -223,7 +223,7 @@ infix fun String.keepIndentWith(indentMarker: IndentMarker): String {
 }
 
 infix fun String.keepIndentWith(indentMarker: IndentationTokens): String {
-    return generateTemplate(this, indentMarker.startToken, indentMarker.stopToken)
+    return generateTemplate(this, indentMarker.startToken, indentMarker.stopToken).lines().map { if (it.isNotBlank()) it else "" }.joinToString("\n")
 }
 
 /**
