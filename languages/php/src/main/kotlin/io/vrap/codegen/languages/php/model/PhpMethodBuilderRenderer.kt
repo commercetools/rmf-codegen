@@ -1,6 +1,7 @@
 package io.vrap.codegen.languages.php.model
 
 import com.google.inject.Inject
+import io.vrap.codegen.languages.php.AbstractRequestBuilder
 import io.vrap.codegen.languages.php.PhpSubTemplates
 import io.vrap.codegen.languages.php.extensions.*
 import io.vrap.rmf.codegen.io.TemplateFile
@@ -15,7 +16,7 @@ import org.eclipse.emf.ecore.EObject
 
 class PhpMethodBuilderRenderer @Inject constructor(api: Api, vrapTypeProvider: VrapTypeProvider) : ResourceRenderer, AbstractRequestBuilder(api, vrapTypeProvider) {
 
-    private val resourcePackage = "Resource";
+    private val resourcePackage = "Resource"
 
     override fun render(type: Resource): TemplateFile {
 
@@ -27,14 +28,24 @@ class PhpMethodBuilderRenderer @Inject constructor(api: Api, vrapTypeProvider: V
             |namespace ${clientPackageName.toNamespaceName().escapeAll()}\\$resourcePackage;
             |
             |use ${sharedPackageName.toNamespaceName()}\\Client\\ApiResource;
+            |use GuzzleHttp\\ClientInterface;
             |use Psr\\Http\\Message\\UploadedFileInterface;
             |<<${type.imports()}>>
             |
-            |/** @psalm-suppress PropertyNotSetInConstructor */
+            |/**
+            | * @psalm-suppress PropertyNotSetInConstructor
+            | */
             |class ${type.resourceBuilderName()} extends ApiResource
             |{
-            |   <<${type.subResources()}>>
-            |   <<${type.methods()}>>
+            |    /**
+            |     * @psalm-param array<string, string> $!args
+            |     */
+            |    public function __construct(array $!args = [], ClientInterface $!client = null) {
+            |        parent::__construct('${type.fullUri.template}', $!args, $!client);
+            |    }
+            |
+            |    <<${type.subResources()}>>
+            |    <<${type.methods()}>>
             |}
         """.trimMargin().keepAngleIndent().forcedLiteralEscape()
         val relativeTypeNamespace = vrapType.`package`.toNamespaceName().replace(basePackagePrefix.toNamespaceName() + "\\", "").replace("\\", "/") + "/$resourcePackage"
@@ -44,14 +55,6 @@ class PhpMethodBuilderRenderer @Inject constructor(api: Api, vrapTypeProvider: V
                 content = content
         )
     }
-
-
-
-
-
-
-
-
 
 //    fun Method.getAllParamNames(): List<String>? {
 //        val params = this.getAbsoluteUri().getComponents().stream()
@@ -69,13 +72,13 @@ class PhpMethodBuilderRenderer @Inject constructor(api: Api, vrapTypeProvider: V
 //            placeholderParam
 //        }).collect(Collectors.toList<QueryParameter>())
 //    }
-
+//
 //    fun ResourceCollection.methods(): String {
 //        return this.resources
 //                .flatMap { resource -> resource.methods.map { javaBody(resource, it) } }
 //                .joinToString(separator = "\n\n")
 //    }
-
+//
 //    fun javaBody(resource: Resource, method: Method): String {
 //        val methodReturnType = vrapTypeProvider.doSwitch(method.retyurnType())
 //        val body = """
@@ -136,5 +139,4 @@ class PhpMethodBuilderRenderer @Inject constructor(api: Api, vrapTypeProvider: V
 //                .let { it.bodies[0].type }
 //                ?: TypesFactoryImpl.eINSTANCE.createNilType()
 //    }
-
 }

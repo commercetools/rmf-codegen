@@ -12,6 +12,8 @@ import io.vrap.rmf.codegen.rendring.FileProducer
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
 import io.vrap.rmf.codegen.rendring.utils.keepAngleIndent
 import io.vrap.rmf.raml.model.modules.Api
+import io.vrap.rmf.raml.model.resources.UriParameter
+import io.vrap.rmf.raml.model.types.ObjectInstance
 import io.vrap.rmf.raml.model.util.StringCaseFormat
 
 class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
@@ -30,20 +32,20 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
 
 
     override fun produceFiles(): List<TemplateFile> = listOf(
-            config(api),
             authConfig(api),
             clientCredentialsConfig(api),
             composerJson(),
+            config(api),
             psalm()
     )
 
     private fun composerJson(): TemplateFile {
-        val vendorName = sharedPackageName.toLowerCase();
+        val vendorName = sharedPackageName.toLowerCase()
         val composerPackageName = packagePrefix.replace(sharedPackageName, "").trim('/').toLowerCase()
         return TemplateFile(relativePath = "composer.json",
                 content = """
                     |{
-                    |  "name": "${vendorName}/raml-sdk-${composerPackageName}",
+                    |  "name": "${vendorName}/spec-sdk-${composerPackageName}",
                     |  "license": "MIT",
                     |  "type": "library",
                     |  "description": "",
@@ -72,7 +74,7 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |    "psr/http-client": "^1.0",
                     |    "psr/http-message": "^1.0",
                     |    "cache/filesystem-adapter": "^1.0",
-                    |    "${vendorName}/raml-base": "@dev"
+                    |    "${vendorName}/spec-base": "@dev"
                     |  },
                     |  "require-dev": {
                     |    "monolog/monolog": "^1.3",
@@ -84,7 +86,7 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |  "repositories": [
                     |    {
                     |      "type": "path",
-                    |      "url": "../../../build/gensrc/commercetools-raml-base"
+                    |      "url": "../${vendorName}-base"
                     |    }
                     |  ]
                     |}
@@ -126,24 +128,26 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |
                     |class Config implements BaseConfig
                     |{
-                    |    const API_URI = '${api.baseUri.template}';
+                    |    public const API_URI = '${api.baseUri.template}';
                     |
                     |    <<${if (api.baseUri.value.variables.isNotEmpty()) { api.baseUri.value.constVariables()} else ""}>>
                     |
-                    |    /** @var string */
+                    |    /** @psalm-var string */
                     |    private $!apiUri;
                     |
-                    |    /** @var array */
-                    |    private $!clientOptions;
+                    |    /** @psalm-var array */
+                    |    private $!options;
                     |
-                    |    public function __construct(array $!config = [])
+                    |    public function __construct(${if (api.baseUri.value.variables.isNotEmpty()) { api.baseUri.value.paramDefinitions() } else ""}array $!clientOptions = [], string $!baseUri = null)
                     |    {
-                    |        /** @var string $!apiUri */
-                    |        $!apiUri = isset($!config[self::OPT_BASE_URI]) ? $!config[self::OPT_BASE_URI] : static::API_URI;
-                    |        <<${if (api.baseUri.value.variables.isNotEmpty()) { api.baseUri.value.replaceValues()} else ""}>>
+                    |        /** @psalm-var string $!apiUri */
+                    |        $!apiUri = $!baseUri ?? static::API_URI;
+                    |        <<${if (api.baseUri.value.variables.isNotEmpty()) { api.baseUri.value.replaceValues(api.baseUriParameters.defaultValues())} else ""}>>
                     |        $!this->apiUri = $!apiUri;
-                    |        $!this->clientOptions = isset($!config[self::OPT_CLIENT_OPTIONS]) && is_array($!config[self::OPT_CLIENT_OPTIONS]) ?
-                    |            $!config[self::OPT_CLIENT_OPTIONS] : [];
+                    |        $!this->options = array_replace(
+                    |            [self::OPT_BASE_URI => $!this->apiUri],
+                    |            $!clientOptions
+                    |        );
                     |    }
                     |
                     |    public function getApiUri(): string
@@ -151,78 +155,82 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |        return $!this->apiUri;
                     |    }
                     |
-                    |    public function setApiUri(string $!apiUri): BaseConfig
-                    |    {
-                    |        $!this->apiUri = $!apiUri;
-                    |        return $!this;
-                    |    }
-                    |
-                    |    public function getClientOptions(): array
-                    |    {
-                    |        return $!this->clientOptions;
-                    |    }
-                    |
-                    |    public function setClientOptions(array $!options): BaseConfig
-                    |    {
-                    |        $!this->clientOptions = $!options;
-                    |        return $!this;
-                    |    }
-                    |
                     |    public function getOptions(): array
                     |    {
-                    |        return array_merge(
-                    |            [self::OPT_BASE_URI => $!this->getApiUri()],
-                    |            $!this->clientOptions
-                    |        );
+                    |        return $!this->options;
                     |    }
                     |}
                 """.trimMargin().keepAngleIndent().forcedLiteralEscape())
     }
 
-    fun UriTemplate.replaceValues(): String = variables
-            .map { """
-                |/** @psalm-var string $!${StringCaseFormat.LOWER_CAMEL_CASE.apply(it)} */
-                |$!${StringCaseFormat.LOWER_CAMEL_CASE.apply(it)} = isset($!config[self::OPT_${StringCaseFormat.UPPER_UNDERSCORE_CASE.apply(it)}]) ? $!config[self::OPT_${StringCaseFormat.UPPER_UNDERSCORE_CASE.apply(it)}] : '{$it}';
-                |$!apiUri = str_replace('{$it}', $!${StringCaseFormat.LOWER_CAMEL_CASE.apply(it)}, $!apiUri);""".trimMargin() }
-            .joinToString(separator = "\n")
+    private fun UriTemplate.replaceValues(defaultValues: Map<String, String>): String = replaceValues("apiUri", defaultValues)
 
-    fun UriTemplate.constVariables(): String = variables
-            .map { "const OPT_${StringCaseFormat.UPPER_UNDERSCORE_CASE.apply(it)}= '$it';" }
-            .joinToString(separator = "\n")
+    private fun UriTemplate.replaceValues(variableName: String, defaultValues: Map<String, String>): String {
+        return """
+            |$!$variableName = str_replace(
+            |    [
+            |        ${variables.joinToString(",\n") { "self::OPT_${StringCaseFormat.UPPER_UNDERSCORE_CASE.apply(it)}" }}
+            |    ],
+            |    [
+            |        ${variables.joinToString(",\n") { "$${StringCaseFormat.LOWER_CAMEL_CASE.apply(it)} ?? \"${defaultValues.getOrDefault(it, "")}\"" }}
+            |    ],
+            |    $!$variableName
+            |);""".trimMargin()
+    }
+
+    private fun List<UriParameter>.defaultValues(): Map<String, String> = this.associateBy( {it.name}, { it.type?.default?.value.toString() })
+
+    private fun UriTemplate.defaultValues(accessTokenUriParams: ObjectInstance?): Map<String, String> {
+        return variables.associateBy({it}, {(accessTokenUriParams?.getValue(it) as? ObjectInstance)?.getValue("default")?.value.toString() } )
+    }
+
+    private fun UriTemplate.paramDefinitions(): String = variables.joinToString(separator = ", ", postfix = ", ") {
+        "string $${StringCaseFormat.LOWER_CAMEL_CASE.apply(it)} = null"
+    }
+
+    private fun UriTemplate.paramVariables(): String = variables.joinToString(separator = ", ", postfix = ", ") { "$${StringCaseFormat.LOWER_CAMEL_CASE.apply(it)}" }
+
+    private fun UriTemplate.constVariables(): String = variables.joinToString(separator = "\n") { "public const OPT_${StringCaseFormat.UPPER_UNDERSCORE_CASE.apply(it)} = '{$it}';" }
 
     private fun authConfig(api: Api): TemplateFile {
-        return TemplateFile(relativePath = "src/${clientPackageName.replace(packagePrefix, "").toNamespaceDir()}/AuthConfig.php",
+
+        return TemplateFile(relativePath = "src/${clientPackageName.replace(packagePrefix, "").toNamespaceDir()}/BaseAuthConfig.php",
                 content = """
                     |<?php
                     |${PhpSubTemplates.generatorInfo}
                     |
-                    |namespace ${clientPackageName.toNamespaceName()};
+                    |namespace ${clientPackageName.toNamespaceName().escapeAll()};
                     |
-                    |use ${sharedPackageName.toNamespaceName()}\Client\AuthConfig as BaseAuthConfig;
+                    |use ${sharedPackageName.toNamespaceName().escapeAll()}\\Client\\AuthConfig;
                     |
-                    |abstract class AuthConfig implements BaseAuthConfig
+                    |abstract class BaseAuthConfig implements AuthConfig
                     |{
-                    |    const AUTH_URI = '${api.authUri()}';
+                    |    public const AUTH_URI = '${api.accessTokenUri().template}';
                     |
-                    |    const GRANT_TYPE = '';
-                    |    
-                    |    /** @var string */
+                    |    <<${if (api.accessTokenUri().variables.isNotEmpty()) { api.accessTokenUri().constVariables()} else ""}>>
+                    |
+                    |    public const GRANT_TYPE = '';
+                    |
+                    |    /** @psalm-var string */
                     |    private $!authUri;
                     |
-                    |    /** @var array */
-                    |    private $!clientOptions;
+                    |    /** @psalm-var array */
+                    |    private $!options;
                     |
-                    |    public function __construct(array $!config = [])
+                    |    public function __construct(${if (api.accessTokenUri().variables.isNotEmpty()) { api.accessTokenUri().paramDefinitions() } else ""}array $!clientOptions = [], string $!authUri = self::AUTH_URI)
                     |    {
-                    |        /** @var string authUri */
-                    |        $!this->authUri = isset($!config[self::OPT_AUTH_URI]) ? $!config[self::OPT_AUTH_URI] : static::AUTH_URI;
-                    |        $!this->clientOptions = isset($!config[self::OPT_CLIENT_OPTIONS]) && is_array($!config[self::OPT_CLIENT_OPTIONS]) ?
-                    |            $!config[self::OPT_CLIENT_OPTIONS] : [];
+                    |        /** @psalm-var string authUri */
+                    |        <<${if (api.accessTokenUri().variables.isNotEmpty()) { api.accessTokenUri().replaceValues("authUri", api.accessTokenUri().defaultValues(api.accessTokenUriParams()))} else ""}>>
+                    |        $!this->authUri = $!authUri;
+                    |        $!this->options = array_replace(
+                    |            [self::OPT_BASE_URI => $!this->authUri],
+                    |            $!clientOptions
+                    |        );
                     |    }
                     |
                     |    public function getGrantType(): string
                     |    {
-                    |        /** @var string */
+                    |        /** @psalm-var string */
                     |        return static::GRANT_TYPE;
                     |    }
                     |
@@ -231,34 +239,12 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |        return $!this->authUri;
                     |    }
                     |
-                    |    public function setAuthUri(string $!authUri): BaseAuthConfig
-                    |    {
-                    |        $!this->authUri = $!authUri;
-                    |        return $!this;
-                    |    }
-                    |
-                    |    public function getClientOptions(): array
-                    |    {
-                    |        return $!this->clientOptions;
-                    |    }
-                    |
-                    |    public function setClientOptions(array $!options): BaseAuthConfig
-                    |    {
-                    |        $!this->clientOptions = $!options;
-                    |        return $!this;
-                    |    }
-                    |
                     |    public function getOptions(): array
                     |    {
-                    |        return array_merge(
-                    |            [self::OPT_BASE_URI => $!this->authUri],
-                    |            $!this->clientOptions
-                    |        );
+                    |        return $!this->options;
                     |    }
-                    |    
-                    |    abstract function getCacheKey(): string;
                     |}
-                """.trimMargin().forcedLiteralEscape())
+                """.trimMargin().forcedLiteralEscape().keepAngleIndent())
     }
 
     private fun clientCredentialsConfig(api: Api): TemplateFile {
@@ -267,75 +253,38 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |<?php
                     |${PhpSubTemplates.generatorInfo}
                     |
-                    |namespace ${clientPackageName.toNamespaceName()};
+                    |namespace ${clientPackageName.toNamespaceName().escapeAll()};
                     |
-                    |use ${sharedPackageName.toNamespaceName()}\Client\ClientCredentialsConfig as BaseClientCredentialsConfig;
+                    |use ${sharedPackageName.toNamespaceName().escapeAll()}\\Client\\ClientCredentials;
+                    |use ${sharedPackageName.toNamespaceName().escapeAll()}\\Client\\ClientCredentialsConfig as BaseClientCredentialsConfig;
                     |
-                    |class ClientCredentialsConfig extends AuthConfig implements BaseClientCredentialsConfig
+                    |class ClientCredentialsConfig extends BaseAuthConfig implements BaseClientCredentialsConfig
                     |{
-                    |    const AUTH_URI = '${api.authUri()}';
+                    |    public const AUTH_URI = '${api.accessTokenUri().template}';
                     |
-                    |    const GRANT_TYPE = 'client_credentials';
+                    |    public const GRANT_TYPE = 'client_credentials';
                     |
-                    |    /** @var string */
-                    |    private $!clientId;
+                    |    /** @psalm-var ClientCredentials */
+                    |    private $!credentials;
                     |
-                    |    /** @var string */
-                    |    private $!clientSecret;
-                    |
-                    |    /** @var ?string */
-                    |    private $!scope;
-                    |
-                    |    /**
-                    |     * @psalm-param array<string, string> $!authConfig
-                    |     */
-                    |    public function __construct(array $!authConfig = [])
+                    |    public function __construct(ClientCredentials $!credentials, ${if (api.accessTokenUri().variables.isNotEmpty()) { api.accessTokenUri().paramDefinitions() } else ""}array $!clientOptions = [], string $!authUri = self::AUTH_URI)
                     |    {
-                    |        parent::__construct($!authConfig);
-                    |        $!this->clientId = isset($!authConfig[self::CLIENT_ID]) ? $!authConfig[self::CLIENT_ID] : '';
-                    |        $!this->clientSecret = isset($!authConfig[self::CLIENT_SECRET]) ? $!authConfig[self::CLIENT_SECRET] : '';
-                    |        $!this->scope = isset($!authConfig[self::SCOPE]) ? $!authConfig[self::SCOPE] : null;
+                    |        parent::__construct(${if (api.accessTokenUri().variables.isNotEmpty()) { api.accessTokenUri().paramVariables() } else ""}$!clientOptions, $!authUri);
+                    |        $!this->credentials = $!credentials;
                     |    }
                     |
-                    |    public function getClientId(): string
+                    |    public function getCredentials(): ClientCredentials
                     |    {
-                    |        return $!this->clientId;
-                    |    }
-                    |
-                    |    public function getScope(): ?string
-                    |    {
-                    |        return $!this->scope;
-                    |    }
-                    |
-                    |    public function setScope(string $!scope = null): BaseClientCredentialsConfig
-                    |    {
-                    |        $!this->scope = $!scope;
-                    |        return $!this;
-                    |    }
-                    |
-                    |    public function setClientId(string $!clientId): BaseClientCredentialsConfig
-                    |    {
-                    |        $!this->clientId = $!clientId;
-                    |        return $!this;
-                    |    }
-                    |
-                    |    public function getClientSecret(): string
-                    |    {
-                    |        return $!this->clientSecret;
-                    |    }
-                    |
-                    |    public function setClientSecret(string $!clientSecret): BaseClientCredentialsConfig
-                    |    {
-                    |        $!this->clientSecret = $!clientSecret;
-                    |        return $!this;
-                    |    }
-                    |
-                    |    public function getCacheKey(): string
-                    |    {
-                    |        return sha1($!this->clientId . (string)$!this->scope);
+                    |        return $!this->credentials;
                     |    }
                     |}
-                """.trimMargin().forcedLiteralEscape()
+                """.trimMargin().forcedLiteralEscape().keepAngleIndent()
         )
     }
+
+//    fun UriTemplate.params(accessTokenUriParams: ObjectInstance?): String {
+//        return variables.joinToString(separator = ", ", postfix = ", ") {
+//            "string $${StringCaseFormat.LOWER_CAMEL_CASE.apply(it)} = \"${(accessTokenUriParams?.getValue(it) as? ObjectInstance)?.getValue("default")?.value}\""
+//        }
+//    }
 }

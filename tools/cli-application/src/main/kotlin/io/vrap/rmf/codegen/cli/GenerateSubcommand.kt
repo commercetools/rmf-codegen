@@ -7,7 +7,9 @@ import io.reactivex.rxjava3.schedulers.Schedulers
 import io.vrap.codegen.languages.java.base.JavaBaseTypes
 import io.vrap.codegen.languages.javalang.client.builder.module.JavaCompleteModule
 import io.vrap.codegen.languages.php.PhpBaseTypes
+import io.vrap.codegen.languages.php.base.PhpBaseModule
 import io.vrap.codegen.languages.php.model.PhpModelModule
+import io.vrap.codegen.languages.php.test.PhpTestModule
 import io.vrap.codegen.languages.postman.model.PostmanBaseTypes
 import io.vrap.codegen.languages.postman.model.PostmanModelModule
 import io.vrap.codegen.languages.ramldoc.model.RamldocBaseTypes
@@ -33,6 +35,8 @@ enum class GenerationTarget {
     JAVA_CLIENT,
     TYPESCRIPT_CLIENT,
     PHP_CLIENT,
+    PHP_BASE,
+    PHP_TEST,
     POSTMAN,
     RAML_DOC
 }
@@ -145,6 +149,14 @@ class GenerateSubcommand : Callable<Int> {
                 GenerationTarget.PHP_CLIENT -> {
                     val generatorModule = GeneratorModule(apiProvider, generatorConfig, PhpBaseTypes)
                     GeneratorComponent(generatorModule, PhpModelModule())
+                }
+                GenerationTarget.PHP_BASE -> {
+                    val generatorModule = GeneratorModule(apiProvider, generatorConfig, PhpBaseTypes)
+                    GeneratorComponent(generatorModule, PhpBaseModule())
+                }
+                GenerationTarget.PHP_TEST -> {
+                    val generatorModule = GeneratorModule(apiProvider, generatorConfig, PhpBaseTypes)
+                    GeneratorComponent(generatorModule, PhpTestModule())
                 }
                 GenerationTarget.POSTMAN -> {
                     val generatorModule = GeneratorModule(apiProvider, generatorConfig, PostmanBaseTypes)

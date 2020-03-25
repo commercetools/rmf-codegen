@@ -18,7 +18,6 @@ import io.vrap.rmf.raml.model.responses.Body
 import io.vrap.rmf.raml.model.responses.Response
 import io.vrap.rmf.raml.model.types.*
 import io.vrap.rmf.raml.model.types.impl.TypesFactoryImpl
-import io.vrap.rmf.raml.model.util.StringCaseFormat
 import org.eclipse.emf.ecore.EObject
 
 class PhpMethodRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : MethodRenderer, EObjectTypeExtensions {
@@ -35,18 +34,18 @@ class PhpMethodRenderer @Inject constructor(override val vrapTypeProvider: VrapT
     @ClientPackageName
     lateinit var clientPackageName: String
 
-    private val resourcePackage = "Resource";
+    private val resourcePackage = "Resource"
 
     override fun render(type: Method): TemplateFile {
         val vrapType = vrapTypeProvider.doSwitch(type as EObject) as VrapObjectType
 
-        val resultTypes = type.responses.asSequence().filter { it.bodies.asSequence().filter { body -> MediaType.JSON_UTF_8.`is`(body.contentMediaType) }.toList().isNotEmpty() };
-        val importTypes = resultTypes.map { response -> "use ${response.bodies.asSequence().filter { body -> MediaType.JSON_UTF_8.`is`(body.contentMediaType) }.first().returnType().returnTypeModelFullClass().escapeAll()};" }
-                .plus(resultTypes.map { response -> "use ${response.bodies.asSequence().filter { body -> MediaType.JSON_UTF_8.`is`(body.contentMediaType) }.first().returnType().returnTypeFullClass().escapeAll()};" })
+        val resultTypes = type.responses.filter { it.bodies.filter { body -> MediaType.JSON_UTF_8.`is`(body.contentMediaType) }.isNotEmpty() }
+        val importTypes = resultTypes.map { response -> "use ${response.bodies.first { body -> MediaType.JSON_UTF_8.`is`(body.contentMediaType) }.returnType().returnTypeModelFullClass().escapeAll()};" }
+                .plus(resultTypes.map { response -> "use ${response.bodies.first { body -> MediaType.JSON_UTF_8.`is`(body.contentMediaType) }.returnType().returnTypeFullClass().escapeAll()};" })
                 .plus("use ${sharedPackageName.toNamespaceName()}\\Base\\JsonObject;".escapeAll())
                 .plus("use ${sharedPackageName.toNamespaceName()}\\Base\\JsonObjectModel;".escapeAll())
                 .distinct().sorted()
-        val returnTypes = resultTypes.map { response -> response.bodies.asSequence().filter { body -> MediaType.JSON_UTF_8.`is`(body.contentMediaType) }.first().returnType().returnTypeClass() }
+        val returnTypes = resultTypes.map { response -> response.bodies.first { body -> MediaType.JSON_UTF_8.`is`(body.contentMediaType) }.returnType().returnTypeClass() }
                 .plus("JsonObject")
                 .distinct().sorted()
 
@@ -56,11 +55,9 @@ class PhpMethodRenderer @Inject constructor(override val vrapTypeProvider: VrapT
             |${PhpSubTemplates.generatorInfo}
             |namespace ${clientPackageName.toNamespaceName().escapeAll()}\\$resourcePackage;
             |
-            |use GuzzleHttp\\Client;
+            |use GuzzleHttp\\ClientInterface;
             |use GuzzleHttp\\Exception\\ServerException;
             |use GuzzleHttp\\Exception\\ClientException;
-            |use ${sharedPackageName.toNamespaceName().escapeAll()}\\Base\\MapperInterface;
-            |use ${sharedPackageName.toNamespaceName().escapeAll()}\\Base\\ResultMapper;
             |use ${sharedPackageName.toNamespaceName().escapeAll()}\\Exception\\InvalidArgumentException;
             |use ${sharedPackageName.toNamespaceName().escapeAll()}\\Exception\\ApiServerException;
             |use ${sharedPackageName.toNamespaceName().escapeAll()}\\Exception\\ApiClientException;
@@ -73,61 +70,67 @@ class PhpMethodRenderer @Inject constructor(override val vrapTypeProvider: VrapT
             |class ${type.toRequestName()} extends ApiRequest
             |{
             |    /**
-            |     <<${type.allParams()?.asSequence()?.map { "* @psalm-param scalar $$it" }?.joinToString(separator = "\n") ?: "*"}>>
             |     * @param ${if (type.firstBody()?.type is FileType) "?UploadedFileInterface " else "?object"} $!body
             |     * @psalm-param array<string, scalar|scalar[]> $!headers
-            |     * @param array $!headers
             |     */
-            |    public function __construct(${type.allParams()?.asSequence()?.map { "$$it, "  }?.joinToString(separator = "") ?: ""}${if (type.firstBody()?.type is FileType) "UploadedFileInterface " else ""}$!body = null, array $!headers = [], Client $!client = null)
+            |    public function __construct(${type.allParams()?.joinToString(separator = "") { "string $$it, " } ?: ""}${if (type.firstBody()?.type is FileType) "UploadedFileInterface " else ""}$!body = null, array $!headers = [], ClientInterface $!client = null)
             |    {
-            |        $!uri = str_replace([${type.allParams()?.asSequence()?.map { "'{$it}'"  }?.joinToString(separator = ", ") ?: ""}], [${type.allParams()?.asSequence()?.map { "$$it"  }?.joinToString(separator = ", ") ?: ""}], '${type.resource().fullUri.template}');
+            |        $!uri = str_replace([${type.allParams()?.joinToString(separator = ", ") { "'{$it}'" } ?: ""}], [${type.allParams()?.joinToString(separator = ", ") { "$$it" } ?: ""}], '${type.apiResource().fullUri.template.trimStart('/')}');
             |        <<${type.firstBody()?.ensureContentType() ?: ""}>>
-            |        <<${type.headers.filter { it.type?.default != null }.map { "\$headers = \$this->ensureHeader(\$headers, '${it.name}', '${it.type.default.value}');" }.joinToString("\n\n")}>>
+            |        <<${type.headers.filter { it.type?.default != null }.joinToString("\n\n") { "\$headers = \$this->ensureHeader(\$headers, '${it.name}', '${it.type.default.value}');" }}>>
             |        parent::__construct($!client, '${type.methodName.toUpperCase()}', $!uri, $!headers, ${type.firstBody()?.serialize()?: "!is_null(\$body) ? json_encode(\$body) : null"});
             |    }
             |
             |    /**
             |     * @template T of JsonObject
             |     * @psalm-param ?class-string<T> $!resultType
-            |     * @psalm-return ${returnTypes.joinToString("|")}|T|null
+            |     * @return ${returnTypes.joinToString("|")}|T|null
             |     */
             |    public function mapFromResponse(?ResponseInterface $!response, string $!resultType = null)
             |    {
             |        if (is_null($!response)) {
             |            return null;
             |        }
-            |        $!mapper = new ResultMapper();
             |        if (is_null($!resultType)) {
-            |            switch ($!response->getStatusCode()) {
-            |                <<${resultTypes.map { response -> "case \"${response.statusCode}\": $!resultType = ${response.bodies[0].returnType().returnTypeModelClass()}::class; break;" }.joinToString("\n")}>>
+            |            switch ($!response->getStatusCode()) {${resultTypes.joinToString("") { response -> """
+            |                case '${response.statusCode}':
+            |                    $!resultType = ${response.bodies[0].returnType().returnTypeModelClass()}::class;
+            |
+            |                    break;""" }}
             |                default:
-            |                    $!resultType = JsonObjectModel::class; break;
+            |                    $!resultType = JsonObjectModel::class;
+            |
+            |                    break;
             |            }
             |        }
-            |        return $!mapper->mapResponseToClass($!resultType, $!response);
+            |
+            |        return $!resultType::of($!this->responseData($!response));
             |    }
-            |    
+            |
             |    /**
             |     * @template T of JsonObject
             |     * @psalm-param ?class-string<T> $!resultType
-            |     * @param array $!options
-            |     * @return ${returnTypes.joinToString("|")}|null
+            |     *
+            |     * @return null|${returnTypes.joinToString("|")}
             |     */
             |    public function execute(array $!options = [], string $!resultType = null)
             |    {
             |        try {
-            |           $!response = $!this->send($!options);
-            |        } catch(ServerException $!e) {
+            |            $!response = $!this->send($!options);
+            |        } catch (ServerException $!e) {
             |            $!result = $!this->mapFromResponse($!e->getResponse());
+            |
             |            throw new ApiServerException($!e->getMessage(), $!result, $!this, $!e->getResponse(), $!e, []);
-            |        } catch(ClientException $!e) {
+            |        } catch (ClientException $!e) {
             |            $!result = $!this->mapFromResponse($!e->getResponse());
+            |
             |            throw new ApiClientException($!e->getMessage(), $!result, $!this, $!e->getResponse(), $!e, []);
             |        }
+            |
             |        return $!this->mapFromResponse($!response, $!resultType);
             |    }
             |
-            |   <<${type.queryParameters.map { it.withParam(type) }.joinToString("\n\n")}>>
+            |    <<${type.queryParameters.joinToString("\n\n") { it.withParam(type) }}>>
             |}
         """.trimMargin().keepAngleIndent().forcedLiteralEscape()
         val relativeTypeNamespace = vrapType.`package`.toNamespaceName().replace(basePackagePrefix.toNamespaceName() + "\\", "").replace("\\", "/") + "/$resourcePackage"
@@ -138,79 +141,9 @@ class PhpMethodRenderer @Inject constructor(override val vrapTypeProvider: VrapT
         )
     }
 
-    private fun QueryParameter.methodName(): String {
-        val anno = this.getAnnotation("placeholderParam");
-
-        if (anno != null) {
-            val o = anno.getValue() as ObjectInstance
-            val paramName = o.value.stream().filter { propertyValue -> propertyValue.name == "paramName" }.findFirst().orElse(null).value as StringInstance
-            return "with" + StringCaseFormat.UPPER_CAMEL_CASE.apply(paramName.value)
-        }
-        return "with" + StringCaseFormat.UPPER_CAMEL_CASE.apply(this.name.replace(".", "-"))
-    }
-
-    private fun QueryParameter.methodParam(): String {
-        val anno = this.getAnnotation("placeholderParam");
-
-        if (anno != null) {
-            val o = anno.value as ObjectInstance
-            val placeholder = o.value.stream().filter { propertyValue -> propertyValue.name == "placeholder" }.findFirst().orElse(null).value as StringInstance
-            val paramName = o.value.stream().filter { propertyValue -> propertyValue.name == "paramName" }.findFirst().orElse(null).value as StringInstance
-            return "$" + StringCaseFormat.LOWER_CAMEL_CASE.apply(placeholder.value) + ", $" + paramName.value
-        }
-        return "$" + StringCaseFormat.LOWER_CAMEL_CASE.apply(this.name.replace(".", "-"))
-    }
-
-    private fun QueryParameter.paramName(): String {
-        val anno = this.getAnnotation("placeholderParam");
-
-        if (anno != null) {
-            val o = anno.value as ObjectInstance
-            val paramName = o.value.stream().filter { propertyValue -> propertyValue.name == "paramName" }.findFirst().orElse(null).value as StringInstance
-            return "$" + paramName.value
-        }
-        return "$" + StringCaseFormat.LOWER_CAMEL_CASE.apply(this.name.replace(".", "-"))
-    }
-
-    private fun QueryParameter.template(): String {
-        val anno = this.getAnnotation("placeholderParam");
-
-        if (anno != null) {
-            val o = anno.value as ObjectInstance
-            val template = o.value.stream().filter { propertyValue -> propertyValue.name == "template" }.findFirst().orElse(null).value as StringInstance
-            val placeholder = o.value.stream().filter { propertyValue -> propertyValue.name == "placeholder" }.findFirst().orElse(null).value as StringInstance
-            return "sprintf('" + template.value.replace("<" + placeholder.value + ">", "%s") + "', $" + placeholder.value + ")"
-        }
-        return "'" + this.name + "'"
-    }
-
-    private fun QueryParameter.placeholderDocBlock(): String {
-        val anno = this.getAnnotation("placeholderParam");
-
-        if (anno != null) {
-            val o = anno.value as ObjectInstance
-            val placeholder = o.value.stream().filter { propertyValue -> propertyValue.name == "placeholder" }.findFirst().orElse(null).value as StringInstance
-            return "@psalm-param scalar $" + placeholder.value
-        }
-        return ""
-    }
-
-    private fun QueryParameter.withParam(type: Method): String {
-        return """
-            |/**
-            | * ${this.placeholderDocBlock()}
-            | * @psalm-param scalar ${this.paramName()}
-            | */
-            |public function ${this.methodName()}(${this.methodParam()}): ${type.toRequestName()}
-            |{
-            |    return $!this->withQueryParam(${this.template()}, ${this.paramName()});
-            |}
-        """.trimMargin()
-    }
-
     private fun Body.ensureContentType(): String {
         if (this.type !is FileType) {
-            return "";
+            return ""
         }
         return """
             |if (!is_null($!body)) {
@@ -228,9 +161,61 @@ class PhpMethodRenderer @Inject constructor(override val vrapTypeProvider: VrapT
         return "!is_null(\$body) ? json_encode(\$body) : null"
     }
 
+    private fun Response.isSuccessfull(): Boolean = this.statusCode.toInt() in (200..299)
 
+    private fun Body.returnType(): AnyType {
+        return this.type
+                ?: TypesFactoryImpl.eINSTANCE.createNilType()
+    }
 
+    private fun Method.returnType(): AnyType {
+        return this.responses
+                .filter { it.isSuccessfull() }
+                .filter { it.bodies?.isNotEmpty() ?: false }
+                .firstOrNull()
+                ?.let { it.bodies[0].type }
+                ?: TypesFactoryImpl.eINSTANCE.createNilType()
+    }
 
+    private fun AnyType.returnTypeClass(): String {
+        val vrapType = this.toVrapType()
+        if (vrapType.isScalar())
+            return "JsonObject"
+        return when (vrapType) {
+            is VrapObjectType -> vrapType.simpleName()
+            else -> "JsonObject"
+        }
+    }
+
+    private fun AnyType.returnTypeModelClass(): String {
+        val vrapType = this.toVrapType()
+        if (vrapType.isScalar())
+            return "JsonObjectModel"
+        return when (vrapType) {
+            is VrapObjectType -> vrapType.simpleName() + "Model"
+            else -> "JsonObjectModel"
+        }
+    }
+
+    private fun AnyType.returnTypeFullClass(): String {
+        val vrapType = this.toVrapType()
+        if (vrapType.isScalar())
+            return "${sharedPackageName.toNamespaceName()}\\Base\\JsonObject"
+        return when (vrapType) {
+            is VrapObjectType -> vrapType.fullClassName()
+            else -> "${sharedPackageName.toNamespaceName()}\\Base\\JsonObject"
+        }
+    }
+
+    private fun AnyType.returnTypeModelFullClass(): String {
+        val vrapType = this.toVrapType()
+        if (vrapType.isScalar())
+            return "${sharedPackageName.toNamespaceName()}\\Base\\JsonObjectModel"
+        return when (vrapType) {
+            is VrapObjectType -> vrapType.fullClassName() + "Model"
+            else -> "${sharedPackageName.toNamespaceName()}\\Base\\JsonObjectModel"
+        }
+    }
 
 //    fun getAllParamNames(): List<String>? {
 //        val params = getAbsoluteUri().getComponents().stream()
@@ -248,13 +233,13 @@ class PhpMethodRenderer @Inject constructor(override val vrapTypeProvider: VrapT
 //            placeholderParam
 //        }).collect(Collectors.toList<QueryParameter>())
 //    }
-
+//
 //    fun ResourceCollection.methods(): String {
 //        return this.resources
 //                .flatMap { resource -> resource.methods.map { javaBody(resource, it) } }
 //                .joinToString(separator = "\n\n")
 //    }
-
+//
 //    fun javaBody(resource: Resource, method: Method): String {
 //        val methodReturnType = vrapTypeProvider.doSwitch(method.retyurnType())
 //        val body = """
@@ -315,105 +300,47 @@ class PhpMethodRenderer @Inject constructor(override val vrapTypeProvider: VrapT
 //                .let { it.bodies[0].type }
 //                ?: TypesFactoryImpl.eINSTANCE.createNilType()
 //    }
-
-
-    fun Response.isSuccessfull(): Boolean = this.statusCode.toInt() in (200..299)
-
-    fun Body.returnType(): AnyType {
-        return this.type
-                ?: TypesFactoryImpl.eINSTANCE.createNilType()
-    }
-
-    fun Method.returnType(): AnyType {
-        return this.responses
-                .filter { it.isSuccessfull() }
-                .filter { it.bodies?.isNotEmpty() ?: false }
-                .firstOrNull()
-                ?.let { it.bodies[0].type }
-                ?: TypesFactoryImpl.eINSTANCE.createNilType()
-    }
-
-    fun AnyType.returnTypeClass(): String {
-        val vrapType = this.toVrapType()
-        if (vrapType.isScalar())
-            return "JsonObject"
-        return when (vrapType) {
-            is VrapObjectType -> vrapType.simpleName()
-            else -> "JsonObject"
-        }
-    }
-
-    fun AnyType.returnTypeModelClass(): String {
-        val vrapType = this.toVrapType()
-        if (vrapType.isScalar())
-            return "JsonObjectModel"
-        return when (vrapType) {
-            is VrapObjectType -> vrapType.simpleName() + "Model"
-            else -> "JsonObjectModel"
-        }
-    }
-
-    fun AnyType.returnTypeFullClass(): String {
-        val vrapType = this.toVrapType()
-        if (vrapType.isScalar())
-            return "${sharedPackageName.toNamespaceName()}\\Base\\JsonObject"
-        return when (vrapType) {
-            is VrapObjectType -> vrapType.fullClassName()
-            else -> "${sharedPackageName.toNamespaceName()}\\Base\\JsonObject"
-        }
-    }
-
-    fun AnyType.returnTypeModelFullClass(): String {
-        val vrapType = this.toVrapType()
-        if (vrapType.isScalar())
-            return "${sharedPackageName.toNamespaceName()}\\Base\\JsonObjectModel"
-        return when (vrapType) {
-            is VrapObjectType -> vrapType.fullClassName() + "Model"
-            else -> "${sharedPackageName.toNamespaceName()}\\Base\\JsonObjectModel"
-        }
-    }
-
-    fun Method.returnTypeClass(): String {
-        return this.returnType().returnTypeClass();
-    }
-
-    fun Method.returnTypeModelClass(): String {
-        val vrapType = this.returnType().toVrapType()
-        if (vrapType.isScalar())
-            return "JsonObjectModel"
-        return when (vrapType) {
-            is VrapObjectType -> vrapType.simpleName() + "Model"
-            else -> "JsonObjectModel"
-        }
-    }
-
-    fun Method.returnTypeFullClass(): String {
-        val vrapType = this.returnType().toVrapType()
-        if (vrapType.isScalar())
-            return "${sharedPackageName.toNamespaceName()}\\Base\\JsonObject"
-        return when (vrapType) {
-            is VrapObjectType -> vrapType.fullClassName()
-            else -> "${sharedPackageName.toNamespaceName()}\\Base\\JsonObject"
-        }
-    }
-
-    fun Method.returnTypeModelFullClass(): String {
-        val vrapType = this.returnType().toVrapType()
-        if (vrapType.isScalar())
-            return "${sharedPackageName.toNamespaceName()}\\Base\\JsonObjectModel"
-        return when (vrapType) {
-            is VrapObjectType -> vrapType.fullClassName() + "Model"
-            else -> "${sharedPackageName.toNamespaceName()}\\Base\\JsonObjectModel"
-        }
-    }
-
-
-    fun <T> EObject.getParent(parentClass: Class<T>): T? {
-        if (this.eContainer() == null) {
-            return null
-        }
-        return if (parentClass.isInstance(this.eContainer())) {
-            this.eContainer() as T
-        } else this.eContainer().getParent(parentClass)
-    }
+//
+//    fun Method.returnTypeClass(): String {
+//        return this.returnType().returnTypeClass();
+//    }
+//
+//    fun Method.returnTypeModelClass(): String {
+//        val vrapType = this.returnType().toVrapType()
+//        if (vrapType.isScalar())
+//            return "JsonObjectModel"
+//        return when (vrapType) {
+//            is VrapObjectType -> vrapType.simpleName() + "Model"
+//            else -> "JsonObjectModel"
+//        }
+//    }
+//
+//    fun Method.returnTypeFullClass(): String {
+//        val vrapType = this.returnType().toVrapType()
+//        if (vrapType.isScalar())
+//            return "${sharedPackageName.toNamespaceName()}\\Base\\JsonObject"
+//        return when (vrapType) {
+//            is VrapObjectType -> vrapType.fullClassName()
+//            else -> "${sharedPackageName.toNamespaceName()}\\Base\\JsonObject"
+//        }
+//    }
+//
+//    fun Method.returnTypeModelFullClass(): String {
+//        val vrapType = this.returnType().toVrapType()
+//        if (vrapType.isScalar())
+//            return "${sharedPackageName.toNamespaceName()}\\Base\\JsonObjectModel"
+//        return when (vrapType) {
+//            is VrapObjectType -> vrapType.fullClassName() + "Model"
+//            else -> "${sharedPackageName.toNamespaceName()}\\Base\\JsonObjectModel"
+//        }
+//    }
+//
+//    fun <T> EObject.getParent(parentClass: Class<T>): T? {
+//        if (this.eContainer() == null) {
+//            return null
+//        }
+//        return if (parentClass.isInstance(this.eContainer())) {
+//            this.eContainer() as T
+//        } else this.eContainer().getParent(parentClass)
+//    }
 }

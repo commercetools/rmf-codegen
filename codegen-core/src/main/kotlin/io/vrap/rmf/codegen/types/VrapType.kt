@@ -28,6 +28,37 @@ open class VrapObjectType(val `package` :String, val simpleClassName:String) : V
     }
 }
 
+enum class DateTimeTypes(val format: String) {
+    DateTime("date-time"),
+    DateOnly("date"),
+    TimeOnly("time")
+}
+
+class VrapDateTimeType(`package` :String, simpleClassName:String, val dateTimeType: DateTimeTypes): VrapObjectType(`package`,simpleClassName) {
+
+    override fun toString(): String {
+        return "VrapDateTimeType(format='${dateTimeType.format}')"
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+        if (!super.equals(other)) return false
+
+        other as VrapDateTimeType
+
+        if (dateTimeType != other.dateTimeType) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = super.hashCode()
+        result = 31 * result + dateTimeType.hashCode()
+        return result
+    }
+}
+
 class VrapLibraryType( `package` :String, simpleClassName:String) : VrapObjectType(`package`,simpleClassName)
 
 class VrapEnumType(val `package` :String, val simpleClassName:String) : VrapType() {
