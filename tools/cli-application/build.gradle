@@ -31,7 +31,7 @@ publishing {
 String dir = "${buildDir.toString()}/gensrc/main/kotlin/io/vrap/rmf/codegen/cli/info"
 
 dependencies {
-    compile project(':languages:javalang:java-renderer')
+    compile project(':languages:javalang:builder-renderer:java-builder-client')
     compile project(':languages:typescript')
     compile project(':languages:postman')
     compile project(':languages:php')

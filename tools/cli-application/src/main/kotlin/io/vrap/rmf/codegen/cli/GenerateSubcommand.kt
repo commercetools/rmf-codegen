@@ -5,7 +5,7 @@ import io.methvin.watcher.DirectoryWatcher
 import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.schedulers.Schedulers
 import io.vrap.codegen.languages.java.base.JavaBaseTypes
-import io.vrap.codegen.languages.javalang.model.JavaModelModule
+import io.vrap.codegen.languages.javalang.client.builder.module.JavaCompleteModule
 import io.vrap.codegen.languages.php.PhpBaseTypes
 import io.vrap.codegen.languages.php.model.PhpModelModule
 import io.vrap.codegen.languages.postman.model.PostmanBaseTypes
@@ -136,7 +136,7 @@ class GenerateSubcommand : Callable<Int> {
             val generatorComponent: GeneratorComponent = when (target) {
                 GenerationTarget.JAVA_CLIENT -> {
                     val generatorModule = GeneratorModule(apiProvider, generatorConfig, JavaBaseTypes)
-                    GeneratorComponent(generatorModule, JavaModelModule)
+                    GeneratorComponent(generatorModule, JavaCompleteModule)
                 }
                 GenerationTarget.TYPESCRIPT_CLIENT -> {
                     val generatorModule = GeneratorModule(apiProvider, generatorConfig, TypeScriptBaseTypes)
