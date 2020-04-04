@@ -138,10 +138,7 @@ class ServerRenderer @Inject constructor(
                         |        params: {
                         |          <${it.resource().fullUri.variables.map { "$it: requiredString" }.joinToString(separator = ",\n")}>
                         |        },
-                        |        failAction,
-                        |        auth: {
-                        |           ${it.scopes()}
-                        |        }
+                        |        failAction,${it.auth()}
                         |      }  
                         |   }
                         |}
@@ -149,14 +146,30 @@ class ServerRenderer @Inject constructor(
                 }.joinToString(separator = ",\n")
     }
 
+    private fun Method.auth(): String {
+        if(this.hasScopes()) {
+            return """
+                        |        auth: {
+                        |           scope: [${this.scopes()}],
+                        |        },"""
+        }
+        return ""
+    }
+
+    private fun Method.hasScopes(): Boolean {
+        return this.securedBy
+                .map { it.parameters?.getValue("scopes") }
+                .filterIsInstance<ArrayInstance>().isNotEmpty()
+    }
+
     private fun Method.scopes(): String  {
-        if (this.securedBy.size > 0) {
+        if (this.hasScopes()) {
             val scopes = this.securedBy
                     .map { it.parameters?.getValue("scopes") }
                     .filterIsInstance<ArrayInstance>()
                     .flatMap { it.value }.filterIsInstance<StringInstance>()
                     .map { """'${it.value.replace("{","{params.")}'""" }
-            return """scope: [ ${scopes.joinToString(", ")} ],"""
+            return scopes.joinToString(", ")
         }
         return ""
     }
