@@ -139,8 +139,8 @@ class ServerRenderer @Inject constructor(
                         |          <${it.resource().fullUri.variables.map { "$it: requiredString" }.joinToString(separator = ",\n")}>
                         |        },
                         |        failAction,${it.auth()}
-                        |      }  
-                        |   }
+                        |      },
+                        |    }
                         |}
                     """.trimMargin()
                 }.joinToString(separator = ",\n")
