@@ -13,7 +13,8 @@ import io.vrap.rmf.raml.model.modules.Api
 import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.resources.ResourceContainer
-import java.nio.file.Paths
+import io.vrap.rmf.raml.model.types.ArrayInstance
+import io.vrap.rmf.raml.model.types.StringInstance
 
 class ServerRenderer @Inject constructor(
         val api: Api,
@@ -137,12 +138,40 @@ class ServerRenderer @Inject constructor(
                         |        params: {
                         |          <${it.resource().fullUri.variables.map { "$it: requiredString" }.joinToString(separator = ",\n")}>
                         |        },
-                        |        failAction,
+                        |        failAction,${it.auth()}
                         |      },
                         |    }
                         |}
                     """.trimMargin()
                 }.joinToString(separator = ",\n")
+    }
+
+    private fun Method.auth(): String {
+        if(this.hasScopes()) {
+            return """
+                        |        auth: {
+                        |           scope: [${this.scopes()}],
+                        |        },"""
+        }
+        return ""
+    }
+
+    private fun Method.hasScopes(): Boolean {
+        return this.securedBy
+                .map { it.parameters?.getValue("scopes") }
+                .filterIsInstance<ArrayInstance>().isNotEmpty()
+    }
+
+    private fun Method.scopes(): String  {
+        if (this.hasScopes()) {
+            val scopes = this.securedBy
+                    .map { it.parameters?.getValue("scopes") }
+                    .filterIsInstance<ArrayInstance>()
+                    .flatMap { it.value }.filterIsInstance<StringInstance>()
+                    .map { """'${it.value.replace("{","{params.")}'""" }
+            return scopes.joinToString(", ")
+        }
+        return ""
     }
 
     private fun Method.handlerNavigator(): String = this.resource().fullUri
