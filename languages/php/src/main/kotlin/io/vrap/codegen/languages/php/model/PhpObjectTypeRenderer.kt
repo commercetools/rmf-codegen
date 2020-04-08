@@ -90,7 +90,6 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
             |use ${sharedPackageName.toNamespaceName().escapeAll()}\\Base\\JsonObjectModel;
             |use ${sharedPackageName.toNamespaceName().escapeAll()}\\Base\\MapperFactory;
             |use stdClass;
-            |
             |<<${type.imports()}>>
             |
             |/**
@@ -106,6 +105,8 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
             |    <<${type.constructor()}>>
             |
             |    <<${type.getters()}>>
+            |
+            |    <<${type.unionGetters()}>>
             |
             |    <<${type.setters()}>>
             |
@@ -143,14 +144,23 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
     }
 
     private fun Property.toPhpField(): String {
-
+        val typeName = when(this.type) {
+            is UnionType -> "mixed"
+            else -> this.type.typeName()
+        }
         return """
             |/**
-            | * @var ?${if (this.type.toVrapType().simpleName() != "stdClass") this.type.toVrapType().simpleName() else "JsonObject" }
+            | * @var ?$typeName
             | */
             |protected $${this.name};
         """.trimMargin()
     }
+
+    private fun AnyType.typeNames(): String = when (this) {
+        is UnionType -> this.oneOf.map { it.typeName() }.plus("JsonObject").distinct().sorted().joinToString(separator = "|")
+        else -> this.typeName()
+    }
+    private fun AnyType.typeName(): String = if (this.toVrapType().simpleName() != "stdClass") this.toVrapType().simpleName() else "JsonObject"
 
     private fun Property.toPhpConstantName(): String {
         return "FIELD_${StringCaseFormat.UPPER_UNDERSCORE_CASE.apply(this.patternName())}"
@@ -183,6 +193,9 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
     private fun ObjectType.getters() = this.allProperties
             .filter { !it.isPatternProperty() }.joinToString(separator = "\n\n") { it.getter() }
 
+    private fun ObjectType.unionGetters() = this.allProperties
+            .filter { it.type is UnionType && !it.isPatternProperty() }.flatMap { (it.type as UnionType).oneOf.map { t -> it.unionGetter(t) } }.joinToString(separator = "\n\n")
+
     private fun ObjectType.serializer(): String {
         val dtProperties = this.allProperties
             .filter { it.type is DateTimeOnlyType || it.type is DateTimeType || it.type is DateOnlyType || it.type is TimeOnlyType }
@@ -211,22 +224,88 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
     }
 
     private fun Property.getter(): String {
+        return when (this.type) {
+            is UnionType ->
+                """
+                    |/**${if (this.type.description?.value?.isNotBlank() == true) """
+                    | {{${this.type.toPhpComment()}}}
+                    | *""" else ""}
+                    | * @return ?mixed
+                    | */
+                    |public function get${this.name.capitalize()}()
+                    |{
+                    |    if (is_null($!this->${this.name})) {
+                    |        /** @psalm-var ?mixed $!data */
+                    |        $!data = $!this->raw(self::${this.toPhpConstantName()});
+                    |        if (is_null($!data)) {
+                    |            return null;
+                    |        }
+                    |        $!this->${this.name} = $!data;
+                    |    }
+                    |
+                    |    return $!this->${this.name};
+                    |}
+               """.trimMargin().keepCurlyIndent()
+            else ->
+                """
+                    |/**${if (this.type.description?.value?.isNotBlank() == true) """
+                    | {{${this.type.toPhpComment()}}}
+                    | *""" else ""}
+                    | * @return null|${this.type.typeNames()}
+                    | */
+                    |public function get${this.name.capitalize()}()
+                    |{
+                    |    if (is_null($!this->${this.name})) {
+                    |        <<${this.mapper()}>>
+                    |    }
+                    |
+                    |    return $!this->${this.name};
+                    |}
+               """.trimMargin().keepCurlyIndent()
+        }
+    }
+
+    private fun Property.unionGetter(type: AnyType): String {
+        val typeName = when (type.toVrapType()) {
+            is VrapDateTimeType -> type.name
+            else -> if (type.toVrapType().simpleName() != "stdClass") type.toVrapType().simpleName() else "JsonObject"
+        }
+        val docTypeName = type.typeName()
         return """
                 |/**${if (this.type.description?.value?.isNotBlank() == true) """
                 | {{${this.type.toPhpComment()}}}
                 | *""" else ""}
-                | * @return null|${if (this.type.toVrapType().simpleName() != "stdClass") this.type.toVrapType().simpleName() else "JsonObject" }
+                | * @return null|$docTypeName
                 | */
-                |public function get${this.name.capitalize()}()
+                |public function get${this.name.capitalize()}As${StringCaseFormat.UPPER_CAMEL_CASE.apply(typeName)}()
                 |{
-                |    if (is_null($!this->${this.name})) {
-                |        <<${this.mapper()}>>
+                |    if (${this.s(type)}) {
+                |        <<${this.mapper(type)}>>
                 |    }
                 |
                 |    return $!this->${this.name};
                 |}
         """.trimMargin().keepCurlyIndent()
     }
+
+    private fun Property.s(type: AnyType): String {
+        val typeName = type.typeName()
+        val t = type.toVrapType()
+        return when (t) {
+            is VrapObjectType -> """!$!this->${this.name} instanceof $typeName"""
+            is VrapArrayType -> """!$!this->${this.name} instanceof ${typeName}"""
+            is VrapEnumType -> """!is_string($!this->${this.name})"""
+            is VrapDateTimeType -> """!$!this->${this.name} instanceof DateTimeImmutable"""
+            else ->  when (t) {
+                PhpBaseTypes.integerType -> """!is_int($!this->${this.name})"""
+                PhpBaseTypes.stringType -> """!is_string($!this->${this.name})"""
+                PhpBaseTypes.doubleType -> """!is_float($!this->${this.name})"""
+                PhpBaseTypes.booleanType -> """!is_bool($!this->${this.name})"""
+                else -> """!is_scalar($!this->${this.name})"""
+            }
+        }
+    }
+
 
     private fun ObjectType.patternGetter(): String {
         if (this.allProperties.none { it.isPatternProperty() }) {
@@ -338,6 +417,22 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
                         |/** @psalm-var scalar $!data */
                         |return (bool)$!data;
                     """.trimMargin()
+                    PhpBaseTypes.dateOnlyType -> """
+                        |/** @psalm-var string $!data */
+                        |$!data = DateTimeImmutable::createFromFormat(MapperFactory::DATE_FORMAT, $!data);
+                        |if ($!data === false) {
+                        |    return null;
+                        |}
+                        |return $!data;
+                    """.trimMargin()
+                    PhpBaseTypes.timeOnlyType -> """
+                        |/** @psalm-var string $!data */
+                        |$!data = DateTimeImmutable::createFromFormat(MapperFactory::TIME_FORMAT, $!data);
+                        |if ($!data === false) {
+                        |    return null;
+                        |}
+                        |return $!data;
+                    """.trimMargin()
                     PhpBaseTypes.dateTimeType -> """
                         |/** @psalm-var string $!data */
                         |$!data = DateTimeImmutable::createFromFormat(MapperFactory::DATETIME_FORMAT, $!data);
@@ -354,16 +449,16 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
         }
     }
 
-    private fun Property.mapper():String {
-        val type = this.type
+    private fun Property.mapper() = this.mapper(this.type)
+
+    private fun Property.mapper(type: AnyType):String {
         val vrapType = type.toVrapType()
-        val defineObject = this.eContainer().toVrapType()
         return when(type) {
             is ObjectType ->
                 if (vrapType.isScalar()) {
                     """
                         |/** @psalm-var stdClass|array<string, mixed>|null $!data */
-                        |$!data = $!this->raw(${defineObject.simpleName()}::${this.toPhpConstantName()});
+                        |$!data = $!this->raw(self::${this.toPhpConstantName()});
                         |if (is_null($!data)) {
                         |    return null;
                         |}
@@ -372,12 +467,12 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
                 } else {
                     """
                         |/** @psalm-var stdClass|array<string, mixed>|null $!data */
-                        |$!data = $!this->raw(${defineObject.simpleName()}::${this.toPhpConstantName()});
+                        |$!data = $!this->raw(self::${this.toPhpConstantName()});
                         |if (is_null($!data)) {
                         |    return null;
                         |}
                         |${if (type.discriminator.isNullOrBlank()) "" else "$!className = ${type.toVrapType().simpleName()}Model::resolveDiscriminatorClass($!data);"}
-                        |$!this->${this.name} = ${if (type.discriminator.isNullOrBlank()) "${this.type.toVrapType().simpleName()}Model" else "$!className"}::of($!data);
+                        |$!this->${this.name} = ${if (type.discriminator.isNullOrBlank()) "${type.toVrapType().simpleName()}Model" else "$!className"}::of($!data);
                     """.trimMargin()
                 }
             is ArrayType ->
@@ -386,7 +481,7 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
                     PhpBaseTypes.dateOnlyType,
                     PhpBaseTypes.dateTimeType -> """
                                 |/** @psalm-var ?array<int, string> $!data */
-                                |$!data = $!this->raw(${defineObject.simpleName()}::${this.toPhpConstantName()});
+                                |$!data = $!this->raw(self::${this.toPhpConstantName()});
                                 |if (is_null($!data)) {
                                 |    return null;
                                 |}
@@ -396,7 +491,7 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
                         if (vrapType.isScalar()) {
                             """
                                 |/** @psalm-var ?array<int, mixed> $!data */
-                                |$!data = $!this->raw(${defineObject.simpleName()}::${this.toPhpConstantName()});
+                                |$!data = $!this->raw(self::${this.toPhpConstantName()});
                                 |if (is_null($!data)) {
                                 |    return null;
                                 |}
@@ -405,11 +500,11 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
                         } else {
                             """
                                 |/** @psalm-var ?array<int, stdClass> $!data */
-                                |$!data = $!this->raw(${defineObject.simpleName()}::${this.toPhpConstantName()});
+                                |$!data = $!this->raw(self::${this.toPhpConstantName()});
                                 |if (is_null($!data)) {
                                 |    return null;
                                 |}
-                                |$!this->${this.name} = ${if (type.items?.isScalar() != true) "${this.type.toVrapType().simpleName()}::fromArray($!data)" else "$!data"};
+                                |$!this->${this.name} = ${if (type.items?.isScalar() != true) "${type.toVrapType().simpleName()}::fromArray($!data)" else "$!data"};
                             """.trimMargin()
                         }
                 }
@@ -417,7 +512,7 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
                 when (vrapType) {
                     is VrapEnumType -> """
                        |/** @psalm-var ?string $!data */
-                       |$!data = $!this->raw(${defineObject.simpleName()}::${this.toPhpConstantName()});
+                       |$!data = $!this->raw(self::${this.toPhpConstantName()});
                        |if (is_null($!data)) {
                        |    return null;
                        |}
@@ -427,7 +522,7 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
                         when (vrapType) {
                             PhpBaseTypes.timeOnlyType -> """
                                |/** @psalm-var ?string $!data */
-                               |$!data = $!this->raw(${defineObject.simpleName()}::${this.toPhpConstantName()});
+                               |$!data = $!this->raw(self::${this.toPhpConstantName()});
                                |if (is_null($!data)) {
                                |    return null;
                                |}
@@ -439,7 +534,7 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
                             """.trimMargin()
                             PhpBaseTypes.dateOnlyType -> """
                                |/** @psalm-var ?string $!data */
-                               |$!data = $!this->raw(${defineObject.simpleName()}::${this.toPhpConstantName()});
+                               |$!data = $!this->raw(self::${this.toPhpConstantName()});
                                |if (is_null($!data)) {
                                |    return null;
                                |}
@@ -451,7 +546,7 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
                             """.trimMargin()
                             else -> """
                                |/** @psalm-var ?string $!data */
-                               |$!data = $!this->raw(${defineObject.simpleName()}::${this.toPhpConstantName()});
+                               |$!data = $!this->raw(self::${this.toPhpConstantName()});
                                |if (is_null($!data)) {
                                |    return null;
                                |}
@@ -464,7 +559,7 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
                         }
                     PhpBaseTypes.integerType ->  """
                        |/** @psalm-var ?int $!data */
-                       |$!data = $!this->raw(${defineObject.simpleName()}::${this.toPhpConstantName()});
+                       |$!data = $!this->raw(self::${this.toPhpConstantName()});
                        |if (is_null($!data)) {
                        |    return null;
                        |}
@@ -472,7 +567,7 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
                     """.trimMargin()
                     PhpBaseTypes.stringType ->  """
                        |/** @psalm-var ?string $!data */
-                       |$!data = $!this->raw(${defineObject.simpleName()}::${this.toPhpConstantName()});
+                       |$!data = $!this->raw(self::${this.toPhpConstantName()});
                        |if (is_null($!data)) {
                        |    return null;
                        |}
@@ -480,7 +575,7 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
                     """.trimMargin()
                     PhpBaseTypes.doubleType ->  """
                        |/** @psalm-var ?float $!data */
-                       |$!data = $!this->raw(${defineObject.simpleName()}::${this.toPhpConstantName()});
+                       |$!data = $!this->raw(self::${this.toPhpConstantName()});
                        |if (is_null($!data)) {
                        |    return null;
                        |}
@@ -488,7 +583,7 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
                     """.trimMargin()
                     PhpBaseTypes.booleanType ->  """
                        |/** @psalm-var ?bool $!data */
-                       |$!data = $!this->raw(${defineObject.simpleName()}::${this.toPhpConstantName()});
+                       |$!data = $!this->raw(self::${this.toPhpConstantName()});
                        |if (is_null($!data)) {
                        |    return null;
                        |}
@@ -497,7 +592,7 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
 
                     else -> """
                         |/** @psalm-var ?stdClass $!data */
-                        |$!data = $!this->raw(${defineObject.simpleName()}::${this.toPhpConstantName()});
+                        |$!data = $!this->raw(self::${this.toPhpConstantName()});
                         |if (is_null($!data)) {
                         |    return null;
                         |}

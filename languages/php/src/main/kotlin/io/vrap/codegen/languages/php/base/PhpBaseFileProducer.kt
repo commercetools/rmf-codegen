@@ -297,10 +297,9 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |             */
                     |            function($!value) {
                     |                return !is_null($!value);
-                    |            },
-                    |            ARRAY_FILTER_USE_BOTH
+                    |            }
                     |        );
-                    |        $!data = array_merge($!this->getRawDataArray(), $!data);
+                    |        $!data = array_replace($!this->getRawDataArray(), $!data);
                     |        return $!data;
                     |    }
                     |}
@@ -391,7 +390,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |     */
                     |    final public static function fromArray(array $!data = [])
                     |    {
-                    |        return static::of((object)$!data);
+                    |        return self::fromStdClass((object)$!data);
                     |    }
                     |
                     |    /**

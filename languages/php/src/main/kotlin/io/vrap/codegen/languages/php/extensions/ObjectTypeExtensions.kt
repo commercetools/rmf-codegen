@@ -5,6 +5,7 @@ import io.vrap.rmf.codegen.di.BasePackageName
 import io.vrap.rmf.codegen.types.*
 import io.vrap.rmf.raml.model.types.ObjectType
 import io.vrap.rmf.raml.model.types.Property
+import io.vrap.rmf.raml.model.types.UnionType
 
 
 interface  ObjectTypeExtensions : ExtensionsBase {
@@ -42,7 +43,12 @@ interface  ObjectTypeExtensions : ExtensionsBase {
     fun ObjectType.getPropertyImports(properties: List<Property>): List<String> {
         val vrapType = vrapTypeProvider.doSwitch(this)
         val result =  properties
-                .map { vrapTypeProvider.doSwitch(it.eContainer()) }
+                .map { it.type }
+                .flatMap { when (it) {
+                    is UnionType -> it.oneOf.map { t -> t }
+                    else -> listOf(it)
+                } }
+                .map { vrapTypeProvider.doSwitch(it) }
                 .filter { s -> when(s) {
                         is VrapObjectType -> true
                         is VrapArrayType -> when (s.itemType) {
@@ -73,6 +79,10 @@ interface  ObjectTypeExtensions : ExtensionsBase {
         val vrapType = vrapTypeProvider.doSwitch(this)
         val result =  properties
                 .map { it.type }
+                .flatMap { when (it) {
+                    is UnionType -> it.oneOf.map { t -> t }
+                    else -> listOf(it)
+                } }
                 //If the subtipes are in the same package they should be imported
                 .plus(this.namedSubTypes())
                 .plus(this.type)
@@ -92,7 +102,7 @@ interface  ObjectTypeExtensions : ExtensionsBase {
                 .map { getImportsForType(it) }
                 .filterNotNull()
                 .filter { !it.equals("\\\\") }
-                .filter { !it.contains("DateTimeImmutableCollection") }
+                .filter { !it.contains("DateTimeImmutableCollection") && !it.contains("DateTimeImmutable") }
                 .sortedBy { it }
                 .distinct()
                 .toList()

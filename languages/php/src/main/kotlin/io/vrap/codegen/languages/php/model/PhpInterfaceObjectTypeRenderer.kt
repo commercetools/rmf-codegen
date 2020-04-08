@@ -14,9 +14,8 @@ import io.vrap.rmf.codegen.rendring.utils.keepAngleIndent
 import io.vrap.rmf.codegen.rendring.utils.keepCurlyIndent
 import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
+import io.vrap.rmf.raml.model.types.*
 import io.vrap.rmf.raml.model.types.Annotation
-import io.vrap.rmf.raml.model.types.ObjectType
-import io.vrap.rmf.raml.model.types.Property
 import io.vrap.rmf.raml.model.util.StringCaseFormat
 
 class PhpInterfaceObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : ObjectTypeExtensions, EObjectTypeExtensions, ObjectTypeRenderer {
@@ -86,7 +85,11 @@ class PhpInterfaceObjectTypeRenderer @Inject constructor(override val vrapTypePr
         """.trimMargin().keepAngleIndent().forcedLiteralEscape()
     }
 
-    private fun ObjectType.imports() = this.getImports().joinToString(separator = "\n") { "use ${it.escapeAll()};" }
+    private fun ObjectType.imports() = this.getImports().map { "use ${it.escapeAll()};" }
+            .plus(this.getPropertyImports(this.properties).map { "use ${it.escapeAll()};" })
+            .distinct()
+            .sorted()
+            .joinToString(separator = "\n")
 
     private fun Property.toPhpConstant(): String {
 
@@ -134,11 +137,15 @@ class PhpInterfaceObjectTypeRenderer @Inject constructor(override val vrapTypePr
     }
 
     private fun Property.getter(): String {
+        val typeName = when(this.type) {
+            is UnionType -> "mixed"
+            else -> this.type.typeName()
+        }
         return """
             |/**${if (this.type.description?.value?.isNotBlank() == true) """
             | {{${this.type.toPhpComment()}}}
             | *""" else ""}
-            | * @return null|${if (this.type.toVrapType().simpleName() != "stdClass") this.type.toVrapType().simpleName() else "JsonObject" }
+            | * @return null|$typeName
             | */
             |public function get${this.name.capitalize()}();
         """.trimMargin().keepCurlyIndent()
@@ -150,4 +157,10 @@ class PhpInterfaceObjectTypeRenderer @Inject constructor(override val vrapTypePr
         else
             this.name
     }
+
+    private fun AnyType.typeNames(): String = when (this) {
+        is UnionType -> this.oneOf.map { it.typeName() }.plus("JsonObject").distinct().sorted().joinToString(separator = "|")
+        else -> this.typeName()
+    }
+    private fun AnyType.typeName(): String = if (this.toVrapType().simpleName() != "stdClass") this.toVrapType().simpleName() else "JsonObject"
 }

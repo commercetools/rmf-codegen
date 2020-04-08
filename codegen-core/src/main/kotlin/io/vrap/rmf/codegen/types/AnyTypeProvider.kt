@@ -25,9 +25,13 @@ class AnyTypeProvider @Inject constructor(val packageProvider: PackageProvider, 
 
     override fun caseNumberType(type: NumberType) : VrapType {
         return when (type.format) {
-            NumberFormat.LONG ->  languageBaseTypes.longType
+            NumberFormat.INT,
+            NumberFormat.INT8,
+            NumberFormat.INT16,
+            NumberFormat.INT32 -> languageBaseTypes.integerType
+            NumberFormat.LONG,
             NumberFormat.INT64 ->  languageBaseTypes.longType
-            else -> languageBaseTypes.integerType
+            else -> languageBaseTypes.doubleType
         }
     }
 
