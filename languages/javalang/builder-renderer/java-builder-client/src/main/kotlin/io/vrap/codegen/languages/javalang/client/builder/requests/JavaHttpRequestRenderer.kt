@@ -38,6 +38,8 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
             |import java.io.InputStream;
             |import java.io.IOException;
             |
+            |import java.nio.file.Files;
+            |
             |import java.util.ArrayList;
             |import java.util.List;
             |import java.util.Map;
@@ -191,7 +193,12 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
             |   httpRequestPath += "?" + String.join("&", params);
             |}
         """.trimMargin().escapeAll()
-        
+        val bodySetter: String = if(bodyName != null){
+            if(this.bodies[0].type.isFile())
+                "try{httpRequest.setBody(Files.readAllBytes(file.toPath()));}catch(Exception e){e.printStackTrace();}"
+            else "try{httpRequest.setBody(VrapJsonUtils.toJsonByteArray($bodyName));}catch(Exception e){e.printStackTrace();}"
+        } else ""
+
         return """
             |public ApiHttpRequest createHttpRequest() {
             |   ApiHttpRequest httpRequest = new ApiHttpRequest();
@@ -199,7 +206,7 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
             |   httpRequest.setRelativeUrl(httpRequestPath); 
             |   httpRequest.setMethod(ApiHttpMethod.${this.method.name});
             |   httpRequest.setHeaders(headers);
-            |   ${if(bodyName != null) "try{httpRequest.setBody(VrapJsonUtils.toJsonByteArray($bodyName));}catch(Exception e){e.printStackTrace();}" else "" }
+            |   $bodySetter
             |   return httpRequest;
             |}
         """.trimMargin()
