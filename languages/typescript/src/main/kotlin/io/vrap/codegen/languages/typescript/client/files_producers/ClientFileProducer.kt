@@ -27,6 +27,7 @@ export type MethodType =
   | "HEAD"
   | "POST"
   | "PUT"
+  | "PATCH"
   | "DELETE"
   | "CONNECT"
   | "OPTIONS"
