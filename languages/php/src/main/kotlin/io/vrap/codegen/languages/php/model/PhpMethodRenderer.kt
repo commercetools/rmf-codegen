@@ -56,8 +56,10 @@ class PhpMethodRenderer @Inject constructor(override val vrapTypeProvider: VrapT
             |namespace ${clientPackageName.toNamespaceName().escapeAll()}\\$resourcePackage;
             |
             |use GuzzleHttp\\ClientInterface;
+            |use GuzzleHttp\\Exception\\RequestException;
             |use GuzzleHttp\\Exception\\ServerException;
             |use GuzzleHttp\\Exception\\ClientException;
+            |use GuzzleHttp\\Promise\\PromiseInterface;
             |use ${sharedPackageName.toNamespaceName().escapeAll()}\\Exception\\InvalidArgumentException;
             |use ${sharedPackageName.toNamespaceName().escapeAll()}\\Exception\\ApiServerException;
             |use ${sharedPackageName.toNamespaceName().escapeAll()}\\Exception\\ApiClientException;
@@ -128,6 +130,32 @@ class PhpMethodRenderer @Inject constructor(override val vrapTypeProvider: VrapT
             |        }
             |
             |        return $!this->mapFromResponse($!response, $!resultType);
+            |    }
+            |
+            |    /**
+            |     * @template T of JsonObject
+            |     * @psalm-param ?class-string<T> $!resultType
+            |     *
+            |     * @return PromiseInterface
+            |     */
+            |    public function executeAsync(array $!options = [], string $!resultType = null)
+            |    {
+            |        return $!this->sendAsync($!options)->then(
+            |            function(ResponseInterface $!response) use ($!resultType) {
+            |                return $!this->mapFromResponse($!response, $!resultType);
+            |            },
+            |            function (RequestException $!e) {
+            |                if ($!e instanceof ServerException) {
+            |                    $!result = $!this->mapFromResponse($!e->getResponse());
+            |                    throw new ApiServerException($!e->getMessage(), $!result, $!this, $!e->getResponse(), $!e, []);
+            |                }
+            |                if ($!e instanceof ClientException) {
+            |                    $!result = $!this->mapFromResponse($!e->getResponse());
+            |                    throw new ApiClientException($!e->getMessage(), $!result, $!this, $!e->getResponse(), $!e, []);
+            |                }
+            |                throw $!e;
+            |            }
+            |        );
             |    }
             |
             |    <<${type.queryParameters.joinToString("\n\n") { it.withParam(type) }}>>
