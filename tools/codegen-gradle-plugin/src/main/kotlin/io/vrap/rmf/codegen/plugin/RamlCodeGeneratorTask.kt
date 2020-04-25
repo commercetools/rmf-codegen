@@ -101,12 +101,12 @@ open class RamlCodeGeneratorTask : DefaultTask() {
                 GeneratorComponent(generatorModule, JoiModule)
             }
             TargetType.TS_CLIENT_COMPLETE -> {
-                val generatorModule = GeneratorModule(apiProvider, generatorConfig, JoiBaseTypes)
+                val generatorModule = GeneratorModule(apiProvider, generatorConfig, TypeScriptBaseTypes)
                 GeneratorComponent(generatorModule, TypescriptModelModule, TypescriptClientModule)
             }
             TargetType.TS_SERVER_COMPLETE -> {
-                val generatorModule = GeneratorModule(apiProvider, generatorConfig, JoiBaseTypes)
-                GeneratorComponent(generatorModule, TypescriptModelModule,JoiModule, TypescriptServerModule)
+                val generatorModule = GeneratorModule(apiProvider, generatorConfig, TypeScriptBaseTypes)
+                GeneratorComponent(generatorModule, TypescriptModelModule, JoiModule, TypescriptServerModule)
             }
 
             else -> throw IllegalArgumentException("unsupported target value '${target.target}', allowed values is one of ${TargetType.values().toList()}")
