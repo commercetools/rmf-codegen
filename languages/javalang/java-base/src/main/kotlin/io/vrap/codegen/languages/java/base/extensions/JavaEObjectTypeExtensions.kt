@@ -4,6 +4,7 @@ import io.vrap.codegen.languages.java.base.ExtensionsBase
 import io.vrap.rmf.codegen.types.VrapNilType
 import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapType
+import io.vrap.rmf.raml.model.types.FileType
 import org.eclipse.emf.ecore.EObject
 
 interface JavaEObjectTypeExtensions : ExtensionsBase {
@@ -16,3 +17,4 @@ interface JavaEObjectTypeExtensions : ExtensionsBase {
 
     }
 }
+fun EObject?.isFile(): Boolean = this is FileType
