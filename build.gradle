@@ -80,9 +80,9 @@ subprojects { project ->
     repositories {
         mavenCentral()
         jcenter()
-        maven {
-            url "https://mcculls.github.io/guice-betas/maven2"
-        }
+//        maven {
+//            url "https://mcculls.github.io/guice-betas/maven2"
+//        }
     }
 
     apply plugin: 'idea'
