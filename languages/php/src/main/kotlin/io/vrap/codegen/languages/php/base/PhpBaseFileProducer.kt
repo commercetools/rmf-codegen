@@ -52,7 +52,9 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
             resultMapper(),
             token(),
             tokenModel(),
-            tokenProvider()
+            tokenProvider(),
+            correlationIdProvider(),
+            defaultCorrelationIdProvider()
     )
 
     private fun collection(): TemplateFile {
@@ -65,6 +67,43 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |
                     |interface Collection
                     |{
+                    |}
+                """.trimMargin()
+        )
+    }
+
+    private fun correlationIdProvider(): TemplateFile {
+        return TemplateFile(relativePath = "src/Client/CorrelationIdProvider.php",
+                content = """
+                    |<?php
+                    |${PhpSubTemplates.generatorInfo}
+                    |
+                    |namespace ${packagePrefix.toNamespaceName()}\Client;
+                    |
+                    |interface CorrelationIdProvider
+                    |{
+                    |    public function getCorrelationId(): string;
+                    |}
+                """.trimMargin()
+        )
+    }
+
+    private fun defaultCorrelationIdProvider(): TemplateFile {
+        return TemplateFile(relativePath = "src/Client/DefaultCorrelationIdProvider.php",
+                content = """
+                    |<?php
+                    |${PhpSubTemplates.generatorInfo}
+                    |
+                    |namespace ${packagePrefix.toNamespaceName()}\Client;
+                    |
+                    |use Ramsey\Uuid\Uuid;
+                    |
+                    |class DefaultCorrelationIdProvider implements CorrelationIdProvider
+                    |{
+                    |    public function getCorrelationId(): string
+                    |    {
+                    |        return Uuid::uuid4()->toString();
+                    |    }
                     |}
                 """.trimMargin()
         )
@@ -638,7 +677,8 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |    "psr/log": "^1.0",
                     |    "psr/http-client": "^1.0",
                     |    "psr/http-message": "^1.0",
-                    |    "cache/filesystem-adapter": "^1.0"
+                    |    "cache/filesystem-adapter": "^1.0",
+                    |    "ramsey/uuid": "^4.0"
                     |  },
                     |  "require-dev": {
                     |    "monolog/monolog": "^1.3",
@@ -2387,7 +2427,8 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |    public static function createDefaultMiddlewares(
                     |        ?OAuth2Handler $!handler = null,
                     |        ?LoggerInterface $!logger = null,
-                    |        int $!maxRetries = 0
+                    |        int $!maxRetries = 0,
+                    |        ?CorrelationIdProvider $!correlationIdProvider = null
                     |    ) {
                     |        $!middlewares = [];
                     |        if (!is_null($!handler)) {
@@ -2400,8 +2441,23 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |        if ($!maxRetries > 0) {
                     |            $!middlewares['retryNA'] = self::createRetryNAMiddleware($!maxRetries);
                     |        }
+                    |        $!middlewares['correlation_id'] = self::createCorrelationIdMiddleware($!correlationIdProvider ?? new DefaultCorrelationIdProvider());
                     |        
                     |        return $!middlewares;
+                    |    }
+                    |
+                    |    /**
+                    |     * @psalm-return callable
+                    |     */
+                    |    public static function createCorrelationIdMiddleware(CorrelationIdProvider $!correlationIdProvider)
+                    |    {
+                    |       return Middleware::mapRequest(
+                    |           function (RequestInterface $!request) use ($!correlationIdProvider) {
+                    |               return $!request->withAddedHeader(
+                    |                    'X_CORRELATION_ID',
+                    |                    $!correlationIdProvider->getCorrelationId()
+                    |                );
+                    |            });
                     |    }
                     |
                     |    /**
