@@ -54,7 +54,17 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
             tokenModel(),
             tokenProvider(),
             correlationIdProvider(),
-            defaultCorrelationIdProvider()
+            defaultCorrelationIdProvider(),
+            exceptionFactory(),
+            badGatewayException(),
+            badRequestException(),
+            concurrentModificationException(),
+            forbiddenException(),
+            gatewayTimeoutException(),
+            internalServerErrorException(),
+            notFoundException(),
+            serviceUnavailableException(),
+            unauthorizedException()
     )
 
     private fun collection(): TemplateFile {
@@ -557,8 +567,8 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |     */
                     |    public function createGuzzleClientForMiddlewares(
                     |       Config $!config,
-                    |       array $!middlewares = []): ClientInterface
-                    |    {
+                    |       array $!middlewares = []
+                    |    ): ClientInterface {
                     |        return $!this->createGuzzleClientWithOptions($!config->getOptions(), $!middlewares);
                     |    }
                     |
@@ -916,6 +926,63 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                 """.trimMargin().forcedLiteralEscape())
     }
 
+
+    private fun internalServerErrorException(): TemplateFile {
+        return TemplateFile(relativePath = "src/Exception/InternalServerErrorException.php",
+                content = """
+                    |<?php
+                    |${PhpSubTemplates.generatorInfo}
+                    |
+                    |namespace ${packagePrefix.toNamespaceName()}\Exception;
+                    |
+                    |class InternalServerErrorException extends ApiServerException
+                    |{
+                    |}
+                """.trimMargin())
+    }
+
+    private fun badGatewayException(): TemplateFile {
+        return TemplateFile(relativePath = "src/Exception/BadGatewayException.php",
+                content = """
+                    |<?php
+                    |${PhpSubTemplates.generatorInfo}
+                    |
+                    |namespace ${packagePrefix.toNamespaceName()}\Exception;
+                    |
+                    |class BadGatewayException extends ApiServerException
+                    |{
+                    |}
+                """.trimMargin())
+    }
+
+    private fun gatewayTimeoutException(): TemplateFile {
+        return TemplateFile(relativePath = "src/Exception/GatewayTimeoutException.php",
+                content = """
+                    |<?php
+                    |${PhpSubTemplates.generatorInfo}
+                    |
+                    |namespace ${packagePrefix.toNamespaceName()}\Exception;
+                    |
+                    |class GatewayTimeoutException extends ApiServerException
+                    |{
+                    |}
+                """.trimMargin())
+    }
+
+    private fun serviceUnavailableException(): TemplateFile {
+        return TemplateFile(relativePath = "src/Exception/ServiceUnavailableException.php",
+                content = """
+                    |<?php
+                    |${PhpSubTemplates.generatorInfo}
+                    |
+                    |namespace ${packagePrefix.toNamespaceName()}\Exception;
+                    |
+                    |class ServiceUnavailableException extends ApiServerException
+                    |{
+                    |}
+                """.trimMargin())
+    }
+
     private fun apiClientException(): TemplateFile {
         return TemplateFile(relativePath = "src/Exception/ApiClientException.php",
                 content = """
@@ -953,6 +1020,155 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |    public function getResult()
                     |    {
                     |        return $!this->result;
+                    |    }
+                    |}
+                """.trimMargin().forcedLiteralEscape())
+    }
+
+    private fun unauthorizedException(): TemplateFile {
+        return TemplateFile(relativePath = "src/Exception/UnauthorizedException.php",
+                content = """
+                    |<?php
+                    |${PhpSubTemplates.generatorInfo}
+                    |
+                    |namespace ${packagePrefix.toNamespaceName()}\Exception;
+                    |
+                    |class UnauthorizedException extends ApiClientException
+                    |{
+                    |}
+                """.trimMargin())
+    }
+
+    private fun forbiddenException(): TemplateFile {
+        return TemplateFile(relativePath = "src/Exception/ForbiddenException.php",
+                content = """
+                    |<?php
+                    |${PhpSubTemplates.generatorInfo}
+                    |
+                    |namespace ${packagePrefix.toNamespaceName()}\Exception;
+                    |
+                    |class ForbiddenException extends ApiClientException
+                    |{
+                    |}
+                """.trimMargin())
+    }
+
+    private fun concurrentModificationException(): TemplateFile {
+        return TemplateFile(relativePath = "src/Exception/ConcurrentModificationException.php",
+                content = """
+                    |<?php
+                    |${PhpSubTemplates.generatorInfo}
+                    |
+                    |namespace ${packagePrefix.toNamespaceName()}\Exception;
+                    |
+                    |class ConcurrentModificationException extends ApiClientException
+                    |{
+                    |}
+                """.trimMargin())
+    }
+
+    private fun notFoundException(): TemplateFile {
+        return TemplateFile(relativePath = "src/Exception/NotFoundException.php",
+                content = """
+                    |<?php
+                    |${PhpSubTemplates.generatorInfo}
+                    |
+                    |namespace ${packagePrefix.toNamespaceName()}\Exception;
+                    |
+                    |class NotFoundException extends ApiClientException
+                    |{
+                    |}
+                """.trimMargin())
+    }
+
+    private fun badRequestException(): TemplateFile {
+        return TemplateFile(relativePath = "src/Exception/BadRequestException.php",
+                content = """
+                    |<?php
+                    |${PhpSubTemplates.generatorInfo}
+                    |
+                    |namespace ${packagePrefix.toNamespaceName()}\Exception;
+                    |
+                    |class BadRequestException extends ApiClientException
+                    |{
+                    |}
+                """.trimMargin())
+    }
+
+    private fun exceptionFactory(): TemplateFile {
+        return TemplateFile(relativePath = "src/Exception/ExceptionFactory.php",
+                content = """
+                    |<?php
+                    |${PhpSubTemplates.generatorInfo}
+                    |
+                    |namespace ${packagePrefix.toNamespaceName()}\Exception;
+                    |
+                    |use ${packagePrefix.toNamespaceName()}\Base\JsonObject;
+                    |use ${packagePrefix.toNamespaceName()}\Client\ApiRequest;
+                    |use Psr\Http\Message\ResponseInterface;
+                    |use GuzzleHttp\Exception\ClientException;
+                    |use GuzzleHttp\Exception\ServerException;
+                    |
+                    |class ExceptionFactory
+                    |{
+                    |    public static function createServerException(
+                    |        ServerException $!e,
+                    |        ApiRequest $!request,
+                    |        ?ResponseInterface $!response,
+                    |        ?JsonObject $!result
+                    |    ) : ApiServerException {
+                    |        if (is_null($!response)) {
+                    |            $!message = 'Error completing request: ' . $!e->getMessage();
+                    |            return new ApiServerException($!message, null, $!request, $!response, $!e, []);
+                    |        }
+                    |
+                    |        $!message = 'Server error response [url] ' . (string)$!request->getUri()
+                    |             . ' [status code] ' . (string)$!response->getStatusCode()
+                    |             . ' [reason phrase] ' . $!response->getReasonPhrase();
+                    |
+                    |        switch ($!response->getStatusCode()) {
+                    |            case 500:
+                    |                return new InternalServerErrorException($!message, $!result, $!request, $!response, $!e, []);
+                    |            case 502:
+                    |                return new BadGatewayException($!message, $!result, $!request, $!response, $!e, []);
+                    |            case 503:
+                    |                return new ServiceUnavailableException($!message, $!result, $!request, $!response, $!e, []);
+                    |            case 504:
+                    |                return new GatewayTimeoutException($!message, $!result, $!request, $!response, $!e, []);
+                    |        }
+                    |
+                    |        return new ApiServerException($!message, $!result, $!request, $!response, $!e, []);
+                    |    }
+                    |
+                    |    public static function createClientException(
+                    |        ClientException $!e,
+                    |        ApiRequest $!request,
+                    |        ?ResponseInterface $!response,
+                    |        ?JsonObject $!result
+                    |    ) : ApiClientException {
+                    |        if (is_null($!response)) {
+                    |            $!message = 'Error completing request: ' . $!e->getMessage();
+                    |            return new ApiClientException($!message, null, $!request, $!response, $!e, []);
+                    |        }
+                    |
+                    |        $!message = 'Client error response [url] ' . (string)$!request->getUri()
+                    |             . ' [status code] ' . (string)$!response->getStatusCode()
+                    |             . ' [reason phrase] ' . $!response->getReasonPhrase();
+                    |
+                    |        switch ($!response->getStatusCode()) {
+                    |            case 400:
+                    |                return new BadRequestException($!message, $!result, $!request, $!response, $!e, []);
+                    |            case 401:
+                    |                return new UnauthorizedException($!message, $!result, $!request, $!response, $!e, []);
+                    |            case 403:
+                    |                return new ForbiddenException($!message, $!result, $!request, $!response, $!e, []);
+                    |            case 404:
+                    |                return new NotFoundException($!message, $!result, $!request, $!response, $!e, []);
+                    |            case 409:
+                    |                return new ConcurrentModificationException($!message, $!result, $!request, $!response, $!e, []);
+                    |        }
+                    |
+                    |        return new ApiClientException($!message, $!result, $!request, $!response, $!e, []);
                     |    }
                     |}
                 """.trimMargin().forcedLiteralEscape())
@@ -2451,13 +2667,14 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |     */
                     |    public static function createCorrelationIdMiddleware(CorrelationIdProvider $!correlationIdProvider)
                     |    {
-                    |       return Middleware::mapRequest(
-                    |           function (RequestInterface $!request) use ($!correlationIdProvider) {
-                    |               return $!request->withAddedHeader(
+                    |        return Middleware::mapRequest(
+                    |            function (RequestInterface $!request) use ($!correlationIdProvider) {
+                    |                return $!request->withAddedHeader(
                     |                    'X_CORRELATION_ID',
                     |                    $!correlationIdProvider->getCorrelationId()
                     |                );
-                    |            });
+                    |            }
+                    |        );
                     |    }
                     |
                     |    /**

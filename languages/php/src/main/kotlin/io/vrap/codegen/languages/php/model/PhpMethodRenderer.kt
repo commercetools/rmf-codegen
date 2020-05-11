@@ -60,6 +60,7 @@ class PhpMethodRenderer @Inject constructor(override val vrapTypeProvider: VrapT
             |use GuzzleHttp\\Exception\\ServerException;
             |use GuzzleHttp\\Exception\\ClientException;
             |use GuzzleHttp\\Promise\\PromiseInterface;
+            |use ${sharedPackageName.toNamespaceName().escapeAll()}\\Exception\\ExceptionFactory;
             |use ${sharedPackageName.toNamespaceName().escapeAll()}\\Exception\\InvalidArgumentException;
             |use ${sharedPackageName.toNamespaceName().escapeAll()}\\Exception\\ApiServerException;
             |use ${sharedPackageName.toNamespaceName().escapeAll()}\\Exception\\ApiClientException;
@@ -120,13 +121,13 @@ class PhpMethodRenderer @Inject constructor(override val vrapTypeProvider: VrapT
             |        try {
             |            $!response = $!this->send($!options);
             |        } catch (ServerException $!e) {
-            |            $!result = $!this->mapFromResponse($!e->getResponse());
-            |
-            |            throw new ApiServerException($!e->getMessage(), $!result, $!this, $!e->getResponse(), $!e, []);
+            |            $!response = $!e->getResponse();
+            |            $!e = ExceptionFactory::createServerException($!e, $!this, $!response, $!this->mapFromResponse($!response, $!resultType));
+            |            throw $!e;
             |        } catch (ClientException $!e) {
-            |            $!result = $!this->mapFromResponse($!e->getResponse());
-            |
-            |            throw new ApiClientException($!e->getMessage(), $!result, $!this, $!e->getResponse(), $!e, []);
+            |            $!response = $!e->getResponse();
+            |            $!e = ExceptionFactory::createClientException($!e, $!this, $!response, $!this->mapFromResponse($!response, $!resultType));
+            |            throw $!e;
             |        }
             |
             |        return $!this->mapFromResponse($!response, $!resultType);
@@ -144,14 +145,13 @@ class PhpMethodRenderer @Inject constructor(override val vrapTypeProvider: VrapT
             |            function(ResponseInterface $!response) use ($!resultType) {
             |                return $!this->mapFromResponse($!response, $!resultType);
             |            },
-            |            function (RequestException $!e) {
+            |            function (RequestException $!e) use ($!resultType) {
+            |                $!response = $!e->getResponse();
             |                if ($!e instanceof ServerException) {
-            |                    $!result = $!this->mapFromResponse($!e->getResponse());
-            |                    throw new ApiServerException($!e->getMessage(), $!result, $!this, $!e->getResponse(), $!e, []);
+            |                    $!e = ExceptionFactory::createServerException($!e, $!this, $!response, $!this->mapFromResponse($!response, $!resultType));
             |                }
             |                if ($!e instanceof ClientException) {
-            |                    $!result = $!this->mapFromResponse($!e->getResponse());
-            |                    throw new ApiClientException($!e->getMessage(), $!result, $!this, $!e->getResponse(), $!e, []);
+            |                    $!e = ExceptionFactory::createClientException($!e, $!this, $!response, $!this->mapFromResponse($!response, $!resultType));
             |                }
             |                throw $!e;
             |            }
