@@ -53,9 +53,9 @@ class PhpInterfaceObjectTypeRenderer @Inject constructor(override val vrapTypePr
             |${PhpSubTemplates.generatorInfo}
             |namespace ${vrapType.namespaceName().escapeAll()};
             |
-            |use ${sharedPackageName.toNamespaceName().escapeAll()}\\Base\\Collection;
+            |use ${sharedPackageName.toNamespaceName().escapeAll()}\\Base\\CMap;
             |
-            |interface ${vrapType.simpleClassName} extends Collection
+            |interface ${vrapType.simpleClassName} extends CMap
             |{
             |}
         """.trimMargin().keepAngleIndent().forcedLiteralEscape()
