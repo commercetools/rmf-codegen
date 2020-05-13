@@ -1478,7 +1478,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     | * @template TObject
                     | * @template TRaw
                     | */
-                    |interface CSequence extends Collection
+                    |interface CSequence extends Collection, \ArrayAccess, \JsonSerializable, \IteratorAggregate
                     |{
                     |    public function toArray(): ?array;
                     |    
@@ -1574,7 +1574,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     | * @template TObject
                     | * @implements CSequence<TObject, stdClass>
                     | */
-                    |abstract class MapperSequence implements CSequence, \ArrayAccess, \JsonSerializable, \IteratorAggregate
+                    |abstract class MapperSequence implements CSequence
                     |{
                     |    /** @psalm-var ?array<int, TObject|stdClass> */
                     |    private $!data;
@@ -1813,7 +1813,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     | * @template TScalar
                     | * @implements CSequence<TScalar, scalar>
                     | */
-                    |abstract class MapperScalarSequence implements CSequence, \ArrayAccess, \JsonSerializable, \IteratorAggregate
+                    |abstract class MapperScalarSequence implements CSequence
                     |{
                     |    /** @psalm-var ?array<int, TScalar|scalar> */
                     |    private $!data;
@@ -2048,7 +2048,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |/**
                     | * @template TObject
                     | */
-                    |interface CMap extends Collection
+                    |interface CMap extends Collection, \ArrayAccess, \JsonSerializable, \IteratorAggregate
                     |{
                     |    /**
                     |     * @template T
@@ -2162,7 +2162,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     | * @template TObject
                     | * @implements CMap<TObject>
                     | */
-                    |abstract class MapperMap implements CMap, \ArrayAccess, \JsonSerializable, \IteratorAggregate
+                    |abstract class MapperMap implements CMap
                     |{
                     |    /** @psalm-var ?array<string, TObject|stdClass> */
                     |    private $!data;
