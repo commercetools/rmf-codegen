@@ -658,10 +658,11 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
     }
 
     private fun composerJson(): TemplateFile {
+        val vendorName = packagePrefix.toLowerCase()
         return TemplateFile(relativePath = "composer.json",
                 content = """
                     |{
-                    |  "name": "${packagePrefix.toLowerCase()}/spec-base",
+                    |  "name": "$vendorName/$vendorName-sdk-base",
                     |  "license": "MIT",
                     |  "type": "library",
                     |  "description": "",
