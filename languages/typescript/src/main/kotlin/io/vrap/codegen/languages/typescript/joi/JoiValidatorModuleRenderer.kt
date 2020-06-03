@@ -100,7 +100,7 @@ class JoiValidatorModuleRenderer @Inject constructor(override val vrapTypeProvid
                 .joinToString(separator = ",\n")
         val patternProperties = this.allProperties
                 .filter { it.isPatternProperty() }
-                .map { ".pattern(new RegExp('${it.name}'), ${it.type.toVrapType().simpleJoiName()}())" }
+                .map { ".pattern(${it.name}', ${it.type.toVrapType().simpleJoiName()}())" }
                 .joinToString(separator = "\n")
 
         val additionalProperties = this.additionalProperties?:true
