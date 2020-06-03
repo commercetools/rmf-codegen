@@ -167,7 +167,7 @@ class JoiValidatorModuleRenderer @Inject constructor(override val vrapTypeProvid
 
     fun Property.isPatternProperty() = this.name.startsWith("/") && this.name.endsWith("/")
 
-    fun Property.asRegExp() = if (this.name.equals("//")) "/.*/" else this.name // TODO katmatt: check RAML spec what // actually means
+    fun Property.asRegExp() = if (this.name.equals("//")) "/.*/" else this.name
 
     /**
      * in typescript optional properties should come after required ones
