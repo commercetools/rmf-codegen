@@ -1,5 +1,6 @@
 package io.vrap.codegen.languages.postman.model
 
+import com.hypertino.inflector.English
 import io.vrap.rmf.raml.model.modules.Api
 import io.vrap.rmf.raml.model.security.OAuth20Settings
 import org.apache.commons.lang3.StringEscapeUtils
@@ -19,4 +20,8 @@ fun Api.oAuth2(): OAuth20Settings {
             .filter { securityScheme -> securityScheme.settings is OAuth20Settings }
             .map { securityScheme -> securityScheme.settings as OAuth20Settings }
             .findFirst().orElse(null)
+}
+
+fun String.singularize(): String {
+    return English.singular(this)
 }

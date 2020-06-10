@@ -20,7 +20,6 @@ import io.vrap.rmf.raml.model.modules.Api
 import io.vrap.rmf.raml.model.resources.HttpMethod
 import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Resource
-import io.vrap.rmf.raml.model.security.OAuth20Settings
 import io.vrap.rmf.raml.model.types.*
 import io.vrap.rmf.raml.model.util.StringCaseFormat
 import org.apache.commons.lang3.StringEscapeUtils
@@ -235,12 +234,12 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
             |            "raw": ""
             |        },
             |        "url": {
-            |            "raw": "{{host}}${item.resource.fullUri.template.replace("{", "{{").replace("}", "}}")}",
+            |            "raw": "{{host}}${item.toPostmanPath()}",
             |            "host": [
             |                "{{host}}"
             |            ],
             |            "path": [
-            |                <<"${item.resource.fullUri.template.replace("{", "{{").replace("}", "}}").trim('/').split("/").joinToString("\",\n\"")}">>
+            |                <<"${item.toPostmanPath().trim('/').split("/").joinToString("\",\n\"")}">>
             |            ],
             |            "query": [
             |                <<${if (item.queryParameters.isNotEmpty()) item.queryParameters.joinToString(",\n") { it.queryParam() } else ""}>>
@@ -283,12 +282,12 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
             |            "raw": "${if (item.getExample().isNullOrEmpty().not()) item.getExample()!!.escapeJson() else ""}"
             |        },
             |        "url": {
-            |            "raw": "{{host}}${item.resource.fullUri.template.replace("{", "{{").replace("}", "}}")}",
+            |            "raw": "{{host}}${item.toPostmanPath()}",
             |            "host": [
             |                "{{host}}"
             |            ],
             |            "path": [
-            |                <<"${item.resource.fullUri.template.replace("{", "{{").replace("}", "}}").trim('/').split("/").joinToString("\",\n\"")}">>
+            |                <<"${item.toPostmanPath().trim('/').split("/").joinToString("\",\n\"")}">>
             |            ],
             |            "query": [
             |                <<${if (item.queryParameters.isNotEmpty()) item.queryParameters.joinToString(",\n") { it.queryParam() } else ""}>>
@@ -340,16 +339,16 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
             |        },
             |        "url": {
             |            ${if (param.isNotEmpty()) """
-                            "raw": "{{host}}${item.resource.fullUri.template.replace("{", "{{").replace("}", "}}")}/${param}={{${item.resource.resourcePathName.singularize()}-${param}}}",
+                            "raw": "{{host}}${item.toPostmanPath()}/${param}={{${item.singularName()}-${param}}}",
                             """.trimIndent() else """
-                            "raw": "{{host}}${item.resource.fullUri.template.replace("{", "{{").replace("}", "}}")}/{{${item.resource.resourcePathName.singularize()}-id}}",
+                            "raw": "{{host}}${item.toPostmanPath()}/{{${item.singularName()}-id}}",
                             """.trimIndent()}
             |            "host": [
             |                "{{host}}"
             |            ],
             |            "path": [
-            |                <<"${item.resource.fullUri.template.replace("{", "{{").replace("}", "}}").trim('/').split("/").joinToString("\",\n\"")}">>,
-            |                "${if (param.isNotEmpty()) "${param}={{${item.resource.resourcePathName.singularize()}-${param}}}" else "{{${item.resource.resourcePathName.singularize()}-id}}"}"
+            |                <<"${item.toPostmanPath().trim('/').split("/").joinToString("\",\n\"")}">>,
+            |                "${if (param.isNotEmpty()) "${param}={{${item.singularName()}-${param}}}" else "{{${item.singularName()}-id}}"}"
             |            ],
             |            "query": [
             |                <<${if (item.queryParameters.isNotEmpty()) item.queryParameters.joinToString(",\n") { it.queryParam() } else ""}>>
@@ -361,7 +360,7 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
             |}
         """.trimMargin()
     }
-
+    
     private fun updateByID(item: ItemGenModel): String {
         return updateByParam(item, "", true)
     }
@@ -399,23 +398,23 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
             |            "mode": "raw",
             |            "raw": "${if (item.getExample().isNullOrEmpty().not()) item.getExample()?.escapeAll() else """
                             |{
-                            |    "version": {{${item.resource.resourcePathName.singularize()}-version}},
+                            |    "version": {{${item.singularName()}-version}},
                             |    "actions": []
                             |}
                             """.trimMargin().escapeJson().escapeAll()}"
             |        },
             |        "url": {
             |            ${if (param.isNotEmpty()) """
-                            "raw": "{{host}}${item.resource.fullUri.template.replace("{", "{{").replace("}", "}}")}/${param}={{${item.resource.resourcePathName.singularize()}-${param}}}",
+                            "raw": "{{host}}${item.toPostmanPath()}/${param}={{${item.singularName()}-${param}}}",
                             """.trimIndent() else """
-                            "raw": "{{host}}${item.resource.fullUri.template.replace("{", "{{").replace("}", "}}")}/{{${item.resource.resourcePathName.singularize()}-id}}",
+                            "raw": "{{host}}${item.toPostmanPath()}/{{${item.singularName()}-id}}",
                             """.trimIndent()}
             |            "host": [
             |                "{{host}}"
             |            ],
             |            "path": [
-            |                <<"${item.resource.fullUri.template.replace("{", "{{").replace("}", "}}").trim('/').split("/").joinToString("\",\n\"")}">>,
-            |                "${if (param.isNotEmpty()) "${param}={{${item.resource.resourcePathName.singularize()}-${param}}}" else "{{${item.resource.resourcePathName.singularize()}-id}}"}"
+            |                <<"${item.toPostmanPath().trim('/').split("/").joinToString("\",\n\"")}">>,
+            |                "${if (param.isNotEmpty()) "${param}={{${item.singularName()}-${param}}}" else "{{${item.singularName()}-id}}"}"
             |            ],
             |            "query": [
             |                <<${if (item.queryParameters.isNotEmpty()) item.queryParameters.joinToString(",\n") { it.queryParam() } else ""}>>
@@ -467,16 +466,16 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
             |        },
             |        "url": {
             |            ${if (param.isNotEmpty()) """
-                            "raw": "{{host}}${item.resource.fullUri.template.replace("{", "{{").replace("}", "}}")}/${param}={{${item.resource.resourcePathName.singularize()}-${param}}}",
+                            "raw": "{{host}}${item.toPostmanPath()}/${param}={{${item.singularName()}-${param}}}",
                             """.trimIndent() else """
-                            "raw": "{{host}}${item.resource.fullUri.template.replace("{", "{{").replace("}", "}}")}/{{${item.resource.resourcePathName.singularize()}-id}}",
+                            "raw": "{{host}}${item.toPostmanPath()}/{{${item.singularName()}-id}}",
                             """.trimIndent()}
             |            "host": [
             |                "{{host}}"
             |            ],
             |            "path": [
-            |                <<"${item.resource.fullUri.template.replace("{", "{{").replace("}", "}}").trim('/').split("/").joinToString("\",\n\"")}">>,
-            |                "${if (param.isNotEmpty()) "${param}={{${item.resource.resourcePathName.singularize()}-${param}}}" else "{{${item.resource.resourcePathName.singularize()}-id}}"}"
+            |                <<"${item.toPostmanPath().trim('/').split("/").joinToString("\",\n\"")}">>,
+            |                "${if (param.isNotEmpty()) "${param}={{${item.singularName()}-${param}}}" else "{{${item.singularName()}-id}}"}"
             |            ],
             |            "query": [
             |                <<${if (item.queryParameters.isNotEmpty()) item.queryParameters.joinToString(",\n") { it.queryParam() } else ""}>>
@@ -492,7 +491,7 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
     private fun actionExample(item: ActionGenModel): String {
         return """
             |{
-            |    "version": {{${item.resource.resourcePathName.singularize()}-version}},
+            |    "version": {{${item.singularName()}-version}},
             |    "actions": [
             |        <<${if (item.getExample().isNullOrEmpty().not()) item.getExample() else """
             |        |{
@@ -560,13 +559,13 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
                 |            }
                 |        ],
                 |        "url": {
-                |            "raw": "{{host}}${item.resource.fullUri.template.replace("{", "{{").replace("}", "}}")}/{{${item.resource.resourcePathName.singularize()}-id}}",
+                |            "raw": "{{host}}${item.toPostmanPath()}/{{${item.singularName()}-id}}",
                 |            "host": [
                 |                "{{host}}"
                 |            ],
                 |            "path": [
-                |                <<"${item.resource.fullUri.template.replace("{", "{{").replace("}", "}}").trim('/').split("/").joinToString("\",\n\"")}">>,
-                |                "{{${item.resource.resourcePathName.singularize()}-id}}"
+                |                <<"${item.toPostmanPath().trim('/').split("/").joinToString("\",\n\"")}">>,
+                |                "{{${item.singularName()}-id}}"
                 |            ],
                 |            "query": [
                 |                <<${if (item.queryParameters.isNotEmpty()) item.queryParameters.joinToString(",\n") { it.queryParam() } else ""}>>
@@ -859,10 +858,6 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
         return this.resource.description?.value
     }
 
-    fun String.singularize(): String {
-        return English.singular(this)
-    }
-
     class ActionGenModel(val type: ObjectType, resource: Resource, template: KFunction1<ItemGenModel, String>, method: Method) : ItemGenModel(resource, template, method) {
         val testScript: String?
         private val example: String?
@@ -910,7 +905,6 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
             }
         }
 
-
         override fun getExample(): String? {
             return example
         }
@@ -949,6 +943,14 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
                     getOrNull(0)?.
                     value
             return StringEscapeUtils.escapeJson(s?.toJson())
+        }
+
+        fun toPostmanPath(): String {
+            return resource.fullUri.template.replace("{", "{{").replace("}", "}}")
+        }
+        
+        fun singularName(): String {
+            return resource.resourcePathName.singularize()
         }
     }
 
@@ -1016,25 +1018,4 @@ fun Instance.toJson(): String {
     }
 
     return example
-}
-
-class InstanceSerializer @JvmOverloads constructor(t: Class<Instance>? = null) : StdSerializer<Instance>(t) {
-
-    @Throws(IOException::class)
-    override fun serialize(value: Instance, gen: JsonGenerator, provider: SerializerProvider) {
-        gen.writeObject(value.value)
-    }
-}
-
-class ObjectInstanceSerializer @JvmOverloads constructor(t: Class<ObjectInstance>? = null) : StdSerializer<ObjectInstance>(t) {
-
-    @Throws(IOException::class)
-    override fun serialize(value: ObjectInstance, gen: JsonGenerator, provider: SerializerProvider) {
-        val properties = value.value
-        gen.writeStartObject()
-        for (v in properties) {
-            gen.writeObjectField(v.name, v.value)
-        }
-        gen.writeEndObject()
-    }
 }
