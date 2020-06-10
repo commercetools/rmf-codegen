@@ -8,9 +8,9 @@ import org.apache.commons.lang3.StringEscapeUtils
 import java.util.*
 import kotlin.reflect.KFunction1
 
-open class ItemGenModel(private val resource: Resource, val template: KFunction1<ItemGenModel, String>, private val method: Method) {
+open class ItemGenModel(private val resource: Resource, val template: KFunction1<ItemGenModel, String>, private val method: Method, val renameParam: Function2<ItemGenModel, String, String> = { item, name -> name }) {
 
-    val url = PostmanUrl(resource, method)
+    val url = PostmanUrl(resource, method) { renameParam(this, it) }
 
     fun method() = method.methodName.toUpperCase()
 
@@ -27,6 +27,12 @@ open class ItemGenModel(private val resource: Resource, val template: KFunction1
     fun description(): String {
         return description.escapeJson()?.escapeAll()?:""
     }
+
+    fun simpleDescription(): String {
+        val simpleDescription = if (description.contains(".")) description.substring(0, description.indexOf(".")) else description
+        return simpleDescription.escapeJson()?.escapeAll()?:""
+    }
+
 
     val resourcePathName: String
         get() {

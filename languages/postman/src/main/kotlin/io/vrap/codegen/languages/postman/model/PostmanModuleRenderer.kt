@@ -290,7 +290,7 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
     private fun getByParam(item: ItemGenModel, param: String, by: Boolean): String {
         return """
             |{
-            |    "name": "Get ${item.name.singularize()}${if (by) " by ${if (param.isNotEmpty()) param else "ID"}" else ""}",
+            |    "name": "${item.simpleDescription()}",
             |    "event": [
             |        {
             |            "listen": "test",
@@ -317,17 +317,12 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
             |            "raw": ""
             |        },
             |        "url": {
-            |            ${if (param.isNotEmpty()) """
-                            "raw": "${item.url.raw()}/${param}={{${item.singularName()}-${param}}}",
-                            """.trimIndent() else """
-                            "raw": "${item.url.raw()}/{{${item.singularName()}-id}}",
-                            """.trimIndent()}
+            |                "raw": "${item.url.raw()}",
             |            "host": [
             |                "{{host}}"
             |            ],
             |            "path": [
-            |                <<"${item.url.path()}">>,
-            |                "${if (param.isNotEmpty()) "${param}={{${item.singularName()}-${param}}}" else "{{${item.singularName()}-id}}"}"
+            |                <<"${item.url.path()}">>
             |            ],
             |            "query": [
             |                <<${item.url.query()}>>
@@ -771,36 +766,33 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
         val items = Lists.newArrayList<ItemGenModel>()
 
         if (this.getMethod(HttpMethod.GET) != null) {
-            items.add(ItemGenModel(this, ::query, this.getMethod(HttpMethod.GET)))
+            items.add(ItemGenModel(this, ::query, this.getMethod(HttpMethod.GET)) { item, name -> name })
         }
         if (this.getMethod(HttpMethod.POST) != null) {
-            items.add(ItemGenModel(this, ::create, this.getMethod(HttpMethod.POST)))
+            items.add(ItemGenModel(this, ::create, this.getMethod(HttpMethod.POST)) { item, name -> name })
         }
-        val byId = this.resources.stream().filter { resource1 -> resource1.getUriParameter("ID") != null }.findFirst().orElse(null)
-        val byKey = this.resources.stream().filter { resource1 -> resource1.getUriParameter("key") != null }.findFirst().orElse(null)
-        if (byId?.getMethod(HttpMethod.GET) != null) {
-            items.add(ItemGenModel(this, ::getByID, byId.getMethod(HttpMethod.GET)))
-        }
-        if (byKey?.getMethod(HttpMethod.GET) != null) {
-            items.add(ItemGenModel(this, ::getByKey, byKey.getMethod(HttpMethod.GET)))
-        }
-        if (byId?.getMethod(HttpMethod.POST) != null) {
-            items.add(ItemGenModel(this, ::updateByID, byId.getMethod(HttpMethod.POST)))
-        }
-        if (byKey?.getMethod(HttpMethod.POST) != null) {
-            items.add(ItemGenModel(this, ::updateByKey, byKey.getMethod(HttpMethod.POST)))
-        }
-        if (byKey?.getMethod(HttpMethod.PUT) != null) {
-            items.add(ItemGenModel(this, ::updateByKey, byKey.getMethod(HttpMethod.PUT)))
-        }
-        if (byId?.getMethod(HttpMethod.DELETE) != null) {
-            items.add(ItemGenModel(this, ::deleteByID, byId.getMethod(HttpMethod.DELETE)))
-        }
-        if (byKey?.getMethod(HttpMethod.DELETE) != null) {
-            items.add(ItemGenModel(this, ::deleteByKey, byKey.getMethod(HttpMethod.DELETE)))
-        }
-        if (byId?.getMethod(HttpMethod.POST) != null) {
-            items.addAll(getActionItems(byId.getMethod(HttpMethod.POST)))
+        val findIdParam = { resource: Resource -> resource.getUriParameter("ID") != null || resource.getAnnotation("idParam") != null }
+        val byId = this.resources.stream().filter(findIdParam).findFirst().orElse(null)
+        if (byId != null) {
+            val renameParam = { item: ItemGenModel, param: String -> if (param.equals("projectKey")) param else "${item.singularName()}-${param}" }
+            items.addAll(byId.methods.map { ItemGenModel(byId, ::getByID, it, renameParam) })
+            if (byId.getMethod(HttpMethod.POST) != null) {
+                items.addAll(getActionItems(byId.getMethod(HttpMethod.POST)))
+            }
+        } else {
+            val byKey = this.resources.stream().filter { resource1 -> resource1.getUriParameter("key") != null }.findFirst().orElse(null)
+            if (byKey?.getMethod(HttpMethod.GET) != null) {
+                items.add(ItemGenModel(this, ::getByKey, byKey.getMethod(HttpMethod.GET)))
+            }
+            if (byKey?.getMethod(HttpMethod.POST) != null) {
+                items.add(ItemGenModel(this, ::updateByKey, byKey.getMethod(HttpMethod.POST)))
+            }
+            if (byKey?.getMethod(HttpMethod.PUT) != null) {
+                items.add(ItemGenModel(this, ::updateByKey, byKey.getMethod(HttpMethod.PUT)))
+            }
+            if (byKey?.getMethod(HttpMethod.DELETE) != null) {
+                items.add(ItemGenModel(this, ::deleteByKey, byKey.getMethod(HttpMethod.DELETE)))
+            }
         }
         return items
     }
