@@ -80,6 +80,10 @@ open class RamlCodeGeneratorTask : DefaultTask() {
                 val generatorModule = GeneratorModule(apiProvider, generatorConfig, JavaBaseTypes)
                 GeneratorComponent(generatorModule, GroovyDslModule)
             }
+            TargetType.JAVA_COMPLETE -> {
+                val generatorModule = GeneratorModule(apiProvider, generatorConfig, JavaBaseTypes)
+                GeneratorComponent(generatorModule, JavaCompleteModule)
+            }
             TargetType.TYPESCRIPT_MODEL -> {
                 val generatorModule = GeneratorModule(apiProvider, generatorConfig, TypeScriptBaseTypes)
                 GeneratorComponent(generatorModule, TypescriptModelModule)
@@ -96,10 +100,15 @@ open class RamlCodeGeneratorTask : DefaultTask() {
                 val generatorModule = GeneratorModule(apiProvider, generatorConfig, JoiBaseTypes)
                 GeneratorComponent(generatorModule, JoiModule)
             }
-            TargetType.JAVA_COMPLETE -> {
-                val generatorModule = GeneratorModule(apiProvider, generatorConfig, JavaBaseTypes)
-                GeneratorComponent(generatorModule, JavaCompleteModule)
+            TargetType.TS_CLIENT_COMPLETE -> {
+                val generatorModule = GeneratorModule(apiProvider, generatorConfig, TypeScriptBaseTypes)
+                GeneratorComponent(generatorModule, TypescriptModelModule, TypescriptClientModule)
             }
+            TargetType.TS_SERVER_COMPLETE -> {
+                val generatorModule = GeneratorModule(apiProvider, generatorConfig, TypeScriptBaseTypes)
+                GeneratorComponent(generatorModule, TypescriptModelModule, JoiModule, TypescriptServerModule)
+            }
+
             else -> throw IllegalArgumentException("unsupported target value '${target.target}', allowed values is one of ${TargetType.values().toList()}")
         }
         logger.warn("generating files for target $target, ${generatorConfig.outputFolder}")

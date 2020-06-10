@@ -138,8 +138,8 @@ class ServerRenderer @Inject constructor(
                         |        params: {
                         |          <${it.resource().fullUri.variables.map { "$it: requiredString" }.joinToString(separator = ",\n")}>
                         |        },
-                        |        failAction,${it.auth()}
-                        |      },
+                        |        failAction,
+                        |      },${it.auth()}
                         |    }
                         |}
                     """.trimMargin()
@@ -230,7 +230,7 @@ class ServerRenderer @Inject constructor(
         return when (this) {
             is VrapObjectType -> {
                 val joiType = this.toJoiVrapType()
-                "import { ${joiType.simpleClassName} } from '@joi/${joiType.`package`}'"
+                "import { ${joiType.simpleClassName} } from '${joiType.`package`}'"
             }
             is VrapArrayType -> {
                 return this.itemType.joiImportStatement()

@@ -100,7 +100,7 @@ class JoiValidatorModuleRenderer @Inject constructor(override val vrapTypeProvid
                 .joinToString(separator = ",\n")
         val patternProperties = this.allProperties
                 .filter { it.isPatternProperty() }
-                .map { ".pattern(new RegExp('${it.name}'), ${it.type.toVrapType().simpleJoiName()}())" }
+                .map { ".pattern(${it.asRegExp()}, ${it.type.toVrapType().simpleJoiName()}())" }
                 .joinToString(separator = "\n")
 
         val additionalProperties = this.additionalProperties?:true
@@ -166,6 +166,8 @@ class JoiValidatorModuleRenderer @Inject constructor(override val vrapTypeProvid
         ?.filterNotNull() ?: listOf()
 
     fun Property.isPatternProperty() = this.name.startsWith("/") && this.name.endsWith("/")
+
+    fun Property.asRegExp() = if (this.name.equals("//")) "/.*/" else this.name
 
     /**
      * in typescript optional properties should come after required ones
