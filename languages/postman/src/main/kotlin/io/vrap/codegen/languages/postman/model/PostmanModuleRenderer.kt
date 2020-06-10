@@ -1,15 +1,10 @@
 package io.vrap.codegen.languages.postman.model
 
-import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.SerializerProvider
 import com.fasterxml.jackson.databind.module.SimpleModule
-import com.fasterxml.jackson.databind.node.ObjectNode
-import com.fasterxml.jackson.databind.ser.std.StdSerializer
 import com.google.common.collect.Lists
 import com.google.inject.Inject
-import com.hypertino.inflector.English
 import io.vrap.codegen.languages.extensions.EObjectExtensions
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.FileProducer
@@ -22,9 +17,6 @@ import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.types.*
 import io.vrap.rmf.raml.model.util.StringCaseFormat
-import org.apache.commons.lang3.StringEscapeUtils
-import org.eclipse.emf.ecore.EObject
-import java.io.IOException
 import java.util.*
 import kotlin.reflect.KFunction1
 
@@ -152,19 +144,6 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
         """.trimMargin()
     }
 
-    private fun auth(): String {
-        return """
-            |{
-            |    "type": "oauth2",
-            |    "oauth2": {
-            |        "accessToken": "{{ctp_access_token}}",
-            |        "addTokenTo": "header",
-            |        "tokenType": "Bearer"
-            |    }
-            |}
-            """.trimMargin()
-    }
-
     private fun queryTestScript(item: ItemGenModel, param: String): String {
 
         return """
@@ -222,7 +201,7 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
             |    "request": {
             |        "auth":
             |            <<${auth()}>>,
-            |        "method": "${item.method.methodName.toUpperCase()}",
+            |        "method": "${item.method()}",
             |        "header": [
             |            {
             |                "key": "Content-Type",
@@ -234,18 +213,18 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
             |            "raw": ""
             |        },
             |        "url": {
-            |            "raw": "{{host}}${item.toPostmanPath()}",
+            |            "raw": "${item.url.raw()}",
             |            "host": [
             |                "{{host}}"
             |            ],
             |            "path": [
-            |                <<"${item.toPostmanPath().trim('/').split("/").joinToString("\",\n\"")}">>
+            |                <<"${item.url.path()}">>
             |            ],
             |            "query": [
-            |                <<${if (item.queryParameters.isNotEmpty()) item.queryParameters.joinToString(",\n") { it.queryParam() } else ""}>>
+            |                <<${item.url.query()}>>
             |            ]
             |        },
-            |        "description": "${item.description.escapeJson().escapeAll()}"
+            |        "description": "${item.description()}"
             |    },
             |    "response": []
             |}
@@ -255,7 +234,7 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
     private fun create(item: ItemGenModel): String {
         return """
             |{
-            |    "name": "Create ${item.name.singularize()}",
+            |    "name": "Create ${item.singularName()}",
             |    "event": [
             |        {
             |            "listen": "test",
@@ -270,7 +249,7 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
             |    "request": {
             |        "auth":
             |           <<${auth()}>>,
-            |        "method": "${item.method.methodName.toUpperCase()}",
+            |        "method": "${item.method()}",
             |        "header": [
             |            {
             |                "key": "Content-Type",
@@ -282,18 +261,18 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
             |            "raw": "${if (item.getExample().isNullOrEmpty().not()) item.getExample()!!.escapeJson() else ""}"
             |        },
             |        "url": {
-            |            "raw": "{{host}}${item.toPostmanPath()}",
+            |            "raw": "${item.url.raw()}",
             |            "host": [
             |                "{{host}}"
             |            ],
             |            "path": [
-            |                <<"${item.toPostmanPath().trim('/').split("/").joinToString("\",\n\"")}">>
+            |                <<"${item.url.path()}">>
             |            ],
             |            "query": [
-            |                <<${if (item.queryParameters.isNotEmpty()) item.queryParameters.joinToString(",\n") { it.queryParam() } else ""}>>
+            |                <<${item.url.query()}>>
             |            ]
             |        },
-            |        "description": "${item.description.escapeJson().escapeAll()}"
+            |        "description": "${item.description()}"
             |    },
             |    "response": []
             |}
@@ -326,7 +305,7 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
             |    "request": {
             |        "auth":
             |            <<${auth()}>>,
-            |        "method": "${item.method.methodName.toUpperCase()}",
+            |        "method": "${item.method()}",
             |        "header": [
             |            {
             |                "key": "Content-Type",
@@ -339,22 +318,22 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
             |        },
             |        "url": {
             |            ${if (param.isNotEmpty()) """
-                            "raw": "{{host}}${item.toPostmanPath()}/${param}={{${item.singularName()}-${param}}}",
+                            "raw": "${item.url.raw()}/${param}={{${item.singularName()}-${param}}}",
                             """.trimIndent() else """
-                            "raw": "{{host}}${item.toPostmanPath()}/{{${item.singularName()}-id}}",
+                            "raw": "${item.url.raw()}/{{${item.singularName()}-id}}",
                             """.trimIndent()}
             |            "host": [
             |                "{{host}}"
             |            ],
             |            "path": [
-            |                <<"${item.toPostmanPath().trim('/').split("/").joinToString("\",\n\"")}">>,
+            |                <<"${item.url.path()}">>,
             |                "${if (param.isNotEmpty()) "${param}={{${item.singularName()}-${param}}}" else "{{${item.singularName()}-id}}"}"
             |            ],
             |            "query": [
-            |                <<${if (item.queryParameters.isNotEmpty()) item.queryParameters.joinToString(",\n") { it.queryParam() } else ""}>>
+            |                <<${item.url.query()}>>
             |            ]
             |        },
-            |        "description": "${item.description.escapeJson().escapeAll()}"
+            |        "description": "${item.description()}"
             |    },
             |    "response": []
             |}
@@ -387,7 +366,7 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
             |    "request": {
             |        "auth":
             |            <<${auth()}>>,
-            |        "method": "${item.method.methodName.toUpperCase()}",
+            |        "method": "${item.method()}",
             |        "header": [
             |            {
             |                "key": "Content-Type",
@@ -405,22 +384,22 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
             |        },
             |        "url": {
             |            ${if (param.isNotEmpty()) """
-                            "raw": "{{host}}${item.toPostmanPath()}/${param}={{${item.singularName()}-${param}}}",
+                            "raw": "${item.url.raw()}/${param}={{${item.singularName()}-${param}}}",
                             """.trimIndent() else """
-                            "raw": "{{host}}${item.toPostmanPath()}/{{${item.singularName()}-id}}",
+                            "raw": "${item.url.raw()}/{{${item.singularName()}-id}}",
                             """.trimIndent()}
             |            "host": [
             |                "{{host}}"
             |            ],
             |            "path": [
-            |                <<"${item.toPostmanPath().trim('/').split("/").joinToString("\",\n\"")}">>,
+            |                <<"${item.url.path()}">>,
             |                "${if (param.isNotEmpty()) "${param}={{${item.singularName()}-${param}}}" else "{{${item.singularName()}-id}}"}"
             |            ],
             |            "query": [
-            |                <<${if (item.queryParameters.isNotEmpty()) item.queryParameters.joinToString(",\n") { it.queryParam() } else ""}>>
+            |                <<${item.url.query()}>>
             |            ]
             |        },
-            |        "description": "${item.description.escapeJson().escapeAll()}"
+            |        "description": "${item.description()}"
             |    },
             |    "response": []
             |}
@@ -453,7 +432,7 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
             |    "request": {
             |        "auth":
             |            <<${auth()}>>,
-            |        "method": "${item.method.methodName.toUpperCase()}",
+            |        "method": "${item.method()}",
             |        "header": [
             |            {
             |                "key": "Content-Type",
@@ -466,22 +445,22 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
             |        },
             |        "url": {
             |            ${if (param.isNotEmpty()) """
-                            "raw": "{{host}}${item.toPostmanPath()}/${param}={{${item.singularName()}-${param}}}",
+                            "raw": "${item.url.raw()}/${param}={{${item.singularName()}-${param}}}",
                             """.trimIndent() else """
-                            "raw": "{{host}}${item.toPostmanPath()}/{{${item.singularName()}-id}}",
+                            "raw": "${item.url.raw()}/{{${item.singularName()}-id}}",
                             """.trimIndent()}
             |            "host": [
             |                "{{host}}"
             |            ],
             |            "path": [
-            |                <<"${item.toPostmanPath().trim('/').split("/").joinToString("\",\n\"")}">>,
+            |                <<"${item.url.path()}">>,
             |                "${if (param.isNotEmpty()) "${param}={{${item.singularName()}-${param}}}" else "{{${item.singularName()}-id}}"}"
             |            ],
             |            "query": [
-            |                <<${if (item.queryParameters.isNotEmpty()) item.queryParameters.joinToString(",\n") { it.queryParam() } else ""}>>
+            |                <<${item.url.query()}>>
             |            ]
             |        },
-            |        "description": "${item.description.escapeJson().escapeAll()}"
+            |        "description": "${item.description()}"
             |    },
             |    "response": []
             |}
@@ -547,7 +526,7 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
                 |    "request": {
                 |        "auth":
                 |            <<${auth()}>>,
-                |        "method": "${item.method.methodName.toUpperCase()}",
+                |        "method": "${item.method()}",
                 |        "body": {
                 |            "mode": "raw",
                 |            "raw": "${actionExample(item).escapeJson().escapeAll()}"
@@ -559,19 +538,19 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
                 |            }
                 |        ],
                 |        "url": {
-                |            "raw": "{{host}}${item.toPostmanPath()}/{{${item.singularName()}-id}}",
+                |            "raw": "${item.url.raw()}",
                 |            "host": [
                 |                "{{host}}"
                 |            ],
                 |            "path": [
-                |                <<"${item.toPostmanPath().trim('/').split("/").joinToString("\",\n\"")}">>,
+                |                <<"${item.url.path()}">>,
                 |                "{{${item.singularName()}-id}}"
                 |            ],
                 |            "query": [
-                |                <<${if (item.queryParameters.isNotEmpty()) item.queryParameters.joinToString(",\n") { it.queryParam() } else ""}>>
+                |                <<${item.url.query()}>>
                 |            ]
                 |        },
-                |        "description": "${item.description.escapeJson().escapeAll()}"
+                |        "description": "${item.description()}"
                 |    },
                 |    "response": []
                 |}
@@ -597,7 +576,7 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
             |    "request": {
             |        "auth":
             |            <<${auth()}>>,
-            |        "method": "${item.method.methodName.toUpperCase()}",
+            |        "method": "${item.method()}",
             |        "header": [
             |            {
             |                "key": "Content-Type",
@@ -617,10 +596,10 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
             |                "{{projectKey}}"
             |            ],
             |            "query": [
-            |                <<${if (item.queryParameters.isNotEmpty()) item.queryParameters.joinToString(",\n") { it.queryParam() } else ""}>>
+            |                <<${item.url.query()}>>
             |            ]
             |        },
-            |        "description": "${item.description.escapeJson()}"
+            |        "description": "${item.description()}"
             |    },
             |    "response": []
             |}
@@ -645,7 +624,7 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
                 |    "request": {
                 |        "auth":
                 |            <<${auth()}>>,
-                |        "method": "${item.method.methodName.toUpperCase()}",
+                |        "method": "${item.method()}",
                 |        "header": [
                 |            {
                 |                "key": "Content-Type",
@@ -665,10 +644,10 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
                 |                "{{projectKey}}"
                 |            ],
                 |            "query": [
-                |                <<${if (item.queryParameters.isNotEmpty()) item.queryParameters.joinToString(",\n") { it.queryParam() } else ""}>>
+                |                <<${item.url.query()}>>
                 |            ]
                 |        },
-                |        "description": "${item.description.escapeJson().escapeAll()}"
+                |        "description": "${item.description()}"
                 |    },
                 |    "response": []
                 |}
@@ -694,7 +673,7 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
                 |    "request": {
                 |        "auth":
                 |            <<${auth()}>>,
-                |        "method": "${item.method.methodName.toUpperCase()}",
+                |        "method": "${item.method()}",
                 |        "body": {
                 |            "mode": "raw",
                 |            "raw": "${projectActionExample(item).escapeJson().escapeAll()}"
@@ -714,10 +693,10 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
                 |                "{{projectKey}}"
                 |            ],
                 |            "query": [
-                |                <<${if (item.queryParameters.isNotEmpty()) item.queryParameters.joinToString(",\n") { it.queryParam() } else ""}>>
+                |                <<${item.url.query()}>>
                 |            ]
                 |        },
-                |        "description": "${item.description.escapeJson().escapeAll()}"
+                |        "description": "${item.description()}"
                 |    },
                 |    "response": []
                 |}
@@ -858,139 +837,8 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
         return this.resource.description?.value
     }
 
-    class ActionGenModel(val type: ObjectType, resource: Resource, template: KFunction1<ItemGenModel, String>, method: Method) : ItemGenModel(resource, template, method) {
-        val testScript: String?
-        private val example: String?
-        val discriminatorValue: String
-            get() = type.discriminatorValue
-
-        override val description: String
-            get() {
-                val description = Optional.ofNullable(type.description).map<String> { it.value }.orElse(type.name)
-                return StringEscapeUtils.escapeJson(description)
-            }
-
-        init {
-            var example: String? = null
-            var instance: Instance? = null
-
-            if (type.getAnnotation("postman-example") != null) {
-                instance = type.getAnnotation("postman-example").value
-            } else if (type.examples.size > 0) {
-                instance = type.examples[0].value
-            }
-
-            if (instance != null) {
-                example = instance.toJson()
-                try {
-                    val mapper = ObjectMapper()
-                    val nodes = mapper.readTree(example) as ObjectNode
-                    nodes.put("action", type.discriminatorValue)
-
-                    example = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(nodes)
-                            .split("\n".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray().map { s -> "  $s" }
-                            .joinToString("\n")
-                            .trim { it <= ' ' }
-                } catch (e: IOException) {
-                }
-
-            }
-
-            this.example = example
-            val t = type.getAnnotation("postman-test-script")
-            if (t != null) {
-                this.testScript = (t.value as StringInstance).value
-            } else {
-                this.testScript = null
-            }
-        }
-
-        override fun getExample(): String? {
-            return example
-        }
-    }
-
-    open class ItemGenModel(val resource: Resource, val template: KFunction1<ItemGenModel, String>, val method: Method) {
-
-        val name: String
-            get() =
-                StringCaseFormat.UPPER_CAMEL_CASE.apply(Optional.ofNullable(resource.displayName).map<String> { it.value }.orElse(resource.resourcePathName))
-
-        open val description: String
-            get() {
-                val description = Optional.ofNullable(method.description).map<String> { it.value }.orElse(method.method.getName() + " " + name)
-                return StringEscapeUtils.escapeJson(description)
-            }
-
-        val resourcePathName: String
-            get() {
-                val resourcePathName = resource.resourcePathName
-
-                return if (resourcePathName.isEmpty()) {
-                    resource.displayName.value.toLowerCase()
-                } else resourcePathName
-            }
-
-        val queryParameters: List<QueryParameter>
-            get() =
-                method.queryParameters
-
-        open fun getExample(): String? {
-            val s = method.bodies?.
-                    getOrNull(0)?.
-                    type?.
-                    examples?.
-                    getOrNull(0)?.
-                    value
-            return StringEscapeUtils.escapeJson(s?.toJson())
-        }
-
-        fun toPostmanPath(): String {
-            return resource.fullUri.template.replace("{", "{{").replace("}", "}}")
-        }
-        
-        fun singularName(): String {
-            return resource.resourcePathName.singularize()
-        }
-    }
-
     fun ResourceModel.name(): String {
         return StringCaseFormat.UPPER_CAMEL_CASE.apply(Optional.ofNullable(this.resource.displayName).map<String> { it.value }.orElse(this.resource.resourcePathName))
-    }
-
-    private fun QueryParameter.queryParam() : String {
-        return """
-            |{
-            |    "key": "${this.name}",
-            |    "value": "${this.defaultValue()}",
-            |    "equals": true,
-            |    "disabled": ${this.required.not()}
-            |}
-        """.trimMargin()
-    }
-
-
-    fun QueryParameter.defaultValue(): String {
-        if (this.name == "version") {
-            return "{{" + this.getParent(Resource::class.java)?.resourcePathName?.singularize() + "-version}}"
-        }
-        val defaultValue = this.getAnnotation("postman-default-value")
-        if (defaultValue != null && defaultValue.value is StringInstance) {
-            val value = (defaultValue.value.value as String).replace("{{", "").replace("}}", "")
-
-            return "{{" + this.getParent(Resource::class.java)?.resourcePathName?.singularize() + "-" + value + "}}"
-        }
-
-        return ""
-    }
-
-    fun <T> EObject.getParent(parentClass: Class<T>): T? {
-        if (this.eContainer() == null) {
-            return null
-        }
-        return if (parentClass.isInstance(this.eContainer())) {
-            this.eContainer() as T
-        } else this.eContainer().getParent(parentClass)
     }
 }
 

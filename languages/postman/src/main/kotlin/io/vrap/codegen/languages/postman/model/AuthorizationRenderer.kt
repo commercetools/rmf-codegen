@@ -255,6 +255,18 @@ private fun testAuthScript(): String {
             """.trimMargin()
 }
 
+fun auth(): String {
+    return """
+            |{
+            |    "type": "oauth2",
+            |    "oauth2": {
+            |        "accessToken": "{{ctp_access_token}}",
+            |        "addTokenTo": "header",
+            |        "tokenType": "Bearer"
+            |    }
+            |}
+            """.trimMargin()
+}
 
 private fun String.jScript(): String {
     return this.split("\n").map { it.escapeJson().escapeAll() }.joinToString("\",\n\"", "\"", "\"");

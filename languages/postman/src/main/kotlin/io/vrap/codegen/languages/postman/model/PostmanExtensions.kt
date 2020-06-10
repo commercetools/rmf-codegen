@@ -4,6 +4,7 @@ import com.hypertino.inflector.English
 import io.vrap.rmf.raml.model.modules.Api
 import io.vrap.rmf.raml.model.security.OAuth20Settings
 import org.apache.commons.lang3.StringEscapeUtils
+import org.eclipse.emf.ecore.EObject
 import java.net.URI
 
 
@@ -24,4 +25,13 @@ fun Api.oAuth2(): OAuth20Settings {
 
 fun String.singularize(): String {
     return English.singular(this)
+}
+
+fun <T> EObject.getParent(parentClass: Class<T>): T? {
+    if (this.eContainer() == null) {
+        return null
+    }
+    return if (parentClass.isInstance(this.eContainer())) {
+        this.eContainer() as T
+    } else this.eContainer().getParent(parentClass)
 }
