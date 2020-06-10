@@ -26,7 +26,6 @@ import io.vrap.rmf.raml.model.util.StringCaseFormat
 import org.apache.commons.lang3.StringEscapeUtils
 import org.eclipse.emf.ecore.EObject
 import java.io.IOException
-import java.net.URI
 import java.util.*
 import kotlin.reflect.KFunction1
 
@@ -42,7 +41,7 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
 
     private fun readmeMd(): TemplateFile {
         return TemplateFile(relativePath = "README.md",
-                content = readme())
+                content = readme(api))
     }
 
     private fun template(api: Api): TemplateFile {
@@ -50,7 +49,7 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
                 content = """
                     |{
                     |  "id": "5bb74f05-5e78-4aee-b59e-492c947bc160",
-                    |  "name": "commercetools platform API (generated).template",
+                    |  "name": "${api.title}.template",
                     |  "values": [
                     |    {
                     |      "enabled": true,
@@ -61,7 +60,7 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
                     |    {
                     |      "enabled": true,
                     |      "key": "auth_url",
-                    |      "value": "https://${api.oauth().uri().host}",
+                    |      "value": "https://${api.oAuth2().uri().host}",
                     |      "type": "text"
                     |    },
                     |    {
@@ -94,14 +93,14 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
                     |{
                     |    "info": {
                     |        "_postman_id": "f367b534-c9ea-e7c5-1f46-7a27dc6a30ba",
-                    |        "name": "commercetools platform API (generated)",
-                    |        "description": "${readme().escapeJson().escapeAll()}",
+                    |        "name": "${api.title}",
+                    |        "description": "${readme(api).escapeJson().escapeAll()}",
                     |        "schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json"
                     |    },
                     |    "auth":
                     |        <<${auth()}>>,
                     |    "item": [
-                    |        <<${authorization(api.oauth())}>>,
+                    |        <<${authorization(api.oAuth2())}>>,
                     |        <<${api.resources().joinToString(",") { folder(it) }}>>
                     |    ]
                     |}
@@ -183,32 +182,6 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
         """.trimMargin().split("\n").map { it.escapeJson().escapeAll() }.joinToString("\",\n\"", "\"", "\"")
     }
 
-    private fun String.jScript(): String {
-        return this.split("\n").map { it.escapeJson().escapeAll() }.joinToString("\",\n\"", "\"", "\"");
-    }
-
-    private fun testAuthScript(): String {
-        return """
-                |tests["Status code is 200"] = responseCode.code === 200;
-                |var data = JSON.parse(responseBody);
-                |if(data.access_token){
-                |    pm.environment.set("ctp_access_token", data.access_token);
-                |}
-                |if (data.scope) {
-                |    parts = data.scope.split(" ");
-                |    parts = parts.filter(scope => scope.includes(":")).map(scope => scope.split(":"))
-                |    if (parts.length > 0) {
-                |        scopeParts = parts[0];
-                |        pm.environment.set("projectKey", scopeParts[1]);
-                |        parts = parts.filter(scope => scope.length >= 3)
-                |        if (parts.length > 0) {
-                |            scopeParts = parts[0];
-                |            pm.environment.set("storeKey", scopeParts[2]);
-                |        }
-                |    }
-                |}
-            """.trimMargin()
-    }
     private fun testScript(item: ItemGenModel, param: String): String {
 
         return """
@@ -753,247 +726,20 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
         return ""
     }
 
-    private fun authorization(oauth: OAuth20Settings): String {
-        return """
-            |{
-            |    "name": "Authorization",
-            |    "description": "Authorization",
-            |    "item": [
-            |        {
-            |            "name": "Obtain access token",
-            |            "event": [
-            |                {
-            |                    "listen": "test",
-            |                    "script": {
-            |                        "type": "text/javascript",
-            |                        "exec": [
-            |                            <<${testAuthScript().jScript()}>>
-            |                        ]
-            |                    }
-            |                }
-            |            ],
-            |            "request": {
-            |                "auth": {
-            |                    "type": "basic",
-            |                    "basic": {
-            |                        "username": "{{client_id}}",
-            |                        "password": "{{client_secret}}"
-            |                    }
-            |                },
-            |                "method": "POST",
-            |                "header": [],
-            |                "body": {
-            |                    "mode": "raw",
-            |                    "raw": ""
-            |                },
-            |                "url": {
-            |                    "raw": "{{auth_url}}${oauth.uri().path}?grant_type=client_credentials",
-            |                    "host": [
-            |                        "{{auth_url}}"
-            |                    ],
-            |                    "path": [
-            |                        "oauth",
-            |                        "token"
-            |                    ],
-            |                    "query": [
-            |                        {
-            |                            "key": "grant_type",
-            |                            "value": "client_credentials",
-            |                            "equals": true
-            |                        }
-            |                    ]
-            |                },
-            |                "description": "Use this request to obtain an access token for your commercetools platform project via Client Credentials Flow. As a prerequisite you must have filled out environment variables in Postman for projectKey, client_id and client_secret to use this."
-            |            },
-            |            "response": []
-            |        },
-            |        {
-            |            "name": "Obtain access token through password flow",
-            |            "event": [
-            |                {
-            |                    "listen": "test",
-            |                    "script": {
-            |                        "type": "text/javascript",
-            |                        "exec": [
-            |                            <<${testAuthScript().jScript()}>>
-            |                        ]
-            |                    }
-            |                }
-            |            ],
-            |            "request": {
-            |                "auth": {
-            |                    "type": "basic",
-            |                    "basic": {
-            |                        "username": "{{client_id}}",
-            |                        "password": "{{client_secret}}"
-            |                    }
-            |                },
-            |                "method": "POST",
-            |                "header": [
-            |                    {
-            |                        "key": "",
-            |                        "value": "",
-            |                        "disabled": true
-            |                    }
-            |                ],
-            |                "body": {
-            |                    "mode": "raw",
-            |                    "raw": ""
-            |                },
-            |                "url": {
-            |                    "raw": "{{auth_url}}/oauth/{{projectKey}}/customers/token?grant_type=password&username={{user_email}}&password={{user_password}}",
-            |                    "host": [
-            |                        "{{auth_url}}"
-            |                    ],
-            |                    "path": [
-            |                        "oauth",
-            |                        "{{projectKey}}",
-            |                        "customers",
-            |                        "token"
-            |                    ],
-            |                    "query": [
-            |                        {
-            |                            "key": "grant_type",
-            |                            "value": "password",
-            |                            "equals": true
-            |                        },
-            |                        {
-            |                            "key": "username",
-            |                            "value": "",
-            |                            "equals": true
-            |                        },
-            |                        {
-            |                            "key": "password",
-            |                            "value": "",
-            |                            "equals": true
-            |                        }
-            |                    ]
-            |                },
-            |                "description": "Use this request to obtain an access token for your commercetools platform project via Password Flow. As a prerequisite you must have filled out environment variables in Postman for projectKey, client_id, client_secret, user_email and user_password to use this."
-            |            },
-            |            "response": []
-            |        },
-            |        {
-            |            "name": "Token for Anonymous Sessions",
-            |            "event": [
-            |                {
-            |                    "listen": "test",
-            |                    "script": {
-            |                        "type": "text/javascript",
-            |                        "exec": [
-            |                            <<${testAuthScript().jScript()}>>
-            |                        ]
-            |                    }
-            |                }
-            |            ],
-            |            "request": {
-            |                "auth": {
-            |                    "type": "basic",
-            |                    "basic": {
-            |                        "username": "{{client_id}}",
-            |                        "password": "{{client_secret}}"
-            |                    }
-            |                },
-            |                "method": "POST",
-            |                "header": [],
-            |                "body": {
-            |                    "mode": "raw",
-            |                    "raw": ""
-            |                },
-            |                "url": {
-            |                    "raw": "{{auth_url}}/oauth/{{projectKey}}/anonymous/token?grant_type=client_credentials",
-            |                    "host": [
-            |                        "{{auth_url}}"
-            |                    ],
-            |                    "path": [
-            |                        "oauth",
-            |                        "{{projectKey}}",
-            |                        "anonymous",
-            |                        "token"
-            |                    ],
-            |                    "query": [
-            |                        {
-            |                            "key": "grant_type",
-            |                            "value": "client_credentials",
-            |                            "equals": true
-            |                        }
-            |                    ]
-            |                },
-            |                "description": "Use this request to obtain an access token for a anonymous session. As a prerequisite you must have filled out environment variables in Postman for projectKey, client_id and client_secret to use this."
-            |            },
-            |            "response": []
-            |        },
-            |        {
-            |            "name": "Token Introspection",
-            |            "event": [
-            |                {
-            |                    "listen": "test",
-            |                    "script": {
-            |                        "type": "text/javascript",
-            |                        "exec": [
-            |                            <<${ "tests[\"Status code is 200\"] = responseCode.code === 200;".jScript() }>>
-            |                        ]
-            |                    }
-            |                }
-            |            ],
-            |            "request": {
-            |                "auth": {
-            |                    "type": "basic",
-            |                    "basic": {
-            |                        "username": "{{client_id}}",
-            |                        "password": "{{client_secret}}"
-            |                    }
-            |                },
-            |                "method": "POST",
-            |                "header": [
-            |                    {
-            |                        "key": "Content-Type",
-            |                        "value": "application/json"
-            |                    }
-            |                ],
-            |                "body": {
-            |                    "mode": "raw",
-            |                    "raw": ""
-            |                },
-            |                "url": {
-            |                    "raw": "{{auth_url}}/oauth/introspect?token={{ctp_access_token}}",
-            |                    "host": [
-            |                        "{{auth_url}}"
-            |                    ],
-            |                    "path": [
-            |                        "oauth",
-            |                        "introspect"
-            |                    ],
-            |                    "query": [
-            |                        {
-            |                            "key": "token",
-            |                            "value": "{{ctp_access_token}}",
-            |                            "equals": true
-            |                        }
-            |                    ]
-            |                },
-            |                "description": "Token introspection allows to determine the active state of an OAuth 2.0 access token and to determine meta-information about this accces token, such as the `scope`."
-            |            },
-            |            "response": []
-            |        }
-            |    ]
-            |}
-        """.trimMargin().keepAngleIndent().escapeAll()
-    }
 
-    private fun readme(): String {
+    private fun readme(api: Api): String {
         return """
             # commercetools API Postman collection
 
             This Postman collection contains examples of requests and responses for most endpoints and commands of the
-            commercetools platform API. For every command the smallest possible payload is given. Please find optional
+            ${api.title}. For every command the smallest possible payload is given. Please find optional
             fields in the related official documentation. Additionally the collection provides example requests and
             responses for specific tasks and more complex data models.
 
             ## Disclaimer
 
-            This is not the official commercetools platform API documentation. Please see [here](http://docs.commercetools.com/)
-            for a complete and approved documentation of the commercetools platform API.
+            This is not the official ${api.title} documentation. Please see [here](http://docs.commercetools.com/)
+            for a complete and approved documentation of the ${api.title}.
 
             ## How to use
             
@@ -1020,7 +766,10 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
 
     fun Api.resources(): List<ResourceModel> {
         val resources = Lists.newArrayList<ResourceModel>()
-        resources.add(ResourceModel(this.resources[0], this.resources[0].projectItems()))
+        val rootItems = this.resources[0].projectItems()
+        if (rootItems.size > 0) {
+            resources.add(ResourceModel(this.resources[0], this.resources[0].projectItems()))
+        }
         resources.addAll(this.resources[0].resources.map { ResourceModel(it, it.items()) })
         return resources
     }
@@ -1062,6 +811,9 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
         }
         if (byKey?.getMethod(HttpMethod.POST) != null) {
             items.add(ItemGenModel(this, ::updateByKey, byKey.getMethod(HttpMethod.POST)))
+        }
+        if (byKey?.getMethod(HttpMethod.PUT) != null) {
+            items.add(ItemGenModel(this, ::updateByKey, byKey.getMethod(HttpMethod.PUT)))
         }
         if (byId?.getMethod(HttpMethod.DELETE) != null) {
             items.add(ItemGenModel(this, ::deleteByID, byId.getMethod(HttpMethod.DELETE)))
@@ -1111,9 +863,6 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
         return English.singular(this)
     }
 
-    fun String.escapeJson(): String {
-        return StringEscapeUtils.escapeJson(this)
-    }
     class ActionGenModel(val type: ObjectType, resource: Resource, template: KFunction1<ItemGenModel, String>, method: Method) : ItemGenModel(resource, template, method) {
         val testScript: String?
         private val example: String?
@@ -1207,13 +956,6 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
         return StringCaseFormat.UPPER_CAMEL_CASE.apply(Optional.ofNullable(this.resource.displayName).map<String> { it.value }.orElse(this.resource.resourcePathName))
     }
 
-    private fun URI.pathElements(): List<String> {
-        return this.path.split("/").filter { it.isNotEmpty() }
-    }
-    private fun OAuth20Settings.uri(): URI {
-        return URI.create(this.accessTokenUri)
-    }
-
     private fun QueryParameter.queryParam() : String {
         return """
             |{
@@ -1225,12 +967,6 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
         """.trimMargin()
     }
 
-    fun Api.oauth(): OAuth20Settings {
-        return this.securitySchemes.stream()
-                .filter { securityScheme -> securityScheme.settings is OAuth20Settings }
-                .map { securityScheme -> securityScheme.settings as OAuth20Settings }
-                .findFirst().orElse(null)
-    }
 
     fun QueryParameter.defaultValue(): String {
         if (this.name == "version") {
