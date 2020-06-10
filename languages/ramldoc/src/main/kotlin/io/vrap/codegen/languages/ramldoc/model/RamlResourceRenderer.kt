@@ -3,9 +3,7 @@ package io.vrap.codegen.languages.ramldoc.model
 import com.google.inject.Inject
 import io.vrap.codegen.languages.extensions.isSuccessfull
 import io.vrap.codegen.languages.extensions.toResourceName
-import io.vrap.codegen.languages.ramldoc.extensions.renderType
-import io.vrap.codegen.languages.ramldoc.extensions.renderUriParameter
-import io.vrap.codegen.languages.ramldoc.extensions.toYaml
+import io.vrap.codegen.languages.ramldoc.extensions.*
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.ResourceRenderer
 import io.vrap.rmf.codegen.rendring.utils.keepAngleIndent
@@ -81,7 +79,10 @@ class RamlResourceRenderer @Inject constructor(val api: Api, val vrapTypeProvide
     private fun renderBody(body: Body): String {
         return """
             |${body.contentType}:
-            |  <<${body.type.renderType(false)}>>
+            |  <<${body.type.renderType(false)}>>${if (body.type.examples.isNotEmpty()) """
+            |  examples:
+            |    <<${body.type.examples.joinToString("\n") { it.renderExample(body.getParent(Resource::class.java)?.toResourceName() ?: "") }}>>""" else ""}
+            |  
         """.trimMargin().keepAngleIndent()
     }
 

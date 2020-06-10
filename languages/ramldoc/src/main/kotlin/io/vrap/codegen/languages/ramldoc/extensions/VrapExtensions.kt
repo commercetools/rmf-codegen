@@ -13,12 +13,14 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
 import io.vrap.rmf.codegen.rendring.utils.keepAngleIndent
 import io.vrap.rmf.codegen.types.VrapEnumType
 import io.vrap.rmf.codegen.types.VrapObjectType
+import io.vrap.rmf.raml.model.elements.NamedElement
 import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.resources.UriParameter
 import io.vrap.rmf.raml.model.types.*
 import io.vrap.rmf.raml.model.types.Annotation
 import io.vrap.rmf.raml.model.util.StringCaseFormat
 import io.vrap.rmf.raml.model.values.RegExp
+import org.eclipse.emf.ecore.EObject
 import java.io.IOException
 import java.util.stream.Collectors
 
@@ -111,10 +113,24 @@ fun UriParameter.renderUriParameter(): String {
             |  enum:
             |  <<${this.type.enum.joinToString("\n") { "- ${it.value}"}}>>""" else ""}
             |  <<${this.type.renderType()}>>
-            |  required: ${this.required}
+            |  required: ${this.required}${if (this.type.examples.isNotEmpty()) """
+            |  examples:
+            |    <<${this.type.examples.joinToString("\n") { it.renderExample(this.name) }}>>""" else ""}
         """.trimMargin().keepAngleIndent()
 }
 
+fun Example.renderExample(elementName: String): String {
+    val exampleName = "../examples/" + elementName + "-${if (this.name.isNotEmpty()) this.name else "default"}.json"
+    return """
+            |${if (this.name.isNotEmpty()) this.name else "default"}:${if (this.displayName != null) """
+            |  displayName: ${this.displayName.value.trim()}""" else ""}${if (this.description != null) """
+            |  description: |-
+            |    <<${this.description.value.trim()}>>""" else ""}${if (this.annotations.isNotEmpty()) """
+            |  <<${this.annotations.joinToString("\n") { it.renderAnnotation() }}>>""" else ""}
+            |  strict: ${this.strict.value}
+            |  value: !include $exampleName
+        """.trimMargin()
+}
 
 fun AnyType.renderType(withDescription: Boolean = true): String {
     val builtinTypeName = BuiltinType.of(this.eClass()).map { it.getName() }.orElse("any")
@@ -309,4 +325,13 @@ fun Instance.toJson(): String {
     }
 
     return example.trim()
+}
+
+fun <T> EObject.getParent(parentClass: Class<T>): T? {
+    if (this.eContainer() == null) {
+        return null
+    }
+    return if (parentClass.isInstance(this.eContainer())) {
+        this.eContainer() as T
+    } else this.eContainer().getParent(parentClass)
 }
