@@ -117,7 +117,7 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
                 |    "description": "${resource.description()?.escapeJson()?.escapeAll()}",
                 |    "item": [
                 |        <<${resource.resource.resources.joinToString(",\n") { folder(ResourceModel(it, it.items())) }}>>${if (resource.items.isNotEmpty()) "," else ""}
-                |        <<${resource.items.joinToString(",\n") { it.template(it) } }>>
+                |        <<${resource.items.joinToString(",\n") { it.render("") } }>>
                 |    ]
                 |}
             """.trimMargin()
@@ -127,7 +127,7 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
             |    "name": "${resource.name()}",
             |    "description": "${resource.description()?.escapeJson()?.escapeAll()}",
             |    "item": [
-            |        <<${resource.items.joinToString(",") { it.template(it) } }>>
+            |        <<${resource.items.joinToString(",") { it.render("") } }>>
             |    ],
             |    "event": [
             |        {
@@ -135,7 +135,7 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
             |            "script": {
             |                "type": "text/javascript",
             |                "exec": [
-            |                    <<${if (resource.items.isNotEmpty()) testScript(resource.items.first(), "") else ""}>>
+            |                    <<${if (resource.items.isNotEmpty()) resource.items.first().testScript("") else ""}>>
             |                ]
             |            }
             |        }
@@ -156,29 +156,6 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
             |if(data.results && data.results[0] && data.results[0].key){
             |    pm.environment.set("${item.resourcePathName.singularize()}-key", data.results[0].key); 
             |}
-            |${if (item is ActionGenModel && item.testScript.isNullOrEmpty().not()) item.testScript else ""}
-        """.trimMargin().split("\n").map { it.escapeJson().escapeAll() }.joinToString("\",\n\"", "\"", "\"")
-    }
-
-    private fun testScript(item: ItemGenModel, param: String): String {
-
-        return """
-            |tests["Status code " + responseCode.code] = responseCode.code === 200 || responseCode.code === 201;
-            |var data = JSON.parse(responseBody);
-            |if(data.version){
-            |    pm.environment.set("${item.resourcePathName.singularize()}-version", data.version);
-            |}
-            |if(data.id){
-            |    pm.environment.set("${item.resourcePathName.singularize()}-id", data.id); 
-            |}
-            |if(data.key){
-            |    pm.environment.set("${item.resourcePathName.singularize()}-key", data.key);
-            |}
-            |${if (param.isNotEmpty()) """
-            |if(data.${param}){
-            |    pm.environment.set("${item.resourcePathName.singularize()}-${param}", data.${param});
-            |}
-            """.trimMargin() else ""}
             |${if (item is ActionGenModel && item.testScript.isNullOrEmpty().not()) item.testScript else ""}
         """.trimMargin().split("\n").map { it.escapeJson().escapeAll() }.joinToString("\",\n\"", "\"", "\"")
     }
@@ -241,7 +218,7 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
             |            "script": {
             |                "type": "text/javascript",
             |                "exec": [
-            |                    <<${testScript(item, "")}>>
+            |                    <<${item.testScript("")}>>
             |                ]
             |            }
             |        }
@@ -279,188 +256,8 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
         """.trimMargin()
     }
 
-    private fun getByID(item: ItemGenModel): String {
-        return getByParam(item, "", true)
-    }
 
-    private fun getByKey(item: ItemGenModel): String {
-        return getByParam(item, "key", true)
-    }
 
-    private fun getByParam(item: ItemGenModel, param: String, by: Boolean): String {
-        return """
-            |{
-            |    "name": "${item.simpleDescription()}",
-            |    "event": [
-            |        {
-            |            "listen": "test",
-            |            "script": {
-            |                "type": "text/javascript",
-            |                "exec": [
-            |                    <<${testScript(item, param)}>>
-            |                ]
-            |            }
-            |        }
-            |    ],
-            |    "request": {
-            |        "auth":
-            |            <<${auth()}>>,
-            |        "method": "${item.method()}",
-            |        "header": [
-            |            {
-            |                "key": "Content-Type",
-            |                "value": "application/json"
-            |            }
-            |        ],
-            |        "body": {
-            |            "mode": "raw",
-            |            "raw": ""
-            |        },
-            |        "url": {
-            |                "raw": "${item.url.raw()}",
-            |            "host": [
-            |                "{{host}}"
-            |            ],
-            |            "path": [
-            |                <<"${item.url.path()}">>
-            |            ],
-            |            "query": [
-            |                <<${item.url.query()}>>
-            |            ]
-            |        },
-            |        "description": "${item.description()}"
-            |    },
-            |    "response": []
-            |}
-        """.trimMargin()
-    }
-    
-    private fun updateByID(item: ItemGenModel): String {
-        return updateByParam(item, "", true)
-    }
-
-    private fun updateByKey(item: ItemGenModel): String {
-        return updateByParam(item, "key", true)
-    }
-
-    private fun updateByParam(item: ItemGenModel, param: String, by: Boolean): String {
-        return """
-            |{
-            |    "name": "Update ${item.name.singularize()}${if (by) " by ${if (param.isNotEmpty()) param else "ID"}" else ""}",
-            |    "event": [
-            |        {
-            |            "listen": "test",
-            |            "script": {
-            |                "type": "text/javascript",
-            |                "exec": [
-            |                    <<${testScript(item, param)}>>
-            |                ]
-            |            }
-            |        }
-            |    ],
-            |    "request": {
-            |        "auth":
-            |            <<${auth()}>>,
-            |        "method": "${item.method()}",
-            |        "header": [
-            |            {
-            |                "key": "Content-Type",
-            |                "value": "application/json"
-            |            }
-            |        ],
-            |        "body": {
-            |            "mode": "raw",
-            |            "raw": "${if (item.getExample().isNullOrEmpty().not()) item.getExample()?.escapeAll() else """
-                            |{
-                            |    "version": {{${item.singularName()}-version}},
-                            |    "actions": []
-                            |}
-                            """.trimMargin().escapeJson().escapeAll()}"
-            |        },
-            |        "url": {
-            |            ${if (param.isNotEmpty()) """
-                            "raw": "${item.url.raw()}/${param}={{${item.singularName()}-${param}}}",
-                            """.trimIndent() else """
-                            "raw": "${item.url.raw()}/{{${item.singularName()}-id}}",
-                            """.trimIndent()}
-            |            "host": [
-            |                "{{host}}"
-            |            ],
-            |            "path": [
-            |                <<"${item.url.path()}">>,
-            |                "${if (param.isNotEmpty()) "${param}={{${item.singularName()}-${param}}}" else "{{${item.singularName()}-id}}"}"
-            |            ],
-            |            "query": [
-            |                <<${item.url.query()}>>
-            |            ]
-            |        },
-            |        "description": "${item.description()}"
-            |    },
-            |    "response": []
-            |}
-        """.trimMargin()
-    }
-
-    private fun deleteByID(item: ItemGenModel): String {
-        return deleteByParam(item, "", true)
-    }
-
-    private fun deleteByKey(item: ItemGenModel): String {
-        return deleteByParam(item, "key", true)
-    }
-
-    private fun deleteByParam(item: ItemGenModel, param: String, by: Boolean): String {
-        return """
-            |{
-            |    "name": "Delete ${item.name.singularize()}${if (by) " by ${if (param.isNotEmpty()) param else "ID"}" else ""}",
-            |    "event": [
-            |        {
-            |            "listen": "test",
-            |            "script": {
-            |                "type": "text/javascript",
-            |                "exec": [
-            |                    <<${testScript(item, param)}>>
-            |                ]
-            |            }
-            |        }
-            |    ],
-            |    "request": {
-            |        "auth":
-            |            <<${auth()}>>,
-            |        "method": "${item.method()}",
-            |        "header": [
-            |            {
-            |                "key": "Content-Type",
-            |                "value": "application/json"
-            |            }
-            |        ],
-            |        "body": {
-            |            "mode": "raw",
-            |            "raw": "${if (item.getExample().isNullOrEmpty().not()) item.getExample()!!.escapeJson() else ""}"
-            |        },
-            |        "url": {
-            |            ${if (param.isNotEmpty()) """
-                            "raw": "${item.url.raw()}/${param}={{${item.singularName()}-${param}}}",
-                            """.trimIndent() else """
-                            "raw": "${item.url.raw()}/{{${item.singularName()}-id}}",
-                            """.trimIndent()}
-            |            "host": [
-            |                "{{host}}"
-            |            ],
-            |            "path": [
-            |                <<"${item.url.path()}">>,
-            |                "${if (param.isNotEmpty()) "${param}={{${item.singularName()}-${param}}}" else "{{${item.singularName()}-id}}"}"
-            |            ],
-            |            "query": [
-            |                <<${item.url.query()}>>
-            |            ]
-            |        },
-            |        "description": "${item.description()}"
-            |    },
-            |    "response": []
-            |}
-        """.trimMargin()
-    }
 
     private fun actionExample(item: ActionGenModel): String {
         return """
@@ -513,7 +310,7 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
                 |            "script": {
                 |                "type": "text/javascript",
                 |                "exec": [
-                |                    <<${testScript(item, "")}>>
+                |                    <<${item.testScript("")}>>
                 |                ]
                 |            }
                 |        }
@@ -563,7 +360,7 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
             |            "script": {
             |                "type": "text/javascript",
             |                "exec": [
-            |                    <<${testScript(item, "")}>>
+            |                    <<${item.testScript("")}>>
             |                ]
             |            }
             |        }
@@ -611,7 +408,7 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
                 |            "script": {
                 |                "type": "text/javascript",
                 |                "exec": [
-                |                    <<${testScript(item, "")}>>
+                |                    <<${item.testScript("")}>>
                 |                ]
                 |            }
                 |        }
@@ -660,7 +457,7 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
                 |            "script": {
                 |                "type": "text/javascript",
                 |                "exec": [
-                |                    <<${testScript(item, "")}>>
+                |                    <<${item.testScript("")}>>
                 |                ]
                 |            }
                 |        }
@@ -752,10 +549,10 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
         val items = Lists.newArrayList<ItemGenModel>()
         val resource = this
         if (resource.getMethod(HttpMethod.GET) != null) {
-            items.add(ItemGenModel(resource, ::getProject, resource.getMethod(HttpMethod.GET)))
+            items.add(ItemGenModel(resource, resource.getMethod(HttpMethod.GET)))
         }
         if (resource.getMethod(HttpMethod.POST) != null) {
-            items.add(ItemGenModel(resource, ::updateProject, resource.getMethod(HttpMethod.POST)))
+            items.add(ItemGenModel(resource, resource.getMethod(HttpMethod.POST)))
         }
         if (resource.getMethod(HttpMethod.POST) != null) {
             items.addAll(getActionItems(resource.getMethod(HttpMethod.POST), ::projectAction))
@@ -765,37 +562,11 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
 
     fun Resource.items(): List<ItemGenModel> {
         val items = Lists.newArrayList<ItemGenModel>()
-
-
-        if (this.getMethod(HttpMethod.GET) != null) {
-            items.add(ItemGenModel(this, ::query, this.getMethod(HttpMethod.GET)) { item, name -> name })
-        }
-        if (this.getMethod(HttpMethod.POST) != null) {
-            items.add(ItemGenModel(this, ::create, this.getMethod(HttpMethod.POST)) { item, name -> name })
-        }
-        val findIdParam = { resource: Resource -> resource.getUriParameter("ID") != null || resource.getAnnotation("idParam") != null }
-        val byId = this.resources.stream().filter(findIdParam).findFirst().orElse(null)
-        if (byId != null) {
-            val renameParam = { item: ItemGenModel, param: String -> if (param.equals("projectKey")) param else "${item.singularName()}-${param}" }
-            items.addAll(byId.methods.map { ItemGenModel(byId, ::getByID, it, renameParam) })
-            if (byId.getMethod(HttpMethod.POST) != null) {
-                items.addAll(getActionItems(byId.getMethod(HttpMethod.POST)))
-            }
-        } else {
-            val byKey = this.resources.stream().filter { resource1 -> resource1.getUriParameter("key") != null }.findFirst().orElse(null)
-            if (byKey?.getMethod(HttpMethod.GET) != null) {
-                items.add(ItemGenModel(this, ::getByKey, byKey.getMethod(HttpMethod.GET)))
-            }
-            if (byKey?.getMethod(HttpMethod.POST) != null) {
-                items.add(ItemGenModel(this, ::updateByKey, byKey.getMethod(HttpMethod.POST)))
-            }
-            if (byKey?.getMethod(HttpMethod.PUT) != null) {
-                items.add(ItemGenModel(this, ::updateByKey, byKey.getMethod(HttpMethod.PUT)))
-            }
-            if (byKey?.getMethod(HttpMethod.DELETE) != null) {
-                items.add(ItemGenModel(this, ::deleteByKey, byKey.getMethod(HttpMethod.DELETE)))
-            }
-        }
+        val renameParam = { item: ItemGenModel, param: String -> if (param.equals("projectKey")) param else "${item.singularName()}-${param}" }
+        items.addAll(this.methods.map { ItemGenModel(this, it, renameParam) })
+//            if (this.getMethod(HttpMethod.POST) != null) {
+//                items.addAll(getActionItems(this.getMethod(HttpMethod.POST)))
+//            }
         val childItems = this.resources.flatMap { it.items() }
         items.addAll(childItems)
         return items
@@ -820,7 +591,7 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
                     updateActions = actionsType.items.subTypes
                 }
                 for (action in updateActions) {
-                    actionItems.add(ActionGenModel(action as ObjectType, this, template, method))
+                    actionItems.add(ActionGenModel(action as ObjectType, this, method))
                 }
                 actionItems.sortBy { actionGenModel -> actionGenModel.discriminatorValue }
             }

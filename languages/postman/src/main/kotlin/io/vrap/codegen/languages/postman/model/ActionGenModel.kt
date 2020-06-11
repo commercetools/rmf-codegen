@@ -13,7 +13,7 @@ import java.util.*
 import kotlin.reflect.KFunction
 import kotlin.reflect.KFunction1
 
-class ActionGenModel(val type: ObjectType, resource: Resource, template: KFunction1<ItemGenModel, String>, method: Method, renameParam: Function2<ItemGenModel, String, String> = { item, name -> name }) : ItemGenModel(resource, template, method, renameParam) {
+class ActionGenModel(val type: ObjectType, resource: Resource, method: Method, renameParam: Function2<ItemGenModel, String, String> = { item, name -> name }) : ItemGenModel(resource, method, renameParam) {
     val testScript: String?
     private val example: String?
     val discriminatorValue: String

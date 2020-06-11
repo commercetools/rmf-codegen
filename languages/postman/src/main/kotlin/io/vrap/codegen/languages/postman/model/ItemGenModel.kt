@@ -1,6 +1,7 @@
 package io.vrap.codegen.languages.postman.model
 
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
+import io.vrap.rmf.raml.model.resources.HttpMethod
 import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.util.StringCaseFormat
@@ -8,7 +9,7 @@ import org.apache.commons.lang3.StringEscapeUtils
 import java.util.*
 import kotlin.reflect.KFunction1
 
-open class ItemGenModel(private val resource: Resource, val template: KFunction1<ItemGenModel, String>, private val method: Method, val renameParam: Function2<ItemGenModel, String, String> = { item, name -> name }) {
+open class ItemGenModel(private val resource: Resource, private val method: Method, val renameParam: Function2<ItemGenModel, String, String> = { item, name -> name }) {
 
     val url = PostmanUrl(resource, method) { renameParam(this, it) }
 
@@ -55,5 +56,79 @@ open class ItemGenModel(private val resource: Resource, val template: KFunction1
 
     fun singularName(): String {
         return resource.resourcePathName.singularize()
+    }
+
+    fun rawBody(): String {
+        return getExample()?.escapeAll()?:""
+    }
+
+    fun testScript(param: String): String {
+        return """
+            |tests["Status code " + responseCode.code] = responseCode.code === 200 || responseCode.code === 201;
+            |var data = JSON.parse(responseBody);
+            |if(data.version){
+            |    pm.environment.set("${this.resourcePathName.singularize()}-version", data.version);
+            |}
+            |if(data.id){
+            |    pm.environment.set("${this.resourcePathName.singularize()}-id", data.id); 
+            |}
+            |if(data.key){
+            |    pm.environment.set("${this.resourcePathName.singularize()}-key", data.key);
+            |}
+            |${if (param.isNotEmpty()) """
+            |if(data.${param}){
+            |    pm.environment.set("${this.resourcePathName.singularize()}-${param}", data.${param});
+            |}
+            """.trimMargin() else ""}
+            |${if (this is ActionGenModel && this.testScript.isNullOrEmpty().not()) this else ""}
+        """.trimMargin().split("\n").map { it.escapeJson().escapeAll() }.joinToString("\",\n\"", "\"", "\"")
+    }
+
+    fun render(param: String): String {
+        return """
+            |{
+            |    "name": "${this.simpleDescription()}",
+            |    "event": [
+            |        {
+            |            "listen": "test",
+            |            "script": {
+            |                "type": "text/javascript",
+            |                "exec": [
+            |                    <<${this.testScript(param)}>>
+            |                ]
+            |            }
+            |        }
+            |    ],
+            |    "request": {
+            |        "auth":
+            |            <<${auth()}>>,
+            |        "method": "${this.method()}",
+            |        "header": [
+            |            {
+            |                "key": "Content-Type",
+            |                "value": "application/json"
+            |            }
+            |        ],
+            |        "body": {
+            |            "mode": "raw",
+            |            "raw": "${this.rawBody()}"
+            |        },
+            |        "url": {
+            |                "raw": "${this.url.raw()}",
+            |            "host": [
+            |                "{{host}}"
+            |            ],
+            |            "path": [
+            |                <<"${this.url.path()}">>
+            |            ],
+            |            "query": [
+            |                <<${this.url.query()}>>
+            |            ]
+            |        },
+            |        "description": "${this.description()}"
+            |    },
+            |    "response": []
+            |}
+        """.trimMargin()
     }
 }
