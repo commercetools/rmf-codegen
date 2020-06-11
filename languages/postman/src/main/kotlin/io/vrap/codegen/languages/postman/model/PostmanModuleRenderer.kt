@@ -739,9 +739,10 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
 
     fun Api.resources(): List<ResourceModel> {
         val resources = Lists.newArrayList<ResourceModel>()
-        val rootItems = this.resources[0].projectItems()
+        val rootResource = this.resources[0]
+        val rootItems = rootResource.projectItems()
         if (rootItems.size > 0) {
-            resources.add(ResourceModel(this.resources[0], this.resources[0].projectItems()))
+            resources.add(ResourceModel(rootResource, rootResource.projectItems()))
         }
         resources.addAll(this.resources[0].resources.map { ResourceModel(it, it.items()) })
         return resources
@@ -764,6 +765,7 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
 
     fun Resource.items(): List<ItemGenModel> {
         val items = Lists.newArrayList<ItemGenModel>()
+
 
         if (this.getMethod(HttpMethod.GET) != null) {
             items.add(ItemGenModel(this, ::query, this.getMethod(HttpMethod.GET)) { item, name -> name })
@@ -794,6 +796,8 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
                 items.add(ItemGenModel(this, ::deleteByKey, byKey.getMethod(HttpMethod.DELETE)))
             }
         }
+        val childItems = this.resources.flatMap { it.items() }
+        items.addAll(childItems)
         return items
     }
 
