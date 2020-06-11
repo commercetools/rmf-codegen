@@ -66,6 +66,13 @@ open class ItemGenModel(private val resource: Resource, private val method: Meth
         return """
             |tests["Status code " + responseCode.code] = responseCode.code === 200 || responseCode.code === 201;
             |var data = JSON.parse(responseBody);
+            |if(data.results && data.results[0] && data.results[0].id && data.results[0].version){
+            |    pm.environment.set("${this.resourcePathName.singularize()}-id", data.results[0].id); 
+            |    pm.environment.set("${this.resourcePathName.singularize()}-version", data.results[0].version);
+            |}
+            |if(data.results && data.results[0] && data.results[0].key){
+            |    pm.environment.set("${this.resourcePathName.singularize()}-key", data.results[0].key); 
+            |}
             |if(data.version){
             |    pm.environment.set("${this.resourcePathName.singularize()}-version", data.version);
             |}
