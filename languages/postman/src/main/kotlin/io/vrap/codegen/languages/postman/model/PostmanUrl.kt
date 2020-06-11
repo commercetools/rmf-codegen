@@ -16,7 +16,9 @@ class PostmanUrl (private val resource: Resource, private val method: Method, va
 
     private fun transformUri(uriComponent: UriTemplateComponent): String {
         if (uriComponent is Expression && uriComponent.varSpecs.size == 1) {
-            val param = renameParam(uriComponent.varSpecs.first().value)
+            val paramName = uriComponent.varSpecs.first().value
+            val uriParameter = resource.uriParameters.find { it.name.equals(paramName) && it.type?.getAnnotation("paramName")  != null }
+            val param = if (uriParameter != null) uriParameter.type.getAnnotation("paramName").value.value else renameParam(paramName)
             return "{{${param}}}"
         }
         else return uriComponent.toString()
