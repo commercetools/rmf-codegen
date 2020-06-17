@@ -2,23 +2,22 @@ package io.vrap.codegen.languages.ramldoc.model
 
 import com.google.inject.Inject
 import io.vrap.codegen.languages.extensions.ExtensionsBase
+import io.vrap.codegen.languages.extensions.isSuccessfull
+import io.vrap.codegen.languages.extensions.toRequestName
 import io.vrap.codegen.languages.ramldoc.extensions.packageDir
-import io.vrap.codegen.languages.ramldoc.extensions.renderExample
 import io.vrap.codegen.languages.ramldoc.extensions.toJson
-import io.vrap.codegen.languages.ramldoc.extensions.toResourceName
 import io.vrap.rmf.codegen.di.AllAnyTypes
 import io.vrap.rmf.codegen.di.ModelPackageName
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.FileProducer
 import io.vrap.rmf.codegen.types.VrapEnumType
 import io.vrap.rmf.codegen.types.VrapObjectType
-import io.vrap.rmf.codegen.types.VrapScalarType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
-import io.vrap.rmf.raml.model.resources.Resource
+import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.types.*
 import org.eclipse.emf.ecore.util.EcoreUtil
 
-class RamlExampleRenderer @Inject constructor(val allResources: MutableList<Resource>, @AllAnyTypes val allAnyTypes: MutableList<AnyType>, override val vrapTypeProvider: VrapTypeProvider) : ExtensionsBase, FileProducer {
+class RamlExampleRenderer @Inject constructor(val allMethods: MutableList<Method>, @AllAnyTypes val allAnyTypes: MutableList<AnyType>, override val vrapTypeProvider: VrapTypeProvider) : ExtensionsBase, FileProducer {
 
     @Inject
     @ModelPackageName
@@ -27,7 +26,7 @@ class RamlExampleRenderer @Inject constructor(val allResources: MutableList<Reso
     override fun produceFiles(): List<TemplateFile> {
         return listOf<TemplateFile>()
                 .plus(allAnyTypes.flatMap { render(it) })
-                .plus(allResources.flatMap { render(it) })
+                .plus(allMethods.flatMap { render(it) })
     }
 
      private fun render(type: AnyType): List<TemplateFile> {
@@ -59,13 +58,13 @@ class RamlExampleRenderer @Inject constructor(val allResources: MutableList<Reso
         })
     }
 
-    private fun render(resource: Resource): List<TemplateFile> {
+    private fun render(method: Method): List<TemplateFile> {
         val files = listOf<TemplateFile>()
 
-        val examples = resource.uriParameters.flatMap { it.type.examples }.filterNotNull()
+        val examples = method.responses.filter { response -> response.isSuccessfull() }.flatMap { it.bodies.flatMap { body -> body.inlineTypes.flatMap { inlineType -> inlineType.examples.map { example -> "${method.toRequestName()}-${it.statusCode}-${if (example.name.isNotEmpty()) example.name else "default"}" to example } } } }.toMap()
 
         return files.plus(examples.map {
-            renderExample(resource, it)
+            renderExample(it.key, it.value)
         })
     }
 
@@ -99,12 +98,11 @@ class RamlExampleRenderer @Inject constructor(val allResources: MutableList<Reso
         )
     }
 
-    private fun renderExample(resource: Resource, example: Example): TemplateFile {
-        val exampleName = "examples/" + resource.toResourceName() + "-${if (example.name.isNotEmpty()) example.name else "default"}.json"
+    private fun renderExample(exampleName: String, example: Example): TemplateFile {
         val content = example.value.toJson()
 
         return TemplateFile(
-                relativePath = exampleName,
+                relativePath = "examples/$exampleName.json",
                 content = content
         )
     }

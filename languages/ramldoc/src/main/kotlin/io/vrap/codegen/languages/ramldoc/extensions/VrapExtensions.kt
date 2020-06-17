@@ -115,12 +115,11 @@ fun UriParameter.renderUriParameter(): String {
             |  <<${this.type.renderType()}>>
             |  required: ${this.required}${if (this.type.examples.isNotEmpty()) """
             |  examples:
-            |    <<${this.type.examples.joinToString("\n") { it.renderExample(this.name) }}>>""" else ""}
+            |    <<${this.type.examples.joinToString("\n") { it.renderSimpleExample() }}>>""" else ""}
         """.trimMargin().keepAngleIndent()
 }
 
-fun Example.renderExample(elementName: String): String {
-    val exampleName = "../examples/" + elementName + "-${if (this.name.isNotEmpty()) this.name else "default"}.json"
+fun Example.renderSimpleExample(): String {
     return """
             |${if (this.name.isNotEmpty()) this.name else "default"}:${if (this.displayName != null) """
             |  displayName: ${this.displayName.value.trim()}""" else ""}${if (this.description != null) """
@@ -128,7 +127,19 @@ fun Example.renderExample(elementName: String): String {
             |    <<${this.description.value.trim()}>>""" else ""}${if (this.annotations.isNotEmpty()) """
             |  <<${this.annotations.joinToString("\n") { it.renderAnnotation() }}>>""" else ""}
             |  strict: ${this.strict.value}
-            |  value: !include $exampleName
+            |  value: ${this.value.toJson()}
+        """.trimMargin()
+}
+
+fun Example.renderExample(exampleName: String): String {
+    return """
+            |${if (this.name.isNotEmpty()) this.name else "default"}:${if (this.displayName != null) """
+            |  displayName: ${this.displayName.value.trim()}""" else ""}${if (this.description != null) """
+            |  description: |-
+            |    <<${this.description.value.trim()}>>""" else ""}${if (this.annotations.isNotEmpty()) """
+            |  <<${this.annotations.joinToString("\n") { it.renderAnnotation() }}>>""" else ""}
+            |  strict: ${this.strict.value}
+            |  value: !include ../examples/$exampleName.json
         """.trimMargin()
 }
 
