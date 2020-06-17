@@ -110,11 +110,14 @@ class RamlResourceRenderer @Inject constructor(val api: Api, val vrapTypeProvide
     }
 
     private fun renderQueryParameter(queryParameter: QueryParameter): String {
+        val parameterExamples = queryParameter.inlineTypes.flatMap { inlineType -> inlineType.examples }
         return """
             |${queryParameter.name}:${if (queryParameter.type.default != null) """
             |  default: ${queryParameter.type.default.toYaml()}""" else ""}
             |  required: ${queryParameter.required}
-            |  <<${queryParameter.type.renderType()}>>
+            |  <<${queryParameter.type.renderType()}>>${if (parameterExamples.isNotEmpty()) """
+            |  examples:
+            |    <<${parameterExamples.joinToString("\n") { it.renderSimpleExample() }}>>""" else ""}
         """.trimMargin().keepAngleIndent()
     }
 }

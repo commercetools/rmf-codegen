@@ -10,6 +10,7 @@ import com.fasterxml.jackson.databind.SerializerProvider
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
+import io.vrap.rmf.codegen.rendring.utils.escapeAll
 import io.vrap.rmf.codegen.rendring.utils.keepAngleIndent
 import io.vrap.rmf.codegen.types.VrapEnumType
 import io.vrap.rmf.codegen.types.VrapObjectType
@@ -108,27 +109,30 @@ fun AnyType.renderTypeFacet(): String {
 }
 
 fun UriParameter.renderUriParameter(): String {
+    val parameterExamples = this.inlineTypes.flatMap { inlineType -> inlineType.examples }
     return """
             |${this.name}:${if (this.type.enum.size > 0) """
             |  enum:
             |  <<${this.type.enum.joinToString("\n") { "- ${it.value}"}}>>""" else ""}
             |  <<${this.type.renderType()}>>
-            |  required: ${this.required}${if (this.type.examples.isNotEmpty()) """
+            |  required: ${this.required}${if (parameterExamples.isNotEmpty()) """
             |  examples:
-            |    <<${this.type.examples.joinToString("\n") { it.renderSimpleExample() }}>>""" else ""}
+            |    <<${parameterExamples.joinToString("\n") { it.renderSimpleExample() }}>>""" else ""}
         """.trimMargin().keepAngleIndent()
 }
 
 fun Example.renderSimpleExample(): String {
-    return """
+    val t = """
             |${if (this.name.isNotEmpty()) this.name else "default"}:${if (this.displayName != null) """
             |  displayName: ${this.displayName.value.trim()}""" else ""}${if (this.description != null) """
             |  description: |-
             |    <<${this.description.value.trim()}>>""" else ""}${if (this.annotations.isNotEmpty()) """
             |  <<${this.annotations.joinToString("\n") { it.renderAnnotation() }}>>""" else ""}
             |  strict: ${this.strict.value}
-            |  value: ${this.value.toJson()}
+            |  value: ${this.value.toJson().escapeAll().escapeAll()}
         """.trimMargin()
+
+    return t
 }
 
 fun Example.renderExample(exampleName: String): String {
