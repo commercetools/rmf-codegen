@@ -66,7 +66,8 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
             internalServerErrorException(),
             notFoundException(),
             serviceUnavailableException(),
-            unauthorizedException()
+            unauthorizedException(),
+            userAgentProvider()
     )
 
     private fun collection(): TemplateFile {
@@ -1038,6 +1039,51 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |
                     |class UnauthorizedException extends ApiClientException
                     |{
+                    |}
+                """.trimMargin())
+    }
+
+    private fun userAgentProvider(): TemplateFile {
+        return TemplateFile(relativePath = "src/Client/UserAgentProvider.php",
+                content = """
+                    |<?php
+                    |
+                    |${PhpSubTemplates.generatorInfo}
+                    |
+                    |namespace ${packagePrefix.toNamespaceName()}\Client;
+                    |
+                    |use ${packagePrefix.toNamespaceName()}\Client as Client;
+                    |use GuzzleHttp\Client as HttpClient;
+                    |
+                    |class UserAgentProvider
+                    |{
+                    |   /**
+                    |     * @psalm-var string
+                    |     * @readonly
+                    |     */
+                    |    private $userAgent;
+                    |    
+                    |   /**
+                    |     * @psalm-var string $userAgent
+                    |     */
+                    |    public function __construct($userAgent = null)
+                    |    {
+                    |        if (is_null($userAgent)) {
+                    |            $userAgent = 'commercetools-php-sdk/' . Client::VERSION;
+                    |
+                    |            $userAgent .= ' (' . $this->getAdapterInfo();
+                    |            if (extension_loaded('curl') && function_exists('curl_version')) {
+                    |                $userAgent .= '; curl/' . \curl_version()['version'];
+                    |            }
+                    |            $userAgent .= ') PHP/' . PHP_VERSION;
+                    |        }
+                    |        $this->userAgent = $userAgent;
+                    |    }
+                    |    
+                    |    public function getUserAgent(): string
+                    |    {
+                    |        return $this->userAgent;
+                    |    }
                     |}
                 """.trimMargin())
     }
@@ -2873,6 +2919,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |            $!middlewares['retryNA'] = self::createRetryNAMiddleware($!maxRetries);
                     |        }
                     |        $!middlewares['correlation_id'] = self::createCorrelationIdMiddleware($!correlationIdProvider ?? new DefaultCorrelationIdProvider());
+                    |        $!middlewares['user_agent'] = new UserAgentProvider()->getUserAgent();
                     |        
                     |        return $!middlewares;
                     |    }
