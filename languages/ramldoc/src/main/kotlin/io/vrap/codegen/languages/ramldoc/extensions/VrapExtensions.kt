@@ -10,15 +10,18 @@ import com.fasterxml.jackson.databind.SerializerProvider
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
+import io.vrap.rmf.codegen.rendring.utils.escapeAll
 import io.vrap.rmf.codegen.rendring.utils.keepAngleIndent
 import io.vrap.rmf.codegen.types.VrapEnumType
 import io.vrap.rmf.codegen.types.VrapObjectType
+import io.vrap.rmf.raml.model.elements.NamedElement
 import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.resources.UriParameter
 import io.vrap.rmf.raml.model.types.*
 import io.vrap.rmf.raml.model.types.Annotation
 import io.vrap.rmf.raml.model.util.StringCaseFormat
 import io.vrap.rmf.raml.model.values.RegExp
+import org.eclipse.emf.ecore.EObject
 import java.io.IOException
 import java.util.stream.Collectors
 
@@ -106,15 +109,43 @@ fun AnyType.renderTypeFacet(): String {
 }
 
 fun UriParameter.renderUriParameter(): String {
+    val parameterExamples = this.inlineTypes.flatMap { inlineType -> inlineType.examples }
     return """
             |${this.name}:${if (this.type.enum.size > 0) """
             |  enum:
             |  <<${this.type.enum.joinToString("\n") { "- ${it.value}"}}>>""" else ""}
             |  <<${this.type.renderType()}>>
-            |  required: ${this.required}
+            |  required: ${this.required}${if (parameterExamples.isNotEmpty()) """
+            |  examples:
+            |    <<${parameterExamples.joinToString("\n") { it.renderSimpleExample() }}>>""" else ""}
         """.trimMargin().keepAngleIndent()
 }
 
+fun Example.renderSimpleExample(): String {
+    val t = """
+            |${if (this.name.isNotEmpty()) this.name else "default"}:${if (this.displayName != null) """
+            |  displayName: ${this.displayName.value.trim()}""" else ""}${if (this.description != null) """
+            |  description: |-
+            |    <<${this.description.value.trim()}>>""" else ""}${if (this.annotations.isNotEmpty()) """
+            |  <<${this.annotations.joinToString("\n") { it.renderAnnotation() }}>>""" else ""}
+            |  strict: ${this.strict.value}
+            |  value: ${this.value.toJson().escapeAll().escapeAll()}
+        """.trimMargin()
+
+    return t
+}
+
+fun Example.renderExample(exampleName: String): String {
+    return """
+            |${if (this.name.isNotEmpty()) this.name else "default"}:${if (this.displayName != null) """
+            |  displayName: ${this.displayName.value.trim()}""" else ""}${if (this.description != null) """
+            |  description: |-
+            |    <<${this.description.value.trim()}>>""" else ""}${if (this.annotations.isNotEmpty()) """
+            |  <<${this.annotations.joinToString("\n") { it.renderAnnotation() }}>>""" else ""}
+            |  strict: ${this.strict.value}
+            |  value: !include ../examples/$exampleName.json
+        """.trimMargin()
+}
 
 fun AnyType.renderType(withDescription: Boolean = true): String {
     val builtinTypeName = BuiltinType.of(this.eClass()).map { it.getName() }.orElse("any")
@@ -309,4 +340,13 @@ fun Instance.toJson(): String {
     }
 
     return example.trim()
+}
+
+fun <T> EObject.getParent(parentClass: Class<T>): T? {
+    if (this.eContainer() == null) {
+        return null
+    }
+    return if (parentClass.isInstance(this.eContainer())) {
+        this.eContainer() as T
+    } else this.eContainer().getParent(parentClass)
 }
