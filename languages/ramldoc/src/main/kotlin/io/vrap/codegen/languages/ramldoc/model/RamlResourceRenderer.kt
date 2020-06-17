@@ -2,10 +2,9 @@ package io.vrap.codegen.languages.ramldoc.model
 
 import com.google.inject.Inject
 import io.vrap.codegen.languages.extensions.isSuccessfull
+import io.vrap.codegen.languages.extensions.toRequestName
 import io.vrap.codegen.languages.extensions.toResourceName
-import io.vrap.codegen.languages.ramldoc.extensions.renderType
-import io.vrap.codegen.languages.ramldoc.extensions.renderUriParameter
-import io.vrap.codegen.languages.ramldoc.extensions.toYaml
+import io.vrap.codegen.languages.ramldoc.extensions.*
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.ResourceRenderer
 import io.vrap.rmf.codegen.rendring.utils.keepAngleIndent
@@ -55,9 +54,9 @@ class RamlResourceRenderer @Inject constructor(val api: Api, val vrapTypeProvide
             |  queryParameters:
             |    <<${method.queryParameters.joinToString("\n") { renderQueryParameter(it) }}>>""" else ""}${if (method.bodies.any { it.type != null }) """
             |  body:
-            |    <<${method.bodies.filter { it.type != null }.joinToString("\n") { renderBody(it) } }>>""" else ""}${if (method.responses.any { response -> response.isSuccessfull() }) """
+            |    <<${method.bodies.filter { it.type != null }.joinToString("\n") { renderBody(it, method) } }>>""" else ""}${if (method.responses.any { response -> response.isSuccessfull() }) """
             |  responses:
-            |    <<${method.responses.filter { response -> response.isSuccessfull() }.joinToString("\n") { renderResponse(it) }}>>""" else ""}
+            |    <<${method.responses.filter { response -> response.isSuccessfull() }.joinToString("\n") { renderResponse(it, method) }}>>""" else ""}
         """.trimMargin().keepAngleIndent()
     }
 
@@ -68,20 +67,35 @@ class RamlResourceRenderer @Inject constructor(val api: Api, val vrapTypeProvide
         """.trimMargin().keepAngleIndent()
     }
 
-    private fun renderResponse(response: Response): String {
+    private fun renderResponse(response: Response, method: Method): String {
         return """
             |${response.statusCode}:${if (response.description != null) """
             |  description: |-
             |    <<${response.description.value.trim()}>>""" else ""}
             |  body:
-            |    <<${response.bodies.joinToString("\n") { renderBody(it) } }>>
+            |    <<${response.bodies.joinToString("\n") { renderBody(it, method, response) } }>>
         """.trimMargin().keepAngleIndent()
     }
 
-    private fun renderBody(body: Body): String {
+    private fun renderBody(body: Body, method: Method): String {
+        val bodyExamples = body.inlineTypes.flatMap { inlineType -> inlineType.examples.map { example -> "${method.toRequestName()}-${if (example.name.isNotEmpty()) example.name else "default"}" to example } }.toMap()
         return """
             |${body.contentType}:
-            |  <<${body.type.renderType(false)}>>
+            |  <<${body.type.renderType(false)}>>${if (bodyExamples.isNotEmpty()) """
+            |  examples:
+            |    <<${bodyExamples.map { it.value.renderExample(it.key) }.joinToString("\n")}>>""" else ""}
+            |
+        """.trimMargin().keepAngleIndent()
+    }
+
+    private fun renderBody(body: Body, method: Method, response: Response): String {
+        val bodyExamples = body.inlineTypes.flatMap { inlineType -> inlineType.examples.map { example -> "${method.toRequestName()}-${response.statusCode}-${if (example.name.isNotEmpty()) example.name else "default"}" to example } }.toMap()
+        return """
+            |${body.contentType}:
+            |  <<${body.type.renderType(false)}>>${if (bodyExamples.isNotEmpty()) """
+            |  examples:
+            |    <<${bodyExamples.map { it.value.renderExample(it.key) }.joinToString("\n")}>>""" else ""}
+            |
         """.trimMargin().keepAngleIndent()
     }
 
@@ -96,11 +110,14 @@ class RamlResourceRenderer @Inject constructor(val api: Api, val vrapTypeProvide
     }
 
     private fun renderQueryParameter(queryParameter: QueryParameter): String {
+        val parameterExamples = queryParameter.inlineTypes.flatMap { inlineType -> inlineType.examples }
         return """
             |${queryParameter.name}:${if (queryParameter.type.default != null) """
             |  default: ${queryParameter.type.default.toYaml()}""" else ""}
             |  required: ${queryParameter.required}
-            |  <<${queryParameter.type.renderType()}>>
+            |  <<${queryParameter.type.renderType()}>>${if (parameterExamples.isNotEmpty()) """
+            |  examples:
+            |    <<${parameterExamples.joinToString("\n") { it.renderSimpleExample() }}>>""" else ""}
         """.trimMargin().keepAngleIndent()
     }
 }
