@@ -66,7 +66,8 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
             internalServerErrorException(),
             notFoundException(),
             serviceUnavailableException(),
-            unauthorizedException()
+            unauthorizedException(),
+            userAgentProvider()
     )
 
     private fun collection(): TemplateFile {
@@ -597,6 +598,9 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |            ],
                     |            $!options
                     |        );
+                    |        if (!isset($!options['headers']['user-agent'])) {
+                    |            $!options['headers']['user-agent'] = (new UserAgentProvider())->getUserAgent();
+                    |        }
                     |        foreach ($!middlewares as $!key => $!middleware) {
                     |            if(!is_callable($!middleware)) {
                     |                throw new InvalidArgumentException('Middleware isn\'t callable');
@@ -1040,6 +1044,53 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |{
                     |}
                 """.trimMargin())
+    }
+
+    private fun userAgentProvider(): TemplateFile {
+        return TemplateFile(relativePath = "src/Client/UserAgentProvider.php",
+                content = """
+                    |<?php
+                    |
+                    |${PhpSubTemplates.generatorInfo}
+                    |
+                    |namespace ${packagePrefix.toNamespaceName()}\Client;
+                    |
+                    |use GuzzleHttp\ClientInterface;
+                    |
+                    |class UserAgentProvider
+                    |{
+                    |   /**
+                    |     * @psalm-var string
+                    |     * @readonly
+                    |     */
+                    |    private $!userAgent;
+                    |    
+                    |    public function __construct(string $!suffix = null)
+                    |    {
+                    |        if (defined('\GuzzleHttp\ClientInterface::MAJOR_VERSION')) {
+                    |           $!clientVersion = (string) constant(ClientInterface::class . '::MAJOR_VERSION');
+                    |        } else {
+                    |           $!clientVersion = (string) constant(ClientInterface::class . '::VERSION');
+                    |        }
+                    |        $!userAgent = 'commercetools-sdk';
+                    |
+                    |        $!userAgent .= ' (GuzzleHttp/' . $!clientVersion;
+                    |        if (extension_loaded('curl') && function_exists('curl_version')) {
+                    |            $!userAgent .= '; curl/' . (string) \curl_version()['version'];
+                    |        }
+                    |        $!userAgent .= ') PHP/' . PHP_VERSION;
+                    |        if (!is_null($!suffix)) {
+                    |           $!userAgent .= ' ' . $!suffix;
+                    |        }
+                    |        $!this->userAgent = $!userAgent;
+                    |    }
+                    |    
+                    |    public function getUserAgent(): string
+                    |    {
+                    |        return $!this->userAgent;
+                    |    }
+                    |}
+                """.trimMargin().forcedLiteralEscape())
     }
 
     private fun forbiddenException(): TemplateFile {
