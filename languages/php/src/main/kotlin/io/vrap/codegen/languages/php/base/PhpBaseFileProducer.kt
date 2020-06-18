@@ -598,6 +598,9 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |            ],
                     |            $!options
                     |        );
+                    |        if (!isset($!options['headers']['user-agent'])) {
+                    |            $!options['headers']['user-agent'] = (new UserAgentProvider())->getUserAgent();
+                    |        }
                     |        foreach ($!middlewares as $!key => $!middleware) {
                     |            if(!is_callable($!middleware)) {
                     |                throw new InvalidArgumentException('Middleware isn\'t callable');
@@ -1052,8 +1055,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |
                     |namespace ${packagePrefix.toNamespaceName()}\Client;
                     |
-                    |use ${packagePrefix.toNamespaceName()}\Client as Client;
-                    |use GuzzleHttp\Client as HttpClient;
+                    |use GuzzleHttp\ClientInterface;
                     |
                     |class UserAgentProvider
                     |{
@@ -1061,31 +1063,34 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |     * @psalm-var string
                     |     * @readonly
                     |     */
-                    |    private $userAgent;
+                    |    private $!userAgent;
                     |    
-                    |   /**
-                    |     * @psalm-var string $userAgent
-                    |     */
-                    |    public function __construct($userAgent = null)
+                    |    public function __construct(string $!suffix = null)
                     |    {
-                    |        if (is_null($userAgent)) {
-                    |            $userAgent = 'commercetools-php-sdk/' . Client::VERSION;
-                    |
-                    |            $userAgent .= ' (' . $this->getAdapterInfo();
-                    |            if (extension_loaded('curl') && function_exists('curl_version')) {
-                    |                $userAgent .= '; curl/' . \curl_version()['version'];
-                    |            }
-                    |            $userAgent .= ') PHP/' . PHP_VERSION;
+                    |        if (defined('\GuzzleHttp\ClientInterface::MAJOR_VERSION')) {
+                    |           $!clientVersion = (string) constant(ClientInterface::class . '::MAJOR_VERSION');
+                    |        } else {
+                    |           $!clientVersion = (string) constant(ClientInterface::class . '::VERSION');
                     |        }
-                    |        $this->userAgent = $userAgent;
+                    |        $!userAgent = 'commercetools-sdk';
+                    |
+                    |        $!userAgent .= ' (GuzzleHttp/' . $!clientVersion;
+                    |        if (extension_loaded('curl') && function_exists('curl_version')) {
+                    |            $!userAgent .= '; curl/' . (string) \curl_version()['version'];
+                    |        }
+                    |        $!userAgent .= ') PHP/' . PHP_VERSION;
+                    |        if (!is_null($!suffix)) {
+                    |           $!userAgent .= ' ' . $!suffix;
+                    |        }
+                    |        $!this->userAgent = $!userAgent;
                     |    }
                     |    
                     |    public function getUserAgent(): string
                     |    {
-                    |        return $this->userAgent;
+                    |        return $!this->userAgent;
                     |    }
                     |}
-                """.trimMargin())
+                """.trimMargin().forcedLiteralEscape())
     }
 
     private fun forbiddenException(): TemplateFile {
@@ -2919,7 +2924,6 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |            $!middlewares['retryNA'] = self::createRetryNAMiddleware($!maxRetries);
                     |        }
                     |        $!middlewares['correlation_id'] = self::createCorrelationIdMiddleware($!correlationIdProvider ?? new DefaultCorrelationIdProvider());
-                    |        $!middlewares['user_agent'] = new UserAgentProvider()->getUserAgent();
                     |        
                     |        return $!middlewares;
                     |    }
