@@ -1084,7 +1084,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |        }
                     |        $!this->userAgent = $!userAgent;
                     |    }
-                    |    
+                    |
                     |    public function getUserAgent(): string
                     |    {
                     |        return $!this->userAgent;

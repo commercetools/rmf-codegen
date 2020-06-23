@@ -9,10 +9,12 @@ import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.types.ObjectType
 import io.vrap.rmf.raml.model.types.StringType
+import io.vrap.rmf.raml.model.types.UnionType
 import org.slf4j.LoggerFactory
 
 class CoreCodeGenerator @Inject constructor(val dataSink: DataSink,
                                             private val allObjectTypes: MutableList<ObjectType>,
+                                            private val allUnionTypes: MutableList<UnionType>,
                                             @EnumStringTypes private val allEnumStringTypes : MutableList<StringType>,
                                             @PatternStringTypes private val allPatternStringTypes : MutableList<StringType>,
                                             @NamedScalarTypes private val allNamedScalarTypes: MutableList<StringType>,
@@ -25,6 +27,9 @@ class CoreCodeGenerator @Inject constructor(val dataSink: DataSink,
 
     @Inject(optional = true)
     lateinit var objectTypeGenerators: MutableSet<ObjectTypeRenderer>
+
+    @Inject(optional = true)
+    lateinit var unionTypeGenerators: MutableSet<UnionTypeRenderer>
 
     @Inject(optional = true)
     lateinit var enumStringTypeGenerators: MutableSet<StringTypeRenderer>
@@ -67,6 +72,13 @@ class CoreCodeGenerator @Inject constructor(val dataSink: DataSink,
             LOGGER.info("generating files for object types")
             objectTypeGenerators.flatMap { objectTypeRenderer ->
                 allObjectTypes.map { objectTypeRenderer.render(it) }
+            }. map { dataSink.write(it) }
+        }
+
+        if (::unionTypeGenerators.isInitialized) {
+            LOGGER.info("generating files for object types")
+            unionTypeGenerators.flatMap { unionTypeRenderer ->
+                allUnionTypes.map { unionTypeRenderer.render(it) }
             }. map { dataSink.write(it) }
         }
 
