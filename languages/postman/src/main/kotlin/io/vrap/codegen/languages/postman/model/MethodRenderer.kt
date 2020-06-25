@@ -13,7 +13,7 @@ class MethodRenderer {
         val url = PostmanUrl(method.resource(), method) { name -> name }
         return """
             |{
-            |    "name": "${method.methodName} ${method.resource().toResourceName()}",
+            |    "name": "${method.displayName?.value ?: "${method.methodName} ${method.resource().toResourceName()}" }",
             |    "event": [
             |        {
             |            "listen": "test",
