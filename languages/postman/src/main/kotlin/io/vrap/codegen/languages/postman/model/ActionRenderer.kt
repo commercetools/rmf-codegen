@@ -1,14 +1,16 @@
 package io.vrap.codegen.languages.postman.model
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.node.ObjectNode
 import io.vrap.codegen.languages.extensions.resource
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
+import io.vrap.rmf.codegen.rendring.utils.keepAngleIndent
 import io.vrap.rmf.raml.model.resources.HttpMethod
 import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Resource
-import io.vrap.rmf.raml.model.types.ArrayType
-import io.vrap.rmf.raml.model.types.ObjectType
-import io.vrap.rmf.raml.model.types.UnionType
+import io.vrap.rmf.raml.model.types.*
 import io.vrap.rmf.raml.model.util.StringCaseFormat
+import java.io.IOException
 import java.util.*
 
 class ActionRenderer {
@@ -40,7 +42,7 @@ class ActionRenderer {
             |            "script": {
             |                "type": "text/javascript",
             |                "exec": [
-            |                    <<${ ""/*item.testScript("") */}>>
+            |                    <<${resource.testScript()}>>
             |                ]
             |            }
             |        }
@@ -51,7 +53,7 @@ class ActionRenderer {
             |        "method": "${method.methodName}",
             |        "body": {
             |            "mode": "raw",
-            |            "raw": "${ "" /*actionExample(item).escapeJson().escapeAll()*/}"
+            |            "raw": "${resource.actionExample(type).escapeJson().escapeAll()}"
             |        },
             |        "header": [
             |            {
@@ -78,6 +80,57 @@ class ActionRenderer {
             |}
         """.trimMargin()
     }
+
+    private fun Resource.actionExample(type: ObjectType): String {
+        val example = getExample(type)
+        return """
+            |{
+            |    "version": {{${this.resourcePathName.singularize()}-version}},
+            |    "actions": [
+            |        <<${if (example.isNullOrEmpty().not()) example else """
+            |        |{
+            |        |    "action": "${type.discriminatorValue}"
+            |        |}""".trimMargin()}>>
+            |    ]
+            |}
+        """.trimMargin().keepAngleIndent()
+    }
+
+    private fun getExample(type: ObjectType): String? {
+        var example: String? = null
+        var instance: Instance? = null
+
+        if (type.getAnnotation("postman-example") != null) {
+            instance = type.getAnnotation("postman-example").value
+        } else if (type.examples.size > 0) {
+            instance = type.examples[0].value
+        }
+
+        if (instance != null) {
+            example = instance.toJson()
+            try {
+                val mapper = ObjectMapper()
+                val nodes = mapper.readTree(example) as ObjectNode
+                nodes.put("action", type.discriminatorValue)
+
+                example = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(nodes)
+                        .split("\n".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray().map { s -> "  $s" }
+                        .joinToString("\n")
+                        .trim { it <= ' ' }
+            } catch (e: IOException) {
+            }
+
+        }
+
+        return example
+    }
+
+//    private fun getTestScript(type: ObjectType): String? {
+//        val t = type.getAnnotation("postman-test-script")
+//        if (t != null) return (t.value as StringInstance).value
+//
+//        return null
+//    }
 
     private fun Resource.getUpdateMethod(): Method? {
         val byIdResource = this.resources.find { resource -> resource.relativeUri.template == "/{ID}" } ?: return null
