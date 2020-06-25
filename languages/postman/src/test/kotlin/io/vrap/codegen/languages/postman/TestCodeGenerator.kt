@@ -12,8 +12,10 @@ import java.nio.file.Paths
 
 class TestCodeGenerator {
     companion object {
+        private val userProvidedOutputPath = System.getenv("OUTPUT_FOLDER")
         private val userProvidedPath = System.getenv("TEST_RAML_FILE")
         private val apiPath : Path = Paths.get(if (userProvidedPath == null) "../../api-spec/api.raml" else userProvidedPath)
+        private val outputFolder : Path = Paths.get(if (userProvidedOutputPath == null) "build/gensrc/postman" else userProvidedOutputPath)
         val apiProvider: ApiProvider = ApiProvider(apiPath)
         val generatorConfig = CodeGeneratorConfig(basePackageName = "")
     }
@@ -22,7 +24,7 @@ class TestCodeGenerator {
     fun generatePostmanModels() {
         val generatorConfig = CodeGeneratorConfig(
                 basePackageName = "com/commercetools/importer",
-                outputFolder = Paths.get("build/gensrc/postman")
+                outputFolder = Paths.get("$outputFolder")
         )
 
         val generatorModule = GeneratorModule(apiProvider, generatorConfig, PostmanBaseTypes)

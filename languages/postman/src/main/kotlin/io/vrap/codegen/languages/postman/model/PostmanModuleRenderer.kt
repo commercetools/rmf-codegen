@@ -92,409 +92,409 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
                     |        <<${auth()}>>,
                     |    "item": [
                     |        <<${authorization(api.oAuth2())}>>,
-                    |        <<${api.resources().joinToString(",") { folder(it) }}>>
+                    |        <<${api.resources.joinToString(",") { ResourceRenderer().render(it) }}>>
                     |    ]
                     |}
                 """.trimMargin().keepAngleIndent())
     }
 
-    private fun folder(resource: ResourceModel): String {
-        if (resource.name() == "InStore") {
-            return """
-                |{
-                |    "name": "${resource.name()}",
-                |    "description": "${resource.description()?.escapeJson()?.escapeAll()}",
-                |    "item": [
-                |        <<${resource.resource.resources.joinToString(",\n") { folder(ResourceModel(it, it.items())) }}>>
-                |    ]
-                |}
-            """.trimMargin()
-        }
-        if (resource.name() == "Me") {
-            return """
-                |{
-                |    "name": "${resource.name()}",
-                |    "description": "${resource.description()?.escapeJson()?.escapeAll()}",
-                |    "item": [
-                |        <<${resource.resource.resources.joinToString(",\n") { folder(ResourceModel(it, it.items())) }}>>${if (resource.items.isNotEmpty()) "," else ""}
-                |        <<${resource.items.joinToString(",\n") { it.render("") } }>>
-                |    ]
-                |}
-            """.trimMargin()
-        }
-        return """
-            |{
-            |    "name": "${resource.name()}",
-            |    "description": "${resource.description()?.escapeJson()?.escapeAll()}",
-            |    "item": [
-            |        <<${resource.items.joinToString(",") { it.render("") } }>>
-            |    ],
-            |    "event": [
-            |        {
-            |            "listen": "test",
-            |            "script": {
-            |                "type": "text/javascript",
-            |                "exec": [
-            |                    <<${if (resource.items.isNotEmpty()) resource.items.first().testScript("") else ""}>>
-            |                ]
-            |            }
-            |        }
-            |    ]
-            |}
-        """.trimMargin()
-    }
+//    private fun folder(resource: ResourceModel): String {
+//        if (resource.name() == "InStore") {
+//            return """
+//                |{
+//                |    "name": "${resource.name()}",
+//                |    "description": "${resource.description()?.escapeJson()?.escapeAll()}",
+//                |    "item": [
+//                |        <<${resource.resource.resources.joinToString(",\n") { folder(ResourceModel(it, it.items())) }}>>
+//                |    ]
+//                |}
+//            """.trimMargin()
+//        }
+//        if (resource.name() == "Me") {
+//            return """
+//                |{
+//                |    "name": "${resource.name()}",
+//                |    "description": "${resource.description()?.escapeJson()?.escapeAll()}",
+//                |    "item": [
+//                |        <<${resource.resource.resources.joinToString(",\n") { folder(ResourceModel(it, it.items())) }}>>${if (resource.items.isNotEmpty()) "," else ""}
+//                |        <<${resource.items.joinToString(",\n") { it.render("") } }>>
+//                |    ]
+//                |}
+//            """.trimMargin()
+//        }
+//        return """
+//            |{
+//            |    "name": "${resource.name()}",
+//            |    "description": "${resource.description()?.escapeJson()?.escapeAll()}",
+//            |    "item": [
+//            |        <<${resource.items.joinToString(",") { it.render("") } }>>
+//            |    ],
+//            |    "event": [
+//            |        {
+//            |            "listen": "test",
+//            |            "script": {
+//            |                "type": "text/javascript",
+//            |                "exec": [
+//            |                    <<${if (resource.items.isNotEmpty()) resource.items.first().testScript("") else ""}>>
+//            |                ]
+//            |            }
+//            |        }
+//            |    ]
+//            |}
+//        """.trimMargin()
+//    }
 
-    private fun queryTestScript(item: ItemGenModel, param: String): String {
+//    private fun queryTestScript(item: ItemGenModel, param: String): String {
+//
+//        return """
+//            |tests["Status code is 200"] = responseCode.code === 200;
+//            |var data = JSON.parse(responseBody);
+//            |if(data.results && data.results[0] && data.results[0].id && data.results[0].version){
+//            |    pm.environment.set("${item.resourcePathName.singularize()}-id", data.results[0].id);
+//            |    pm.environment.set("${item.resourcePathName.singularize()}-version", data.results[0].version);
+//            |}
+//            |if(data.results && data.results[0] && data.results[0].key){
+//            |    pm.environment.set("${item.resourcePathName.singularize()}-key", data.results[0].key);
+//            |}
+//            |${if (item is ActionGenModel && item.testScript.isNullOrEmpty().not()) item.testScript else ""}
+//        """.trimMargin().split("\n").map { it.escapeJson().escapeAll() }.joinToString("\",\n\"", "\"", "\"")
+//    }
 
-        return """
-            |tests["Status code is 200"] = responseCode.code === 200;
-            |var data = JSON.parse(responseBody);
-            |if(data.results && data.results[0] && data.results[0].id && data.results[0].version){
-            |    pm.environment.set("${item.resourcePathName.singularize()}-id", data.results[0].id); 
-            |    pm.environment.set("${item.resourcePathName.singularize()}-version", data.results[0].version);
-            |}
-            |if(data.results && data.results[0] && data.results[0].key){
-            |    pm.environment.set("${item.resourcePathName.singularize()}-key", data.results[0].key); 
-            |}
-            |${if (item is ActionGenModel && item.testScript.isNullOrEmpty().not()) item.testScript else ""}
-        """.trimMargin().split("\n").map { it.escapeJson().escapeAll() }.joinToString("\",\n\"", "\"", "\"")
-    }
-
-    private fun query(item: ItemGenModel): String {
-        return """
-            |{
-            |    "name": "Query ${item.name}",
-            |    "event": [
-            |        {
-            |            "listen": "test",
-            |            "script": {
-            |                "type": "text/javascript",
-            |                "exec": [
-            |                    <<${queryTestScript(item, "")}>>
-            |                ]
-            |            }
-            |        }
-            |    ],
-            |    "request": {
-            |        "auth":
-            |            <<${auth()}>>,
-            |        "method": "${item.method()}",
-            |        "header": [
-            |            {
-            |                "key": "Content-Type",
-            |                "value": "application/json"
-            |            }
-            |        ],
-            |        "body": {
-            |            "mode": "raw",
-            |            "raw": ""
-            |        },
-            |        "url": {
-            |            "raw": "${item.url.raw()}",
-            |            "host": [
-            |                "{{host}}"
-            |            ],
-            |            "path": [
-            |                <<"${item.url.path()}">>
-            |            ],
-            |            "query": [
-            |                <<${item.url.query()}>>
-            |            ]
-            |        },
-            |        "description": "${item.description()}"
-            |    },
-            |    "response": []
-            |}
-        """.trimMargin()
-    }
-
-    private fun create(item: ItemGenModel): String {
-        return """
-            |{
-            |    "name": "Create ${item.singularName()}",
-            |    "event": [
-            |        {
-            |            "listen": "test",
-            |            "script": {
-            |                "type": "text/javascript",
-            |                "exec": [
-            |                    <<${item.testScript("")}>>
-            |                ]
-            |            }
-            |        }
-            |    ],
-            |    "request": {
-            |        "auth":
-            |           <<${auth()}>>,
-            |        "method": "${item.method()}",
-            |        "header": [
-            |            {
-            |                "key": "Content-Type",
-            |                "value": "application/json"
-            |            }
-            |        ],
-            |        "body": {
-            |            "mode": "raw",
-            |            "raw": "${if (item.getExample().isNullOrEmpty().not()) item.getExample()!!.escapeJson() else ""}"
-            |        },
-            |        "url": {
-            |            "raw": "${item.url.raw()}",
-            |            "host": [
-            |                "{{host}}"
-            |            ],
-            |            "path": [
-            |                <<"${item.url.path()}">>
-            |            ],
-            |            "query": [
-            |                <<${item.url.query()}>>
-            |            ]
-            |        },
-            |        "description": "${item.description()}"
-            |    },
-            |    "response": []
-            |}
-        """.trimMargin()
-    }
-
-
+//    private fun query(item: ItemGenModel): String {
+//        return """
+//            |{
+//            |    "name": "Query ${item.name}",
+//            |    "event": [
+//            |        {
+//            |            "listen": "test",
+//            |            "script": {
+//            |                "type": "text/javascript",
+//            |                "exec": [
+//            |                    <<${queryTestScript(item, "")}>>
+//            |                ]
+//            |            }
+//            |        }
+//            |    ],
+//            |    "request": {
+//            |        "auth":
+//            |            <<${auth()}>>,
+//            |        "method": "${item.method()}",
+//            |        "header": [
+//            |            {
+//            |                "key": "Content-Type",
+//            |                "value": "application/json"
+//            |            }
+//            |        ],
+//            |        "body": {
+//            |            "mode": "raw",
+//            |            "raw": ""
+//            |        },
+//            |        "url": {
+//            |            "raw": "${item.url.raw()}",
+//            |            "host": [
+//            |                "{{host}}"
+//            |            ],
+//            |            "path": [
+//            |                <<"${item.url.path()}">>
+//            |            ],
+//            |            "query": [
+//            |                <<${item.url.query()}>>
+//            |            ]
+//            |        },
+//            |        "description": "${item.description()}"
+//            |    },
+//            |    "response": []
+//            |}
+//        """.trimMargin()
+//    }
+//
+//    private fun create(item: ItemGenModel): String {
+//        return """
+//            |{
+//            |    "name": "Create ${item.singularName()}",
+//            |    "event": [
+//            |        {
+//            |            "listen": "test",
+//            |            "script": {
+//            |                "type": "text/javascript",
+//            |                "exec": [
+//            |                    <<${item.testScript("")}>>
+//            |                ]
+//            |            }
+//            |        }
+//            |    ],
+//            |    "request": {
+//            |        "auth":
+//            |           <<${auth()}>>,
+//            |        "method": "${item.method()}",
+//            |        "header": [
+//            |            {
+//            |                "key": "Content-Type",
+//            |                "value": "application/json"
+//            |            }
+//            |        ],
+//            |        "body": {
+//            |            "mode": "raw",
+//            |            "raw": "${if (item.getExample().isNullOrEmpty().not()) item.getExample()!!.escapeJson() else ""}"
+//            |        },
+//            |        "url": {
+//            |            "raw": "${item.url.raw()}",
+//            |            "host": [
+//            |                "{{host}}"
+//            |            ],
+//            |            "path": [
+//            |                <<"${item.url.path()}">>
+//            |            ],
+//            |            "query": [
+//            |                <<${item.url.query()}>>
+//            |            ]
+//            |        },
+//            |        "description": "${item.description()}"
+//            |    },
+//            |    "response": []
+//            |}
+//        """.trimMargin()
+//    }
 
 
-    private fun actionExample(item: ActionGenModel): String {
-        return """
-            |{
-            |    "version": {{${item.singularName()}-version}},
-            |    "actions": [
-            |        <<${if (item.getExample().isNullOrEmpty().not()) item.getExample() else """
-            |        |{
-            |        |    "action": "${item.type.discriminatorValue}"
-            |        |}""".trimMargin()}>>
-            |    ]
-            |}
-        """.trimMargin().keepAngleIndent()
-    }
-
-    private fun updateProjectActionExample(item: ItemGenModel): String {
-        if (item.getExample().isNullOrEmpty())
-            return """
-                |{
-                |    "version": {{project-version}},
-                |    "actions": []
-                |}
-            """.trimMargin()
-        return item.getExample()!!
-    }
-
-    private fun projectActionExample(item: ActionGenModel): String {
-        return """
-            |{
-            |    "version": {{project-version}},
-            |    "actions": [
-            |        <<${if (item.getExample().isNullOrEmpty().not()) item.getExample() else """
-            |        |{
-            |        |    "action": "${item.type.discriminatorValue}"
-            |        |}""".trimMargin()}>>
-            |    ]
-            |}
-        """.trimMargin().keepAngleIndent()
-    }
 
 
-    private fun action(item: ItemGenModel): String {
-        if (item is ActionGenModel)
-            return """
-                |{
-                |    "name": "${item.type.discriminatorValue.capitalize()}",
-                |    "event": [
-                |        {
-                |            "listen": "test",
-                |            "script": {
-                |                "type": "text/javascript",
-                |                "exec": [
-                |                    <<${item.testScript("")}>>
-                |                ]
-                |            }
-                |        }
-                |    ],
-                |    "request": {
-                |        "auth":
-                |            <<${auth()}>>,
-                |        "method": "${item.method()}",
-                |        "body": {
-                |            "mode": "raw",
-                |            "raw": "${actionExample(item).escapeJson().escapeAll()}"
-                |        },
-                |        "header": [
-                |            {
-                |                "key": "Content-Type",
-                |                "value": "application/json"
-                |            }
-                |        ],
-                |        "url": {
-                |            "raw": "${item.url.raw()}",
-                |            "host": [
-                |                "{{host}}"
-                |            ],
-                |            "path": [
-                |                <<"${item.url.path()}">>,
-                |                "{{${item.singularName()}-id}}"
-                |            ],
-                |            "query": [
-                |                <<${item.url.query()}>>
-                |            ]
-                |        },
-                |        "description": "${item.description()}"
-                |    },
-                |    "response": []
-                |}
-            """.trimMargin()
-        return ""
-    }
+//    private fun actionExample(item: ActionGenModel): String {
+//        return """
+//            |{
+//            |    "version": {{${item.singularName()}-version}},
+//            |    "actions": [
+//            |        <<${if (item.getExample().isNullOrEmpty().not()) item.getExample() else """
+//            |        |{
+//            |        |    "action": "${item.type.discriminatorValue}"
+//            |        |}""".trimMargin()}>>
+//            |    ]
+//            |}
+//        """.trimMargin().keepAngleIndent()
+//    }
 
-    private fun getProject(item: ItemGenModel): String {
-        return """
-            |{
-            |    "name": "Get ${item.name.singularize()}",
-            |    "event": [
-            |        {
-            |            "listen": "test",
-            |            "script": {
-            |                "type": "text/javascript",
-            |                "exec": [
-            |                    <<${item.testScript("")}>>
-            |                ]
-            |            }
-            |        }
-            |    ],
-            |    "request": {
-            |        "auth":
-            |            <<${auth()}>>,
-            |        "method": "${item.method()}",
-            |        "header": [
-            |            {
-            |                "key": "Content-Type",
-            |                "value": "application/json"
-            |            }
-            |        ],
-            |        "body": {
-            |            "mode": "raw",
-            |            "raw": ""
-            |        },
-            |        "url": {
-            |            "raw": "{{host}}/{{projectKey}}",
-            |            "host": [
-            |                "{{host}}"
-            |            ],
-            |            "path": [
-            |                "{{projectKey}}"
-            |            ],
-            |            "query": [
-            |                <<${item.url.query()}>>
-            |            ]
-            |        },
-            |        "description": "${item.description()}"
-            |    },
-            |    "response": []
-            |}
-        """.trimMargin()
-    }
+//    private fun updateProjectActionExample(item: ItemGenModel): String {
+//        if (item.getExample().isNullOrEmpty())
+//            return """
+//                |{
+//                |    "version": {{project-version}},
+//                |    "actions": []
+//                |}
+//            """.trimMargin()
+//        return item.getExample()!!
+//    }
 
-    private fun updateProject(item: ItemGenModel): String {
-        return """
-                |{
-                |    "name": "Update ${item.name.singularize()}",
-                |    "event": [
-                |        {
-                |            "listen": "test",
-                |            "script": {
-                |                "type": "text/javascript",
-                |                "exec": [
-                |                    <<${item.testScript("")}>>
-                |                ]
-                |            }
-                |        }
-                |    ],
-                |    "request": {
-                |        "auth":
-                |            <<${auth()}>>,
-                |        "method": "${item.method()}",
-                |        "header": [
-                |            {
-                |                "key": "Content-Type",
-                |                "value": "application/json"
-                |            }
-                |        ],
-                |        "body": {
-                |            "mode": "raw",
-                |            "raw": "${updateProjectActionExample(item).escapeJson().escapeAll()}"
-                |        },
-                |        "url": {
-                |            "raw": "{{host}}/{{projectKey}}",
-                |            "host": [
-                |                "{{host}}"
-                |            ],
-                |            "path": [
-                |                "{{projectKey}}"
-                |            ],
-                |            "query": [
-                |                <<${item.url.query()}>>
-                |            ]
-                |        },
-                |        "description": "${item.description()}"
-                |    },
-                |    "response": []
-                |}
-            """.trimMargin()
-    }
+//    private fun projectActionExample(item: ActionGenModel): String {
+//        return """
+//            |{
+//            |    "version": {{project-version}},
+//            |    "actions": [
+//            |        <<${if (item.getExample().isNullOrEmpty().not()) item.getExample() else """
+//            |        |{
+//            |        |    "action": "${item.type.discriminatorValue}"
+//            |        |}""".trimMargin()}>>
+//            |    ]
+//            |}
+//        """.trimMargin().keepAngleIndent()
+//    }
 
-    private fun projectAction(item: ItemGenModel): String {
-        if (item is ActionGenModel)
-            return """
-                |{
-                |    "name": "${item.type.discriminatorValue.capitalize()}",
-                |    "event": [
-                |        {
-                |            "listen": "test",
-                |            "script": {
-                |                "type": "text/javascript",
-                |                "exec": [
-                |                    <<${item.testScript("")}>>
-                |                ]
-                |            }
-                |        }
-                |    ],
-                |    "request": {
-                |        "auth":
-                |            <<${auth()}>>,
-                |        "method": "${item.method()}",
-                |        "body": {
-                |            "mode": "raw",
-                |            "raw": "${projectActionExample(item).escapeJson().escapeAll()}"
-                |        },
-                |        "header": [
-                |            {
-                |                "key": "Content-Type",
-                |                "value": "application/json"
-                |            }
-                |        ],
-                |        "url": {
-                |            "raw": "{{host}}/{{projectKey}}",
-                |            "host": [
-                |                "{{host}}"
-                |            ],
-                |            "path": [
-                |                "{{projectKey}}"
-                |            ],
-                |            "query": [
-                |                <<${item.url.query()}>>
-                |            ]
-                |        },
-                |        "description": "${item.description()}"
-                |    },
-                |    "response": []
-                |}
-            """.trimMargin()
-        return ""
-    }
+
+//    private fun action(item: ItemGenModel): String {
+//        if (item is ActionGenModel)
+//            return """
+//                |{
+//                |    "name": "${item.type.discriminatorValue.capitalize()}",
+//                |    "event": [
+//                |        {
+//                |            "listen": "test",
+//                |            "script": {
+//                |                "type": "text/javascript",
+//                |                "exec": [
+//                |                    <<${item.testScript("")}>>
+//                |                ]
+//                |            }
+//                |        }
+//                |    ],
+//                |    "request": {
+//                |        "auth":
+//                |            <<${auth()}>>,
+//                |        "method": "${item.method()}",
+//                |        "body": {
+//                |            "mode": "raw",
+//                |            "raw": "${actionExample(item).escapeJson().escapeAll()}"
+//                |        },
+//                |        "header": [
+//                |            {
+//                |                "key": "Content-Type",
+//                |                "value": "application/json"
+//                |            }
+//                |        ],
+//                |        "url": {
+//                |            "raw": "${item.url.raw()}",
+//                |            "host": [
+//                |                "{{host}}"
+//                |            ],
+//                |            "path": [
+//                |                <<"${item.url.path()}">>,
+//                |                "{{${item.singularName()}-id}}"
+//                |            ],
+//                |            "query": [
+//                |                <<${item.url.query()}>>
+//                |            ]
+//                |        },
+//                |        "description": "${item.description()}"
+//                |    },
+//                |    "response": []
+//                |}
+//            """.trimMargin()
+//        return ""
+//    }
+
+//    private fun getProject(item: ItemGenModel): String {
+//        return """
+//            |{
+//            |    "name": "Get ${item.name.singularize()}",
+//            |    "event": [
+//            |        {
+//            |            "listen": "test",
+//            |            "script": {
+//            |                "type": "text/javascript",
+//            |                "exec": [
+//            |                    <<${item.testScript("")}>>
+//            |                ]
+//            |            }
+//            |        }
+//            |    ],
+//            |    "request": {
+//            |        "auth":
+//            |            <<${auth()}>>,
+//            |        "method": "${item.method()}",
+//            |        "header": [
+//            |            {
+//            |                "key": "Content-Type",
+//            |                "value": "application/json"
+//            |            }
+//            |        ],
+//            |        "body": {
+//            |            "mode": "raw",
+//            |            "raw": ""
+//            |        },
+//            |        "url": {
+//            |            "raw": "{{host}}/{{projectKey}}",
+//            |            "host": [
+//            |                "{{host}}"
+//            |            ],
+//            |            "path": [
+//            |                "{{projectKey}}"
+//            |            ],
+//            |            "query": [
+//            |                <<${item.url.query()}>>
+//            |            ]
+//            |        },
+//            |        "description": "${item.description()}"
+//            |    },
+//            |    "response": []
+//            |}
+//        """.trimMargin()
+//    }
+//
+//    private fun updateProject(item: ItemGenModel): String {
+//        return """
+//                |{
+//                |    "name": "Update ${item.name.singularize()}",
+//                |    "event": [
+//                |        {
+//                |            "listen": "test",
+//                |            "script": {
+//                |                "type": "text/javascript",
+//                |                "exec": [
+//                |                    <<${item.testScript("")}>>
+//                |                ]
+//                |            }
+//                |        }
+//                |    ],
+//                |    "request": {
+//                |        "auth":
+//                |            <<${auth()}>>,
+//                |        "method": "${item.method()}",
+//                |        "header": [
+//                |            {
+//                |                "key": "Content-Type",
+//                |                "value": "application/json"
+//                |            }
+//                |        ],
+//                |        "body": {
+//                |            "mode": "raw",
+//                |            "raw": "${updateProjectActionExample(item).escapeJson().escapeAll()}"
+//                |        },
+//                |        "url": {
+//                |            "raw": "{{host}}/{{projectKey}}",
+//                |            "host": [
+//                |                "{{host}}"
+//                |            ],
+//                |            "path": [
+//                |                "{{projectKey}}"
+//                |            ],
+//                |            "query": [
+//                |                <<${item.url.query()}>>
+//                |            ]
+//                |        },
+//                |        "description": "${item.description()}"
+//                |    },
+//                |    "response": []
+//                |}
+//            """.trimMargin()
+//    }
+
+//    private fun projectAction(item: ItemGenModel): String {
+//        if (item is ActionGenModel)
+//            return """
+//                |{
+//                |    "name": "${item.type.discriminatorValue.capitalize()}",
+//                |    "event": [
+//                |        {
+//                |            "listen": "test",
+//                |            "script": {
+//                |                "type": "text/javascript",
+//                |                "exec": [
+//                |                    <<${item.testScript("")}>>
+//                |                ]
+//                |            }
+//                |        }
+//                |    ],
+//                |    "request": {
+//                |        "auth":
+//                |            <<${auth()}>>,
+//                |        "method": "${item.method()}",
+//                |        "body": {
+//                |            "mode": "raw",
+//                |            "raw": "${projectActionExample(item).escapeJson().escapeAll()}"
+//                |        },
+//                |        "header": [
+//                |            {
+//                |                "key": "Content-Type",
+//                |                "value": "application/json"
+//                |            }
+//                |        ],
+//                |        "url": {
+//                |            "raw": "{{host}}/{{projectKey}}",
+//                |            "host": [
+//                |                "{{host}}"
+//                |            ],
+//                |            "path": [
+//                |                "{{projectKey}}"
+//                |            ],
+//                |            "query": [
+//                |                <<${item.url.query()}>>
+//                |            ]
+//                |        },
+//                |        "description": "${item.description()}"
+//                |    },
+//                |    "response": []
+//                |}
+//            """.trimMargin()
+//        return ""
+//    }
 
 
     private fun readme(api: Api): String {
@@ -532,81 +532,81 @@ class PostmanModuleRenderer @Inject constructor(val api: Api, override val vrapT
         """.trimIndent()
     }
 
-    class ResourceModel(val resource: Resource, val items: List<ItemGenModel>)
+//    class ResourceModel(val resource: Resource, val items: List<ItemGenModel>)
 
-    fun Api.resources(): List<ResourceModel> {
-        val resources = Lists.newArrayList<ResourceModel>()
-        val rootResource = this.resources[0]
-        val rootItems = rootResource.projectItems()
-        if (rootItems.size > 0) {
-            resources.add(ResourceModel(rootResource, rootResource.projectItems()))
-        }
-        resources.addAll(this.resources[0].resources.map { ResourceModel(it, it.items()) })
-        return resources
-    }
+//    fun Api.resources(): List<ResourceModel> {
+//        val resources = Lists.newArrayList<ResourceModel>()
+//        val rootResource = this.resources[0]
+//        val rootItems = rootResource.projectItems()
+//        if (rootItems.size > 0) {
+//            resources.add(ResourceModel(rootResource, rootResource.projectItems()))
+//        }
+//        resources.addAll(this.resources[0].resources.map { ResourceModel(it, it.items()) })
+//        return resources
+//    }
 
-    fun Resource.projectItems(): List<ItemGenModel> {
-        val items = Lists.newArrayList<ItemGenModel>()
-        val resource = this
-        if (resource.getMethod(HttpMethod.GET) != null) {
-            items.add(ItemGenModel(resource, resource.getMethod(HttpMethod.GET)))
-        }
-        if (resource.getMethod(HttpMethod.POST) != null) {
-            items.add(ItemGenModel(resource, resource.getMethod(HttpMethod.POST)))
-        }
-        if (resource.getMethod(HttpMethod.POST) != null) {
-            items.addAll(getActionItems(resource.getMethod(HttpMethod.POST), ::projectAction))
-        }
-        return items
-    }
+//    fun Resource.projectItems(): List<ItemGenModel> {
+//        val items = Lists.newArrayList<ItemGenModel>()
+//        val resource = this
+//        if (resource.getMethod(HttpMethod.GET) != null) {
+//            items.add(ItemGenModel(resource, resource.getMethod(HttpMethod.GET)))
+//        }
+//        if (resource.getMethod(HttpMethod.POST) != null) {
+//            items.add(ItemGenModel(resource, resource.getMethod(HttpMethod.POST)))
+//        }
+//        if (resource.getMethod(HttpMethod.POST) != null) {
+//            items.addAll(getActionItems(resource.getMethod(HttpMethod.POST), ::projectAction))
+//        }
+//        return items
+//    }
 
-    fun Resource.items(): List<ItemGenModel> {
-        val items = Lists.newArrayList<ItemGenModel>()
-        val renameParam = { item: ItemGenModel, param: String -> if (param.equals("projectKey")) param else "${item.singularName()}-${param}" }
-        items.addAll(this.methods.map { ItemGenModel(this, it, renameParam) })
-//            if (this.getMethod(HttpMethod.POST) != null) {
-//                items.addAll(getActionItems(this.getMethod(HttpMethod.POST)))
+//    fun Resource.items(): List<ItemGenModel> {
+//        val items = Lists.newArrayList<ItemGenModel>()
+//        val renameParam = { item: ItemGenModel, param: String -> if (param.equals("projectKey")) param else "${item.singularName()}-${param}" }
+//        items.addAll(this.methods.map { ItemGenModel(this, it, renameParam) })
+////            if (this.getMethod(HttpMethod.POST) != null) {
+////                items.addAll(getActionItems(this.getMethod(HttpMethod.POST)))
+////            }
+//        val childItems = this.resources.flatMap { it.items() }
+//        items.addAll(childItems)
+//        return items
+//    }
+
+//    fun Resource.getActionItems(method: Method): List<ActionGenModel> {
+//        return this.getActionItems(method, ::action)
+//    }
+
+//    fun Resource.getActionItems(method: Method, template: KFunction1<ItemGenModel, String>): List<ActionGenModel> {
+//        val actionItems = Lists.newArrayList<ActionGenModel>()
+//
+//        val body = method.getBody("application/json")
+//        if (body != null && body.type is ObjectType) {
+//            val actions = (body.type as ObjectType).getProperty("actions")
+//            if (actions != null) {
+//                val actionsType = actions.type as ArrayType
+//                val updateActions: List<AnyType>
+//                if (actionsType.items is UnionType) {
+//                    updateActions = (actionsType.items as UnionType).oneOf[0].subTypes
+//                } else {
+//                    updateActions = actionsType.items.subTypes
+//                }
+//                for (action in updateActions) {
+//                    actionItems.add(ActionGenModel(action as ObjectType, this, method))
+//                }
+//                actionItems.sortBy { actionGenModel -> actionGenModel.discriminatorValue }
 //            }
-        val childItems = this.resources.flatMap { it.items() }
-        items.addAll(childItems)
-        return items
-    }
+//        }
+//
+//        return actionItems
+//    }
 
-    fun Resource.getActionItems(method: Method): List<ActionGenModel> {
-        return this.getActionItems(method, ::action)
-    }
-
-    fun Resource.getActionItems(method: Method, template: KFunction1<ItemGenModel, String>): List<ActionGenModel> {
-        val actionItems = Lists.newArrayList<ActionGenModel>()
-
-        val body = method.getBody("application/json")
-        if (body != null && body.type is ObjectType) {
-            val actions = (body.type as ObjectType).getProperty("actions")
-            if (actions != null) {
-                val actionsType = actions.type as ArrayType
-                val updateActions: List<AnyType>
-                if (actionsType.items is UnionType) {
-                    updateActions = (actionsType.items as UnionType).oneOf[0].subTypes
-                } else {
-                    updateActions = actionsType.items.subTypes
-                }
-                for (action in updateActions) {
-                    actionItems.add(ActionGenModel(action as ObjectType, this, method))
-                }
-                actionItems.sortBy { actionGenModel -> actionGenModel.discriminatorValue }
-            }
-        }
-
-        return actionItems
-    }
-
-    fun ResourceModel.description(): String? {
-        return this.resource.description?.value
-    }
-
-    fun ResourceModel.name(): String {
-        return StringCaseFormat.UPPER_CAMEL_CASE.apply(Optional.ofNullable(this.resource.displayName).map<String> { it.value }.orElse(this.resource.resourcePathName))
-    }
+//    fun ResourceModel.description(): String? {
+//        return this.resource.description?.value
+//    }
+//
+//    fun ResourceModel.name(): String {
+//        return StringCaseFormat.UPPER_CAMEL_CASE.apply(Optional.ofNullable(this.resource.displayName).map<String> { it.value }.orElse(this.resource.resourcePathName))
+//    }
 }
 
 fun Instance.toJson(): String {
