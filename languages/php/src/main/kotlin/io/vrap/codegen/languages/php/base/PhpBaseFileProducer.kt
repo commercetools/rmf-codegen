@@ -354,6 +354,20 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |        $!data = array_replace($!this->getRawDataArray(), $!data);
                     |        return $!data;
                     |    }
+                    |
+                    |    /**
+                    |     * @return mixed
+                    |     */
+                    |    public function tap(callable $!callback = null)
+                    |    {
+                    |        if (is_null($!callback)) {
+                    |            return $!this;
+                    |        }
+                    |
+                    |        $!callback($!this);
+                    |
+                    |        return $!this;
+                    |    }
                     |}
                 """.trimMargin().forcedLiteralEscape()
         )
@@ -393,6 +407,11 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |     * @psalm-return static
                     |     */
                     |    public static function fromStdClass(stdClass $!data = null);
+                    |    
+                    |    /**
+                    |     * @return mixed
+                    |     */
+                    |    public function tap(callable $!callable = null);
                     |}
                 """.trimMargin().forcedLiteralEscape()
         )
