@@ -605,6 +605,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |            if(!is_callable($!middleware)) {
                     |                throw new InvalidArgumentException('Middleware isn\'t callable');
                     |            }
+                    |            /** @psalm-var callable(callable): callable $!middleware */
                     |            $!name = is_numeric($!key) ? '' : $!key;
                     |            $!stack->push($!middleware, $!name);
                     |        }
@@ -916,7 +917,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |     * @param string $!message
                     |     * @param ?JsonObject $!result
                     |     */
-                    |    public function __construct($!message, $!result, RequestInterface $!request, ?ResponseInterface $!response, \Exception $!previous = null, array $!handlerContext = [])
+                    |    public function __construct($!message, $!result, RequestInterface $!request, ResponseInterface $!response, \Exception $!previous = null, array $!handlerContext = [])
                     |    {
                     |        $!this->result = $!result;
                     |        parent::__construct($!message, $!request, $!response, $!previous, $!handlerContext);
@@ -1015,7 +1016,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |     * @param string $!message
                     |     * @param ?JsonObject $!result
                     |     */
-                    |    public function __construct($!message, $!result, RequestInterface $!request, ?ResponseInterface $!response, \Exception $!previous = null, array $!handlerContext = [])
+                    |    public function __construct($!message, $!result, RequestInterface $!request, ResponseInterface $!response, \Exception $!previous = null, array $!handlerContext = [])
                     |    {
                     |        $!this->result = $!result;
                     |        parent::__construct($!message, $!request, $!response, $!previous, $!handlerContext);
@@ -1162,6 +1163,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |use Psr\Http\Message\ResponseInterface;
                     |use GuzzleHttp\Exception\ClientException;
                     |use GuzzleHttp\Exception\ServerException;
+                    |use GuzzleHttp\Psr7\Response;
                     |
                     |class ExceptionFactory
                     |{
@@ -1173,7 +1175,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |    ) : ApiServerException {
                     |        if (is_null($!response)) {
                     |            $!message = 'Error completing request: ' . $!e->getMessage();
-                    |            return new ApiServerException($!message, null, $!request, $!response, $!e, []);
+                    |            return new ApiServerException($!message, null, $!request, new Response(400), $!e, []);
                     |        }
                     |
                     |        $!message = 'Server error response [url] ' . (string)$!request->getUri()
@@ -1202,7 +1204,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |    ) : ApiClientException {
                     |        if (is_null($!response)) {
                     |            $!message = 'Error completing request: ' . $!e->getMessage();
-                    |            return new ApiClientException($!message, null, $!request, $!response, $!e, []);
+                    |            return new ApiClientException($!message, null, $!request, new Response(400), $!e, []);
                     |        }
                     |
                     |        $!message = 'Client error response [url] ' . (string)$!request->getUri()
@@ -1342,7 +1344,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |    public function send(array $!options = []): ResponseInterface
                     |    {
                     |        if (is_null($!this->client)) {
-                    |           throw new InvalidArgumentException();
+                    |           throw new InvalidArgumentException('No http client set to send the request');
                     |        }
                     |        return $!this->client->send($!this, $!options);
                     |    }
@@ -1356,7 +1358,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |    public function sendAsync(array $!options = []): PromiseInterface
                     |    {
                     |        if (is_null($!this->client)) {
-                    |           throw new InvalidArgumentException();
+                    |           throw new InvalidArgumentException('No http client set to send the request');
                     |        }
                     |        return $!this->client->sendAsync($!this, $!options);
                     |    }
@@ -1375,7 +1377,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |        /** @psalm-var ?stdClass $!data */
                     |        $!data = json_decode($!body);
                     |        if (is_null($!data)) {
-                    |           throw new InvalidArgumentException();
+                    |           return new stdClass();
                     |        }
                     |        return $!data;
                     |    }
@@ -2981,6 +2983,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |    }
                     |
                     |    /**
+                    |     * @psalm-param 'alert'|'critical'|'debug'|'emergency'|'error'|'info'|'notice'|'warning' $!logLevel
                     |     * @psalm-return callable
                     |     */
                     |    public static function createLoggerMiddleware(LoggerInterface $!logger, string $!logLevel = LogLevel::INFO, string $!template = MessageFormatter::CLF)

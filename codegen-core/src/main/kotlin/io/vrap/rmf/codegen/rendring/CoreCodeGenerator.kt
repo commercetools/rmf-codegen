@@ -76,7 +76,7 @@ class CoreCodeGenerator @Inject constructor(val dataSink: DataSink,
         }
 
         if (::unionTypeGenerators.isInitialized) {
-            LOGGER.info("generating files for object types")
+            LOGGER.info("generating files for union types")
             unionTypeGenerators.flatMap { unionTypeRenderer ->
                 allUnionTypes.map { unionTypeRenderer.render(it) }
             }. map { dataSink.write(it) }

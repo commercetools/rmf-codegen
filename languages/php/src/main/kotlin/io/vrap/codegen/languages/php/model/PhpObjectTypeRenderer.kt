@@ -194,7 +194,7 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
             .filter { !it.isPatternProperty() }.joinToString(separator = "\n\n") { it.getter() }
 
     private fun ObjectType.unionGetters() = this.allProperties
-            .filter { it.type is UnionType && !it.isPatternProperty() }.flatMap { (it.type as UnionType).oneOf.map { t -> it.unionGetter(t) } }.joinToString(separator = "\n\n")
+            .filter { it.type is UnionType && !it.isPatternProperty() }.flatMap { (it.type as UnionType).oneOf.distinctBy { t -> it.unionFunctionName(t) } .map { t -> it.unionGetter(t) } }.joinToString(separator = "\n\n")
 
     private fun ObjectType.serializer(): String {
         val dtProperties = this.allProperties
@@ -265,11 +265,15 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
         }
     }
 
-    private fun Property.unionGetter(type: AnyType): String {
+    private fun Property.unionFunctionName(type: AnyType): String {
         val typeName = when (type.toVrapType()) {
             is VrapDateTimeType -> type.name
             else -> if (type.toVrapType().simpleName() != "stdClass") type.toVrapType().simpleName() else "JsonObject"
         }
+        return "get${this.name.capitalize()}As${StringCaseFormat.UPPER_CAMEL_CASE.apply(typeName)}"
+    }
+
+    private fun Property.unionGetter(type: AnyType): String {
         val docTypeName = type.typeName()
         return """
                 |/**${if (this.type.description?.value?.isNotBlank() == true) """
@@ -277,7 +281,7 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
                 | *""" else ""}
                 | * @return null|$docTypeName
                 | */
-                |public function get${this.name.capitalize()}As${StringCaseFormat.UPPER_CAMEL_CASE.apply(typeName)}()
+                |public function ${this.unionFunctionName(type)}()
                 |{
                 |    <<${this.mapper(type, "return")}>>
                 |}
@@ -370,13 +374,13 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
                 if (type.toVrapType().isScalar()) {
                     """
                         |/** @psalm-var stdClass $!data */
-                        |return new JsonObjectModel($!data);
+                        |return JsonObjectModel::of($!data);
                     """.trimMargin()
                 } else {
                     """
                         |/** @psalm-var stdClass|array<string, mixed> $!data */
                         |${if (type.discriminator.isNullOrBlank()) "" else "$!className = ${type.toVrapType().simpleName()}Model::resolveDiscriminatorClass($!data);"}
-                        |return ${if (type.discriminator.isNullOrBlank()) "${this.type.toVrapType().simpleName()}Model" else "$!className"}::of($!data);
+                        |return ${if (type.discriminator.isNullOrBlank()) "${type.toVrapType().simpleName()}Model" else "$!className"}::of($!data);
                     """.trimMargin()
                 }
             is ArrayType ->
@@ -503,6 +507,26 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
                                 |$assignment ${if (type.items?.isScalar() != true) "${type.toVrapType().simpleName()}::fromArray($!data)" else "$!data"};
                             """.trimMargin()
                         }
+                }
+            is UnionType ->
+                if (vrapType.isScalar()) {
+                    """
+                        |/** @psalm-var stdClass|array<string, mixed>|null $!data */
+                        |$!data = $!this->raw(self::${this.toPhpConstantName()});
+                        |if (is_null($!data)) {
+                        |    return null;
+                        |}
+                        |$assignment JsonObjectModel::of($!data);
+                    """.trimMargin()
+                } else {
+                    """
+                        |/** @psalm-var stdClass|array<string, mixed>|null $!data */
+                        |$!data = $!this->raw(self::${this.toPhpConstantName()});
+                        |if (is_null($!data)) {
+                        |    return null;
+                        |}
+                        |$assignment ${type.toVrapType().simpleName()}Model::of($!data);
+                    """.trimMargin()
                 }
             else ->
                 when (vrapType) {
