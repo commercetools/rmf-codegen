@@ -358,15 +358,13 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |    /**
                     |     * @return static|mixed
                     |     */
-                    |    public function tap(callable $!callback = null)
+                    |    public function with(callable $!callback = null)
                     |    {
                     |        if (is_null($!callback)) {
                     |            return $!this;
                     |        }
                     |
-                    |        $!callback($!this);
-                    |
-                    |        return $!this;
+                    |        return $!callback($!this);
                     |    }
                     |}
                 """.trimMargin().forcedLiteralEscape()
@@ -392,26 +390,26 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |    
                     |    /**
                     |     * @psalm-param stdClass|array<string, mixed>|null $!data
-                    |     * @psalm-return static
+                    |     * @return static
                     |     */
                     |    public static function of($!data = null);
                     |
                     |    /**
                     |     * @psalm-param array<string, mixed> $!data
-                    |     * @psalm-return static
+                    |     * @return static
                     |     */
                     |    public static function fromArray(array $!data = []);
                     |
                     |    /**
                     |     * @psalm-param ?stdClass $!data
-                    |     * @psalm-return static
+                    |     * @return static
                     |     */
                     |    public static function fromStdClass(stdClass $!data = null);
                     |    
                     |    /**
                     |     * @return static|mixed
                     |     */
-                    |    public function tap(callable $!callable = null);
+                    |    public function with(callable $!callable = null);
                     |}
                 """.trimMargin().forcedLiteralEscape()
         )
