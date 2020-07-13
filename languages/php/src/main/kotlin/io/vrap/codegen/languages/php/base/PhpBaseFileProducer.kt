@@ -356,7 +356,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |    }
                     |
                     |    /**
-                    |     * @return mixed
+                    |     * @return static|mixed
                     |     */
                     |    public function tap(callable $!callback = null)
                     |    {
@@ -409,7 +409,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |    public static function fromStdClass(stdClass $!data = null);
                     |    
                     |    /**
-                    |     * @return mixed
+                    |     * @return static|mixed
                     |     */
                     |    public function tap(callable $!callable = null);
                     |}

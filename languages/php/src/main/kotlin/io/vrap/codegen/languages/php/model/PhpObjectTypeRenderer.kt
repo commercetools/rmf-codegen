@@ -123,13 +123,16 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
     fun ObjectType.constructor(): String {
         val discriminator = this.discriminatorProperty()
         return """
-                |public function __construct(
-                |    <<${this.allProperties.filter { property -> property != discriminator }.filter { !it.isPatternProperty() }.joinToString(",\n") { it.toParam() }}>>
-                |) {
-                |    <<${this.allProperties.filter { property -> property != discriminator }.filter { !it.isPatternProperty() }.joinToString("\n") { "$!this->${it.name} = $${it.name};" }}>>
-                |    ${if (discriminator != null) "$!this->${discriminator.name} = static::DISCRIMINATOR_VALUE;" else ""}
-                |}
-            """.trimMargin()
+            |/**
+            | * @psalm-suppress MissingParamType
+            | */
+            |public function __construct(
+            |    <<${this.allProperties.filter { property -> property != discriminator }.filter { !it.isPatternProperty() }.joinToString(",\n") { it.toParam() }}>>
+            |) {
+            |    <<${this.allProperties.filter { property -> property != discriminator }.filter { !it.isPatternProperty() }.joinToString("\n") { "$!this->${it.name} = $${it.name};" }}>>
+            |    ${if (discriminator != null) "$!this->${discriminator.name} = static::DISCRIMINATOR_VALUE;" else ""}
+            |}
+        """.trimMargin()
     }
 
     private fun ObjectType.imports() = this.getImports(this.allProperties).map { "use ${it.escapeAll()};" }
@@ -140,7 +143,12 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
             .joinToString(separator = "\n")
 
     private fun Property.toParam(): String {
-        return "${if (this.type.toVrapType().simpleName() != "stdClass") this.type.toVrapType().simpleName() else "JsonObject" } $${this.name} = null"
+        val t = when(this.type.toVrapType().simpleName()) {
+            "stdClass" -> "?JsonObject"
+            "mixed" -> ""
+            else -> "?${this.type.toVrapType().simpleName()}"
+        }
+        return "$t $${this.name} = null"
     }
 
     private fun Property.toPhpField(): String {
@@ -160,7 +168,7 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
         is UnionType -> this.oneOf.map { it.typeName() }.plus("JsonObject").distinct().sorted().joinToString(separator = "|")
         else -> this.typeName()
     }
-    private fun AnyType.typeName(): String = if (this.toVrapType().simpleName() != "stdClass") this.toVrapType().simpleName() else "JsonObject"
+    private fun AnyType.typeName(): String = if (this.toVrapType().simpleName() != "stdClass") this.toVrapType().simpleName() else "mixed"
 
     private fun Property.toPhpConstantName(): String {
         return "FIELD_${StringCaseFormat.UPPER_UNDERSCORE_CASE.apply(this.patternName())}"
@@ -215,8 +223,21 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
     }
 
     private fun Property.setter(): String {
+        val t = when(this.type.toVrapType().simpleName()) {
+            "stdClass" -> "?JsonObject"
+            "mixed" -> ""
+            else -> "?${this.type.toVrapType().simpleName()}"
+        }
+        val d = when(this.type.toVrapType().simpleName()) {
+            "stdClass" -> "?JsonObject"
+            "mixed" -> "mixed"
+            else -> "?${this.type.toVrapType().simpleName()}"
+        }
         return """
-            |public function set${this.name.capitalize()}(?${if (this.type.toVrapType().simpleName() != "stdClass") this.type.toVrapType().simpleName() else "JsonObject" } $${this.name}): void
+            |/**
+            | * @param $d $${this.name}
+            | */
+            |public function set${this.name.capitalize()}($t $${this.name}): void
             |{
             |    $!this->${this.name} = $${this.name};
             |}
@@ -611,12 +632,12 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
                     """.trimMargin()
 
                     else -> """
-                        |/** @psalm-var ?stdClass $!data */
+                        |/** @psalm-var mixed $!data */
                         |$!data = $!this->raw(self::${this.toPhpConstantName()});
                         |if (is_null($!data)) {
                         |    return null;
                         |}
-                        |$assignment JsonObjectModel::of($!data);
+                        |$assignment $!data;
                     """.trimMargin()
                 }
         }

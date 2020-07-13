@@ -5,6 +5,7 @@ import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapScalarType
 
 object TypeScriptBaseTypes : LanguageBaseTypes(
+    anyType = nativeTypeScriptType("any"),
     objectType = nativeTypeScriptType("any"),
     integerType = nativeTypeScriptType("number"),
     longType = nativeTypeScriptType("number"),

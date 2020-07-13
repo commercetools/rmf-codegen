@@ -3,6 +3,7 @@ package io.vrap.codegen.languages.php
 import io.vrap.rmf.codegen.types.*
 
 object PhpBaseTypes : LanguageBaseTypes(
+        anyType = fromAnyType("mixed"),
         objectType = fromPhpType("", "stdClass"),
         integerType = fromScalarPhpType("int"),
         longType = fromScalarPhpType("int"),
@@ -21,6 +22,10 @@ fun fromDateTimeType(`package`: String, simpleName: String, dateTimeType: DateTi
 
 fun fromPhpType(`package`: String, simpleName: String):VrapObjectType{
    return VrapObjectType(`package`, simpleName)
+}
+
+fun fromAnyType(simpleName: String):VrapAnyType{
+   return VrapAnyType(simpleName)
 }
 
 fun fromScalarPhpType(scalarType: String):VrapScalarType{

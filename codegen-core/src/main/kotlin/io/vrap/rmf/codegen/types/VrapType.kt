@@ -145,3 +145,29 @@ class VrapNilType : VrapType(){
     }
 
 }
+
+/**
+ * Represent a type that comes from the default package
+ */
+class VrapAnyType(val baseType:String) : VrapType() {
+
+
+    override fun toString(): String {
+        return "VrapAnyType(baseType='$baseType')"
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as VrapAnyType
+
+        if (baseType != other.baseType) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        return baseType.hashCode()
+    }
+}
