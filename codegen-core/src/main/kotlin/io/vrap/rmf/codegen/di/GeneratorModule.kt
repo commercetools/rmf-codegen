@@ -17,6 +17,7 @@ import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.types.AnyType
 import io.vrap.rmf.raml.model.types.ObjectType
 import io.vrap.rmf.raml.model.types.StringType
+import io.vrap.rmf.raml.model.types.UnionType
 import io.vrap.rmf.raml.model.types.util.TypesSwitch
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.util.ComposedSwitch
@@ -119,6 +120,10 @@ class GeneratorModule constructor(
     @Provides
     @Singleton
     fun allObjectTypes(@AllAnyTypes anyTypeList: MutableList<AnyType>): List<ObjectType> = anyTypeList.filter { it is ObjectType }.map { it as ObjectType }
+
+    @Provides
+    @Singleton
+    fun allUnionTypes(@AllAnyTypes anyTypeList: MutableList<AnyType>): List<UnionType> = anyTypeList.filter { it is UnionType }.map { it as UnionType }
 
     @Provides
     @Singleton

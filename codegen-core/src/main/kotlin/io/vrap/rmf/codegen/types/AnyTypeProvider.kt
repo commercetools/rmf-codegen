@@ -21,7 +21,7 @@ class AnyTypeProvider @Inject constructor(val packageProvider: PackageProvider, 
         }
     }
 
-    override fun caseAnyType(`object`: AnyType) = languageBaseTypes.objectType
+    override fun caseAnyType(`object`: AnyType) = languageBaseTypes.anyType
 
     override fun caseNumberType(type: NumberType) : VrapType {
         return when (type.format) {

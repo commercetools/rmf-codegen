@@ -131,8 +131,21 @@ class PhpInterfaceObjectTypeRenderer @Inject constructor(override val vrapTypePr
             .filter { !it.isPatternProperty() }.joinToString(separator = "\n\n") { it.getter() }
 
     private fun Property.setter(): String {
+        val t = when(this.type.toVrapType().simpleName()) {
+            "stdClass" -> "?JsonObject"
+            "mixed" -> ""
+            else -> "?${this.type.toVrapType().simpleName()}"
+        }
+        val d = when(this.type.toVrapType().simpleName()) {
+            "stdClass" -> "?JsonObject"
+            "mixed" -> "mixed"
+            else -> "?${this.type.toVrapType().simpleName()}"
+        }
         return """
-            |public function set${this.name.capitalize()}(?${if (this.type.toVrapType().simpleName() != "stdClass") this.type.toVrapType().simpleName() else "JsonObject" } $${this.name}): void;
+            |/**
+            | * @param $d $${this.name}
+            | */
+            |public function set${this.name.capitalize()}($t $${this.name}): void;
         """.trimMargin()
     }
 
@@ -162,5 +175,5 @@ class PhpInterfaceObjectTypeRenderer @Inject constructor(override val vrapTypePr
         is UnionType -> this.oneOf.map { it.typeName() }.plus("JsonObject").distinct().sorted().joinToString(separator = "|")
         else -> this.typeName()
     }
-    private fun AnyType.typeName(): String = if (this.toVrapType().simpleName() != "stdClass") this.toVrapType().simpleName() else "JsonObject"
+    private fun AnyType.typeName(): String = if (this.toVrapType().simpleName() != "stdClass") this.toVrapType().simpleName() else "mixed"
 }

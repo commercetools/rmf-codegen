@@ -1,7 +1,7 @@
 package io.vrap.rmf.codegen.types
 
 abstract class LanguageBaseTypes(
-
+        val anyType: VrapType,
         val objectType: VrapType,
         val integerType: VrapType,
         val longType: VrapType,

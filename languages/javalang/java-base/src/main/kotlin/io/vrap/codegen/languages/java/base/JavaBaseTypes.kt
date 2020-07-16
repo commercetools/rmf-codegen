@@ -16,6 +16,7 @@ import kotlin.reflect.KClass
 
 object JavaBaseTypes : LanguageBaseTypes(
 
+    anyType = fromJavaType(JsonNode::class),
     objectType = fromJavaType(JsonNode::class),
     integerType = fromDefaultJavaType(Integer::class),
     longType = fromDefaultJavaType(Long::class),
