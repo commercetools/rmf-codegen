@@ -84,6 +84,7 @@ private fun toVrapType(vrapType: VrapType): VrapType? {
 
 fun VrapType.simpleJoiName():String{
     return when(this){
+        is VrapAnyType -> "Joi.${this.baseType}"
         is VrapScalarType -> "Joi.${this.scalarType}"
         is VrapEnumType -> "${this.simpleClassName.decapitalize()}Type"
         is VrapObjectType -> "${this.simpleClassName.decapitalize()}Type"
