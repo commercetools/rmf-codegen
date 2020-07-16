@@ -45,7 +45,7 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
         return TemplateFile(relativePath = "composer.json",
                 content = """
                     |{
-                    |  "name": "${vendorName}/spec-sdk-${composerPackageName}",
+                    |  "name": "${vendorName}/${vendorName}-sdk-${composerPackageName}",
                     |  "license": "MIT",
                     |  "type": "library",
                     |  "description": "",
@@ -74,7 +74,7 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |    "psr/http-client": "^1.0",
                     |    "psr/http-message": "^1.0",
                     |    "cache/filesystem-adapter": "^1.0",
-                    |    "${vendorName}/spec-base": "@dev"
+                    |    "$vendorName/$vendorName-sdk-base": "@dev"
                     |  },
                     |  "require-dev": {
                     |    "monolog/monolog": "^1.3",
@@ -86,7 +86,7 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |  "repositories": [
                     |    {
                     |      "type": "path",
-                    |      "url": "../${vendorName}-base"
+                    |      "url": "../$vendorName-base"
                     |    }
                     |  ]
                     |}

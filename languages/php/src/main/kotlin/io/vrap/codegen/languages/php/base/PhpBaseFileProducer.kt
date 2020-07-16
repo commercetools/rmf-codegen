@@ -30,6 +30,8 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
             clientCredentialsConfig(),
             clientFactory(),
             collection(),
+            csequence(),
+            cmap(),
             composerJson(),
             config(),
             credentialTokenProvider(),
@@ -52,7 +54,20 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
             resultMapper(),
             token(),
             tokenModel(),
-            tokenProvider()
+            tokenProvider(),
+            correlationIdProvider(),
+            defaultCorrelationIdProvider(),
+            exceptionFactory(),
+            badGatewayException(),
+            badRequestException(),
+            concurrentModificationException(),
+            forbiddenException(),
+            gatewayTimeoutException(),
+            internalServerErrorException(),
+            notFoundException(),
+            serviceUnavailableException(),
+            unauthorizedException(),
+            userAgentProvider()
     )
 
     private fun collection(): TemplateFile {
@@ -65,6 +80,43 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |
                     |interface Collection
                     |{
+                    |}
+                """.trimMargin()
+        )
+    }
+
+    private fun correlationIdProvider(): TemplateFile {
+        return TemplateFile(relativePath = "src/Client/CorrelationIdProvider.php",
+                content = """
+                    |<?php
+                    |${PhpSubTemplates.generatorInfo}
+                    |
+                    |namespace ${packagePrefix.toNamespaceName()}\Client;
+                    |
+                    |interface CorrelationIdProvider
+                    |{
+                    |    public function getCorrelationId(): string;
+                    |}
+                """.trimMargin()
+        )
+    }
+
+    private fun defaultCorrelationIdProvider(): TemplateFile {
+        return TemplateFile(relativePath = "src/Client/DefaultCorrelationIdProvider.php",
+                content = """
+                    |<?php
+                    |${PhpSubTemplates.generatorInfo}
+                    |
+                    |namespace ${packagePrefix.toNamespaceName()}\Client;
+                    |
+                    |use Ramsey\Uuid\Uuid;
+                    |
+                    |class DefaultCorrelationIdProvider implements CorrelationIdProvider
+                    |{
+                    |    public function getCorrelationId(): string
+                    |    {
+                    |        return Uuid::uuid4()->toString();
+                    |    }
                     |}
                 """.trimMargin()
         )
@@ -297,11 +349,22 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |             */
                     |            function($!value) {
                     |                return !is_null($!value);
-                    |            },
-                    |            ARRAY_FILTER_USE_BOTH
+                    |            }
                     |        );
-                    |        $!data = array_merge($!this->getRawDataArray(), $!data);
+                    |        $!data = array_replace($!this->getRawDataArray(), $!data);
                     |        return $!data;
+                    |    }
+                    |
+                    |    /**
+                    |     * @return static|mixed
+                    |     */
+                    |    public function with(callable $!callback = null)
+                    |    {
+                    |        if (is_null($!callback)) {
+                    |            return $!this;
+                    |        }
+                    |
+                    |        return $!callback($!this);
                     |    }
                     |}
                 """.trimMargin().forcedLiteralEscape()
@@ -327,21 +390,26 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |    
                     |    /**
                     |     * @psalm-param stdClass|array<string, mixed>|null $!data
-                    |     * @psalm-return static
+                    |     * @return static
                     |     */
                     |    public static function of($!data = null);
                     |
                     |    /**
                     |     * @psalm-param array<string, mixed> $!data
-                    |     * @psalm-return static
+                    |     * @return static
                     |     */
                     |    public static function fromArray(array $!data = []);
                     |
                     |    /**
                     |     * @psalm-param ?stdClass $!data
-                    |     * @psalm-return static
+                    |     * @return static
                     |     */
                     |    public static function fromStdClass(stdClass $!data = null);
+                    |    
+                    |    /**
+                    |     * @return static|mixed
+                    |     */
+                    |    public function with(callable $!callable = null);
                     |}
                 """.trimMargin().forcedLiteralEscape()
         )
@@ -391,7 +459,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |     */
                     |    final public static function fromArray(array $!data = [])
                     |    {
-                    |        return static::of((object)$!data);
+                    |        return self::fromStdClass((object)$!data);
                     |    }
                     |
                     |    /**
@@ -519,8 +587,8 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |     */
                     |    public function createGuzzleClientForMiddlewares(
                     |       Config $!config,
-                    |       array $!middlewares = []): ClientInterface
-                    |    {
+                    |       array $!middlewares = []
+                    |    ): ClientInterface {
                     |        return $!this->createGuzzleClientWithOptions($!config->getOptions(), $!middlewares);
                     |    }
                     |
@@ -547,10 +615,14 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |            ],
                     |            $!options
                     |        );
+                    |        if (!isset($!options['headers']['user-agent'])) {
+                    |            $!options['headers']['user-agent'] = (new UserAgentProvider())->getUserAgent();
+                    |        }
                     |        foreach ($!middlewares as $!key => $!middleware) {
                     |            if(!is_callable($!middleware)) {
                     |                throw new InvalidArgumentException('Middleware isn\'t callable');
                     |            }
+                    |            /** @psalm-var callable(callable): callable $!middleware */
                     |            $!name = is_numeric($!key) ? '' : $!key;
                     |            $!stack->push($!middleware, $!name);
                     |        }
@@ -608,10 +680,11 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
     }
 
     private fun composerJson(): TemplateFile {
+        val vendorName = packagePrefix.toLowerCase()
         return TemplateFile(relativePath = "composer.json",
                 content = """
                     |{
-                    |  "name": "${packagePrefix.toLowerCase()}/spec-base",
+                    |  "name": "$vendorName/$vendorName-sdk-base",
                     |  "license": "MIT",
                     |  "type": "library",
                     |  "description": "",
@@ -639,7 +712,8 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |    "psr/log": "^1.0",
                     |    "psr/http-client": "^1.0",
                     |    "psr/http-message": "^1.0",
-                    |    "cache/filesystem-adapter": "^1.0"
+                    |    "cache/filesystem-adapter": "^1.0",
+                    |    "ramsey/uuid": "^4.0"
                     |  },
                     |  "require-dev": {
                     |    "monolog/monolog": "^1.3",
@@ -860,7 +934,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |     * @param string $!message
                     |     * @param ?JsonObject $!result
                     |     */
-                    |    public function __construct($!message, $!result, RequestInterface $!request, ?ResponseInterface $!response, \Exception $!previous = null, array $!handlerContext = [])
+                    |    public function __construct($!message, $!result, RequestInterface $!request, ResponseInterface $!response, \Exception $!previous = null, array $!handlerContext = [])
                     |    {
                     |        $!this->result = $!result;
                     |        parent::__construct($!message, $!request, $!response, $!previous, $!handlerContext);
@@ -875,6 +949,63 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |    }
                     |}
                 """.trimMargin().forcedLiteralEscape())
+    }
+
+
+    private fun internalServerErrorException(): TemplateFile {
+        return TemplateFile(relativePath = "src/Exception/InternalServerErrorException.php",
+                content = """
+                    |<?php
+                    |${PhpSubTemplates.generatorInfo}
+                    |
+                    |namespace ${packagePrefix.toNamespaceName()}\Exception;
+                    |
+                    |class InternalServerErrorException extends ApiServerException
+                    |{
+                    |}
+                """.trimMargin())
+    }
+
+    private fun badGatewayException(): TemplateFile {
+        return TemplateFile(relativePath = "src/Exception/BadGatewayException.php",
+                content = """
+                    |<?php
+                    |${PhpSubTemplates.generatorInfo}
+                    |
+                    |namespace ${packagePrefix.toNamespaceName()}\Exception;
+                    |
+                    |class BadGatewayException extends ApiServerException
+                    |{
+                    |}
+                """.trimMargin())
+    }
+
+    private fun gatewayTimeoutException(): TemplateFile {
+        return TemplateFile(relativePath = "src/Exception/GatewayTimeoutException.php",
+                content = """
+                    |<?php
+                    |${PhpSubTemplates.generatorInfo}
+                    |
+                    |namespace ${packagePrefix.toNamespaceName()}\Exception;
+                    |
+                    |class GatewayTimeoutException extends ApiServerException
+                    |{
+                    |}
+                """.trimMargin())
+    }
+
+    private fun serviceUnavailableException(): TemplateFile {
+        return TemplateFile(relativePath = "src/Exception/ServiceUnavailableException.php",
+                content = """
+                    |<?php
+                    |${PhpSubTemplates.generatorInfo}
+                    |
+                    |namespace ${packagePrefix.toNamespaceName()}\Exception;
+                    |
+                    |class ServiceUnavailableException extends ApiServerException
+                    |{
+                    |}
+                """.trimMargin())
     }
 
     private fun apiClientException(): TemplateFile {
@@ -902,7 +1033,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |     * @param string $!message
                     |     * @param ?JsonObject $!result
                     |     */
-                    |    public function __construct($!message, $!result, RequestInterface $!request, ?ResponseInterface $!response, \Exception $!previous = null, array $!handlerContext = [])
+                    |    public function __construct($!message, $!result, RequestInterface $!request, ResponseInterface $!response, \Exception $!previous = null, array $!handlerContext = [])
                     |    {
                     |        $!this->result = $!result;
                     |        parent::__construct($!message, $!request, $!response, $!previous, $!handlerContext);
@@ -914,6 +1045,203 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |    public function getResult()
                     |    {
                     |        return $!this->result;
+                    |    }
+                    |}
+                """.trimMargin().forcedLiteralEscape())
+    }
+
+    private fun unauthorizedException(): TemplateFile {
+        return TemplateFile(relativePath = "src/Exception/UnauthorizedException.php",
+                content = """
+                    |<?php
+                    |${PhpSubTemplates.generatorInfo}
+                    |
+                    |namespace ${packagePrefix.toNamespaceName()}\Exception;
+                    |
+                    |class UnauthorizedException extends ApiClientException
+                    |{
+                    |}
+                """.trimMargin())
+    }
+
+    private fun userAgentProvider(): TemplateFile {
+        return TemplateFile(relativePath = "src/Client/UserAgentProvider.php",
+                content = """
+                    |<?php
+                    |
+                    |${PhpSubTemplates.generatorInfo}
+                    |
+                    |namespace ${packagePrefix.toNamespaceName()}\Client;
+                    |
+                    |use GuzzleHttp\ClientInterface;
+                    |
+                    |class UserAgentProvider
+                    |{
+                    |   /**
+                    |     * @psalm-var string
+                    |     * @readonly
+                    |     */
+                    |    private $!userAgent;
+                    |    
+                    |    public function __construct(string $!suffix = null)
+                    |    {
+                    |        if (defined('\GuzzleHttp\ClientInterface::MAJOR_VERSION')) {
+                    |           $!clientVersion = (string) constant(ClientInterface::class . '::MAJOR_VERSION');
+                    |        } else {
+                    |           $!clientVersion = (string) constant(ClientInterface::class . '::VERSION');
+                    |        }
+                    |        $!userAgent = 'commercetools-sdk';
+                    |
+                    |        $!userAgent .= ' (GuzzleHttp/' . $!clientVersion;
+                    |        if (extension_loaded('curl') && function_exists('curl_version')) {
+                    |            $!userAgent .= '; curl/' . (string) \curl_version()['version'];
+                    |        }
+                    |        $!userAgent .= ') PHP/' . PHP_VERSION;
+                    |        if (!is_null($!suffix)) {
+                    |           $!userAgent .= ' ' . $!suffix;
+                    |        }
+                    |        $!this->userAgent = $!userAgent;
+                    |    }
+                    |
+                    |    public function getUserAgent(): string
+                    |    {
+                    |        return $!this->userAgent;
+                    |    }
+                    |}
+                """.trimMargin().forcedLiteralEscape())
+    }
+
+    private fun forbiddenException(): TemplateFile {
+        return TemplateFile(relativePath = "src/Exception/ForbiddenException.php",
+                content = """
+                    |<?php
+                    |${PhpSubTemplates.generatorInfo}
+                    |
+                    |namespace ${packagePrefix.toNamespaceName()}\Exception;
+                    |
+                    |class ForbiddenException extends ApiClientException
+                    |{
+                    |}
+                """.trimMargin())
+    }
+
+    private fun concurrentModificationException(): TemplateFile {
+        return TemplateFile(relativePath = "src/Exception/ConcurrentModificationException.php",
+                content = """
+                    |<?php
+                    |${PhpSubTemplates.generatorInfo}
+                    |
+                    |namespace ${packagePrefix.toNamespaceName()}\Exception;
+                    |
+                    |class ConcurrentModificationException extends ApiClientException
+                    |{
+                    |}
+                """.trimMargin())
+    }
+
+    private fun notFoundException(): TemplateFile {
+        return TemplateFile(relativePath = "src/Exception/NotFoundException.php",
+                content = """
+                    |<?php
+                    |${PhpSubTemplates.generatorInfo}
+                    |
+                    |namespace ${packagePrefix.toNamespaceName()}\Exception;
+                    |
+                    |class NotFoundException extends ApiClientException
+                    |{
+                    |}
+                """.trimMargin())
+    }
+
+    private fun badRequestException(): TemplateFile {
+        return TemplateFile(relativePath = "src/Exception/BadRequestException.php",
+                content = """
+                    |<?php
+                    |${PhpSubTemplates.generatorInfo}
+                    |
+                    |namespace ${packagePrefix.toNamespaceName()}\Exception;
+                    |
+                    |class BadRequestException extends ApiClientException
+                    |{
+                    |}
+                """.trimMargin())
+    }
+
+    private fun exceptionFactory(): TemplateFile {
+        return TemplateFile(relativePath = "src/Exception/ExceptionFactory.php",
+                content = """
+                    |<?php
+                    |${PhpSubTemplates.generatorInfo}
+                    |
+                    |namespace ${packagePrefix.toNamespaceName()}\Exception;
+                    |
+                    |use ${packagePrefix.toNamespaceName()}\Base\JsonObject;
+                    |use ${packagePrefix.toNamespaceName()}\Client\ApiRequest;
+                    |use Psr\Http\Message\ResponseInterface;
+                    |use GuzzleHttp\Exception\ClientException;
+                    |use GuzzleHttp\Exception\ServerException;
+                    |use GuzzleHttp\Psr7\Response;
+                    |
+                    |class ExceptionFactory
+                    |{
+                    |    public static function createServerException(
+                    |        ServerException $!e,
+                    |        ApiRequest $!request,
+                    |        ?ResponseInterface $!response,
+                    |        ?JsonObject $!result
+                    |    ) : ApiServerException {
+                    |        if (is_null($!response)) {
+                    |            $!message = 'Error completing request: ' . $!e->getMessage();
+                    |            return new ApiServerException($!message, null, $!request, new Response(400), $!e, []);
+                    |        }
+                    |
+                    |        $!message = 'Server error response [url] ' . (string)$!request->getUri()
+                    |             . ' [status code] ' . (string)$!response->getStatusCode()
+                    |             . ' [reason phrase] ' . $!response->getReasonPhrase();
+                    |
+                    |        switch ($!response->getStatusCode()) {
+                    |            case 500:
+                    |                return new InternalServerErrorException($!message, $!result, $!request, $!response, $!e, []);
+                    |            case 502:
+                    |                return new BadGatewayException($!message, $!result, $!request, $!response, $!e, []);
+                    |            case 503:
+                    |                return new ServiceUnavailableException($!message, $!result, $!request, $!response, $!e, []);
+                    |            case 504:
+                    |                return new GatewayTimeoutException($!message, $!result, $!request, $!response, $!e, []);
+                    |        }
+                    |
+                    |        return new ApiServerException($!message, $!result, $!request, $!response, $!e, []);
+                    |    }
+                    |
+                    |    public static function createClientException(
+                    |        ClientException $!e,
+                    |        ApiRequest $!request,
+                    |        ?ResponseInterface $!response,
+                    |        ?JsonObject $!result
+                    |    ) : ApiClientException {
+                    |        if (is_null($!response)) {
+                    |            $!message = 'Error completing request: ' . $!e->getMessage();
+                    |            return new ApiClientException($!message, null, $!request, new Response(400), $!e, []);
+                    |        }
+                    |
+                    |        $!message = 'Client error response [url] ' . (string)$!request->getUri()
+                    |             . ' [status code] ' . (string)$!response->getStatusCode()
+                    |             . ' [reason phrase] ' . $!response->getReasonPhrase();
+                    |
+                    |        switch ($!response->getStatusCode()) {
+                    |            case 400:
+                    |                return new BadRequestException($!message, $!result, $!request, $!response, $!e, []);
+                    |            case 401:
+                    |                return new UnauthorizedException($!message, $!result, $!request, $!response, $!e, []);
+                    |            case 403:
+                    |                return new ForbiddenException($!message, $!result, $!request, $!response, $!e, []);
+                    |            case 404:
+                    |                return new NotFoundException($!message, $!result, $!request, $!response, $!e, []);
+                    |            case 409:
+                    |                return new ConcurrentModificationException($!message, $!result, $!request, $!response, $!e, []);
+                    |        }
+                    |
+                    |        return new ApiClientException($!message, $!result, $!request, $!response, $!e, []);
                     |    }
                     |}
                 """.trimMargin().forcedLiteralEscape())
@@ -1033,7 +1361,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |    public function send(array $!options = []): ResponseInterface
                     |    {
                     |        if (is_null($!this->client)) {
-                    |           throw new InvalidArgumentException();
+                    |           throw new InvalidArgumentException('No http client set to send the request');
                     |        }
                     |        return $!this->client->send($!this, $!options);
                     |    }
@@ -1047,7 +1375,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |    public function sendAsync(array $!options = []): PromiseInterface
                     |    {
                     |        if (is_null($!this->client)) {
-                    |           throw new InvalidArgumentException();
+                    |           throw new InvalidArgumentException('No http client set to send the request');
                     |        }
                     |        return $!this->client->sendAsync($!this, $!options);
                     |    }
@@ -1066,7 +1394,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |        /** @psalm-var ?stdClass $!data */
                     |        $!data = json_decode($!body);
                     |        if (is_null($!data)) {
-                    |           throw new InvalidArgumentException();
+                    |           return new stdClass();
                     |        }
                     |        return $!data;
                     |    }
@@ -1097,6 +1425,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |
                     |    public function current()
                     |    {
+                    |        /** @psalm-suppress MixedReturnStatement */
                     |        return call_user_func($!this->mapper, parent::current(), parent::key());
                     |    }
                     |}
@@ -1206,6 +1535,102 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                 """.trimMargin().forcedLiteralEscape())
     }
 
+    private fun csequence(): TemplateFile {
+        return TemplateFile(relativePath = "src/Base/CSequence.php",
+                content = """
+                    |<?php
+                    |${PhpSubTemplates.generatorInfo}
+                    |
+                    |namespace ${packagePrefix.toNamespaceName()}\Base;
+                    |
+                    |use stdClass;
+                    |
+                    |/**
+                    | * @template TObject
+                    | * @template TRaw
+                    | */
+                    |interface CSequence extends Collection, \ArrayAccess, \JsonSerializable, \IteratorAggregate
+                    |{
+                    |    public function toArray(): ?array;
+                    |    
+                    |    public function jsonSerialize(): ?array;
+                    |
+                    |    /**
+                    |     * @template T
+                    |     * @psalm-param array<int, T|TRaw> $!data
+                    |     * @return static
+                    |     */
+                    |    public static function fromArray(array $!data);
+                    |
+                    |    /**
+                    |     * @psalm-param TObject|TRaw $!value
+                    |     * @param $!value
+                    |     * @return Collection
+                    |     */
+                    |    public function add($!value);
+                    |
+                    |    /**
+                    |     * @psalm-return ?TObject
+                    |     */
+                    |    public function at(int $!index);
+                    |
+                    |    public function getIterator(): MapperIterator;
+                    |
+                    |    /**
+                    |     * @return ?TObject
+                    |     */
+                    |    public function current();
+                    |
+                    |    /**
+                    |     * @return void
+                    |     */
+                    |    public function next();
+                    |
+                    |    /**
+                    |     * @return int
+                    |     */
+                    |    public function key();
+                    |
+                    |    /**
+                    |     * @return bool
+                    |     */
+                    |    public function valid();
+                    |
+                    |    /**
+                    |     * @return void
+                    |     */
+                    |    public function rewind();
+                    |
+                    |    /**
+                    |     * @param int $!offset
+                    |     * @return bool
+                    |     */
+                    |    public function offsetExists($!offset);
+                    |
+                    |    /**
+                    |     * @param int $!offset
+                    |     * @return ?TObject
+                    |     */
+                    |    public function offsetGet($!offset);
+                    |
+                    |    /**
+                    |     * @param int $!offset
+                    |     * @psalm-param TObject|TRaw $!value
+                    |     * @param mixed $!value
+                    |     * @return void
+                    |     */
+                    |    public function offsetSet($!offset, $!value);
+                    |
+                    |    /**
+                    |     * @param int $!offset
+                    |     * @return void
+                    |     */
+                    |    public function offsetUnset($!offset);
+                    |}
+                """.trimMargin().forcedLiteralEscape()
+        )
+    }
+
     private fun mapperSequence(): TemplateFile {
         return TemplateFile(relativePath = "src/Base/MapperSequence.php",
                 content = """
@@ -1218,8 +1643,9 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |
                     |/**
                     | * @template TObject
+                    | * @implements CSequence<TObject, stdClass>
                     | */
-                    |abstract class MapperSequence implements Collection, \ArrayAccess, \JsonSerializable, \IteratorAggregate
+                    |abstract class MapperSequence implements CSequence
                     |{
                     |    /** @psalm-var ?array<int, TObject|stdClass> */
                     |    private $!data;
@@ -1456,8 +1882,9 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |
                     |/**
                     | * @template TScalar
+                    | * @implements CSequence<TScalar, scalar>
                     | */
-                    |abstract class MapperScalarSequence implements Collection, \ArrayAccess, \JsonSerializable, \IteratorAggregate
+                    |abstract class MapperScalarSequence implements CSequence
                     |{
                     |    /** @psalm-var ?array<int, TScalar|scalar> */
                     |    private $!data;
@@ -1679,6 +2106,119 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                 """.trimMargin().forcedLiteralEscape())
     }
 
+    private fun cmap(): TemplateFile {
+        return TemplateFile(relativePath = "src/Base/CMap.php",
+                content = """
+                    |<?php
+                    |${PhpSubTemplates.generatorInfo}
+                    |
+                    |namespace ${packagePrefix.toNamespaceName()}\Base;
+                    |
+                    |use stdClass;
+                    |
+                    |/**
+                    | * @template TObject
+                    | */
+                    |interface CMap extends Collection, \ArrayAccess, \JsonSerializable, \IteratorAggregate
+                    |{
+                    |    /**
+                    |     * @template T
+                    |     * @psalm-param ?stdClass|array<string, T|stdClass> $!data
+                    |     * @return static
+                    |     */
+                    |    public static function of($!data = null);
+                    |
+                    |    /**
+                    |     * @psalm-return array<string, stdClass|mixed>
+                    |     */
+                    |    public function toArray(): ?array;
+                    |
+                    |    /**
+                    |     * @psalm-return array<string, stdClass|mixed>
+                    |     */
+                    |    public function jsonSerialize(): ?array;
+                    |
+                    |    /**
+                    |     * @psalm-param ?stdClass $!data
+                    |     * @psalm-return static
+                    |     */
+                    |    public static function fromStdClass(stdClass $!data = null);
+                    |
+                    |    /**
+                    |     * @template T
+                    |     * @psalm-param array<string, T|stdClass> $!data
+                    |     * @return static
+                    |     */
+                    |    public static function fromArray(array $!data);
+                    |
+                    |    /**
+                    |     * @psalm-param TObject|stdClass $!value
+                    |     * @param $!value
+                    |     * @return $!this
+                    |     */
+                    |    public function put(string $!key, $!value);
+                    |
+                    |    /**
+                    |     * @psalm-return ?TObject
+                    |     */
+                    |    public function at(string $!key);
+                    |
+                    |    public function getIterator(): MapperIterator;
+                    |
+                    |    /**
+                    |     * @return ?TObject
+                    |     */
+                    |    public function current();
+                    |
+                    |    /**
+                    |     * @return void
+                    |     */
+                    |    public function next();
+                    |
+                    |    /**
+                    |     * @return string
+                    |     */
+                    |    public function key();
+                    |
+                    |    /**
+                    |     * @return bool
+                    |     */
+                    |    public function valid();
+                    |
+                    |    /**
+                    |     * @return void
+                    |     */
+                    |    public function rewind();
+                    |
+                    |    /**
+                    |     * @param string $!offset
+                    |     * @return bool
+                    |     */
+                    |    public function offsetExists($!offset);
+                    |
+                    |    /**
+                    |     * @param string $!offset
+                    |     * @return ?TObject
+                    |     */
+                    |    public function offsetGet($!offset);
+                    |
+                    |    /**
+                    |     * @param string $!offset
+                    |     * @psalm-param TObject|stdClass $!value
+                    |     * @param mixed $!value
+                    |     * @return void
+                    |     */
+                    |    public function offsetSet($!offset, $!value);
+                    |
+                    |    /**
+                    |     * @param string $!offset
+                    |     * @return void
+                    |     */
+                    |    public function offsetUnset($!offset);
+                    |}
+                """.trimMargin().forcedLiteralEscape())
+    }
+
     private fun mapperMap(): TemplateFile {
         return TemplateFile(relativePath = "src/Base/MapperMap.php",
                 content = """
@@ -1691,8 +2231,9 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |
                     |/**
                     | * @template TObject
+                    | * @implements CMap<TObject>
                     | */
-                    |abstract class MapperMap implements Collection, \ArrayAccess, \JsonSerializable, \IteratorAggregate
+                    |abstract class MapperMap implements CMap
                     |{
                     |    /** @psalm-var ?array<string, TObject|stdClass> */
                     |    private $!data;
@@ -2387,7 +2928,8 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |    public static function createDefaultMiddlewares(
                     |        ?OAuth2Handler $!handler = null,
                     |        ?LoggerInterface $!logger = null,
-                    |        int $!maxRetries = 0
+                    |        int $!maxRetries = 0,
+                    |        ?CorrelationIdProvider $!correlationIdProvider = null
                     |    ) {
                     |        $!middlewares = [];
                     |        if (!is_null($!handler)) {
@@ -2400,8 +2942,24 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |        if ($!maxRetries > 0) {
                     |            $!middlewares['retryNA'] = self::createRetryNAMiddleware($!maxRetries);
                     |        }
+                    |        $!middlewares['correlation_id'] = self::createCorrelationIdMiddleware($!correlationIdProvider ?? new DefaultCorrelationIdProvider());
                     |        
                     |        return $!middlewares;
+                    |    }
+                    |
+                    |    /**
+                    |     * @psalm-return callable
+                    |     */
+                    |    public static function createCorrelationIdMiddleware(CorrelationIdProvider $!correlationIdProvider)
+                    |    {
+                    |        return Middleware::mapRequest(
+                    |            function (RequestInterface $!request) use ($!correlationIdProvider) {
+                    |                return $!request->withAddedHeader(
+                    |                    'X_CORRELATION_ID',
+                    |                    $!correlationIdProvider->getCorrelationId()
+                    |                );
+                    |            }
+                    |        );
                     |    }
                     |
                     |    /**
@@ -2442,6 +3000,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |    }
                     |
                     |    /**
+                    |     * @psalm-param 'alert'|'critical'|'debug'|'emergency'|'error'|'info'|'notice'|'warning' $!logLevel
                     |     * @psalm-return callable
                     |     */
                     |    public static function createLoggerMiddleware(LoggerInterface $!logger, string $!logLevel = LogLevel::INFO, string $!template = MessageFormatter::CLF)

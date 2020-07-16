@@ -4,7 +4,7 @@ import io.vrap.rmf.codegen.types.LanguageBaseTypes
 import io.vrap.rmf.codegen.types.VrapScalarType
 
 object JoiBaseTypes : LanguageBaseTypes(
-
+    anyType = nativeTypeScriptType("any"),
     objectType = nativeTypeScriptType("any"),
     integerType = nativeTypeScriptType("number"),
     longType = nativeTypeScriptType("number"),

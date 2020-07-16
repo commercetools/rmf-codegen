@@ -90,8 +90,8 @@ class PhpTestRenderer @Inject constructor(api: Api, vrapTypeProvider: VrapTypePr
                     |{
                     |    public function testConstruct()
                     |    {
-                    |        $!client = $!this->prophesize(ClientInterface::class);
-                    |        $!root = new ${rootResource()}($!client->reveal());
+                    |        $!client = $!this->createMock(ClientInterface::class);
+                    |        $!root = new ${rootResource()}($!client);
                     |        $!this->assertInstanceOf(ClientInterface::class, $!root->getClient());
                     |        $!this->assertSame('', $!root->getUri());
                     |    }

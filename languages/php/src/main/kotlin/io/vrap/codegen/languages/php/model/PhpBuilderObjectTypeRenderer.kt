@@ -143,10 +143,11 @@ class PhpBuilderObjectTypeRenderer @Inject constructor(override val vrapTypeProv
     }
 
     fun Property.buildProperty(): String {
-        if (this.type.isScalar() || this.type is ArrayType || this.type.toVrapType().simpleName() == "stdClass") {
+        val vt = this.type.toVrapType()
+        if (this.type.isScalar() || this.type is ArrayType || vt.simpleName() == "stdClass" || vt.simpleName() == "mixed") {
             return "$!this->${this.name}"
         }
-        return "$!this->${this.name} instanceof ${this.type.toVrapType().simpleBuilderName()} ? $!this->${this.name}->build() : $!this->${this.name}"
+        return "$!this->${this.name} instanceof ${vt.simpleBuilderName()} ? $!this->${this.name}->build() : $!this->${this.name}"
     }
 
     fun ObjectType.imports() = this.getImports(this.allProperties).map { "use ${it.escapeAll()};" }
@@ -213,7 +214,7 @@ class PhpBuilderObjectTypeRenderer @Inject constructor(override val vrapTypeProv
         return this.allProperties
                 .filter { property -> property != discriminator }
                 .filter { !it.isPatternProperty() }
-                .filter { !it.type.isScalar() && !(it.type is ArrayType) && !(it.type.toVrapType().simpleName() == "stdClass") }.joinToString(separator = "\n\n") { it.withBuilder() }
+                .filter { !it.type.isScalar() && !(it.type is ArrayType) && !(it.type.toVrapType().simpleName() == "stdClass") && !(it.type.toVrapType().simpleName() == "mixed") }.joinToString(separator = "\n\n") { it.withBuilder() }
     }
 
     fun ObjectType.getters(): String {
@@ -225,11 +226,22 @@ class PhpBuilderObjectTypeRenderer @Inject constructor(override val vrapTypeProv
     }
 
     fun Property.wither(): String {
+        val t = when(this.type.toVrapType().simpleName()) {
+            "stdClass" -> "?JsonObject"
+            "mixed" -> ""
+            else -> "?${this.type.toVrapType().simpleName()}"
+        }
+        val d = when(this.type.toVrapType().simpleName()) {
+            "stdClass" -> "?JsonObject"
+            "mixed" -> "mixed"
+            else -> "?${this.type.toVrapType().simpleName()}"
+        }
         return """
             |/**
+            | * @param $d $${this.name}
             | * @return $!this
             | */
-            |public function with${this.name.capitalize()}(?${if (this.type.toVrapType().simpleName() != "stdClass") this.type.toVrapType().simpleName() else "JsonObject" } $${this.name})
+            |public function with${this.name.capitalize()}($t $${this.name})
             |{
             |    $!this->${this.name} = $${this.name};
             |    

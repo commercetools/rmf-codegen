@@ -39,7 +39,6 @@ class PhpRequestTestRenderer @Inject constructor(api: Api, vrapTypeProvider: Vra
             |use ${sharedPackageName.toNamespaceName().escapeAll()}\\Base\\JsonObject;
             |use ${clientPackageName.toNamespaceName().escapeAll()}\\${rootResource()};
             |use Psr\\Http\\Message\\RequestInterface;
-            |use Prophecy\\Argument;
             |use GuzzleHttp\\Exception\\ClientException;
             |use GuzzleHttp\\Exception\\ServerException;
             |use GuzzleHttp\\ClientInterface;
@@ -51,7 +50,7 @@ class PhpRequestTestRenderer @Inject constructor(api: Api, vrapTypeProvider: Vra
             | */
             |class ${type.resourceBuilderName()}Test extends TestCase
             |{
-            |    /**
+            |    ${if (type.methods.size > 0) """/**
             |     * @dataProvider getRequests()
             |     */
             |    public function testBuilder(callable $!builderFunction, string $!method, string $!relativeUri, string $!body = null)
@@ -65,9 +64,9 @@ class PhpRequestTestRenderer @Inject constructor(api: Api, vrapTypeProvider: Vra
             |        } else {
             |            $!this->assertSame("", (string) $!request->getBody());
             |        }
-            |    }
+            |    }""".trimMargin() else ""}
             |
-            |    /**
+            |    ${if (type.resources.size > 0) """/**
             |     * @dataProvider getResources()
             |     */
             |    public function testResources(callable $!builderFunction, string $!class, array $!expectedArgs)
@@ -76,9 +75,9 @@ class PhpRequestTestRenderer @Inject constructor(api: Api, vrapTypeProvider: Vra
             |        $!resource = $!builderFunction($!builder);
             |        $!this->assertInstanceOf($!class, $!resource);
             |        $!this->assertEquals($!expectedArgs, $!resource->getArgs());
-            |    }
+            |    }""".trimMargin() else ""}
             |
-            |    /**
+            |    ${if (type.methods.size > 0) """/**
             |     * @dataProvider getRequestBuilderResponses()
             |     */
             |    public function testMapFromResponse(callable $!builderFunction, $!statusCode)
@@ -89,35 +88,37 @@ class PhpRequestTestRenderer @Inject constructor(api: Api, vrapTypeProvider: Vra
             |
             |        $!response = new Response($!statusCode, [], "{}");
             |        $!this->assertInstanceOf(JsonObject::class, $!request->mapFromResponse($!response));
-            |    }
+            |    }""".trimMargin() else ""}
             |
-            |    /**
+            |    ${if (type.methods.size > 0) """/**
             |     * @dataProvider getRequestBuilders()
             |     */
             |    public function testExecuteClientException(callable $!builderFunction)
             |    {
-            |        $!client = $!this->prophesize(ClientInterface::class);
-            |        $!client->send(Argument::any(), Argument::any())->willThrow(ClientException::class);
+            |        $!client = $!this->createMock(ClientInterface::class);
             |        
-            |        $!builder = new ${rootResource()}($!client->reveal());
+            |        $!builder = new ${rootResource()}($!client);
             |        $!request = $!builderFunction($!builder);
+            |        $!client->method("send")->willThrowException(new ClientException("Oops!", $!request, new Response(400)));
+            |        
             |        $!this->expectException(ApiClientException::class);
             |        $!request->execute();
-            |    }
+            |    }""".trimMargin() else ""}
             |
-            |    /**
+            |    ${if (type.methods.size > 0) """/**
             |     * @dataProvider getRequestBuilders()
             |     */
             |    public function testExecuteServerException(callable $!builderFunction)
             |    {
-            |        $!client = $!this->prophesize(ClientInterface::class);
-            |        $!client->send(Argument::any(), Argument::any())->willThrow(ServerException::class);
+            |        $!client = $!this->createMock(ClientInterface::class);
             |        
-            |        $!builder = new ${rootResource()}($!client->reveal());
+            |        $!builder = new ${rootResource()}($!client);
             |        $!request = $!builderFunction($!builder);
+            |        $!client->method("send")->willThrowException(new ServerException("Oops!", $!request, new Response(500)));
+
             |        $!this->expectException(ApiServerException::class);
             |        $!request->execute();
-            |    }
+            |    }""".trimMargin() else ""}
             |
             |    public function getRequests()
             |    {

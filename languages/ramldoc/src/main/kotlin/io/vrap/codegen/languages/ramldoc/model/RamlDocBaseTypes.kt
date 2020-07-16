@@ -4,6 +4,7 @@ import io.vrap.rmf.codegen.types.LanguageBaseTypes
 import io.vrap.rmf.codegen.types.VrapScalarType
 
 object RamldocBaseTypes : LanguageBaseTypes(
+        anyType = nativeRamldocType("any"),
         objectType = nativeRamldocType("object"),
         integerType = nativeRamldocType("number"),
         longType = nativeRamldocType("number"),

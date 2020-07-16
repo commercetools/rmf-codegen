@@ -56,8 +56,11 @@ class PhpMethodRenderer @Inject constructor(override val vrapTypeProvider: VrapT
             |namespace ${clientPackageName.toNamespaceName().escapeAll()}\\$resourcePackage;
             |
             |use GuzzleHttp\\ClientInterface;
+            |use GuzzleHttp\\Exception\\RequestException;
             |use GuzzleHttp\\Exception\\ServerException;
             |use GuzzleHttp\\Exception\\ClientException;
+            |use GuzzleHttp\\Promise\\PromiseInterface;
+            |use ${sharedPackageName.toNamespaceName().escapeAll()}\\Exception\\ExceptionFactory;
             |use ${sharedPackageName.toNamespaceName().escapeAll()}\\Exception\\InvalidArgumentException;
             |use ${sharedPackageName.toNamespaceName().escapeAll()}\\Exception\\ApiServerException;
             |use ${sharedPackageName.toNamespaceName().escapeAll()}\\Exception\\ApiClientException;
@@ -118,16 +121,41 @@ class PhpMethodRenderer @Inject constructor(override val vrapTypeProvider: VrapT
             |        try {
             |            $!response = $!this->send($!options);
             |        } catch (ServerException $!e) {
-            |            $!result = $!this->mapFromResponse($!e->getResponse());
-            |
-            |            throw new ApiServerException($!e->getMessage(), $!result, $!this, $!e->getResponse(), $!e, []);
+            |            $!response = $!e->getResponse();
+            |            $!e = ExceptionFactory::createServerException($!e, $!this, $!response, $!this->mapFromResponse($!response, $!resultType));
+            |            throw $!e;
             |        } catch (ClientException $!e) {
-            |            $!result = $!this->mapFromResponse($!e->getResponse());
-            |
-            |            throw new ApiClientException($!e->getMessage(), $!result, $!this, $!e->getResponse(), $!e, []);
+            |            $!response = $!e->getResponse();
+            |            $!e = ExceptionFactory::createClientException($!e, $!this, $!response, $!this->mapFromResponse($!response, $!resultType));
+            |            throw $!e;
             |        }
             |
             |        return $!this->mapFromResponse($!response, $!resultType);
+            |    }
+            |
+            |    /**
+            |     * @template T of JsonObject
+            |     * @psalm-param ?class-string<T> $!resultType
+            |     *
+            |     * @return PromiseInterface
+            |     */
+            |    public function executeAsync(array $!options = [], string $!resultType = null)
+            |    {
+            |        return $!this->sendAsync($!options)->then(
+            |            function(ResponseInterface $!response) use ($!resultType) {
+            |                return $!this->mapFromResponse($!response, $!resultType);
+            |            },
+            |            function (RequestException $!e) use ($!resultType) {
+            |                $!response = $!e->getResponse();
+            |                if ($!e instanceof ServerException) {
+            |                    $!e = ExceptionFactory::createServerException($!e, $!this, $!response, $!this->mapFromResponse($!response, $!resultType));
+            |                }
+            |                if ($!e instanceof ClientException) {
+            |                    $!e = ExceptionFactory::createClientException($!e, $!this, $!response, $!this->mapFromResponse($!response, $!resultType));
+            |                }
+            |                throw $!e;
+            |            }
+            |        );
             |    }
             |
             |    <<${type.queryParameters.joinToString("\n\n") { it.withParam(type) }}>>

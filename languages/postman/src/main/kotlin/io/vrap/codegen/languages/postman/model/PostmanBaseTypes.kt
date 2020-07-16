@@ -4,6 +4,7 @@ import io.vrap.rmf.codegen.types.LanguageBaseTypes
 import io.vrap.rmf.codegen.types.VrapScalarType
 
 object PostmanBaseTypes : LanguageBaseTypes(
+        anyType = nativePostmanType("any"),
         objectType = nativePostmanType("object"),
         integerType = nativePostmanType("number"),
         longType = nativePostmanType("number"),

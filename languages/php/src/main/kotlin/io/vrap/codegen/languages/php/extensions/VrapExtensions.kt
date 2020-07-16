@@ -33,6 +33,7 @@ fun VrapType.namespaceName():String{
 
 fun VrapType.simpleName():String{
     return when(this){
+        is VrapAnyType -> this.baseType
         is VrapScalarType -> this.scalarType
         is VrapEnumType -> "string"
         is VrapObjectType -> this.simpleClassName
@@ -43,6 +44,7 @@ fun VrapType.simpleName():String{
 
 fun VrapType.simpleBuilderName():String{
     return when(this){
+        is VrapAnyType -> this.baseType
         is VrapScalarType -> this.scalarType
         is VrapEnumType -> "string"
         is VrapObjectType -> this.simpleClassName + "Builder"
@@ -53,6 +55,7 @@ fun VrapType.simpleBuilderName():String{
 
 fun VrapType.fullClassName():String{
     return when(this){
+        is VrapAnyType -> this.baseType
         is VrapScalarType -> this.scalarType
         is VrapEnumType -> "string"
         is VrapObjectType -> "${this.namespaceName()}\\${this.simpleClassName}"
@@ -88,6 +91,7 @@ fun VrapType.isScalar(): Boolean {
         }
         is VrapScalarType -> true
         is VrapEnumType -> true
+        is VrapAnyType -> true
         else -> false
     }
 }
@@ -154,7 +158,7 @@ fun Method.allParams(): List<String>? {
 
 fun Method.firstBody(): Body? = this.bodies.stream().findFirst().orElse(null)
 
-fun scalarTypes():Array<String> { return arrayOf("string", "int", "float", "bool", "array", "stdClass") }
+fun scalarTypes():Array<String> { return arrayOf("string", "int", "float", "bool", "array", "stdClass", "mixed") }
 
 fun QueryParameter.methodName(): String {
     val anno = this.getAnnotation("placeholderParam", true)
