@@ -139,7 +139,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |
                     |class ResultMapper
                     |{
-                    |    /** @psalm-var array<class-string, array<int, string>> */
+                    |    /** @psalm-var array<class-string, list<string>> */
                     |    private $!constructorParamNames = [];
                     |
                     |    /**
@@ -151,7 +151,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |     * @throws ReflectionException
                     |     */
                     |    public function mapToConstructor(string $!type, array $!data) {
-                    |        /** @psalm-var array<int, mixed> $!args */
+                    |        /** @psalm-var list<mixed> $!args */
                     |        $!args = array_map(
                     |            function ($!paramName) use ($!data) {
                     |                return ($!data[$!paramName] ?? null);
@@ -163,7 +163,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |    
                     |    /**
                     |     * @psalm-param class-string $!type
-                    |     * @psalm-return array<int, string>
+                    |     * @psalm-return list<string>
                     |     * @throws InvalidArgumentException
                     |     * @throws ReflectionException
                     |     */
@@ -324,7 +324,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |class JsonObjectModel extends BaseJsonObject implements JsonObject
                     |{
                     |    /**
-                    |     * @psalm-return scalar|array<int|string, mixed>|JsonObject|JsonObjectCollection|null
+                    |     * @psalm-return scalar|list<mixed>|array<string, mixed>|JsonObject|JsonObjectCollection|null
                     |     */
                     |    final public function get(string $!field)
                     |    {
@@ -333,7 +333,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |            return JsonObjectModel::of($!data);
                     |        }
                     |        if (is_array($!data) && isset($!data[0]) && $!data[0] instanceof stdClass) {
-                    |            /** @psalm-var ?array<int, stdClass> $!data */
+                    |            /** @psalm-var ?list<stdClass> $!data */
                     |            return new JsonObjectCollection($!data);
                     |        }
                     |        return $!data;
@@ -384,7 +384,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |interface JsonObject extends \JsonSerializable
                     |{
                     |    /**
-                    |     * @psalm-return scalar|array<int|string, mixed>|JsonObject|JsonObjectCollection|null
+                    |     * @psalm-return scalar|list<mixed>|array<string, mixed>|JsonObject|JsonObjectCollection|null
                     |     */
                     |    public function get(string $!field);
                     |    
@@ -463,14 +463,14 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |    }
                     |
                     |    /**
-                    |     * @psalm-return scalar|array<int, mixed>|array<string, mixed>|stdClass|null
+                    |     * @psalm-return scalar|list<mixed>|array<string, mixed>|stdClass|null
                     |     */
                     |    final protected function raw(string $!field)
                     |    {
                     |        if (isset($!this->rawData->$!field)) {
                     |            /**
                     |             * @psalm-suppress PossiblyNullPropertyFetch
-                    |             * @psalm-var scalar|array<int, mixed>|array<string, mixed>|stdClass|null
+                    |             * @psalm-var scalar|list<mixed>|array<string, mixed>|stdClass|null
                     |             */
                     |            return $!this->rawData->$!field;
                     |        }
@@ -594,7 +594,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |
                     |    /**
                     |     * @throws InvalidArgumentException
-                    |     * @psalm-param array<int|string, callable> $!middlewares
+                    |     * @psalm-param list<callable>|array<string, callable> $!middlewares
                     |     */
                     |    private function createGuzzleClientWithOptions(array $!options, array $!middlewares = []): ClientInterface
                     |    {
@@ -1557,7 +1557,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |
                     |    /**
                     |     * @template T
-                    |     * @psalm-param array<int, T|TRaw> $!data
+                    |     * @psalm-param list<T|TRaw> $!data
                     |     * @return static
                     |     */
                     |    public static function fromArray(array $!data);

@@ -407,12 +407,12 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
             is ArrayType ->
                 if (type.toVrapType().isScalar()) {
                     """
-                        |/** @psalm-var array<int, stdClass> $!data */
+                        |/** @psalm-var list<stdClass> $!data */
                         |return $!data;
                     """.trimMargin()
                 } else {
                     """
-                        |/** @psalm-var array<int, stdClass> $!data */
+                        |/** @psalm-var list<stdClass> $!data */
                         |return ${if (type.items?.isScalar() != true) "new ${this.type.toVrapType().simpleName()}($!data)" else "$!data"};
                     """.trimMargin()
                 }
@@ -501,7 +501,7 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
                     PhpBaseTypes.timeOnlyType,
                     PhpBaseTypes.dateOnlyType,
                     PhpBaseTypes.dateTimeType -> """
-                                |/** @psalm-var ?array<int, string> $!data */
+                                |/** @psalm-var ?list<string> $!data */
                                 |$!data = $!this->raw(self::${this.toPhpConstantName()});
                                 |if (is_null($!data)) {
                                 |    return null;
@@ -511,7 +511,7 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
                     else ->
                         if (vrapType.isScalar()) {
                             """
-                                |/** @psalm-var ?array<int, mixed> $!data */
+                                |/** @psalm-var ?list<mixed> $!data */
                                 |$!data = $!this->raw(self::${this.toPhpConstantName()});
                                 |if (is_null($!data)) {
                                 |    return null;
@@ -520,7 +520,7 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
                             """.trimMargin()
                         } else {
                             """
-                                |/** @psalm-var ?array<int, stdClass> $!data */
+                                |/** @psalm-var ?list<stdClass> $!data */
                                 |$!data = $!this->raw(self::${this.toPhpConstantName()});
                                 |if (is_null($!data)) {
                                 |    return null;
