@@ -28,8 +28,8 @@ jobs:
         run: ./gradlew clean build writeVersionToReadme
         #bintrayUpload --info
         env:
-          BINTRAY_USER: {{ secrets.BINTRAY_USER }}
-          BINTRAY_KEY: {{ secrets.BINTRAY_KEY }}
+          BINTRAY_USER: ${{ secrets.BINTRAY_USER }}
+          BINTRAY_KEY: ${{ secrets.BINTRAY_KEY }}
 
       - uses: stefanzweifel/git-auto-commit-action@v4
         with:
