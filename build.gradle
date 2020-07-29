@@ -76,6 +76,13 @@ class Version {
     }
 }
 
+
+task writeVersionToReadme {
+    ant.replaceregexp(match: 'VERSION=[^\\s]+', replace: "VERSION=${globalVersion}", flags:'g', byline:true) {
+        fileset(dir: projectDir, includes: 'README.md')
+    }
+}
+
 subprojects { project ->
     repositories {
         mavenCentral()
