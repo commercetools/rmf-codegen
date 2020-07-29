@@ -2163,6 +2163,11 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |     */
                     |    public function at(string $!key);
                     |
+                    |    /**
+                    |     * @return static|mixed
+                    |     */
+                    |    public function with(string $!key, callable $!callable = null);
+                    |
                     |    public function getIterator(): MapperIterator;
                     |
                     |    /**
@@ -2362,6 +2367,19 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |    public function at(string $!key)
                     |    {
                     |        return $!this->mapper()($!key);
+                    |    }
+                    |
+                    |    /**
+                    |     * @return ?TObject|mixed
+                    |     */
+                    |    public function with(string $!key, callable $!callback = null)
+                    |    {
+                    |        $!data = $!this->at($!key);
+                    |        if (is_null($!callback)) {
+                    |            return $!data;
+                    |        }
+                    |
+                    |        return $!callback($!data);
                     |    }
                     |
                     |    /**
