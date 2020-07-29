@@ -1,8 +1,7 @@
 on:
-  - push
-#  push:
-#    branches:
-#      - master
+  push:
+    branches:
+      - master
 
 name: AutoRelease
 
@@ -25,8 +24,7 @@ jobs:
         run: ./gradlew check
 
       - name: Release
-        run: ./gradlew clean build writeVersionToReadme
-        #bintrayUpload --info
+        run: ./gradlew clean build writeVersionToReadme bintrayUpload --info
         env:
           BINTRAY_USER: ${{ secrets.BINTRAY_USER }}
           BINTRAY_KEY: ${{ secrets.BINTRAY_KEY }}
