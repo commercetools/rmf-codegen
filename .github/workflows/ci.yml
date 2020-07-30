@@ -21,10 +21,10 @@ jobs:
           java-version: '8'
 
       - name: Build and Test
-        run: ./gradlew check
+        run: ./gradlew --build-cache clean check
 
       - name: Release
-        run: ./gradlew clean build bintrayUpload writeVersionToReadme --info
+        run: ./gradlew --build-cache bintrayUpload writeVersionToReadme --info
         env:
           BINTRAY_USER: ${{ secrets.BINTRAY_USER }}
           BINTRAY_KEY: ${{ secrets.BINTRAY_KEY }}
