@@ -83,6 +83,12 @@ task writeVersionToReadme {
     }
 }
 
+tasks.whenTaskAdded {
+    if ("bintray" in name) {
+        enabled = false
+    }
+}
+
 subprojects { project ->
     repositories {
         mavenCentral()
