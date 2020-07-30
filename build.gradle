@@ -20,7 +20,7 @@ plugins {
     id 'java-gradle-plugin'
 
     id 'de.undercouch.download' version '4.0.4'
-    id 'com.jfrog.bintray' version '1.8.5'
+    id 'com.jfrog.bintray' version '1.8.3' // newer versions produce NPE on publish
 
     id 'com.gradle.plugin-publish' version '0.11.0'
     id 'org.inferred.processors' version '3.3.0'
@@ -80,12 +80,6 @@ class Version {
 task writeVersionToReadme {
     ant.replaceregexp(match: 'VERSION=[^\\s]+', replace: "VERSION=${globalVersion}", flags:'g', byline:true) {
         fileset(dir: projectDir, includes: 'README.md')
-    }
-}
-
-tasks.whenTaskAdded {
-    if ("bintray" in name) {
-        enabled = false
     }
 }
 
