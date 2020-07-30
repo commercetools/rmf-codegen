@@ -32,7 +32,7 @@ class ActionRenderer {
     }
 
     private fun renderAction(resource: Resource, method: Method, type: ObjectType): String {
-        val url = PostmanUrl(method.resource(), method) { name -> name }
+        val url = PostmanUrl(method.resource().parent, method) { name -> name }
         return """
             |{
             |    "name": "${type.discriminatorValue.capitalize()}",
@@ -62,7 +62,7 @@ class ActionRenderer {
             |            }
             |        ],
             |        "url": {
-            |            "raw": "${url.raw()}",
+            |            "raw": "${url.raw()}/{{${resource.resourcePathName.singularize()}-id}}",
             |            "host": [
             |                "{{host}}"
             |            ],
