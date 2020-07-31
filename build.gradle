@@ -77,11 +77,12 @@ class Version {
 }
 
 
-task writeVersionToReadme {
-    ant.replaceregexp(match: 'VRAP_VERSION:-[^}]+', replace: "VRAP_VERSION:-\"${globalVersion}\"", flags:'g', byline:true) {
-        fileset(dir: "$projectDir/scripts", includes: 'install.sh')
+tasks.register("writeVersionToReadme") {
+    doLast {
+        ant.replaceregexp(match: 'VRAP_VERSION:-[^}]+', replace: "VRAP_VERSION:-\"${globalVersion}\"", flags:'g', byline:true) {
+            fileset(dir: "$projectDir/scripts", includes: 'install.sh')
+        }
     }
-
 }
 
 subprojects { project ->

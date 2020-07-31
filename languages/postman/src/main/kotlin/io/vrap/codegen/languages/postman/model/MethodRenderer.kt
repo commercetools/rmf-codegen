@@ -5,12 +5,17 @@ import io.vrap.codegen.languages.extensions.toResourceName
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
 import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Resource
+import io.vrap.rmf.raml.model.util.StringCaseFormat
 import org.apache.commons.lang3.StringEscapeUtils
 
 class MethodRenderer {
     fun render(method: Method): String {
 
-        val url = PostmanUrl(method.resource(), method) { name -> name }
+        val url = PostmanUrl(method.resource(), method) { name -> when (name) {
+            "ID" -> method.resource().resourcePathName.singularize() + "-id"
+            "key" -> method.resource().resourcePathName.singularize() + "-key"
+            else -> StringCaseFormat.LOWER_HYPHEN_CASE.apply(name)
+        }}
         return """
             |{
             |    "name": "${method.displayName?.value ?: "${method.methodName} ${method.resource().toResourceName()}" }",
@@ -36,7 +41,7 @@ class MethodRenderer {
             |            }
             |        ],
             |        "url": {
-            |                "raw": "${url.raw()}",
+            |            "raw": "${url.raw()}",
             |            "host": [
             |                "{{host}}"
             |            ],

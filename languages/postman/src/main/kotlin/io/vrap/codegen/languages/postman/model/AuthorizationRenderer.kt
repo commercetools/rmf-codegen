@@ -92,13 +92,13 @@ fun authorization(oauth: OAuth20Settings): String {
             |                    "raw": ""
             |                },
             |                "url": {
-            |                    "raw": "{{auth_url}}/oauth/{{projectKey}}/customers/token?grant_type=password&username={{user_email}}&password={{user_password}}",
+            |                    "raw": "{{auth_url}}/oauth/{{project-key}}/customers/token?grant_type=password&username={{user_email}}&password={{user_password}}",
             |                    "host": [
             |                        "{{auth_url}}"
             |                    ],
             |                    "path": [
             |                        "oauth",
-            |                        "{{projectKey}}",
+            |                        "{{project-key}}",
             |                        "customers",
             |                        "token"
             |                    ],
@@ -152,13 +152,13 @@ fun authorization(oauth: OAuth20Settings): String {
             |                    "raw": ""
             |                },
             |                "url": {
-            |                    "raw": "{{auth_url}}/oauth/{{projectKey}}/anonymous/token?grant_type=client_credentials",
+            |                    "raw": "{{auth_url}}/oauth/{{project-key}}/anonymous/token?grant_type=client_credentials",
             |                    "host": [
             |                        "{{auth_url}}"
             |                    ],
             |                    "path": [
             |                        "oauth",
-            |                        "{{projectKey}}",
+            |                        "{{project-key}}",
             |                        "anonymous",
             |                        "token"
             |                    ],
@@ -244,11 +244,11 @@ private fun testAuthScript(): String {
                 |    parts = parts.filter(scope => scope.includes(":")).map(scope => scope.split(":"))
                 |    if (parts.length > 0) {
                 |        scopeParts = parts[0];
-                |        pm.environment.set("projectKey", scopeParts[1]);
+                |        pm.environment.set("project-key", scopeParts[1]);
                 |        parts = parts.filter(scope => scope.length >= 3)
                 |        if (parts.length > 0) {
                 |            scopeParts = parts[0];
-                |            pm.environment.set("storeKey", scopeParts[2]);
+                |            pm.environment.set("store-key", scopeParts[2]);
                 |        }
                 |    }
                 |}
