@@ -703,7 +703,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |    }
                     |  },
                     |  "require": {
-                    |    "php": ">=7.2",
+                    |    "php": ">=7.4",
                     |    "ext-json": "*",
                     |    "guzzlehttp/psr7": "^1.1",
                     |    "guzzlehttp/guzzle": "^6.0",
