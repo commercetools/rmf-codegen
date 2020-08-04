@@ -317,7 +317,7 @@ fun Instance.toYaml(): String {
     return example.trim()
 }
 
-fun Instance.toJson(): String {
+fun Instance.toJson(pretty: Boolean = true): String {
     var example = ""
     val mapper = ObjectMapper()
 
@@ -330,13 +330,14 @@ fun Instance.toJson(): String {
     module.addSerializer<Instance>(NumberInstance::class.java, InstanceSerializer())
     mapper.registerModule(module)
 
+    val writer = if (pretty) mapper.writerWithDefaultPrettyPrinter() else mapper.writer()
     if (this is ObjectInstance) {
         try {
-            example = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(this)
+            example = writer.writeValueAsString(this)
         } catch (e: JsonProcessingException) {
         }
     } else {
-        example = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(this.value)
+        example = writer.writeValueAsString(this.value)
     }
 
     return example.trim()
