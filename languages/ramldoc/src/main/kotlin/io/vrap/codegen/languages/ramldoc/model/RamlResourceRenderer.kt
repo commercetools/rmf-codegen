@@ -1,16 +1,17 @@
 package io.vrap.codegen.languages.ramldoc.model
 
 import com.google.inject.Inject
-import io.vrap.codegen.languages.extensions.isSuccessfull
-import io.vrap.codegen.languages.extensions.toRequestName
+import io.vrap.codegen.languages.extensions.*
 import io.vrap.codegen.languages.extensions.toResourceName
 import io.vrap.codegen.languages.ramldoc.extensions.*
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.ResourceRenderer
+import io.vrap.rmf.codegen.rendring.utils.escapeAll
 import io.vrap.rmf.codegen.rendring.utils.keepAngleIndent
 import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.modules.Api
+import io.vrap.rmf.raml.model.resources.HttpMethod
 import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.resources.UriParameter
@@ -56,8 +57,33 @@ class RamlResourceRenderer @Inject constructor(val api: Api, val vrapTypeProvide
             |  body:
             |    <<${method.bodies.filter { it.type != null }.joinToString("\n") { renderBody(it, method) } }>>""" else ""}${if (method.responses.any { response -> response.isSuccessfull() }) """
             |  responses:
-            |    <<${method.responses.filter { response -> response.isSuccessfull() }.joinToString("\n") { renderResponse(it, method) }}>>""" else ""}
+            |    <<${method.responses.filter { response -> response.isSuccessfull() }.joinToString("\n") { renderResponse(it, method) }}>>""" else ""}${if (method.hasExampleBody() || !method.sendsBody()) """
+            |  (codeExamples):
+            |    curl: |-
+            |      <<${renderCurlExample(method)}>>""" else ""}
         """.trimMargin().keepAngleIndent()
+    }
+
+    private fun renderCurlExample(method: Method) : String {
+        val r = method.resource()
+        return when (method.method) {
+            HttpMethod.PATCH,
+            HttpMethod.PUT,
+            HttpMethod.POST ->
+                """
+                    |curl -X${method.methodName.toUpperCase()} ${r.fullUri.template} -i \\
+                    |--header 'Authorization: Bearer YOUR_TOKEN \\
+                    |--header 'Content-Type: application/json' \\
+                    |--data-binary @- \<< EOF 
+                    |${requestExamples(method.bodies.filter { it.type != null }.first(), method).values.firstOrNull()?.value?.toJson() ?: ""}
+                    |EOF
+                """
+            else ->
+                """
+                    |curl -X${method.methodName.toUpperCase()} ${r.fullUri.template} -i \\
+                    |--header 'Authorization: Bearer YOUR_TOKEN'
+                """
+        }.trimMargin().escapeAll()
     }
 
     private fun renderScheme(securedBy: SecuredBy): String {
@@ -77,8 +103,16 @@ class RamlResourceRenderer @Inject constructor(val api: Api, val vrapTypeProvide
         """.trimMargin().keepAngleIndent()
     }
 
+    private fun Method.hasExampleBody(): Boolean = this.hasBody() && requestExamples(this.bodies.filter { it.type != null }.first(), this).values.isNotEmpty()
+
+    private fun Method.sendsBody(): Boolean = listOf(HttpMethod.POST, HttpMethod.PUT, HttpMethod.PATCH).contains(this.method)
+
+    private fun requestExamples(body: Body, method: Method): Map<String, Example> {
+        return body.inlineTypes.flatMap { inlineType -> inlineType.examples.map { example -> "${method.toRequestName()}-${if (example.name.isNotEmpty()) example.name else "default"}" to example } }.toMap()
+    }
+
     private fun renderBody(body: Body, method: Method): String {
-        val bodyExamples = body.inlineTypes.flatMap { inlineType -> inlineType.examples.map { example -> "${method.toRequestName()}-${if (example.name.isNotEmpty()) example.name else "default"}" to example } }.toMap()
+        val bodyExamples = requestExamples(body, method)
         return """
             |${body.contentType}:
             |  <<${body.type.renderType(false)}>>${if (bodyExamples.isNotEmpty()) """
