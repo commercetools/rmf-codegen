@@ -1,10 +1,7 @@
 package io.vrap.codegen.languages.csharp.model
 
 import com.google.inject.Inject
-import io.vrap.codegen.languages.csharp.extensions.CsharpObjectTypeExtensions
-import io.vrap.codegen.languages.csharp.extensions.NAMESPACE_SUFFIX
-import io.vrap.codegen.languages.csharp.extensions.isValueType
-import io.vrap.codegen.languages.csharp.extensions.simpleName
+import io.vrap.codegen.languages.csharp.extensions.*
 import io.vrap.codegen.languages.extensions.EObjectExtensions
 import io.vrap.codegen.languages.extensions.hasSubtypes
 import io.vrap.codegen.languages.extensions.namedSubTypes
@@ -17,7 +14,7 @@ import io.vrap.rmf.raml.model.types.ObjectType
 import io.vrap.rmf.raml.model.types.Property
 
 
-class CsharpModelClassRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : CsharpObjectTypeExtensions, EObjectExtensions, ObjectTypeRenderer {
+class CsharpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : CsharpObjectTypeExtensions, EObjectExtensions, ObjectTypeRenderer {
 
 
     override fun render(type: ObjectType): TemplateFile {
@@ -26,7 +23,7 @@ class CsharpModelClassRenderer @Inject constructor(override val vrapTypeProvider
         var content : String = """
             |${type.usings()}
             |
-            |namespace ${vrapType.`package`}$NAMESPACE_SUFFIX
+            |namespace ${vrapType.csharpPackage()}
             |{
             |    <${type.subTypesAttributes()}>
             |    public${ if(type.isAbstract())" abstract" else ""} class ${vrapType.simpleClassName} ${type.type?.toVrapType()?.simpleName()?.let { ": $it" } ?: ""}
@@ -66,7 +63,7 @@ class CsharpModelClassRenderer @Inject constructor(override val vrapTypeProvider
         return  """
             |${this.usings()}
             |
-            |namespace ${vrapType.`package`}$NAMESPACE_SUFFIX
+            |namespace ${vrapType.csharpPackage()}
             |{
             |    public class ${toVrapType().simpleName()} : Dictionary\<string, ${property.type.toVrapType().simpleName()}\>
             |    {

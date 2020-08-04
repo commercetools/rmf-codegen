@@ -33,7 +33,7 @@ interface CsharpObjectTypeExtensions : ExtensionsBase {
         }
         //TODO: Get the package name of Attribute Type Dynamic
         if(this.isTypeHaveAttributeProperty()) {
-            usingsList=usingsList.plusElement("Attribute = commercetools.Sdk.models.Product$NAMESPACE_SUFFIX.Attribute")
+            usingsList=usingsList.plusElement("Attribute = commercetools.api.models.Product$NAMESPACE_SUFFIX.Attribute")
         }
         return usingsList
     }
@@ -41,7 +41,7 @@ interface CsharpObjectTypeExtensions : ExtensionsBase {
     fun ObjectType.usings() : String {
         var usingsAsList = this.getUsings()
         val vrapType = vrapTypeProvider.doSwitch(this) as VrapObjectType
-        var packageName = vrapType.`package`
+        var packageName = vrapType.csharpPackage()
         usingsAsList = usingsAsList.dropLastWhile { it== packageName }
         var usings= usingsAsList.map { "using $it;" }.joinToString(separator = "\n")
         var commonUsings = this.getCommonUsings()
@@ -70,11 +70,11 @@ interface CsharpObjectTypeExtensions : ExtensionsBase {
 
 fun getUsingsForType(vrapType: VrapType): String? {
     return when (vrapType) {
-        is VrapObjectType -> return if (!vrapType.`package`.isNullOrEmpty()) vrapType.`package`+NAMESPACE_SUFFIX else {
+        is VrapObjectType -> return if (!vrapType.csharpPackage().isNullOrEmpty()) vrapType.csharpPackage() else {
             null
         }
         is VrapArrayType -> getUsingsForType(vrapType.itemType)
-        is VrapEnumType -> "${vrapType.`package`+NAMESPACE_SUFFIX}"
+        is VrapEnumType -> "${vrapType.csharpPackage()}"
         else -> null
 
     }

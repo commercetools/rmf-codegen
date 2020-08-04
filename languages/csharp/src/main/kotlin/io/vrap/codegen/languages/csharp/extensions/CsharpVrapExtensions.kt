@@ -9,7 +9,7 @@ fun VrapType.simpleName(): String {
         is VrapEnumType -> this.simpleClassName
         is VrapObjectType -> this.simpleClassName
         is VrapAnyType -> this.baseType
-        is VrapArrayType -> "List<${this.itemType.simpleName()}>"
+        is VrapArrayType -> """List\<${this.itemType.simpleName()}\>"""
         is VrapNilType -> throw IllegalStateException("$this has no simple class name.")
     }
 }
@@ -49,6 +49,14 @@ fun String.toCsharpPackage(): String {
                     StringCaseFormat.LOWER_UNDERSCORE_CASE::apply
             )
             .joinToString(separator = ".")
+}
+
+fun VrapType.csharpPackage(): String {
+  var packageName = ""
+    if (this is VrapObjectType) packageName = this.`package`.toCsharpPackage()
+    else if (this is VrapEnumType) packageName = this.`package`.toCsharpPackage()
+
+  return packageName
 }
 //need to be implemented
 fun VrapType.isValueType(): Boolean {

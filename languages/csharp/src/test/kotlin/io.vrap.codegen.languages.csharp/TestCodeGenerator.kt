@@ -2,6 +2,7 @@ package io.vrap.codegen.languages.csharp
 
 
 
+import io.vrap.codegen.languages.csharp.modules.CsharpModule
 import io.vrap.rmf.codegen.CodeGeneratorConfig
 import io.vrap.rmf.codegen.di.ApiProvider
 import io.vrap.rmf.codegen.di.GeneratorComponent
@@ -15,14 +16,14 @@ class TestCodeGenerator {
 
     companion object {
         private val userProvidedPath = System.getenv("TEST_RAML_FILE")
-        private val apiPath : Path = Paths.get(if (userProvidedPath == null) "../../../api-spec/api.raml" else userProvidedPath)
+        private val apiPath : Path = Paths.get(if (userProvidedPath == null) "../../api-spec/api.raml" else userProvidedPath)
         val apiProvider: ApiProvider = ApiProvider(apiPath)
     }
 
 
     @Test
     fun generateCSharpModels() {
-        val generatorConfig = CodeGeneratorConfig(basePackageName = "commercetools.sdk.platform")
+        val generatorConfig = CodeGeneratorConfig(basePackageName = "commercetools.api")
         val generatorModule = GeneratorModule(apiProvider, generatorConfig, CsharpBaseTypes)
         val generatorComponent = GeneratorComponent(generatorModule, CsharpModule)
         generatorComponent.generateFiles()

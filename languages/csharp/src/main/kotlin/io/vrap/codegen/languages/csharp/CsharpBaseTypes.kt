@@ -22,6 +22,6 @@ fun  fromCsharpType(`package`: String, simpleName: String): VrapObjectType {
     return VrapObjectType(`package`, simpleName)
 }
 
-fun  fromScalarCsharpType(scalarType: String): VrapScalarType {
+fun fromScalarCsharpType(scalarType: String): VrapScalarType {
     return VrapScalarType(scalarType)
 }
