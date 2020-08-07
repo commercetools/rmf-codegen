@@ -71,16 +71,16 @@ class RamlResourceRenderer @Inject constructor(val api: Api, val vrapTypeProvide
             HttpMethod.PUT,
             HttpMethod.POST ->
                 """
-                    |curl -X${method.methodName.toUpperCase()} ${r.fullUri.template} -i \\
+                    |curl -X ${method.methodName.toUpperCase()} ${api.baseUri.template}${r.fullUri.template} -i \\
                     |--header 'Authorization: Bearer YOUR_TOKEN \\
                     |--header 'Content-Type: application/json' \\
-                    |--data-binary @- \<< EOF 
+                    |--data-binary @- \<< DATA 
                     |${requestExamples(method.bodies.filter { it.type != null }.first(), method).values.firstOrNull()?.value?.toJson() ?: ""}
-                    |EOF
+                    |DATA
                 """
             else ->
                 """
-                    |curl -X${method.methodName.toUpperCase()} ${r.fullUri.template} -i \\
+                    |curl -X ${method.methodName.toUpperCase()} ${api.baseUri.template}${r.fullUri.template} -i \\
                     |--header 'Authorization: Bearer YOUR_TOKEN'
                 """
         }.trimMargin().escapeAll()
