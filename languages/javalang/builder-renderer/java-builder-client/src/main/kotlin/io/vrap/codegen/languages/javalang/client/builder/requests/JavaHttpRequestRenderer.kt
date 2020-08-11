@@ -80,13 +80,13 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
             |}
         """.trimMargin()
                 .keepIndentation()
-        
+
         return TemplateFile(
                 relativePath = "${vrapType.`package`}.${type.toRequestName()}".replace(".", "/") + ".java",
                 content = content
         )
     }
-    
+
     private fun Method.constructor(): String? {
         val constructorArguments = mutableListOf("final ApiHttpClient apiHttpClient")
         val constructorAssignments = mutableListOf("this.apiHttpClient = apiHttpClient;")
@@ -106,19 +106,19 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
                 constructorAssignments.add("this.jsonNode = jsonNode;")
             }
         }
-        
+
         return """
             |public ${this.toRequestName()}(${constructorArguments.joinToString(separator = ", ")}){
             |   <${constructorAssignments.joinToString(separator = "\n")}>
             |}
         """.trimMargin().keepIndentation()
     }
-    
+
     private fun Method.fields(): String? {
 
         val parameterFields : String =
                 this.queryParameters
-                        .filter { it.annotations.find { it.type.name.equals(PLACEHOLDER_PARAM_ANNOTATION) } == null}
+                        .filter { it.getAnnotation(PLACEHOLDER_PARAM_ANNOTATION, true) == null  }
                         .map { "private List<${it.type.toVrapType().simpleName()}> ${it.fieldName()} = new ArrayList<>();" }
                         .joinToString(separator = "\n")
 
@@ -150,13 +150,13 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
     private fun QueryParameter.fieldName(): String {
         return StringCaseFormat.LOWER_CAMEL_CASE.apply(this.name.replace(".", "-"))
     }
-    
+
     private fun Method.pathArguments() : List<String> {
         return this.resource().fullUri.variables.toList()
     }
-    
+
     private fun Method.createRequestMethod() : String {
-        
+
         val pathArguments = this.pathArguments().map { "{$it}" }
         var stringFormat = this.resource().fullUri.template
         pathArguments.forEach { stringFormat = stringFormat.replace(it, "%s") }
@@ -175,14 +175,14 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
         }else {
             null
         }
-        
+
         val addingQueryParams : String = this.queryParameters
-                .filter { it.annotations.find { it.type.name.equals(PLACEHOLDER_PARAM_ANNOTATION) } == null}
+                .filter { it.getAnnotation(PLACEHOLDER_PARAM_ANNOTATION, true) == null }
                 .map { "params.add(this.${it.fieldName()}.stream().map(s -> \"${it.name}=\" + ${if(it.type.name.equals("string")) "urlEncode(s)" else "s"}).collect(Collectors.joining(\"&\")));" }
                 .joinToString(separator = "\n")
-        
+
         val addingAdditionalQueryParams : String = "params.add(additionalQueryParams.entrySet().stream().map(entry -> entry.getKey() + \"=\" + entry.getValue()).collect(Collectors.joining(\"&\")));"
-        
+
         val requestPathGeneration : String = """
             |List<String> params = new ArrayList<>();
             |$addingQueryParams
@@ -210,8 +210,8 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
             |   return httpRequest;
             |}
         """.trimMargin()
-    }   
-    
+    }
+
     private fun Method.executeBlockingMethod() : String {
         return """
             |public ApiHttpResponse\<${this.javaReturnType(vrapTypeProvider)}\> executeBlocking(){
@@ -237,26 +237,26 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
             |}
         """.trimMargin()
     }
-    
+
     private fun Method.pathArgumentsGetters() : String = this.pathArguments()
             .map { "public String get${it.capitalize()}() {return this.$it;}" }
             .joinToString(separator = "\n")
-    
+
     private fun Method.pathArgumentsSetters() : String = this.pathArguments()
             .map { "public void set${it.capitalize()}(final String $it) {this.$it = $it;}" }
             .joinToString(separator = "\n\n")
-    
+
     private fun Method.queryParamsGetters() : String = this.queryParameters
-            .filter { it.annotations.find { it.type.name.equals(PLACEHOLDER_PARAM_ANNOTATION) } == null}
+            .filter { it.getAnnotation(PLACEHOLDER_PARAM_ANNOTATION, true) == null }
             .map { """
                 |public List<${it.type.toVrapType().simpleName()}> get${it.fieldName().capitalize()}() {
                 |   return this.${it.fieldName()};
                 |}
                 """.trimMargin().escapeAll() }
             .joinToString(separator = "\n\n")
-    
+
     private fun Method.queryParamsSetters() : String = this.queryParameters
-            .filter { it.annotations.find { it.type.name.equals(PLACEHOLDER_PARAM_ANNOTATION) } == null}
+            .filter { it.getAnnotation(PLACEHOLDER_PARAM_ANNOTATION, true) == null }
             .map { """
                 |public ${this.toRequestName()} add${it.fieldName().capitalize()}(final ${it.type.toVrapType().simpleName()} ${it.fieldName()}){
                 |   this.${it.fieldName()}.add(${it.fieldName()});
@@ -269,7 +269,7 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
                 |}
             """.trimMargin().escapeAll() }
             .joinToString(separator = "\n\n")
-    
+
     private fun Method.helperMethods() : String {
         return """
             |public ${this.toRequestName()} addHeader(final String key, final String value) {
