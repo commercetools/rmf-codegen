@@ -75,7 +75,7 @@ class VerifySubcommand : Callable<Int> {
         val validationResults = modelResult.validationResults
         if (validationResults.isNotEmpty()) {
             val res = validationResults.stream().map { "$it" }.collect( Collectors.joining( "\n" ) );
-            InternalLogger.error("Error found validating ${fileURI.toFileString()}:\n$res")
+            InternalLogger.error("Error(s) found validating ${fileURI.toFileString()}:\n$res")
             return 1
         }
         InternalLogger.info("Specification at ${fileURI.toFileString()} is valid.")
