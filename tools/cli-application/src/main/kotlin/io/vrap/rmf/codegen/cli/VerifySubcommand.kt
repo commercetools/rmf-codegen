@@ -74,11 +74,11 @@ class VerifySubcommand : Callable<Int> {
         val modelResult = RamlModelBuilder().buildApi(fileURI)
         val validationResults = modelResult.validationResults
         if (validationResults.isNotEmpty()) {
-            val res = validationResults.stream().map { "\tvalidation error >>> $it" }.collect( Collectors.joining( "\n" ) );
-            InternalLogger.error("Error encountered while checking Raml API\n$res")
+            val res = validationResults.stream().map { "$it" }.collect( Collectors.joining( "\n" ) );
+            InternalLogger.error("Error found validating ${fileURI.toFileString()}:\n$res")
             return 1
         }
-        InternalLogger.info("specification at $ramlFileLocation is valid!")
+        InternalLogger.info("Specification at ${fileURI.toFileString()} is valid.")
         return 0
     }
 

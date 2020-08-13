@@ -31,8 +31,9 @@ class ApiProvider constructor(private val ramlFileLocation: Path) {
         logger.info("Parsing API took ${duration.toSeconds(3)}s")
         val validationResults = modelResult.validationResults
         if (!validationResults.isEmpty()) {
-            validationResults.stream().forEach { validationResult -> logger.warn("Error encountered while checking Raml API " + validationResult.toString()) }
-            throw RuntimeException("Error while paring raml input")
+            logger.warn("Error found validating ${fileURI.toFileString()}:")
+            validationResults.stream().forEach { validationResult -> logger.warn(validationResult.toString()) }
+            throw RuntimeException("Error while parsing file ${fileURI.toFileString()}")
         }
         modelResult.rootObject
     }
