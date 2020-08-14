@@ -35,21 +35,21 @@ class JavaStringTypeRenderer @Inject constructor(override val vrapTypeProvider: 
                 |${JavaSubTemplates.generatedAnnotation}
                 |public enum ${vrapType.simpleClassName} {
                 |
-                |  <${type.enumFields()}>
+                |    <${type.enumFields()}>
                 |
-                |  private final String jsonName;
+                |    private final String jsonName;
                 |
-                |  private ${vrapType.simpleClassName}(final String jsonName) {
-                |    this.jsonName = jsonName;
-                |  }
+                |    private ${vrapType.simpleClassName}(final String jsonName) {
+                |        this.jsonName = jsonName;
+                |    }
                 |
-                |  public String getJsonName() {
-                |     return jsonName;
-                |  }
+                |    public String getJsonName() {
+                |        return jsonName;
+                |    }
                 |
-                |  public static Optional\<${vrapType.simpleClassName}\> findEnumViaJsonName(String jsonName) {
-                |    return Arrays.stream(values()).filter(t -\> t.getJsonName().equals(jsonName)).findFirst();
-                |  }
+                |    public static Optional\<${vrapType.simpleClassName}\> findEnumViaJsonName(String jsonName) {
+                |        return Arrays.stream(values()).filter(t -\> t.getJsonName().equals(jsonName)).findFirst();
+                |    }
                 |}
                 """.trimMargin().keepIndentation()
 

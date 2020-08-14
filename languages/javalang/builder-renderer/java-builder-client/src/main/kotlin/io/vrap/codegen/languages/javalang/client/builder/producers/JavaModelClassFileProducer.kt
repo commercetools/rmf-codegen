@@ -16,7 +16,7 @@ import io.vrap.rmf.raml.model.types.Property
 
 
 class JavaModelClassFileProducer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider, private val allObjectTypes: MutableList<ObjectType>) : JavaObjectTypeExtensions, JavaEObjectTypeExtensions, FileProducer {
-    
+
     override fun produceFiles(): List<TemplateFile> {
         return allObjectTypes.map { render(it) }
     }
@@ -24,7 +24,7 @@ class JavaModelClassFileProducer @Inject constructor(override val vrapTypeProvid
     fun render(type: ObjectType): TemplateFile {
 
         val vrapType = vrapTypeProvider.doSwitch(type).toJavaVType() as VrapObjectType
-        
+
         val content = """
                 |package ${vrapType.`package`.toJavaPackage()};
                 |
@@ -48,13 +48,13 @@ class JavaModelClassFileProducer @Inject constructor(override val vrapTypeProvid
                 |<${JavaSubTemplates.generatedAnnotation}>
                 |public final class ${vrapType.simpleClassName}Impl implements ${vrapType.simpleClassName} {
                 |
-                |   <${type.beanFields().escapeAll()}>
+                |    <${type.beanFields().escapeAll()}>
                 |
-                |   <${type.constructors().escapeAll()}>
-                |   
-                |   <${type.getters().escapeAll()}>
+                |    <${type.constructors().escapeAll()}>
                 |
-                |   <${type.setters().escapeAll()}>
+                |    <${type.getters().escapeAll()}>
+                |
+                |    <${type.setters().escapeAll()}>
                 |
                 |}
         """.trimMargin().keepIndentation()
@@ -64,7 +64,7 @@ class JavaModelClassFileProducer @Inject constructor(override val vrapTypeProvid
                 content = content
         )
     }
-    
+
     private fun Property.toJavaField(): String {
         return if (this.isPatternProperty()) {
             "private Map<String, ${this.type.toVrapType().fullClassName()}> values;"
@@ -76,7 +76,7 @@ class JavaModelClassFileProducer @Inject constructor(override val vrapTypeProvid
             }
         }
     }
-    
+
     private fun ObjectType.beanFields() = this.allProperties
             .map { it.toJavaField() }.joinToString(separator = "\n\n")
 
@@ -102,13 +102,13 @@ class JavaModelClassFileProducer @Inject constructor(override val vrapTypeProvid
         } else if(this.name.equals("interface")) {
             """
                 |public void setInterface(final ${this.type.toVrapType().fullClassName()} _interface) {
-                |   this._interface = _interface;
+                |    this._interface = _interface;
                 |}
             """.trimMargin()
         }else {
             """
             |public void set${this.name.upperCamelCase()}(final ${this.type.toVrapType().fullClassName()} ${this.name.lowerCamelCase()}){
-            |   this.${this.name.lowerCamelCase()} = ${this.name.lowerCamelCase()};
+            |    this.${this.name.lowerCamelCase()} = ${this.name.lowerCamelCase()};
             |}
             """.trimMargin()
         }
@@ -125,24 +125,24 @@ class JavaModelClassFileProducer @Inject constructor(override val vrapTypeProvid
         } else if(this.name.equals("interface")) {
             """
                 |public ${this.type.toVrapType().fullClassName()} getInterface() {
-                |   return this._interface;
+                |    return this._interface;
                 |}
             """.trimMargin()
         } else {
             """
             |${this.type.toComment()}
             |public ${this.type.toVrapType().fullClassName()} get${this.name.upperCamelCase()}(){
-            |   return this.${this.name.lowerCamelCase()};
+            |    return this.${this.name.lowerCamelCase()};
             |}
         """.trimMargin()
         }
     }
-    
+
     private fun ObjectType.constructors(): String {
         val vrapType = vrapTypeProvider.doSwitch(this).toJavaVType() as VrapObjectType
         val constructorArguments = this.allProperties
                 .filter { it.name != this.discriminator() }
-                .map { 
+                .map {
                     if(it.isPatternProperty()){
                         "@JsonProperty(\"values\") final Map<String, ${it.type.toVrapType().fullClassName()}> values"
                     }else if(it.name.equals("interface")) {
@@ -152,7 +152,7 @@ class JavaModelClassFileProducer @Inject constructor(override val vrapTypeProvid
                     }
                 }
                 .joinToString(separator = ", ")
-        
+
         val propertiesAssignment : String = this.allProperties
                 .filter { it.name != this.discriminator() }
                 .map {
@@ -177,18 +177,18 @@ class JavaModelClassFileProducer @Inject constructor(override val vrapTypeProvid
                 } else {
                     ""
                 }
-        
+
         val emptyConstructor : String = """
             |public ${vrapType.simpleClassName}Impl() {
             |   
             |}
         """.trimMargin()
-        
+
         return """
             |@JsonCreator
             |${vrapType.simpleClassName}Impl(${constructorArguments.escapeAll()}) {
-            |   <$propertiesAssignment>
-            |   <$discriminatorAssignment>
+            |    <$propertiesAssignment>
+            |    <$discriminatorAssignment>
             |}
             |${if(constructorArguments.isEmpty()) "" else emptyConstructor }
         """.trimMargin().keepIndentation()

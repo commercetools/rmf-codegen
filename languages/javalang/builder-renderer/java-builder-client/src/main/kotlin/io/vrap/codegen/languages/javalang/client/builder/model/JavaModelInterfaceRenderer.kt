@@ -46,17 +46,17 @@ class JavaModelInterfaceRenderer @Inject constructor(override val vrapTypeProvid
             |<${type.jsonDeserialize()}>
             |public interface ${vrapType.simpleClassName} ${type.type?.toVrapType()?.simpleName()?.let { "extends $it" } ?: ""} {
             |
-            |   <${type.getters().escapeAll()}>
+            |    <${type.getters().escapeAll()}>
             |
-            |   <${type.setters().escapeAll()}>
-            |   
-            |   <${type.staticOfMethod()}>
+            |    <${type.setters().escapeAll()}>
             |
-            |   <${type.templateMethodBody()}>
+            |    <${type.staticOfMethod()}>
+            |
+            |    <${type.templateMethodBody()}>
             |
             |}
         """.trimMargin().keepIndentation()
-        
+
         return TemplateFile(
             relativePath = "${vrapType.`package`}.${vrapType.simpleClassName}".replace(".", "/") + ".java",
             content = content
@@ -68,10 +68,10 @@ class JavaModelInterfaceRenderer @Inject constructor(override val vrapTypeProvid
         return if(this.isAbstract()){
             ""
         }else {
-            "import ${vrapType.`package`.toJavaPackage()}.${vrapType.simpleClassName}Impl;"    
+            "import ${vrapType.`package`.toJavaPackage()}.${vrapType.simpleClassName}Impl;"
         }
     }
-    
+
     private fun ObjectType.subTypesAnnotations(): String {
         val vrapType = vrapTypeProvider.doSwitch(this).toJavaVType() as VrapObjectType
         return if (this.hasSubtypes())
@@ -86,10 +86,10 @@ class JavaModelInterfaceRenderer @Inject constructor(override val vrapTypeProvid
                     .joinToString(separator = ",\n")}>
             |})
             |@JsonTypeInfo(
-            |   use = JsonTypeInfo.Id.NAME,
-            |   include = JsonTypeInfo.As.PROPERTY,
-            |   property = "${this.discriminator}",
-            |   defaultImpl = ${vrapType.simpleClassName}Impl.class
+            |    use = JsonTypeInfo.Id.NAME,
+            |    include = JsonTypeInfo.As.PROPERTY,
+            |    property = "${this.discriminator}",
+            |    defaultImpl = ${vrapType.simpleClassName}Impl.class
             |)
             """.trimMargin()
         else
@@ -103,13 +103,13 @@ class JavaModelInterfaceRenderer @Inject constructor(override val vrapTypeProvid
         }else {
             """
                 |public static ${vrapType.simpleClassName}Impl of(){
-                |   return new ${vrapType.simpleClassName}Impl();
+                |    return new ${vrapType.simpleClassName}Impl();
                 |}
                 |
              """.trimMargin()
         }
     }
-    
+
     private fun ObjectType.getters() = this.properties
             .filter { it.name != this.discriminator() }
             .map { it.getter() }
@@ -161,14 +161,14 @@ class JavaModelInterfaceRenderer @Inject constructor(override val vrapTypeProvid
         }
         return validationAnnotations.joinToString(separator = "\n")
     }
-    
-    
+
+
     private fun ObjectType.jsonDeserialize() : String {
         val vrapType = vrapTypeProvider.doSwitch(this) as VrapObjectType
         return if(this.isAbstract()){
             ""
         }else{
-            "@JsonDeserialize(as = ${vrapType.simpleClassName}Impl.class)"    
+            "@JsonDeserialize(as = ${vrapType.simpleClassName}Impl.class)"
         }
     }
 
@@ -191,14 +191,14 @@ class JavaModelInterfaceRenderer @Inject constructor(override val vrapTypeProvid
 
             """
             |public static ${vrapType.simpleClassName}Impl of(final ${vrapType.simpleClassName} template) {
-            |   ${vrapType.simpleClassName}Impl instance = new ${vrapType.simpleClassName}Impl();
-            |   <$fieldsAssignment>
-            |   return instance;
+            |    ${vrapType.simpleClassName}Impl instance = new ${vrapType.simpleClassName}Impl();
+            |    <$fieldsAssignment>
+            |    return instance;
             |}
         """.trimMargin()
         }
     }
-    
+
     private object CascadeValidationCheck : TypesSwitch<Boolean>() {
         override fun defaultCase(`object`: EObject?): Boolean? {
             return false

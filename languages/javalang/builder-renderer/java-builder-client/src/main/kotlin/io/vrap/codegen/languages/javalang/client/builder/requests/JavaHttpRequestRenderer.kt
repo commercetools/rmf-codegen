@@ -56,26 +56,26 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
             |<${type.toComment().escapeAll()}>
             |<${JavaSubTemplates.generatedAnnotation}>
             |public class ${type.toRequestName()} {
-            |   
-            |   <${type.fields()}>
-            |   
-            |   <${type.constructor()}>
-            |   
-            |   <${type.createRequestMethod()}>
-            |   
-            |   <${type.executeBlockingMethod()}>
-            |   
-            |   <${type.executeMethod()}>
-            |   
-            |   <${type.pathArgumentsGetters()}>
-            |   
-            |   <${type.queryParamsGetters()}>
-            |   
-            |   <${type.pathArgumentsSetters()}>
-            |   
-            |   <${type.queryParamsSetters()}>
-            |   
-            |   <${type.helperMethods()}>
+            |
+            |    <${type.fields()}>
+            |
+            |    <${type.constructor()}>
+            |
+            |    <${type.createRequestMethod()}>
+            |
+            |    <${type.executeBlockingMethod()}>
+            |
+            |    <${type.executeMethod()}>
+            |
+            |    <${type.pathArgumentsGetters()}>
+            |
+            |    <${type.queryParamsGetters()}>
+            |
+            |    <${type.pathArgumentsSetters()}>
+            |
+            |    <${type.queryParamsSetters()}>
+            |
+            |    <${type.helperMethods()}>
             |
             |}
         """.trimMargin()
@@ -109,7 +109,7 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
 
         return """
             |public ${this.toRequestName()}(${constructorArguments.joinToString(separator = ", ")}){
-            |   <${constructorAssignments.joinToString(separator = "\n")}>
+            |    <${constructorAssignments.joinToString(separator = "\n")}>
             |}
         """.trimMargin().keepIndentation()
     }
@@ -190,7 +190,7 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
             |params.removeIf(String::isEmpty);
             |String httpRequestPath = String.format("$stringFormat", $stringFormatArgs);
             |if(!params.isEmpty()){
-            |   httpRequestPath += "?" + String.join("&", params);
+            |    httpRequestPath += "?" + String.join("&", params);
             |}
         """.trimMargin().escapeAll()
         val bodySetter: String = if(bodyName != null){
@@ -201,13 +201,13 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
 
         return """
             |public ApiHttpRequest createHttpRequest() {
-            |   ApiHttpRequest httpRequest = new ApiHttpRequest();
-            |   <$requestPathGeneration>
-            |   httpRequest.setRelativeUrl(httpRequestPath); 
-            |   httpRequest.setMethod(ApiHttpMethod.${this.method.name});
-            |   httpRequest.setHeaders(headers);
-            |   $bodySetter
-            |   return httpRequest;
+            |    ApiHttpRequest httpRequest = new ApiHttpRequest();
+            |    <$requestPathGeneration>
+            |    httpRequest.setRelativeUrl(httpRequestPath); 
+            |    httpRequest.setMethod(ApiHttpMethod.${this.method.name});
+            |    httpRequest.setHeaders(headers);
+            |    $bodySetter
+            |    return httpRequest;
             |}
         """.trimMargin()
     }
@@ -215,11 +215,11 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
     private fun Method.executeBlockingMethod() : String {
         return """
             |public ApiHttpResponse\<${this.javaReturnType(vrapTypeProvider)}\> executeBlocking(){
-            |   try {
-            |       return execute().get();
-            |   } catch (Exception e) {
-            |       throw new RuntimeException(e);
-            |   }
+            |    try {
+            |        return execute().get();
+            |    } catch (Exception e) {
+            |        throw new RuntimeException(e);
+            |    }
             |}
         """.trimMargin()
     }
@@ -227,13 +227,13 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
     private fun Method.executeMethod() : String {
         return """
             |public CompletableFuture\<ApiHttpResponse\<${this.javaReturnType(vrapTypeProvider)}\>\> execute(){
-            |   return apiHttpClient.execute(this.createHttpRequest())
-            |           .thenApply(response -\> {
-            |               if(response.getStatusCode() \>= 400){
-            |                   throw new ApiHttpException(response.getStatusCode(), new String(response.getBody()), response.getHeaders());
-            |               }
-            |               return Utils.convertResponse(response,${this.javaReturnType(vrapTypeProvider)}.class);
-            |           });
+            |    return apiHttpClient.execute(this.createHttpRequest())
+            |            .thenApply(response -\> {
+            |                if(response.getStatusCode() \>= 400){
+            |                    throw new ApiHttpException(response.getStatusCode(), new String(response.getBody()), response.getHeaders());
+            |                }
+            |                return Utils.convertResponse(response,${this.javaReturnType(vrapTypeProvider)}.class);
+            |            });
             |}
         """.trimMargin()
     }
@@ -250,7 +250,7 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
             .filter { it.getAnnotation(PLACEHOLDER_PARAM_ANNOTATION, true) == null }
             .map { """
                 |public List<${it.type.toVrapType().simpleName()}> get${it.fieldName().capitalize()}() {
-                |   return this.${it.fieldName()};
+                |    return this.${it.fieldName()};
                 |}
                 """.trimMargin().escapeAll() }
             .joinToString(separator = "\n\n")
@@ -259,13 +259,13 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
             .filter { it.getAnnotation(PLACEHOLDER_PARAM_ANNOTATION, true) == null }
             .map { """
                 |public ${this.toRequestName()} add${it.fieldName().capitalize()}(final ${it.type.toVrapType().simpleName()} ${it.fieldName()}){
-                |   this.${it.fieldName()}.add(${it.fieldName()});
-                |   return this;
+                |    this.${it.fieldName()}.add(${it.fieldName()});
+                |    return this;
                 |}
                 |
                 |public ${this.toRequestName()} with${it.fieldName().capitalize()}(final List<${it.type.toVrapType().simpleName()}> ${it.fieldName()}){
-                |   this.${it.fieldName()} = ${it.fieldName()};
-                |   return this;
+                |    this.${it.fieldName()} = ${it.fieldName()};
+                |    return this;
                 |}
             """.trimMargin().escapeAll() }
             .joinToString(separator = "\n\n")
@@ -273,44 +273,44 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
     private fun Method.helperMethods() : String {
         return """
             |public ${this.toRequestName()} addHeader(final String key, final String value) {
-            |   this.headers.addHeader(key, value);
-            |   return this;
+            |    this.headers.addHeader(key, value);
+            |    return this;
             |}
             |
             |public ${this.toRequestName()} withHeaders(final ApiHttpHeaders headers) {
-            |   this.headers = headers;
-            |   return this;
+            |    this.headers = headers;
+            |    return this;
             |}
             |
             |public String getHeaderValue(final String key) {
-            |   return this.headers.getHeaderValue(key);
+            |    return this.headers.getHeaderValue(key);
             |}
             |
             |public ApiHttpHeaders getHeaders() {
-            |   return this.headers;
+            |    return this.headers;
             |}
             |
             |public ${this.toRequestName()} addAdditionalQueryParam(final String additionalQueryParamKey, final String additionalQueryParamValue) {
-            |   this.additionalQueryParams.put(additionalQueryParamKey, additionalQueryParamValue);
-            |   return this;
+            |    this.additionalQueryParams.put(additionalQueryParamKey, additionalQueryParamValue);
+            |    return this;
             |}
             |
             |public ${this.toRequestName()} setAdditionalQueryParams(final Map<String, String> additionalQueryParams) {
-            |   this.additionalQueryParams = additionalQueryParams;
-            |   return this;
+            |    this.additionalQueryParams = additionalQueryParams;
+            |    return this;
             |}
             |
             |public Map<String, String> getAdditionalQueryParams() {
-            |   return this.additionalQueryParams;
+            |    return this.additionalQueryParams;
             |}
             |
             |private String urlEncode(final String s){
-            |   try{
-            |        return URLEncoder.encode(s, "UTF-8");
-            |    }catch (UnsupportedEncodingException e) {
-            |        //this will never happen
-            |        return null;
-            |    }
+            |    try{
+            |         return URLEncoder.encode(s, "UTF-8");
+            |     }catch (UnsupportedEncodingException e) {
+            |         //this will never happen
+            |         return null;
+            |     }
             |}
         """.trimMargin().escapeAll()
     }
