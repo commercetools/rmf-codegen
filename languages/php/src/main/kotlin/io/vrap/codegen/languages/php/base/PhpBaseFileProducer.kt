@@ -51,7 +51,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
             oauthHandlerFactory(),
             preAuthTokenProvider(),
             psalm(),
-            resultMapper(),
+//            resultMapper(),
             token(),
             tokenModel(),
             tokenProvider(),
@@ -425,6 +425,9 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |
                     |use stdClass;
                     |
+                    |/**
+                    | * @psalm-consistent-constructor
+                    | */
                     |abstract class BaseJsonObject implements JsonObject
                     |{
                     |    /** @psalm-var ?stdClass */
@@ -1658,7 +1661,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |     * @psalm-param ?array<int, TObject|stdClass> $!data
                     |     * @param array|null $!data
                     |     */
-                    |    public function __construct(array $!data = null)
+                    |    final public function __construct(array $!data = null)
                     |    {
                     |        if (!is_null($!data)) {
                     |            $!this->index($!data);
@@ -1897,7 +1900,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |     * @psalm-param ?array<int, TScalar|scalar> $!data
                     |     * @param array|null $!data
                     |     */
-                    |    public function __construct(array $!data = null)
+                    |    final public function __construct(array $!data = null)
                     |    {
                     |        if (!is_null($!data)) {
                     |            $!this->index($!data);
@@ -2251,7 +2254,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |     * @psalm-param ?array<string, TObject|stdClass> $!data
                     |     * @param array|null $!data
                     |     */
-                    |    public function __construct(array $!data = null)
+                    |    final public function __construct(array $!data = null)
                     |    {
                     |        if (!is_null($!data)) {
                     |            $!this->index($!data);
@@ -2372,14 +2375,14 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |    /**
                     |     * @return ?TObject|mixed
                     |     */
-                    |    public function with(string $!key, callable $!callback = null)
+                    |    public function with(string $!key, callable $!callable = null)
                     |    {
                     |        $!data = $!this->at($!key);
-                    |        if (is_null($!callback)) {
+                    |        if (is_null($!callable)) {
                     |            return $!data;
                     |        }
                     |
-                    |        return $!callback($!data);
+                    |        return $!callable($!data);
                     |    }
                     |
                     |    /**
