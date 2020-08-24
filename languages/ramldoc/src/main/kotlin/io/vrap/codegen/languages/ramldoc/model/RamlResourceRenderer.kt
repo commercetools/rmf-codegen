@@ -66,13 +66,15 @@ class RamlResourceRenderer @Inject constructor(val api: Api, val vrapTypeProvide
 
     private fun renderCurlExample(method: Method) : String {
         val r = method.resource()
+        val params = method.queryParameters.filter { p -> p.required }
+        val queryParameters = "${if (params.isNotEmpty()) "?" else ""}${params.joinToString("&") { p -> "${p.name}={${p.name}}" }}"
         return when (method.method) {
             HttpMethod.PATCH,
             HttpMethod.PUT,
             HttpMethod.POST ->
                 """
-                    |curl -X ${method.methodName.toUpperCase()} ${api.baseUri.template}${r.fullUri.template} -i \\
-                    |--header 'Authorization: Bearer YOUR_TOKEN \\
+                    |curl -X ${method.methodName.toUpperCase()} ${api.baseUri.template}${r.fullUri.template}$queryParameters -i \\
+                    |--header 'Authorization: Bearer ${'$'}{BEARER_TOKEN}' \\
                     |--header 'Content-Type: application/json' \\
                     |--data-binary @- \<< DATA 
                     |${requestExamples(method.bodies.filter { it.type != null }.first(), method).values.firstOrNull()?.value?.toJson() ?: ""}
@@ -80,8 +82,8 @@ class RamlResourceRenderer @Inject constructor(val api: Api, val vrapTypeProvide
                 """
             else ->
                 """
-                    |curl -X ${method.methodName.toUpperCase()} ${api.baseUri.template}${r.fullUri.template} -i \\
-                    |--header 'Authorization: Bearer YOUR_TOKEN'
+                    |curl -X ${method.methodName.toUpperCase()} ${api.baseUri.template}${r.fullUri.template}$queryParameters -i \\
+                    |--header 'Authorization: Bearer ${'$'}{BEARER_TOKEN}'
                 """
         }.trimMargin().escapeAll()
     }
