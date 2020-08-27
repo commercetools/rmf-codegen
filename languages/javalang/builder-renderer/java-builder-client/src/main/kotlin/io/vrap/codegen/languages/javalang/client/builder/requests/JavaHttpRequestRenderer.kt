@@ -55,7 +55,7 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
             |
             |<${type.toComment().escapeAll()}>
             |<${JavaSubTemplates.generatedAnnotation}>
-            |public class ${type.toRequestName()} {
+            |public class ${type.toRequestName()} extends ApiMethod\<${type.toRequestName()}\> {
             |
             |    <${type.fields()}>
             |
@@ -74,9 +74,6 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
             |    <${type.pathArgumentsSetters()}>
             |
             |    <${type.queryParamsSetters()}>
-            |
-            |    <${type.helperMethods()}>
-            |
             |}
         """.trimMargin()
                 .keepIndentation()
@@ -89,7 +86,7 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
 
     private fun Method.constructor(): String? {
         val constructorArguments = mutableListOf("final ApiHttpClient apiHttpClient")
-        val constructorAssignments = mutableListOf("this.apiHttpClient = apiHttpClient;")
+        val constructorAssignments = mutableListOf("super(apiHttpClient);")
 
         this.pathArguments().map { "String $it" }.forEach { constructorArguments.add(it) }
         this.pathArguments().map { "this.$it = $it;" }.forEach { constructorAssignments.add(it) }
@@ -116,14 +113,7 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
 
     private fun Method.fields(): String? {
 
-        val parameterFields : String =
-                this.queryParameters
-                        .filter { it.getAnnotation(PLACEHOLDER_PARAM_ANNOTATION, true) == null  }
-                        .map { "private List<${it.type.toVrapType().simpleName()}> ${it.fieldName()} = new ArrayList<>();" }
-                        .joinToString(separator = "\n")
-
         val pathArgs = this.pathArguments().map { "private String $it;" }.joinToString(separator = "\n")
-
 
         val body: String = if(this.bodies != null && this.bodies.isNotEmpty()){
             if(this.bodies[0].type.toVrapType() is VrapObjectType){
@@ -137,10 +127,6 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
         }
 
         return """|
-            |private ApiHttpHeaders headers = new ApiHttpHeaders();
-            |private Map\<String, String\> additionalQueryParams = new HashMap\<\>();
-            |private final ApiHttpClient apiHttpClient; 
-            |${parameterFields.escapeAll()}
             |<$pathArgs>
             |
             |<$body>
@@ -176,18 +162,8 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
             null
         }
 
-        val addingQueryParams : String = this.queryParameters
-                .filter { it.getAnnotation(PLACEHOLDER_PARAM_ANNOTATION, true) == null }
-                .map { "params.add(this.${it.fieldName()}.stream().map(s -> \"${it.name}=\" + ${if(it.type.name.equals("string")) "urlEncode(s)" else "s"}).collect(Collectors.joining(\"&\")));" }
-                .joinToString(separator = "\n")
-
-        val addingAdditionalQueryParams : String = "params.add(additionalQueryParams.entrySet().stream().map(entry -> entry.getKey() + \"=\" + entry.getValue()).collect(Collectors.joining(\"&\")));"
-
         val requestPathGeneration : String = """
-            |List<String> params = new ArrayList<>();
-            |$addingQueryParams
-            |$addingAdditionalQueryParams
-            |params.removeIf(String::isEmpty);
+            |List<String> params = new ArrayList<>(getQueryParamUriStrings());
             |String httpRequestPath = String.format("$stringFormat", $stringFormatArgs);
             |if(!params.isEmpty()){
             |    httpRequestPath += "?" + String.join("&", params);
@@ -205,7 +181,7 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
             |    <$requestPathGeneration>
             |    httpRequest.setRelativeUrl(httpRequestPath); 
             |    httpRequest.setMethod(ApiHttpMethod.${this.method.name});
-            |    httpRequest.setHeaders(headers);
+            |    httpRequest.setHeaders(getHeaders());
             |    $bodySetter
             |    return httpRequest;
             |}
@@ -227,7 +203,7 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
     private fun Method.executeMethod() : String {
         return """
             |public CompletableFuture\<ApiHttpResponse\<${this.javaReturnType(vrapTypeProvider)}\>\> execute(){
-            |    return apiHttpClient.execute(this.createHttpRequest())
+            |    return apiHttpClient().execute(this.createHttpRequest())
             |            .thenApply(response -\> {
             |                if(response.getStatusCode() \>= 400){
             |                    throw new ApiHttpException(response.getStatusCode(), new String(response.getBody()), response.getHeaders());
@@ -250,7 +226,7 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
             .filter { it.getAnnotation(PLACEHOLDER_PARAM_ANNOTATION, true) == null }
             .map { """
                 |public List<${it.type.toVrapType().simpleName()}> get${it.fieldName().capitalize()}() {
-                |    return this.${it.fieldName()};
+                |    return return this.getQueryParam("${it.fieldName()}");
                 |}
                 """.trimMargin().escapeAll() }
             .joinToString(separator = "\n\n")
@@ -258,58 +234,12 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
     private fun Method.queryParamsSetters() : String = this.queryParameters
             .filter { it.getAnnotation(PLACEHOLDER_PARAM_ANNOTATION, true) == null }
             .map { """
-                |public ${this.toRequestName()} add${it.fieldName().capitalize()}(final ${it.type.toVrapType().simpleName()} ${it.fieldName()}){
-                |    this.${it.fieldName()}.add(${it.fieldName()});
-                |    return this;
-                |}
-                |
-                |public ${this.toRequestName()} with${it.fieldName().capitalize()}(final List<${it.type.toVrapType().simpleName()}> ${it.fieldName()}){
-                |    this.${it.fieldName()} = ${it.fieldName()};
+                |public ${this.toRequestName()} with${it.fieldName().capitalize()}(final ${it.type.toVrapType().simpleName()} ${it.fieldName()}){
+                |    this.addQueryParam("${it.fieldName()}", ${it.fieldName()});
                 |    return this;
                 |}
             """.trimMargin().escapeAll() }
             .joinToString(separator = "\n\n")
-
-    private fun Method.helperMethods() : String {
-        return """
-            |public ${this.toRequestName()} addHeader(final String key, final String value) {
-            |    this.headers.addHeader(key, value);
-            |    return this;
-            |}
-            |
-            |public ${this.toRequestName()} withHeaders(final ApiHttpHeaders headers) {
-            |    this.headers = headers;
-            |    return this;
-            |}
-            |
-            |public ApiHttpHeaders getHeaders() {
-            |    return this.headers;
-            |}
-            |
-            |public ${this.toRequestName()} addAdditionalQueryParam(final String additionalQueryParamKey, final String additionalQueryParamValue) {
-            |    this.additionalQueryParams.put(additionalQueryParamKey, additionalQueryParamValue);
-            |    return this;
-            |}
-            |
-            |public ${this.toRequestName()} setAdditionalQueryParams(final Map<String, String> additionalQueryParams) {
-            |    this.additionalQueryParams = additionalQueryParams;
-            |    return this;
-            |}
-            |
-            |public Map<String, String> getAdditionalQueryParams() {
-            |    return this.additionalQueryParams;
-            |}
-            |
-            |private String urlEncode(final String s){
-            |    try{
-            |         return URLEncoder.encode(s, "UTF-8");
-            |     }catch (UnsupportedEncodingException e) {
-            |         //this will never happen
-            |         return null;
-            |     }
-            |}
-        """.trimMargin().escapeAll()
-    }
 
     private fun Method.imports(): String {
         return this.queryParameters
