@@ -225,7 +225,7 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
     private fun Method.queryParamsGetters() : String = this.queryParameters
             .filter { it.getAnnotation(PLACEHOLDER_PARAM_ANNOTATION, true) == null }
             .map { """
-                |public List<${it.type.toVrapType().simpleName()}> get${it.fieldName().capitalize()}() {
+                |public List<String> get${it.fieldName().capitalize()}() {
                 |    return this.getQueryParam("${it.fieldName()}");
                 |}
                 """.trimMargin().escapeAll() }
