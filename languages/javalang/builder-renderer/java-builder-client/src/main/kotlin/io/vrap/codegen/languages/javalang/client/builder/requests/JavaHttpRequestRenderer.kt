@@ -61,6 +61,8 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
             |
             |    <${type.constructor()}>
             |
+            |    <${type.copyConstructor()}>
+            |
             |    <${type.createRequestMethod()}>
             |
             |    <${type.executeBlockingMethod()}>
@@ -105,7 +107,29 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
         }
 
         return """
-            |public ${this.toRequestName()}(${constructorArguments.joinToString(separator = ", ")}){
+            |public ${this.toRequestName()}(${constructorArguments.joinToString(separator = ", ")}) {
+            |    <${constructorAssignments.joinToString(separator = "\n")}>
+            |}
+        """.trimMargin().keepIndentation()
+    }
+
+    private fun Method.copyConstructor(): String? {
+        val constructorAssignments = mutableListOf("super(t);")
+
+        this.pathArguments().map { "this.$it = t.$it;" }.forEach { constructorAssignments.add(it) }
+
+        if(this.bodies != null && this.bodies.isNotEmpty()){
+            if(this.bodies[0].type.toVrapType() is VrapObjectType) {
+                val methodBodyVrapType = this.bodies[0].type.toVrapType() as VrapObjectType
+                val methodBodyAssignment = "this.${methodBodyVrapType.simpleClassName.decapitalize()} = t.${methodBodyVrapType.simpleClassName.decapitalize()};"
+                constructorAssignments.add(methodBodyAssignment)
+            } else {
+                constructorAssignments.add("this.jsonNode = t.jsonNode;")
+            }
+        }
+
+        return """
+            |public ${this.toRequestName()}(${this.toRequestName()} t) {
             |    <${constructorAssignments.joinToString(separator = "\n")}>
             |}
         """.trimMargin().keepIndentation()
@@ -219,7 +243,7 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
             .joinToString(separator = "\n")
 
     private fun Method.pathArgumentsSetters() : String = this.pathArguments()
-            .map { "public void set${it.capitalize()}(final String $it) {this.$it = $it;}" }
+            .map { "public void set${it.capitalize()}(final String $it) { this.$it = $it; }" }
             .joinToString(separator = "\n\n")
 
     private fun Method.queryParamsGetters() : String = this.queryParameters
@@ -235,7 +259,7 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
             .filter { it.getAnnotation(PLACEHOLDER_PARAM_ANNOTATION, true) == null }
             .map { """
                 |public ${this.toRequestName()} with${it.fieldName().capitalize()}(final ${it.type.toVrapType().simpleName()} ${it.fieldName()}){
-                |    return this.addQueryParam("${it.fieldName()}", ${it.fieldName()});
+                |    return new ${this.toRequestName()}(this).addQueryParam("${it.fieldName()}", ${it.fieldName()});
                 |}
             """.trimMargin().escapeAll() }
             .joinToString(separator = "\n\n")
