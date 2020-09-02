@@ -36,12 +36,16 @@ class JavaApiRootFileProducer @Inject constructor(@ClientPackageName val clientP
             |
             |    private final ApiHttpClient apiHttpClient;
             |
-            |    private ApiRoot(final Middleware... middlewares) {
-            |       this.apiHttpClient = new ApiHttpClient(Arrays.asList(middlewares));
+            |    private ApiRoot(final ApiHttpClient apiHttpClient) {
+            |       this.apiHttpClient = apiHttpClient;
+            |    }
+            |
+            |    public static ApiRoot fromClient(final ApiHttpClient apiHttpClient) {
+            |        return new ApiRoot(apiHttpClient);
             |    }
             |
             |    public static ApiRoot fromMiddlewares(final Middleware... middlewares) {
-            |        return new ApiRoot(middlewares);
+            |        return fromClient(new ApiHttpClient(Arrays.asList(middlewares)));
             |    }
             |
             |    <${api.subResources()}>
