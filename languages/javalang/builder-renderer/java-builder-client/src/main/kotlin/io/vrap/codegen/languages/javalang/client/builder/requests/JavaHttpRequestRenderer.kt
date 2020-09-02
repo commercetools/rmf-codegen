@@ -204,6 +204,7 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
             |    ApiHttpRequest httpRequest = new ApiHttpRequest();
             |    <$requestPathGeneration>
             |    httpRequest.setRelativeUrl(httpRequestPath); 
+            |    httpRequest.setUri(httpRequestPath); 
             |    httpRequest.setMethod(ApiHttpMethod.${this.method.name});
             |    httpRequest.setHeaders(getHeaders());
             |    $bodySetter
