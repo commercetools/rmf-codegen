@@ -25,7 +25,6 @@ class JavaApiRootFileProducer @Inject constructor(@ClientPackageName val clientP
             |package ${clientPackage.toJavaPackage()};
             |
             |import io.vrap.rmf.base.client.ApiHttpClient;
-            |import io.vrap.rmf.base.client.middlewares.Middleware;
             |
             |import java.util.List;
             |import java.util.Arrays;
@@ -42,11 +41,6 @@ class JavaApiRootFileProducer @Inject constructor(@ClientPackageName val clientP
             |
             |    public static ApiRoot fromClient(final ApiHttpClient apiHttpClient) {
             |        return new ApiRoot(apiHttpClient);
-            |    }
-            |
-            |    @Deprecated
-            |    public static ApiRoot fromMiddlewares(final Middleware... middlewares) {
-            |        return fromClient(new ApiHttpClient(Arrays.asList(middlewares)));
             |    }
             |
             |    <${api.subResources()}>
