@@ -1,5 +1,6 @@
 package io.vrap.codegen.languages.typescript.server
 
+import com.google.common.collect.Iterables
 import com.google.inject.Inject
 import io.vrap.codegen.languages.extensions.*
 import io.vrap.codegen.languages.typescript.*
@@ -116,8 +117,9 @@ class ServerRenderer @Inject constructor(
                         |            ${if(it.hasQueryParams()) "queryParams: request.query as any," else ""}
                         |            <${if(it.hasBody()) "body: request.payload as any" else ""}>
                         |          });
+                        |          ${it.removeUnknownProperties()}
                         |          const response = responseToolkit
-                        |            .response(${if(it.hasReturnPayload()) "result.body" else ""})
+                        |            .response(${if(it.hasReturnPayload()) "body" else ""})
                         |            .code(result.statusCode);
                         |          // Add headers to response
                         |          for (const header in result.headers) {
@@ -174,6 +176,13 @@ class ServerRenderer @Inject constructor(
         return ""
     }
 
+    private fun Method.removeUnknownProperties(): String {
+        if (this.hasReturnPayload()) {
+            return "const { value: body } = ${this.returnType().toVrapType().simpleJoiName()}().validate(result.body, { stripUnknown: true })"
+        }
+        return ""
+    }
+
     private fun Method.handlerNavigator(): String = this.resource().fullUri
             .template
             .split("/")
@@ -213,17 +222,23 @@ class ServerRenderer @Inject constructor(
     }
 
     private fun joiValidatorImports(moduleName: String): String {
-        return api.allMethods()
+        val requestTypes = api.allMethods()
                 .filter { it.bodies.isNotEmpty() }
                 .map { it.bodies[0] }
                 .filter { it.type != null }
                 .map { it.type.toVrapType() }
+        val returnTypes = api.allMethods()
+                .filter { it.hasReturnPayload() }
+                .map { it.returnType().toVrapType() }
+
+        val allTypes = Iterables.concat(requestTypes, returnTypes).toMutableList()
+
+        return allTypes
                 .distinct()
                 .map {
                     it.joiImportStatement()
                 }
                 .joinToString(separator = "\n")
-
     }
 
     private fun VrapType.joiImportStatement():String {
