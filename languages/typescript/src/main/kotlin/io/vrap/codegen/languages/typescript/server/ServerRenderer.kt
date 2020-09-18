@@ -14,6 +14,7 @@ import io.vrap.rmf.raml.model.modules.Api
 import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.resources.ResourceContainer
+import io.vrap.rmf.raml.model.responses.Response
 import io.vrap.rmf.raml.model.types.ArrayInstance
 import io.vrap.rmf.raml.model.types.StringInstance
 
@@ -176,9 +177,24 @@ class ServerRenderer @Inject constructor(
         return ""
     }
 
+    private fun Response.stripUnkownProperties(): String {
+        if (this.bodies.size == 1) {
+            val joiValidator = this.bodies[0].type.toVrapType().simpleJoiName()
+            return """|              case ${this.statusCode}: {
+                      |                 body = ${joiValidator}().validate(result.body, { stripUnknown: true })
+                      |                 break
+                      |              }"""
+        }
+        return ""
+    }
+
     private fun Method.removeUnknownProperties(): String {
-        if (this.hasReturnPayload()) {
-            return "const { value: body } = ${this.returnType().toVrapType().simpleJoiName()}().validate(result.body, { stripUnknown: true })"
+        if (this.responses.size > 0) {
+            val cases = this.responses.joinToString(separator = "\n") { it.stripUnkownProperties() }
+            return """|          let body  
+                      |          switch (result.statusCode) {
+                      $cases
+                      |          }"""
         }
         return ""
     }
@@ -227,11 +243,15 @@ class ServerRenderer @Inject constructor(
                 .map { it.bodies[0] }
                 .filter { it.type != null }
                 .map { it.type.toVrapType() }
-        val returnTypes = api.allMethods()
-                .filter { it.hasReturnPayload() }
-                .map { it.returnType().toVrapType() }
+        val responseTypes = api.allMethods()
+                .filter { it.responses.size > 0  }
+                .flatMap {  it.responses }
+                .filter { it.bodies.size == 1}
+                .map { it.bodies[0].type }
+                .filter { it != null }
+                .map { it.toVrapType() }
 
-        val allTypes = Iterables.concat(requestTypes, returnTypes).toMutableList()
+        val allTypes = Iterables.concat(requestTypes, responseTypes).toMutableList()
 
         return allTypes
                 .distinct()
