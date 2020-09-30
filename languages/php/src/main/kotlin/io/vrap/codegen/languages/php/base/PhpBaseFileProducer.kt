@@ -699,10 +699,10 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |    }
                     |  },
                     |  "require": {
-                    |    "php": ">=7.4",
+                    |    "php": ">=7.2",
                     |    "ext-json": "*",
-                    |    "guzzlehttp/psr7": "^1.1",
-                    |    "guzzlehttp/guzzle": "^6.0",
+                    |    "guzzlehttp/psr7": "^1.7",
+                    |    "guzzlehttp/guzzle": "^6.0 || ^7.0",
                     |    "psr/cache": "^1.0",
                     |    "psr/simple-cache": "^1.0",
                     |    "psr/log": "^1.0",
@@ -1255,7 +1255,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |use GuzzleHttp\ClientInterface;
                     |use GuzzleHttp\Exception\GuzzleException;
                     |use GuzzleHttp\Promise\PromiseInterface;
-                    |use GuzzleHttp\Psr7;
+                    |use GuzzleHttp\Psr7\Query;
                     |use GuzzleHttp\Psr7\Request;
                     |use Psr\Http\Message\ResponseInterface;
                     |use stdClass;
@@ -1332,7 +1332,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |                    }
                     |                    return [$!value];
                     |                },
-                    |                Psr7\parse_query($!query)
+                    |                Query::parse($!query)
                     |            );
                     |        }
                     |        if (is_array($!value)) {
@@ -1343,7 +1343,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |            $!this->queryParts[$!parameterName][] = $!value;
                     |        }
                     |        ksort($!this->queryParts);
-                    |        $!this->query = Psr7\build_query($!this->queryParts);
+                    |        $!this->query = Query::build($!this->queryParts);
                     |
                     |        return $!this->withUri($!this->getUri()->withQuery($!this->query));
                     |    }
