@@ -49,6 +49,9 @@ class ApiRamlRenderer @Inject constructor(val api: Api, override val vrapTypePro
             |    type: array
             |    items: string
             |    allowedTargets: TypeDeclaration
+            |  inherited:
+            |    type: boolean
+            |    allowedTargets: TypeDeclaration
             |  codeExamples:
             |    type: object
             |    allowedTargets: Method
