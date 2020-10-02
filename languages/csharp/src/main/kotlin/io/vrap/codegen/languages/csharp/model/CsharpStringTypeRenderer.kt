@@ -30,7 +30,7 @@ class CsharpStringTypeRenderer @Inject constructor(override val vrapTypeProvider
 
 
         return TemplateFile(
-                relativePath = "${vrapType.`package`}.${vrapType.simpleClassName}".replace(".", "/") + ".cs",
+                relativePath = vrapType.csharpClassRelativePath(),
                 content = content
         )
     }

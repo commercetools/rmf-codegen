@@ -43,22 +43,80 @@ fun VrapType.toCsharpVType(): VrapType {
     }
 }
 
-fun String.toCsharpPackage(): String {
-    return this.split('.', '/')
-            .map(
-                    StringCaseFormat.LOWER_UNDERSCORE_CASE::apply
-            )
-            .joinToString(separator = ".")
-}
+
 
 fun VrapType.csharpPackage(): String {
-  var packageName = ""
-    if (this is VrapObjectType) packageName = this.`package`.toCsharpPackage()
-    else if (this is VrapEnumType) packageName = this.`package`.toCsharpPackage()
+    var packageName = ""
+    if (this is VrapObjectType) packageName = this.`package`
+    else if (this is VrapEnumType) packageName = this.`package`
 
-  return packageName
+    if(!packageName.isNullOrEmpty())
+        packageName = packageName.toCsharpPackage()
+    return packageName
 }
+
+/**
+ * Returns package "commercetools.API/models/Order" as csharp namespace, example "commercetools.API.Models.Orders"
+ * Don't appply camelCase to commercetools
+ */
+fun String.toCsharpPackage():String{
+    var packageAsList = this.split("/")
+    var first = packageAsList.first()
+    var domainTypeAsPlural = packageAsList.last().toPlural()
+    packageAsList = packageAsList.dropLast(1).plus(domainTypeAsPlural)
+
+    return packageAsList.takeLast(maxOf(packageAsList.size, 1)).joinToString(".")
+    {
+        s -> if(s == first) {
+        return@joinToString s
+        } else return@joinToString StringCaseFormat.UPPER_CAMEL_CASE.apply(s)
+    }
+}
+
+/**
+ * Returns physical path of the file should be generated like "commercetools/API/models/Orders/OrderDraft.cs"
+ */
+fun VrapType.csharpClassRelativePath(): String {
+    var relativePath = "";
+    var packageName = "";
+    var simpleClassName = ""
+
+    if (this is VrapObjectType) {
+        packageName = this.`package`
+        simpleClassName = this.simpleClassName
+    } else if (this is VrapEnumType) {
+        packageName = this.`package`
+        simpleClassName = this.simpleClassName
+    }
+
+    var namespaceDir = packageName.toNamespaceDir()
+
+    relativePath = "${namespaceDir}.${simpleClassName}".replace(".", "/") + ".cs"
+
+    return relativePath
+}
+
+/**
+ * Package example "commercetools.API/models/Order"
+ * Returns physical path of the file should be generated like "commercetools/API/models/Orders"
+ */
+fun String.toNamespaceDir():String{
+    var packageAsList = this.split("/")
+    var first = packageAsList.first()
+    var domainTypeAsPlural = packageAsList.last().toPlural()
+    packageAsList = packageAsList.dropLast(1).plus(domainTypeAsPlural)
+    return packageAsList.takeLast(maxOf(packageAsList.size, 1)).joinToString("/") { s -> StringCaseFormat.UPPER_CAMEL_CASE.apply(s) }
+}
+
+fun String.toPlural(): String {
+    val typesToExcluded = arrayOf<String>("common", "me", "graphql")
+    if(typesToExcluded.contains(this.toLowerCase()))
+        return this
+    //need to plural it
+   return this +"s"
+}
+
 //need to be implemented
 fun VrapType.isValueType(): Boolean {
-   return false
+    return false
 }

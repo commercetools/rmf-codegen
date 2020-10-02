@@ -8,6 +8,7 @@ import io.vrap.rmf.codegen.types.VrapType
 import io.vrap.rmf.raml.model.types.ObjectType
 
 const val ANNOTATION_ABSTRACT = "abstract"
+const val ENUM_UNKNOWN = "Unknown"
 const val NAMESPACE_SUFFIX : String = "Domain"
 
 interface CsharpObjectTypeExtensions : ExtensionsBase {
@@ -17,7 +18,7 @@ interface CsharpObjectTypeExtensions : ExtensionsBase {
         var usingsList =  this.properties
                 .map { it.type }
                 //If the subtypes are in the same package they should be imported
-                .plus(this.namedSubTypes())
+                //.plus(this.namedSubTypes())
                 .plus(this.type)
                 .plus(discriminatorProperty()?.type)
                 .filterNotNull()
@@ -27,13 +28,10 @@ interface CsharpObjectTypeExtensions : ExtensionsBase {
                 .sortedBy { it }
                 .distinct()
                 .toList()
-        if(this.hasSubtypes()) {
-            usingsList=usingsList.plusElement("Newtonsoft.Json")
-            usingsList=usingsList.plusElement("JsonSubTypes")
-        }
+
         //TODO: Get the package name of Attribute Type Dynamic
         if(this.isTypeHaveAttributeProperty()) {
-            usingsList=usingsList.plusElement("Attribute = commercetools.api.models.Product$NAMESPACE_SUFFIX.Attribute")
+            usingsList=usingsList.plusElement("Attribute = commercetools.Api.Models.Products.Attribute")
         }
         return usingsList
     }
@@ -41,7 +39,7 @@ interface CsharpObjectTypeExtensions : ExtensionsBase {
     fun ObjectType.usings() : String {
         var usingsAsList = this.getUsings()
         val vrapType = vrapTypeProvider.doSwitch(this) as VrapObjectType
-        var packageName = vrapType.csharpPackage()
+        var packageName = vrapType.`package`
         usingsAsList = usingsAsList.dropLastWhile { it== packageName }
         var usings= usingsAsList.map { "using $it;" }.joinToString(separator = "\n")
         var commonUsings = this.getCommonUsings()
@@ -54,10 +52,13 @@ interface CsharpObjectTypeExtensions : ExtensionsBase {
     fun ObjectType.getCommonUsings() : String {
         return   """using System;
                     |using System.Collections.Generic;
-                    |using System.Linq;"""
+                    |using System.Linq;
+                    |using System.Text.Json.Serialization;
+                    |using commercetools.Api.Models.CustomAttributes;
+                    |"""
     }
 
-    fun ObjectType.isAbstract() : Boolean = this.annotations.find { it.type.name == ANNOTATION_ABSTRACT } != null
+    fun ObjectType.isAbstract() : Boolean = this.annotations.find { it.type.name == ANNOTATION_ABSTRACT } != null || !this.discriminator.isNullOrEmpty()
 
     //Check if the type has one property and it's a dictionary property
     fun ObjectType.isADictionaryType() : Boolean {
