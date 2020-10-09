@@ -15,7 +15,7 @@ object CsharpBaseTypes : LanguageBaseTypes(
         dateTimeType = fromCsharpType("", "DateTime"),
         dateOnlyType = fromCsharpType("", "DateTime"),
         timeOnlyType = fromCsharpType("", "TimeSpan"),
-        file = fromCsharpType("", "File")
+        file = fromCsharpType("", "Stream")
 )
 
 fun  fromCsharpType(`package`: String, simpleName: String): VrapObjectType {

@@ -54,12 +54,19 @@ fun VrapType.csharpPackage(): String {
         packageName = packageName.toCsharpPackage()
     return packageName
 }
+//need refactor
+fun VrapType.requestBuildersPackage(resourceNamePlural: String): String {
+    var cPackage = this.csharpPackage()
+    return cPackage.replace("Clientss","Client").replace("Clients","Client")+".RequestBuilders"+"."+resourceNamePlural
+}
 
 /**
  * Returns package "commercetools.API/models/Order" as csharp namespace, example "commercetools.API.Models.Orders"
  * Don't appply camelCase to commercetools
  */
 fun String.toCsharpPackage():String{
+    if(!this.contains("/"))
+        return this
     var packageAsList = this.split("/")
     var first = packageAsList.first()
     var domainTypeAsPlural = packageAsList.last().toPlural()
