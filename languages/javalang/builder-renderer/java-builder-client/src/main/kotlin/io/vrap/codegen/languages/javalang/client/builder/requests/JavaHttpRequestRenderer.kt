@@ -40,6 +40,7 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
             |
             |import java.nio.file.Files;
             |
+            |import java.time.Duration;
             |import java.util.ArrayList;
             |import java.util.List;
             |import java.util.Map;
@@ -52,6 +53,8 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
             |import java.net.URLEncoder;
             |import io.vrap.rmf.base.client.*;
             |${type.imports()}
+            |
+            |import static io.vrap.rmf.base.client.utils.ClientUtils.blockingWait;
             |
             |<${type.toComment().escapeAll()}>
             |<${JavaSubTemplates.generatedAnnotation}>
@@ -215,11 +218,11 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
     private fun Method.executeBlockingMethod() : String {
         return """
             |public ApiHttpResponse\<${this.javaReturnType(vrapTypeProvider)}\> executeBlocking(){
-            |    try {
-            |        return execute().get();
-            |    } catch (Exception e) {
-            |        throw new RuntimeException(e);
-            |    }
+            |    return executeBlocking(Duration.ofSeconds(60));
+            |}
+            |
+            |public ApiHttpResponse\<${this.javaReturnType(vrapTypeProvider)}\> executeBlocking(Duration timeout){
+            |    return blockingWait(execute(), timeout);
             |}
         """.trimMargin()
     }
