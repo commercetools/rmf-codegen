@@ -228,12 +228,7 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
         return """
             |public CompletableFuture\<ApiHttpResponse\<${this.javaReturnType(vrapTypeProvider)}\>\> execute(){
             |    return apiHttpClient().execute(this.createHttpRequest())
-            |            .thenApply(response -\> {
-            |                if(response.getStatusCode() \>= 400){
-            |                    throw new ApiHttpException(response.getStatusCode(), new String(response.getBody()), response.getHeaders(), response.getMessage());
-            |                }
-            |                return Utils.convertResponse(response,${this.javaReturnType(vrapTypeProvider)}.class);
-            |            });
+            |            .thenApply(response -\> Utils.convertResponse(response,${this.javaReturnType(vrapTypeProvider)}.class));
             |}
         """.trimMargin()
     }
