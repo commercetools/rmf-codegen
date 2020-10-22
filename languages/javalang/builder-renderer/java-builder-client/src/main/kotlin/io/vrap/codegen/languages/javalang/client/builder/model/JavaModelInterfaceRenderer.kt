@@ -38,7 +38,7 @@ class JavaModelInterfaceRenderer @Inject constructor(override val vrapTypeProvid
             |import java.util.List;
             |import java.util.Map;
             |import java.time.*;
-            |
+            |import java.util.function.Function;
             |import java.io.IOException;
             |
             |<${type.toComment().escapeAll()}>
