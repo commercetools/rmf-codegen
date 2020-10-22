@@ -32,6 +32,7 @@ class JavaModelInterfaceRenderer @Inject constructor(override val vrapTypeProvid
             |import com.fasterxml.jackson.annotation.*;
             |import com.fasterxml.jackson.databind.annotation.*;
             |import io.vrap.rmf.base.client.utils.Generated;
+            |import io.vrap.rmf.base.client.Accessor;
             |import javax.validation.Valid;
             |import javax.validation.constraints.NotNull;
             |import java.util.List;
@@ -54,6 +55,9 @@ class JavaModelInterfaceRenderer @Inject constructor(override val vrapTypeProvid
             |
             |    <${type.templateMethodBody()}>
             |
+            |    default <T extends Accessor<${vrapType.simpleClassName}>> T with(Function<${vrapType.simpleClassName}, T> helper) {
+            |        return helper.apply(this);
+            |    }
             |}
         """.trimMargin().keepIndentation()
 
