@@ -55,7 +55,7 @@ class JavaModelInterfaceRenderer @Inject constructor(override val vrapTypeProvid
             |
             |    <${type.templateMethodBody()}>
             |
-            |    default \<T extends Accessor\<${vrapType.simpleClassName}\>\> T with(Function\<${vrapType.simpleClassName}, T\> helper) {
+            |    default \<T extends Accessor\<${vrapType.simpleClassName}\>\> T with${vrapType.simpleClassName}(Function\<${vrapType.simpleClassName}, T\> helper) {
             |        return helper.apply(this);
             |    }
             |}
