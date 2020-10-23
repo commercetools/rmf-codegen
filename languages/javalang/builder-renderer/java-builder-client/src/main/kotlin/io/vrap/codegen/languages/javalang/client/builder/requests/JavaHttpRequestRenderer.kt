@@ -199,7 +199,7 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
         val bodySetter: String = if(bodyName != null){
             if(this.bodies[0].type.isFile())
                 "try{httpRequest.setBody(Files.readAllBytes(file.toPath()));}catch(Exception e){e.printStackTrace();}"
-            else "try{httpRequest.setBody(VrapJsonUtils.toJsonByteArray($bodyName));}catch(Exception e){e.printStackTrace();}"
+            else "try{httpRequest.setBody(apiHttpClient().getSerializerService().toJsonByteArray($bodyName));}catch(Exception e){e.printStackTrace();}"
         } else ""
 
         return """
@@ -230,8 +230,7 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
     private fun Method.executeMethod() : String {
         return """
             |public CompletableFuture\<ApiHttpResponse\<${this.javaReturnType(vrapTypeProvider)}\>\> execute(){
-            |    return apiHttpClient().execute(this.createHttpRequest())
-            |            .thenApply(response -\> Utils.convertResponse(response,${this.javaReturnType(vrapTypeProvider)}.class));
+            |    return apiHttpClient().execute(this.createHttpRequest(), ${this.javaReturnType(vrapTypeProvider)}.class);
             |}
         """.trimMargin()
     }
