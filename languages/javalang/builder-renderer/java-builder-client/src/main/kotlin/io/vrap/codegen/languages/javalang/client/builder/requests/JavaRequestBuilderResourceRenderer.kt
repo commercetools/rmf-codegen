@@ -33,14 +33,14 @@ class JavaRequestBuilderResourceRenderer @Inject constructor(val api: Api, overr
             |
             |<${JavaSubTemplates.generatedAnnotation}>
             |public class $className {
-            |   
-            |   <${type.fields()}>
-            |   
-            |   <${type.constructor()}>
-            |   
-            |   <${type.methods()}>
-            |   
-            |   <${type.subResources()}>
+            |
+            |    <${type.fields()}>
+            |
+            |    <${type.constructor()}>
+            |
+            |    <${type.methods()}>
+            |
+            |    <${type.subResources()}>
             |}
             |
         """.trimMargin().keepIndentation()
@@ -80,7 +80,7 @@ class JavaRequestBuilderResourceRenderer @Inject constructor(val api: Api, overr
         val constructorAssignment : String = this.allFields().map { "this.${it.name} = ${it.name};" }.joinToString(separator = "\n")
         return """
             |public $className ($constructorArguments) {
-            |   <$constructorAssignment>
+            |    <$constructorAssignment>
             |}
         """.trimMargin()
 
@@ -97,7 +97,7 @@ class JavaRequestBuilderResourceRenderer @Inject constructor(val api: Api, overr
     private fun Method.method() : String {
         return """
             |public ${this.toRequestName()} ${this.method.name.toLowerCase()}(${this.constructorArguments()}) {
-            |   return new ${this.toRequestName()}(${this.requestArguments()});
+            |    return new ${this.toRequestName()}(${this.requestArguments()});
             |}
         """.trimMargin()
     }
@@ -148,7 +148,7 @@ class JavaRequestBuilderResourceRenderer @Inject constructor(val api: Api, overr
                     .joinToString(separator = ", ")
             """
             |public ${it.toResourceName()}RequestBuilder ${it.getMethodName()}($args) {
-            |   return new ${it.toResourceName()}RequestBuilder($subResourceArgs);
+            |    return new ${it.toResourceName()}RequestBuilder($subResourceArgs);
             |}
         """.trimMargin()
         }.joinToString(separator = "\n")

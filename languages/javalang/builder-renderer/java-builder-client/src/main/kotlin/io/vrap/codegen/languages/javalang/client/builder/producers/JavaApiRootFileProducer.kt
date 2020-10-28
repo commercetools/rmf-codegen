@@ -18,14 +18,13 @@ class JavaApiRootFileProducer @Inject constructor(@ClientPackageName val clientP
     override fun produceFiles(): List<TemplateFile> {
         return listOf(generateApiRoot(api))
     }
-    
+
     private fun generateApiRoot(api: Api) : TemplateFile {
-        
+
         val content =  """
             |package ${clientPackage.toJavaPackage()};
             |
             |import io.vrap.rmf.base.client.ApiHttpClient;
-            |import io.vrap.rmf.base.client.middlewares.Middleware;
             |
             |import java.util.List;
             |import java.util.Arrays;
@@ -33,19 +32,19 @@ class JavaApiRootFileProducer @Inject constructor(@ClientPackageName val clientP
             |
             |<${JavaSubTemplates.generatedAnnotation}>
             |public class ApiRoot {
-            |   
-            |   private final ApiHttpClient apiHttpClient;
-            |      
-            |   private ApiRoot(final Middleware... middlewares) {
-            |      this.apiHttpClient = new ApiHttpClient(Arrays.asList(middlewares));
-            |   }
-            |      
-            |   public static ApiRoot fromMiddlewares(final Middleware... middlewares) {
-            |       return new ApiRoot(middlewares);
-            |   }
-            |           
-            |   <${api.subResources()}>
-            |   
+            |
+            |    private final ApiHttpClient apiHttpClient;
+            |
+            |    private ApiRoot(final ApiHttpClient apiHttpClient) {
+            |       this.apiHttpClient = apiHttpClient;
+            |    }
+            |
+            |    public static ApiRoot fromClient(final ApiHttpClient apiHttpClient) {
+            |        return new ApiRoot(apiHttpClient);
+            |    }
+            |
+            |    <${api.subResources()}>
+            |
             |}
         """.trimMargin().keepIndentation()
 
@@ -54,16 +53,16 @@ class JavaApiRootFileProducer @Inject constructor(@ClientPackageName val clientP
                 content = content
         )
     }
-    
+
     private fun ResourceContainer.subResources() : String {
-        
+
         return this.resources.map {
             val args = if (it.relativeUri.variables.isNullOrEmpty()){
                 ""
             }else {
                 it.relativeUri.variables.map { "String $it" }.joinToString(separator = " ,")
             }
-            
+
             val constructorArgs = if (it.relativeUri.variables.isNullOrEmpty()){
                 ""
             }else {
@@ -71,7 +70,7 @@ class JavaApiRootFileProducer @Inject constructor(@ClientPackageName val clientP
             }
             """
             |public ${it.toResourceName()}RequestBuilder ${it.getMethodName()}($args) {
-            |   return new ${it.toResourceName()}RequestBuilder(this.apiHttpClient, $constructorArgs);
+            |    return new ${it.toResourceName()}RequestBuilder(this.apiHttpClient, $constructorArgs);
             |}
         """.trimMargin()
         }.joinToString(separator = "\n")

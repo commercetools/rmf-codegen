@@ -20,14 +20,7 @@ class RamlObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: 
 
     override fun render(type: ObjectType): TemplateFile {
         val vrapType = vrapTypeProvider.doSwitch(type) as VrapObjectType
-        val properties = if (type.discriminatorValue != null) {
-            if (type.properties.any { property -> property.name == type.discriminatorProperty()?.name })
-                type.properties
-            else
-                listOf<Property>().plus(type.discriminatorProperty()).plus(type.properties).filterNotNull()
-        } else {
-            type.allProperties
-        }
+        val properties = type.allProperties
 
         val postmanExampleAnno = type.getAnnotation("postman-example")
         val postmanExample = if (postmanExampleAnno != null) {
@@ -101,6 +94,10 @@ class RamlObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: 
 //    }
 
     private fun renderProperty(type: ObjectType, property: Property): String {
+        var inherited = false;
+        if (type.properties.none { p -> p.name == property.name }) {
+            inherited = true;
+        }
         val discriminatorProp = type.discriminatorProperty()?.name
         val discriminatorValue = type.discriminatorValue
         val examples = if (property.type.isInlineType) property.type.examples.filterNotNull().sortedWith(compareBy { it.name }) else listOf()
@@ -116,6 +113,7 @@ class RamlObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: 
             |  default: ${property.type.default.toYaml()}""" else ""}${if (property.type?.isInlineType == true && property.type?.annotations != null) """
             |  <<${property.type.annotations.joinToString("\n") { it.renderAnnotation() }}>>""" else ""}
             |  required: ${property.required}
+            |  (inherited): $inherited
         """.trimMargin().keepAngleIndent()
     }
 }

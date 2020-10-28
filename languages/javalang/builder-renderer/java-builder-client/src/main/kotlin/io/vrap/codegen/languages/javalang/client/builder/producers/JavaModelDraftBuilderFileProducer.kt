@@ -24,7 +24,7 @@ class JavaModelDraftBuilderFileProducer @Inject constructor(override val vrapTyp
     fun render(type: ObjectType): TemplateFile {
 
         val vrapType = vrapTypeProvider.doSwitch(type).toJavaVType() as VrapObjectType
-        
+
         val content : String = """
             |package ${vrapType.`package`};
             |
@@ -38,35 +38,35 @@ class JavaModelDraftBuilderFileProducer @Inject constructor(override val vrapTyp
             |
             |<${JavaSubTemplates.generatedAnnotation}>
             |public final class ${vrapType.simpleClassName}Builder {
-            |   
-            |   <${type.fields().escapeAll()}>
-            |   
-            |   <${type.assignments().escapeAll()}>
-            |   
-            |   <${type.getters().escapeAll()}>
             |
-            |   public ${vrapType.simpleClassName} build() {
-            |       <${type.buildMethodBody().escapeAll()}>
-            |   }
-            |   
-            |   <${type.staticOfMethod().escapeAll()}>
-            |   
-            |   <${type.templateMethod()}>
-            |   
+            |    <${type.fields().escapeAll()}>
+            |
+            |    <${type.assignments().escapeAll()}>
+            |
+            |    <${type.getters().escapeAll()}>
+            |
+            |    public ${vrapType.simpleClassName} build() {
+            |        <${type.buildMethodBody().escapeAll()}>
+            |    }
+            |
+            |    <${type.staticOfMethod().escapeAll()}>
+            |
+            |    <${type.templateMethod()}>
+            |
             |}
         """.trimMargin().keepIndentation()
-        
+
         return TemplateFile(
                 relativePath = "${vrapType.`package`}.${vrapType.simpleClassName}Builder".replace(".", "/") + ".java",
                 content = content
         )
     }
-    
+
     private fun ObjectType.fields() = this.allProperties
             .filter { it.name != this.discriminator() }
             .map { it.toField() }
             .joinToString(separator = "\n\n")
-    
+
     private fun Property.toField() : String {
         return if(this.isPatternProperty()){
             """
@@ -85,21 +85,21 @@ class JavaModelDraftBuilderFileProducer @Inject constructor(override val vrapTyp
         """.escapeAll().trimMargin().keepIndentation()
         }
     }
-    
+
     private fun ObjectType.assignments() : String {
         val vrapType = vrapTypeProvider.doSwitch(this).toJavaVType() as VrapObjectType
-        
+
         return this.allProperties
                 .filter { it.name != this.discriminator() }
                 .map { assignment(it, vrapType) }.joinToString(separator = "\n\n")
     }
-    
+
     private fun assignment(property: Property, type: VrapObjectType) : String {
         return if(property.isPatternProperty()){
             """
                 |public ${type.simpleClassName}Builder values(${if(!property.required) "@Nullable" else ""} final Map<String, ${property.type.toVrapType().fullClassName()}> values){
-                |   this.values = values;
-                |   return this;
+                |    this.values = values;
+                |    return this;
                 |}
             """.escapeAll().trimMargin().keepIndentation()
         }else {
@@ -109,43 +109,43 @@ class JavaModelDraftBuilderFileProducer @Inject constructor(override val vrapTyp
             }
             """
                 |public ${type.simpleClassName}Builder $propertyName(${if (!property.required) "@Nullable" else ""} final ${property.type.toVrapType().fullClassName()} $propertyName) {
-                |   this.$propertyName = $propertyName;
-                |   return this;
+                |    this.$propertyName = $propertyName;
+                |    return this;
                 |}
             """.trimMargin()
         }
     }
-    
+
     private fun ObjectType.getters() : String {
         return this.allProperties.filter { it.name != this.discriminator() }.map { it.getter() }.joinToString(separator = "\n\n")
     }
-    
+
     private fun Property.getter() : String {
-        
+
         return if(this.isPatternProperty()){
             """
                 |${if(!this.required) "@Nullable" else ""}
                 |public Map<String, ${this.type.toVrapType().fullClassName()}> getValues(){
-                |   return this.values;
+                |    return this.values;
                 |}
             """.escapeAll().trimMargin().keepIndentation()
-        } else if(this.name.equals("interface")) {  
+        } else if(this.name.equals("interface")) {
             """
                 |${if(!this.required) "@Nullable" else ""}
                 |public ${this.type.toVrapType().fullClassName()} getInterface(){
-                |   return this._interface;
+                |    return this._interface;
                 |}
             """.escapeAll().trimMargin().keepIndentation()
         }else{
             """
                 |${if(!this.required) "@Nullable" else ""}
                 |public ${this.type.toVrapType().fullClassName()} get${this.name.capitalize()}(){
-                |   return this.${this.name};
+                |    return this.${this.name};
                 |}
             """.escapeAll().trimMargin().keepIndentation()
         }
     }
-    
+
     private fun ObjectType.buildMethodBody() : String {
         val vrapType = vrapTypeProvider.doSwitch(this).toJavaVType() as VrapObjectType
         val constructorArguments = this.allProperties
@@ -153,26 +153,26 @@ class JavaModelDraftBuilderFileProducer @Inject constructor(override val vrapTyp
                 .map {
                     if(it.isPatternProperty()) {
                         "values"
-                    } else if(it.name.equals("interface")) { 
+                    } else if(it.name.equals("interface")) {
                         "_interface"
                     } else {
                         it.name
-                    } 
+                    }
                 }
                 .joinToString(separator = ", ")
         return "return new ${vrapType.simpleClassName}Impl($constructorArguments);"
     }
-    
+
     private fun ObjectType.staticOfMethod() : String {
         val vrapType = vrapTypeProvider.doSwitch(this).toJavaVType() as VrapObjectType
-        
+
         return """
             |public static ${vrapType.simpleClassName}Builder of() {
-            |   return new ${vrapType.simpleClassName}Builder();
+            |    return new ${vrapType.simpleClassName}Builder();
             |}
         """.trimMargin().keepIndentation()
     }
-    
+
     private fun ObjectType.templateMethod(): String {
         val vrapType = vrapTypeProvider.doSwitch(this).toJavaVType() as VrapObjectType
         val fieldsAssignment : String = this.allProperties
@@ -187,12 +187,12 @@ class JavaModelDraftBuilderFileProducer @Inject constructor(override val vrapTyp
                     }
                 }
                 .joinToString(separator = "\n")
-        
+
         return """
             |public static ${vrapType.simpleClassName}Builder of(final ${vrapType.simpleClassName} template) {
-            |   ${vrapType.simpleClassName}Builder builder = new ${vrapType.simpleClassName}Builder();
-            |   <$fieldsAssignment>
-            |   return builder;
+            |    ${vrapType.simpleClassName}Builder builder = new ${vrapType.simpleClassName}Builder();
+            |    <$fieldsAssignment>
+            |    return builder;
             |}
         """.escapeAll().trimMargin().keepIndentation()
     }

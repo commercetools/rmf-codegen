@@ -51,7 +51,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
             oauthHandlerFactory(),
             preAuthTokenProvider(),
             psalm(),
-            resultMapper(),
+//            resultMapper(),
             token(),
             tokenModel(),
             tokenProvider(),
@@ -287,25 +287,6 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |               return $!date;
                     |           };
                     |    }
-                    |
-                    |    /**
-                    |     * @template T
-                    |     * @psalm-return callable(?mixed): ?T
-                    |     * @psalm-param class-string<T> $!className
-                    |     */
-                    |    public static function classMapper(string $!className) {
-                    |       return
-                    |           /**
-                    |            * @psalm-param ?mixed $!data
-                    |            * @psalm-return ?T
-                    |            */
-                    |           function ($!data) use ($!className): ?object {
-                    |               if (is_null($!data)) {
-                    |                   return null;
-                    |               }
-                    |               return new $!className($!data);
-                    |           };
-                    |    }
                     |}
                 """.trimMargin().forcedLiteralEscape()
         )
@@ -425,6 +406,9 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |
                     |use stdClass;
                     |
+                    |/**
+                    | * @psalm-consistent-constructor
+                    | */
                     |abstract class BaseJsonObject implements JsonObject
                     |{
                     |    /** @psalm-var ?stdClass */
@@ -611,10 +595,14 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |                'verify' => true,
                     |                'timeout' => 60,
                     |                'connect_timeout' => 10,
-                    |                'pool_size' => 25
+                    |                'pool_size' => 25,
+                    |                'headers' => []
                     |            ],
                     |            $!options
                     |        );
+                    |        if (!isset($!options['headers']['accept-encoding']) && $!this->acceptCompressedResponse()) {
+                    |            $!options['headers']['accept-encoding'] = 'gzip';
+                    |        }
                     |        if (!isset($!options['headers']['user-agent'])) {
                     |            $!options['headers']['user-agent'] = (new UserAgentProvider())->getUserAgent();
                     |        }
@@ -630,6 +618,14 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |        $!client = new HttpClient($!options);
                     |
                     |        return $!client;
+                    |    }
+                    |    
+                    |    private function acceptCompressedResponse(): bool {
+                    |        if (function_exists('gzdecode')) {
+                    |            return true;
+                    |        }
+                    |        
+                    |        return false;
                     |    }
                     |
                     |    public static function of(): ClientFactory
@@ -705,8 +701,8 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |  "require": {
                     |    "php": ">=7.2",
                     |    "ext-json": "*",
-                    |    "guzzlehttp/psr7": "^1.1",
-                    |    "guzzlehttp/guzzle": "^6.0",
+                    |    "guzzlehttp/psr7": "^1.7",
+                    |    "guzzlehttp/guzzle": "^6.0 || ^7.0",
                     |    "psr/cache": "^1.0",
                     |    "psr/simple-cache": "^1.0",
                     |    "psr/log": "^1.0",
@@ -1259,7 +1255,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |use GuzzleHttp\ClientInterface;
                     |use GuzzleHttp\Exception\GuzzleException;
                     |use GuzzleHttp\Promise\PromiseInterface;
-                    |use GuzzleHttp\Psr7;
+                    |use GuzzleHttp\Psr7\Query;
                     |use GuzzleHttp\Psr7\Request;
                     |use Psr\Http\Message\ResponseInterface;
                     |use stdClass;
@@ -1336,7 +1332,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |                    }
                     |                    return [$!value];
                     |                },
-                    |                Psr7\parse_query($!query)
+                    |                Query::parse($!query)
                     |            );
                     |        }
                     |        if (is_array($!value)) {
@@ -1347,7 +1343,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |            $!this->queryParts[$!parameterName][] = $!value;
                     |        }
                     |        ksort($!this->queryParts);
-                    |        $!this->query = Psr7\build_query($!this->queryParts);
+                    |        $!this->query = Query::build($!this->queryParts);
                     |
                     |        return $!this->withUri($!this->getUri()->withQuery($!this->query));
                     |    }
@@ -1658,7 +1654,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |     * @psalm-param ?array<int, TObject|stdClass> $!data
                     |     * @param array|null $!data
                     |     */
-                    |    public function __construct(array $!data = null)
+                    |    final public function __construct(array $!data = null)
                     |    {
                     |        if (!is_null($!data)) {
                     |            $!this->index($!data);
@@ -1897,7 +1893,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |     * @psalm-param ?array<int, TScalar|scalar> $!data
                     |     * @param array|null $!data
                     |     */
-                    |    public function __construct(array $!data = null)
+                    |    final public function __construct(array $!data = null)
                     |    {
                     |        if (!is_null($!data)) {
                     |            $!this->index($!data);
@@ -2163,6 +2159,11 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |     */
                     |    public function at(string $!key);
                     |
+                    |    /**
+                    |     * @return static|mixed
+                    |     */
+                    |    public function with(string $!key, callable $!callable = null);
+                    |
                     |    public function getIterator(): MapperIterator;
                     |
                     |    /**
@@ -2246,7 +2247,7 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |     * @psalm-param ?array<string, TObject|stdClass> $!data
                     |     * @param array|null $!data
                     |     */
-                    |    public function __construct(array $!data = null)
+                    |    final public function __construct(array $!data = null)
                     |    {
                     |        if (!is_null($!data)) {
                     |            $!this->index($!data);
@@ -2362,6 +2363,19 @@ class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |    public function at(string $!key)
                     |    {
                     |        return $!this->mapper()($!key);
+                    |    }
+                    |
+                    |    /**
+                    |     * @return ?TObject|mixed
+                    |     */
+                    |    public function with(string $!key, callable $!callable = null)
+                    |    {
+                    |        $!data = $!this->at($!key);
+                    |        if (is_null($!callable)) {
+                    |            return $!data;
+                    |        }
+                    |
+                    |        return $!callable($!data);
                     |    }
                     |
                     |    /**

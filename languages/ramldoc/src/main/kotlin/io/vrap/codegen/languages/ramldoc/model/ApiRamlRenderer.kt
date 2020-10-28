@@ -49,6 +49,12 @@ class ApiRamlRenderer @Inject constructor(val api: Api, override val vrapTypePro
             |    type: array
             |    items: string
             |    allowedTargets: TypeDeclaration
+            |  inherited:
+            |    type: boolean
+            |    allowedTargets: TypeDeclaration
+            |  codeExamples:
+            |    type: object
+            |    allowedTargets: Method
             |  <<${api.annotationTypes.plus(api.uses.flatMap { libraryUse -> libraryUse.library.annotationTypes }).joinToString("\n") { renderAnnotationType(it) }}>>
             |securitySchemes:
             |  oauth_2_0: !include oauth2.raml

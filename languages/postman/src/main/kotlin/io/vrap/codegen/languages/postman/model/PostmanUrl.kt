@@ -32,8 +32,8 @@ class PostmanUrl (private val resource: Resource, private val method: Method, va
         return "${host()}${postmanUrlPath()}"
     }
 
-    fun path(): String {
-        return postmanUrlPath().split("/").drop(1).joinToString("\",\n\"")
+    fun path(drop: Int = 1): String {
+        return postmanUrlPath().split("/").drop(drop).joinToString("\",\n\"")
     }
 
     fun query(): String {
