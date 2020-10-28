@@ -26,9 +26,8 @@ class CsharpRequestBuilderResourceRenderer @Inject constructor(val api: Api, ove
         val content: String = """
             |using System.IO;
             |using System.Text.Json;
-            |using commercetools.Api.Serialization;
-            |using commercetools.Api.Client;
-            |using $cPackage;
+            |using commercetools.Base.Client;
+            |using commercetools.Base.Serialization;
             |<${type.subResourcesUsings()}>
             |
             |namespace $cPackage
@@ -165,12 +164,14 @@ class CsharpRequestBuilderResourceRenderer @Inject constructor(val api: Api, ove
     private fun Resource.pathArguments(): List<String> = this.fullUri.variables.toList()
 
     private fun ResourceContainer.subResourcesUsings() : String {
-        return this.resources.map {
+        var listOfUsings = mutableListOf<String>()
+        this.resources.map {
             var r = it as ResourceImpl
-            """
-            |using ${r.toVrapType().requestBuildersPackage(r.GetNameAsPlurar())};
-        """.trimMargin()
-        }.joinToString(separator = "\n")
+            var using = "using ${r.toVrapType().requestBuildersPackage(r.GetNameAsPlurar())};"
+            if(!listOfUsings.contains(using))
+                listOfUsings.add(using)
+        }
+        return listOfUsings.joinToString(separator = "\n")
     }
 
 }

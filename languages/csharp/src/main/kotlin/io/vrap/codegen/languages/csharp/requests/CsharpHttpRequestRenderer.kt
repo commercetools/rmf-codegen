@@ -41,7 +41,8 @@ class CsharpHttpRequestRenderer @Inject constructor(override val vrapTypeProvide
             |using System.Net.Http;
             |using System.Threading.Tasks;
             |using System.Text.Json;
-            |using commercetools.Api.Serialization;
+            |using commercetools.Base.Client;
+            |using commercetools.Base.Serialization;
             |${type.usings()}
             |
             |namespace ${vrapType.requestBuildersPackage(entityFolder)}
@@ -105,7 +106,7 @@ class CsharpHttpRequestRenderer @Inject constructor(override val vrapTypeProvide
         pathArguments.forEach { requestUrl = requestUrl.replace(it, "{"+it.replace("{","").replace("}","").capitalize()+"}") }
 
         val constructorArguments = mutableListOf("IClient apiHttpClient")
-        val constructorAssignments = mutableListOf("this.ApiHttpClient = apiHttpClient;","this.RequestUrl = $\"${requestUrl}\";")
+        val constructorAssignments = mutableListOf("this.ApiHttpClient = apiHttpClient;")
         //only for post methods
         if(this.methodName.toLowerCase() == "post")
         {
@@ -132,6 +133,8 @@ class CsharpHttpRequestRenderer @Inject constructor(override val vrapTypeProvide
                 constructorAssignments.add("this.jsonNode = jsonNode;")
             }
         }
+
+        constructorAssignments.add("this.RequestUrl = $\"${requestUrl}\";")
 
         return """
             |public ${this.toRequestName()}(${constructorArguments.joinToString(separator = ", ")}) {
@@ -187,29 +190,31 @@ class CsharpHttpRequestRenderer @Inject constructor(override val vrapTypeProvide
         """.trimMargin()
 
         var bodyBlock = "";
-        //only for post methods
-        if(this.methodName.toLowerCase() == "post")
-        {
-            val bodyName : String? = if(this.bodies != null && this.bodies.isNotEmpty()){
-                if(this.bodies[0].type.toVrapType() is VrapObjectType) {
-                    val methodBodyVrapType = this.bodies[0].type.toVrapType() as VrapObjectType
-                    methodBodyVrapType.simpleClassName.capitalize()
-                }else {
-                    "jsonNode"
-                }
+        val bodyName : String? = if(this.bodies != null && this.bodies.isNotEmpty()){
+            if(this.bodies[0].type.toVrapType() is VrapObjectType) {
+                val methodBodyVrapType = this.bodies[0].type.toVrapType() as VrapObjectType
+                methodBodyVrapType.simpleClassName.capitalize()
             }else {
-                null
+                "jsonNode"
             }
-
+        }else {
+            null
+        }
+        //only for post methods
+        if(this.methodName.toLowerCase() == "post" && bodyName != null)
+        {
             bodyBlock = "\n\n" +
                     """
             |public override HttpRequestMessage Build()
             |{
             |   var request = base.Build();
-            |   var body = this.SerializerService.Serialize(${bodyName});
-            |   if(!string.IsNullOrEmpty(body))
+            |   if (SerializerService != null)
             |   {
-            |       request.Content = new StringContent(body);
+            |       var body = this.SerializerService.Serialize(${bodyName});
+            |       if(!string.IsNullOrEmpty(body))
+            |       {
+            |           request.Content = new StringContent(body);
+            |       }
             |   }
             |   return request;
             |}

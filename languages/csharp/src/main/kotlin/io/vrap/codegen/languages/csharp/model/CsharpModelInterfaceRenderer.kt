@@ -18,7 +18,7 @@ import io.vrap.rmf.raml.model.types.Property
 import io.vrap.rmf.raml.model.types.impl.ObjectTypeImpl
 
 
-class CsharpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : CsharpObjectTypeExtensions, EObjectExtensions, ObjectTypeRenderer {
+class CsharpModelInterfaceRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : CsharpObjectTypeExtensions, EObjectExtensions, ObjectTypeRenderer {
 
 
     override fun render(type: ObjectType): TemplateFile {
@@ -29,23 +29,28 @@ class CsharpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider
             |
             |namespace ${vrapType.csharpPackage()}
             |{
-            |    public${if(type.isAbstract())" abstract " else " "}partial class ${vrapType.simpleClassName} : I${vrapType.simpleClassName}
+            |    <${type.DeserializationAttributes()}>
+            |    public interface I${vrapType.simpleClassName} ${type.type?.toVrapType()?.simpleName()?.let { ": $it" } ?: ""}
             |    {
-            |        <${if(type.isADictionaryType()) "" else type.toProperties()}>
-            |        <${type.renderConstructor(vrapType.simpleClassName)}>
+            |        <${type.toProperties()}>
             |    }
             |}
             |
         """.trimMargin().keepIndentation()
 
 
+        if(type.isADictionaryType())
+        {
+            content = type.renderTypeAsADictionaryType().trimMargin().keepIndentation()
+        }
+
         return TemplateFile(
-                relativePath = vrapType.csharpClassRelativePath(),
+                relativePath = vrapType.csharpClassRelativePath(true),
                 content = content
         )
     }
 
-    private fun ObjectType.toProperties() : String = this.allProperties
+    private fun ObjectType.toProperties() : String = this.properties
             .map { it.toCsharpProperty(this) }.joinToString(separator = "\n\n")
 
     private fun Property.toCsharpProperty(objectType: ObjectType): String {
@@ -59,32 +64,51 @@ class CsharpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider
         {
             val pType = if (isEnumProp) "string" else """List\<string\>"""
             val pEnumType = if(isEnumProp) typeName else (this.type.toVrapType() as VrapArrayType).itemType.simpleName()
-            return  """public $pType $propName { get; set;}
+            return  """$pType $propName { get; set;}
                         |
-                        |[JsonIgnore]
-                        |public $typeName ${propName}AsEnum =\> this.$propName.GetEnum\<$pEnumType\>();"""
+                        |$typeName ${propName}AsEnum { get; }"""
         }
 
         var nullableChar = if(!this.required && this.type.toVrapType().isValueType()) "?" else ""
-        return "public ${typeName}$nullableChar $propName { get; set;}"
+        return "${typeName}$nullableChar $propName { get; set;}"
     }
 
-    fun ObjectType.renderConstructor(className: String) : String {
-        var isEmptyConstructor = this.getConstructorContentForDiscriminator() == "";
-        return if(!isEmptyConstructor)
-            """public ${className}()
-                |{ 
-                |${this.getConstructorContentForDiscriminator()}
-                |}"""
-        else
-            ""
-        }
-    fun ObjectType.getConstructorContentForDiscriminator(): String {
-        return if (discriminatorValue != null)
+    fun ObjectType.renderTypeAsADictionaryType() : String {
+        val vrapType = vrapTypeProvider.doSwitch(this) as VrapObjectType
+
+        var property = this.properties[0]
+
+        return  """
+            |${this.usings()}
+            |
+            |namespace ${vrapType.csharpPackage()}
+            |{
+            |    public class I${vrapType.simpleClassName} : Dictionary\<string, ${property.type.toVrapType().simpleName()}\>
+            |    {
+            |    }
+            |}
+            |
+        """
+    }
+
+    fun ObjectType.DeserializationAttributes(): String {
+        val vrapType = vrapTypeProvider.doSwitch(this) as VrapObjectType
+
+        return if (hasSubtypes())
             """
-            |   this.${(this.type as ObjectTypeImpl).discriminator.capitalize()} = "${this.discriminatorValue}";
+            |[TypeDiscriminator(nameof(${this.discriminator.capitalize()}))]
+            |<${this.subTypes
+                    .filter { (it as ObjectType).discriminatorValue != null }
+                    .map {
+                        val vrapType = vrapTypeProvider.doSwitch(it) as VrapObjectType
+                        "[SubTypeDiscriminator(\"${(it as ObjectType).discriminatorValue}\", typeof(${vrapType.`package`.toCsharpPackage()}.${vrapType.simpleClassName}))]"
+                    }
+                    .joinToString(separator = "\n")}>
             """.trimMargin()
         else
-            ""
+            """
+            |[DeserializeAs(typeof(${vrapType.`package`.toCsharpPackage()}.${vrapType.simpleClassName}))]
+            """.trimMargin()
     }
+
 }

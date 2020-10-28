@@ -8,14 +8,12 @@ import io.vrap.rmf.codegen.types.VrapType
 import io.vrap.rmf.raml.model.types.ObjectType
 
 const val ANNOTATION_ABSTRACT = "abstract"
-const val ENUM_UNKNOWN = "Unknown"
-const val NAMESPACE_SUFFIX : String = "Domain"
 
 interface CsharpObjectTypeExtensions : ExtensionsBase {
 
 
     fun ObjectType.getUsings(): List<String> {
-        var usingsList =  this.properties
+        var usingsList =  this.allProperties
                 .map { it.type }
                 //If the subtypes are in the same package they should be imported
                 //.plus(this.namedSubTypes())
@@ -54,7 +52,7 @@ interface CsharpObjectTypeExtensions : ExtensionsBase {
                     |using System.Collections.Generic;
                     |using System.Linq;
                     |using System.Text.Json.Serialization;
-                    |using commercetools.Api.Models.CustomAttributes;
+                    |using commercetools.Base.CustomAttributes;
                     |"""
     }
 
