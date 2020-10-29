@@ -4,6 +4,9 @@ import io.methvin.watcher.DirectoryChangeEvent
 import io.methvin.watcher.DirectoryWatcher
 import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.schedulers.Schedulers
+import io.vrap.codegen.languages.csharp.CsharpBaseTypes
+import io.vrap.codegen.languages.csharp.modules.CsharpClientBuilderModule
+import io.vrap.codegen.languages.csharp.modules.CsharpModule
 import io.vrap.codegen.languages.java.base.JavaBaseTypes
 import io.vrap.codegen.languages.javalang.client.builder.module.JavaCompleteModule
 import io.vrap.codegen.languages.php.PhpBaseTypes
@@ -38,9 +41,10 @@ enum class GenerationTarget {
     PHP_BASE,
     PHP_TEST,
     POSTMAN,
-    RAML_DOC
+    RAML_DOC,
+    CSHARP_CLIENT,
 }
-const val ValidTargets = "JAVA_CLIENT, TYPESCRIPT_CLIENT, PHP_CLIENT, POSTMAN, RAML_DOC"
+const val ValidTargets = "JAVA_CLIENT, TYPESCRIPT_CLIENT, CSHARP_CLIENT, PHP_CLIENT, PHP_BASE, PHP_TEST, POSTMAN, RAML_DOC"
 
 @CommandLine.Command(name = "generate",description = ["Generate source code from a RAML specification."])
 class GenerateSubcommand : Callable<Int> {
@@ -157,6 +161,10 @@ class GenerateSubcommand : Callable<Int> {
                 GenerationTarget.PHP_TEST -> {
                     val generatorModule = GeneratorModule(apiProvider, generatorConfig, PhpBaseTypes)
                     GeneratorComponent(generatorModule, PhpTestModule())
+                }
+                GenerationTarget.CSHARP_CLIENT -> {
+                    val generatorModule = GeneratorModule(apiProvider, generatorConfig, CsharpBaseTypes)
+                    GeneratorComponent(generatorModule, CsharpModule, CsharpClientBuilderModule)
                 }
                 GenerationTarget.POSTMAN -> {
                     val generatorModule = GeneratorModule(apiProvider, generatorConfig, PostmanBaseTypes)
