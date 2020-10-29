@@ -4,6 +4,7 @@ include 'languages:javalang:builder-renderer:java-builder-client'
 include 'languages:javalang:java-base'
 include 'languages:javalang:java-renderer'
 
+include 'languages:csharp'
 include 'languages:php'
 include 'languages:postman'
 include 'languages:typescript'
