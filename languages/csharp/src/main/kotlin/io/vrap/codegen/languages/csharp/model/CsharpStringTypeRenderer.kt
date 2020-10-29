@@ -33,7 +33,7 @@ class CsharpStringTypeRenderer @Inject constructor(override val vrapTypeProvider
                 |}
                 """.trimMargin().keepIndentation()
 
-        val relativePath = vrapType.csharpClassRelativePath(true).replace(basePackagePrefix.replace(".", "/"), "").trimStart('/')
+        val relativePath = vrapType.csharpClassRelativePath(false).replace(basePackagePrefix.replace(".", "/"), "").trimStart('/')
 
         return TemplateFile(
                 relativePath = relativePath,
