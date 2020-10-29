@@ -3,6 +3,7 @@ package io.vrap.codegen.languages.csharp.model
 import com.google.inject.Inject
 import io.vrap.codegen.languages.csharp.extensions.*
 import io.vrap.codegen.languages.extensions.EObjectExtensions
+import io.vrap.rmf.codegen.di.BasePackageName
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.StringTypeRenderer
 import io.vrap.rmf.codegen.rendring.utils.keepIndentation
@@ -12,6 +13,10 @@ import io.vrap.rmf.raml.model.types.StringInstance
 import io.vrap.rmf.raml.model.types.StringType
 
 class CsharpStringTypeRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : CsharpObjectTypeExtensions, EObjectExtensions, StringTypeRenderer {
+
+    @Inject
+    @BasePackageName
+    lateinit var basePackagePrefix:String
 
     override fun render(type: StringType): TemplateFile {
         val vrapType = vrapTypeProvider.doSwitch(type) as VrapEnumType
@@ -28,9 +33,10 @@ class CsharpStringTypeRenderer @Inject constructor(override val vrapTypeProvider
                 |}
                 """.trimMargin().keepIndentation()
 
+        val relativePath = vrapType.csharpClassRelativePath(true).replace(basePackagePrefix.replace(".", "/"), "").trimStart('/')
 
         return TemplateFile(
-                relativePath = vrapType.csharpClassRelativePath(),
+                relativePath = relativePath,
                 content = content
         )
     }

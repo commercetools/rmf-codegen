@@ -5,6 +5,7 @@ import io.vrap.codegen.languages.csharp.extensions.*
 import io.vrap.codegen.languages.extensions.EObjectExtensions
 import io.vrap.codegen.languages.extensions.resource
 import io.vrap.codegen.languages.extensions.toRequestName
+import io.vrap.rmf.codegen.di.BasePackageName
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.MethodRenderer
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
@@ -21,6 +22,10 @@ import org.eclipse.emf.ecore.EObject
 const val PLACEHOLDER_PARAM_ANNOTATION = "placeholderParam"
 
 class CsharpHttpRequestRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : MethodRenderer, CsharpObjectTypeExtensions, EObjectExtensions {
+
+    @Inject
+    @BasePackageName
+    lateinit var basePackagePrefix:String
 
     override fun render(type: Method): TemplateFile {
 
@@ -63,8 +68,10 @@ class CsharpHttpRequestRenderer @Inject constructor(override val vrapTypeProvide
         """.trimMargin()
                 .keepIndentation()
 
+        val relativePath = vrapType.requestBuildersPackage(entityFolder).replace(basePackagePrefix, "").replace(".", "/").trimStart('/')
+
         return TemplateFile(
-                relativePath = "${vrapType.requestBuildersPackage(entityFolder)}.${type.toRequestName()}".replace(".", "/") + ".cs",
+                relativePath = "${relativePath}/${type.toRequestName()}.cs",
                 content = content
         )
     }

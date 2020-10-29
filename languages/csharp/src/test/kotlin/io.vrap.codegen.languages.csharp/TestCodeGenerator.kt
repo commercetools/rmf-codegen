@@ -9,7 +9,6 @@ import io.vrap.rmf.codegen.di.ApiProvider
 import io.vrap.rmf.codegen.di.GeneratorComponent
 import io.vrap.rmf.codegen.di.GeneratorModule
 import org.junit.Test
-import java.lang.Exception
 import java.nio.file.Path
 import java.nio.file.Paths
 
@@ -27,15 +26,7 @@ class TestCodeGenerator {
     fun generateCSharpModels() {
         val generatorConfig = CodeGeneratorConfig(basePackageName = "commercetools.Api")
         val generatorModule = GeneratorModule(apiProvider, generatorConfig, CsharpBaseTypes)
-        val generatorComponent = GeneratorComponent(generatorModule, CsharpModule)
+        val generatorComponent = GeneratorComponent(generatorModule, CsharpModule, CsharpClientBuilderModule)
         generatorComponent.generateFiles()
-    }
-
-    @Test
-    fun generateRequestBuilders() {
-            val generatorConfig = CodeGeneratorConfig(basePackageName = "commercetools.Api")
-            val generatorModule = GeneratorModule(apiProvider, generatorConfig, CsharpBaseTypes)
-            val generatorComponent = GeneratorComponent(generatorModule, CsharpClientBuilderModule)
-            generatorComponent.generateFiles()
     }
 }

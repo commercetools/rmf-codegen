@@ -58,7 +58,7 @@ fun String.toCsharpPackage():String{
         return this
     var packageAsList = this.split("/")
     var first = packageAsList.first()
-    var domainTypeAsPlural = packageAsList.last().toPlural()
+    var domainTypeAsPlural = packageAsList.last().singularize().pluralize()
     packageAsList = packageAsList.dropLast(1).plus(domainTypeAsPlural)
 
     return packageAsList.takeLast(maxOf(packageAsList.size, 1)).joinToString(".")
@@ -102,16 +102,20 @@ fun String.toNamespaceDir():String{
         return this
 
     var packageAsList = this.split("/")
-    var domainTypeAsPlural = packageAsList.last().toPlural()
+    var domainTypeAsPlural = packageAsList.last().singularize().pluralize()
     packageAsList = packageAsList.dropLast(1).plus(domainTypeAsPlural)
     return packageAsList.joinToString("/") { s -> StringCaseFormat.UPPER_CAMEL_CASE.apply(s) }.lowerCamelCase()
 }
 
-fun String.toPlural(): String {
+fun String.pluralize(): String {
     val typesToExcluded = arrayOf<String>("common", "me", "graphql")
     if(typesToExcluded.contains(this.toLowerCase()))
         return this
    return return English.plural(this)
+}
+
+fun String.singularize(): String {
+    return English.singular(this)
 }
 
 fun VrapType.isValueType(): Boolean {

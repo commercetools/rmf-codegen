@@ -6,6 +6,7 @@ import io.vrap.codegen.languages.extensions.EObjectExtensions
 import io.vrap.codegen.languages.extensions.discriminatorProperty
 import io.vrap.codegen.languages.extensions.hasSubtypes
 import io.vrap.codegen.languages.extensions.namedSubTypes
+import io.vrap.rmf.codegen.di.BasePackageName
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.ObjectTypeRenderer
 import io.vrap.rmf.codegen.rendring.utils.keepIndentation
@@ -20,6 +21,9 @@ import io.vrap.rmf.raml.model.types.impl.ObjectTypeImpl
 
 class CsharpModelInterfaceRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : CsharpObjectTypeExtensions, EObjectExtensions, ObjectTypeRenderer {
 
+    @Inject
+    @BasePackageName
+    lateinit var basePackagePrefix:String
 
     override fun render(type: ObjectType): TemplateFile {
         val vrapType = vrapTypeProvider.doSwitch(type) as VrapObjectType
@@ -44,8 +48,9 @@ class CsharpModelInterfaceRenderer @Inject constructor(override val vrapTypeProv
             content = type.renderTypeAsADictionaryType().trimMargin().keepIndentation()
         }
 
+        val relativePath = vrapType.csharpClassRelativePath(true).replace(basePackagePrefix.replace(".", "/"), "").trimStart('/')
         return TemplateFile(
-                relativePath = vrapType.csharpClassRelativePath(true),
+                relativePath = relativePath,
                 content = content
         )
     }

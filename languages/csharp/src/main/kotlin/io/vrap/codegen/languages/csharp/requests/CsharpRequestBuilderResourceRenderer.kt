@@ -3,6 +3,7 @@ package io.vrap.codegen.languages.csharp.requests
 import com.google.inject.Inject
 import io.vrap.codegen.languages.csharp.extensions.*
 import io.vrap.codegen.languages.extensions.*
+import io.vrap.rmf.codegen.di.BasePackageName
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.ResourceRenderer
 import io.vrap.rmf.codegen.rendring.utils.keepIndentation
@@ -15,6 +16,10 @@ import io.vrap.rmf.raml.model.resources.ResourceContainer
 import io.vrap.rmf.raml.model.resources.impl.ResourceImpl
 
 class CsharpRequestBuilderResourceRenderer @Inject constructor(val api: Api, override val vrapTypeProvider: VrapTypeProvider) : ResourceRenderer, CsharpEObjectTypeExtensions {
+
+    @Inject
+    @BasePackageName
+    lateinit var basePackagePrefix:String
 
     override fun render(type: Resource): TemplateFile {
         val vrapType = vrapTypeProvider.doSwitch(type).toCsharpVType() as VrapObjectType
@@ -45,8 +50,10 @@ class CsharpRequestBuilderResourceRenderer @Inject constructor(val api: Api, ove
             |}
         """.trimMargin().keepIndentation()
 
+        val relativePath = vrapType.requestBuildersPackage(entityFolder).replace(basePackagePrefix, "").replace(".", "/").trimStart('/')
+
         return TemplateFile(
-                relativePath = "${vrapType.requestBuildersPackage(entityFolder)}.$className".replace(".", "/") + ".cs",
+                relativePath = "${relativePath}/${className}.cs",
                 content = content
         )
     }
