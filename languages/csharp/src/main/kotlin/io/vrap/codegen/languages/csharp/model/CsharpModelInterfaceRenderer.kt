@@ -34,7 +34,7 @@ class CsharpModelInterfaceRenderer @Inject constructor(override val vrapTypeProv
             |namespace ${vrapType.csharpPackage()}
             |{
             |    <${type.DeserializationAttributes()}>
-            |    public interface I${vrapType.simpleClassName} ${type.type?.toVrapType()?.simpleName()?.let { ": $it" } ?: ""}
+            |    public partial interface I${vrapType.simpleClassName} ${type.type?.toVrapType()?.simpleName()?.let { ": $it" } ?: ""}
             |    {
             |        <${type.toProperties()}>
             |    }
