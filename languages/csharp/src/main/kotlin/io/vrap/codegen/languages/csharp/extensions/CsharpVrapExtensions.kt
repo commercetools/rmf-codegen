@@ -45,8 +45,8 @@ fun VrapType.csharpPackage(): String {
 }
 //need refactor
 fun VrapType.requestBuildersPackage(resourceNamePlural: String): String {
-    var cPackage = this.csharpPackage()
-    return cPackage.replace("Clientss","Client").replace("Clients","Client")+".RequestBuilders"+"."+resourceNamePlural
+    var cPackage = this.csharpPackage().replace("Clients","Client")
+    return "$cPackage.RequestBuilders.$resourceNamePlural"
 }
 
 /**
