@@ -153,6 +153,7 @@ class JavaModelInterfaceRenderer @Inject constructor(override val vrapTypeProvid
             "public void setInterface(final ${vrapType.simpleName()} _interface);"
         } else if (vrapType is VrapArrayType) {
             """
+            |@JsonIgnore
             |public void set${this.name.upperCamelCase()}(final ${vrapType.itemType.simpleName()} ...${this.name.lowerCamelCase()});
             |public void set${this.name.upperCamelCase()}(final ${vrapType.simpleName()} ${this.name.lowerCamelCase()});
             """.trimMargin()
