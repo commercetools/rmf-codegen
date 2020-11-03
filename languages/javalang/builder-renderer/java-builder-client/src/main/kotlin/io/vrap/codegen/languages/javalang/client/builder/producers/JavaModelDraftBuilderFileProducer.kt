@@ -8,6 +8,7 @@ import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.FileProducer
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
 import io.vrap.rmf.codegen.rendring.utils.keepIndentation
+import io.vrap.rmf.codegen.types.VrapArrayType
 import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.types.ObjectType
@@ -95,20 +96,37 @@ class JavaModelDraftBuilderFileProducer @Inject constructor(override val vrapTyp
     }
 
     private fun assignment(property: Property, type: VrapObjectType) : String {
-        return if(property.isPatternProperty()){
+        val propType = property.type.toVrapType()
+        return if(property.isPatternProperty()) {
             """
-                |public ${type.simpleClassName}Builder values(${if(!property.required) "@Nullable" else ""} final Map<String, ${property.type.toVrapType().fullClassName()}> values){
+                |public ${type.simpleClassName}Builder values(${if (!property.required) "@Nullable" else ""} final Map<String, ${propType.fullClassName()}> values){
                 |    this.values = values;
                 |    return this;
                 |}
             """.escapeAll().trimMargin().keepIndentation()
-        }else {
+        } else if (propType is VrapArrayType) {
             var propertyName = property.name
             if(SourceVersion.isKeyword(propertyName)) {
                 propertyName = "_$propertyName"
             }
             """
-                |public ${type.simpleClassName}Builder $propertyName(${if (!property.required) "@Nullable" else ""} final ${property.type.toVrapType().fullClassName()} $propertyName) {
+                |public ${type.simpleClassName}Builder $propertyName(${if (!property.required) "@Nullable" else ""} final ${propType.itemType.fullClassName()} ...$propertyName) {
+                |    this.$propertyName = new ArrayList<>(Arrays.asList($propertyName));
+                |    return this;
+                |}
+                |
+                |public ${type.simpleClassName}Builder $propertyName(${if (!property.required) "@Nullable" else ""} final ${propType.fullClassName()} $propertyName) {
+                |    this.$propertyName = $propertyName;
+                |    return this;
+                |}
+            """.trimMargin()
+        } else {
+            var propertyName = property.name
+            if(SourceVersion.isKeyword(propertyName)) {
+                propertyName = "_$propertyName"
+            }
+            """
+                |public ${type.simpleClassName}Builder $propertyName(${if (!property.required) "@Nullable" else ""} final ${propType.fullClassName()} $propertyName) {
                 |    this.$propertyName = $propertyName;
                 |    return this;
                 |}

@@ -9,6 +9,7 @@ import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.FileProducer
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
 import io.vrap.rmf.codegen.rendring.utils.keepIndentation
+import io.vrap.rmf.codegen.types.VrapArrayType
 import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.types.ObjectType
@@ -90,9 +91,10 @@ class JavaModelClassFileProducer @Inject constructor(override val vrapTypeProvid
             .joinToString(separator = "\n\n")
 
     private fun Property.setter(): String {
+        val vrapType = this.type.toVrapType()
         return if (this.isPatternProperty()) {
             """
-            |public void setValue(String key, ${this.type.toVrapType().fullClassName()} value) {
+            |public void setValue(String key, ${vrapType.fullClassName()} value) {
             |    if (values == null) {
             |        values = new HashMap<>();
             |    }
@@ -101,13 +103,23 @@ class JavaModelClassFileProducer @Inject constructor(override val vrapTypeProvid
             """.trimMargin()
         } else if(this.name.equals("interface")) {
             """
-                |public void setInterface(final ${this.type.toVrapType().fullClassName()} _interface) {
+                |public void setInterface(final ${vrapType.fullClassName()} _interface) {
                 |    this._interface = _interface;
                 |}
             """.trimMargin()
+        } else if (vrapType is VrapArrayType) {
+            """
+            |public void set${this.name.upperCamelCase()}(final ${vrapType.itemType.fullClassName()} ...${this.name.lowerCamelCase()}){
+            |   this.${this.name.lowerCamelCase()} = new ArrayList<>(Arrays.asList(${this.name.lowerCamelCase()}));
+            |}
+            |
+            |public void set${this.name.upperCamelCase()}(final ${vrapType.fullClassName()} ${this.name.lowerCamelCase()}){
+            |   this.${this.name.lowerCamelCase()} = ${this.name.lowerCamelCase()};
+            |}
+            """.trimMargin()
         }else {
             """
-            |public void set${this.name.upperCamelCase()}(final ${this.type.toVrapType().fullClassName()} ${this.name.lowerCamelCase()}){
+            |public void set${this.name.upperCamelCase()}(final ${vrapType.fullClassName()} ${this.name.lowerCamelCase()}){
             |    this.${this.name.lowerCamelCase()} = ${this.name.lowerCamelCase()};
             |}
             """.trimMargin()
