@@ -8,6 +8,7 @@ import io.vrap.rmf.codegen.types.VrapType
 import io.vrap.rmf.raml.model.types.ObjectType
 
 const val ANNOTATION_ABSTRACT = "abstract"
+val BASERESOURCE_PROPS = arrayOf<String>("Id", "Version", "CreatedAt", "LastModifiedAt")
 
 interface CsharpObjectTypeExtensions : ExtensionsBase {
 

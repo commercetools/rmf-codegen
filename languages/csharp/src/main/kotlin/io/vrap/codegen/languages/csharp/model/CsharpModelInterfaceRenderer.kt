@@ -55,7 +55,7 @@ class CsharpModelInterfaceRenderer @Inject constructor(override val vrapTypeProv
         )
     }
 
-    private fun ObjectType.toProperties() : String = this.properties
+    private fun ObjectType.toProperties() : String = this.properties.filter { !it.shouldSkipThisProperty(this) }
             .map { it.toCsharpProperty(this) }.joinToString(separator = "\n\n")
 
     private fun Property.toCsharpProperty(objectType: ObjectType): String {
@@ -76,6 +76,17 @@ class CsharpModelInterfaceRenderer @Inject constructor(override val vrapTypeProv
 
         var nullableChar = if(!this.required && this.type.toVrapType().isValueType()) "?" else ""
         return "${typeName}$nullableChar $propName { get; set;}"
+    }
+
+    //skip if it's baseResource Prop and class interface not baseResource
+    private fun Property.shouldSkipThisProperty(objectType: ObjectType): Boolean  {
+        var parent = objectType.type?.toVrapType()?.simpleName()?.let { "$it" } ?: ""
+        val propName = this.name.capitalize()
+        val vrapType = vrapTypeProvider.doSwitch(objectType) as VrapObjectType
+        var simpleClassName = vrapType.simpleClassName
+        return parent.equals("IBaseResource", true) &&
+        !simpleClassName.equals("BaseResource",true) &&
+        BASERESOURCE_PROPS.contains(propName)
     }
 
     fun ObjectType.renderTypeAsADictionaryType() : String {
