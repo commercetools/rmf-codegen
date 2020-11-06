@@ -55,7 +55,7 @@ class CsharpModelInterfaceRenderer @Inject constructor(override val vrapTypeProv
         )
     }
 
-    private fun ObjectType.toProperties() : String = this.properties.filter { !it.shouldSkipThisProperty(this) }
+    private fun ObjectType.toProperties() : String = this.properties
             .map { it.toCsharpProperty(this) }.joinToString(separator = "\n\n")
 
     private fun Property.toCsharpProperty(objectType: ObjectType): String {
@@ -64,6 +64,7 @@ class CsharpModelInterfaceRenderer @Inject constructor(override val vrapTypeProv
         val isListOfEnumProp = this.type.toVrapType() is VrapArrayType && (this.type.toVrapType() as VrapArrayType).itemType is VrapEnumType
         val propName = this.name.capitalize()
         val typeName = this.type.toVrapType().simpleName()
+        var overrideProp = this.shouldOverrideThisProperty(objectType)
 
         if(isEnumProp || isListOfEnumProp)
         {
@@ -75,11 +76,12 @@ class CsharpModelInterfaceRenderer @Inject constructor(override val vrapTypeProv
         }
 
         var nullableChar = if(!this.required && this.type.toVrapType().isValueType()) "?" else ""
-        return "${typeName}$nullableChar $propName { get; set;}"
+        var newKeyword = if(overrideProp) "new " else ""
+        return "${newKeyword}${typeName}$nullableChar $propName { get; set;}"
     }
 
-    //skip if it's already exists in the parent type
-    private fun Property.shouldSkipThisProperty(objectType: ObjectType): Boolean  {
+    //override if it's already exists in the parent type
+    private fun Property.shouldOverrideThisProperty(objectType: ObjectType): Boolean  {
         var hasParent = objectType.type != null;
         if(hasParent)
         {
