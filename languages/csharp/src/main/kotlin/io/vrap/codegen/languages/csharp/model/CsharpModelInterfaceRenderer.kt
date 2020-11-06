@@ -78,15 +78,16 @@ class CsharpModelInterfaceRenderer @Inject constructor(override val vrapTypeProv
         return "${typeName}$nullableChar $propName { get; set;}"
     }
 
-    //skip if it's baseResource Prop and class interface not baseResource
+    //skip if it's already exists in the parent type
     private fun Property.shouldSkipThisProperty(objectType: ObjectType): Boolean  {
-        var parent = objectType.type?.toVrapType()?.simpleName()?.let { "$it" } ?: ""
-        val propName = this.name.capitalize()
-        val vrapType = vrapTypeProvider.doSwitch(objectType) as VrapObjectType
-        var simpleClassName = vrapType.simpleClassName
-        return parent.equals("IBaseResource", true) &&
-        !simpleClassName.equals("BaseResource",true) &&
-        BASERESOURCE_PROPS.contains(propName)
+        var hasParent = objectType.type != null;
+        if(hasParent)
+        {
+            var parent = objectType.type as ObjectType;
+            if(parent?.properties.any { it.name.equals(this.name) })
+                return true
+        }
+        return false;
     }
 
     fun ObjectType.renderTypeAsADictionaryType() : String {
