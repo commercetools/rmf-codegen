@@ -64,6 +64,7 @@ class CsharpModelInterfaceRenderer @Inject constructor(override val vrapTypeProv
         val isListOfEnumProp = this.type.toVrapType() is VrapArrayType && (this.type.toVrapType() as VrapArrayType).itemType is VrapEnumType
         val propName = this.name.capitalize()
         val typeName = this.type.toVrapType().simpleName()
+        var overrideProp = this.shouldOverrideThisProperty(objectType)
 
         if(isEnumProp || isListOfEnumProp)
         {
@@ -75,7 +76,20 @@ class CsharpModelInterfaceRenderer @Inject constructor(override val vrapTypeProv
         }
 
         var nullableChar = if(!this.required && this.type.toVrapType().isValueType()) "?" else ""
-        return "${typeName}$nullableChar $propName { get; set;}"
+        var newKeyword = if(overrideProp) "new " else ""
+        return "${newKeyword}${typeName}$nullableChar $propName { get; set;}"
+    }
+
+    //override if it's already exists in the parent type
+    private fun Property.shouldOverrideThisProperty(objectType: ObjectType): Boolean  {
+        var hasParent = objectType.type != null;
+        if(hasParent)
+        {
+            var parent = objectType.type as ObjectType;
+            if(parent?.properties.any { it.name.equals(this.name) })
+                return true
+        }
+        return false;
     }
 
     fun ObjectType.renderTypeAsADictionaryType() : String {
