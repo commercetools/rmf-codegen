@@ -91,9 +91,10 @@ class JavaModelInterfaceRenderer @Inject constructor(override val vrapTypeProvid
             |})
             |@JsonTypeInfo(
             |    use = JsonTypeInfo.Id.NAME,
-            |    include = JsonTypeInfo.As.PROPERTY,
+            |    include = JsonTypeInfo.As.EXISTING_PROPERTY,
             |    property = "${this.discriminator}",
-            |    defaultImpl = ${vrapType.simpleClassName}Impl.class
+            |    defaultImpl = ${vrapType.simpleClassName}Impl.class,
+            |    visible = true
             |)
             """.trimMargin()
         else
@@ -115,7 +116,6 @@ class JavaModelInterfaceRenderer @Inject constructor(override val vrapTypeProvid
     }
 
     private fun ObjectType.getters() = this.properties
-            .filter { it.name != this.discriminator() }
             .map { it.getter() }
             .joinToString(separator = "\n")
 

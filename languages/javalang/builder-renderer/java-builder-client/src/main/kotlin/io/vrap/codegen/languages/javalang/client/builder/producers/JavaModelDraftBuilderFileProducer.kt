@@ -68,21 +68,22 @@ class JavaModelDraftBuilderFileProducer @Inject constructor(override val vrapTyp
             .joinToString(separator = "\n\n")
 
     private fun Property.toField() : String {
+        val vrapType = this.type.toVrapType()
         return if(this.isPatternProperty()){
             """
                 |${if(!this.required) "@Nullable" else ""}
-                |private Map<String, ${this.type.toVrapType().fullClassName()}> values;
+                |private Map<String, ${vrapType.fullClassName()}> values;
             """.escapeAll().trimMargin().keepIndentation()
         } else if(this.name.equals("interface")) {
             """
-                |${if(!this.required) "@Nullable" else ""}
-                |private ${this.type.toVrapType().fullClassName()} _interface;
+                |${if (!this.required) "@Nullable" else ""}
+                |private ${vrapType.fullClassName()} _interface;
             """.trimMargin()
         }else{
             """
             |${if(!this.required) "@Nullable" else ""}
-            |private ${this.type.toVrapType().fullClassName()} ${this.name};
-        """.escapeAll().trimMargin().keepIndentation()
+            |private ${vrapType.fullClassName()} ${this.name};
+            """.escapeAll().trimMargin().keepIndentation()
         }
     }
 
@@ -139,24 +140,25 @@ class JavaModelDraftBuilderFileProducer @Inject constructor(override val vrapTyp
 
     private fun Property.getter() : String {
 
+        val vrapType = this.type.toVrapType()
         return if(this.isPatternProperty()){
             """
                 |${if(!this.required) "@Nullable" else ""}
-                |public Map<String, ${this.type.toVrapType().fullClassName()}> getValues(){
+                |public Map<String, ${vrapType.fullClassName()}> getValues(){
                 |    return this.values;
                 |}
             """.escapeAll().trimMargin().keepIndentation()
         } else if(this.name.equals("interface")) {
             """
-                |${if(!this.required) "@Nullable" else ""}
-                |public ${this.type.toVrapType().fullClassName()} getInterface(){
+                |${if (!this.required) "@Nullable" else ""}
+                |public ${vrapType.fullClassName()} getInterface(){
                 |    return this._interface;
                 |}
             """.escapeAll().trimMargin().keepIndentation()
         }else{
             """
                 |${if(!this.required) "@Nullable" else ""}
-                |public ${this.type.toVrapType().fullClassName()} get${this.name.capitalize()}(){
+                |public ${vrapType.fullClassName()} get${this.name.capitalize()}(){
                 |    return this.${this.name};
                 |}
             """.escapeAll().trimMargin().keepIndentation()
