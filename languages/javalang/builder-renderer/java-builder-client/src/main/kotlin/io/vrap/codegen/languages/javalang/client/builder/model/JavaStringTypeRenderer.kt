@@ -1,13 +1,9 @@
 package io.vrap.codegen.languages.javalang.client.builder.model;
 
 import com.google.inject.Inject
-import io.vrap.codegen.languages.extensions.EObjectExtensions
 import io.vrap.codegen.languages.extensions.toComment
 import io.vrap.codegen.languages.java.base.JavaSubTemplates
-import io.vrap.codegen.languages.java.base.extensions.JavaEObjectTypeExtensions
-import io.vrap.codegen.languages.java.base.extensions.JavaObjectTypeExtensions
-import io.vrap.codegen.languages.java.base.extensions.enumValueName
-import io.vrap.codegen.languages.java.base.extensions.toJavaVType
+import io.vrap.codegen.languages.java.base.extensions.*
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.StringTypeRenderer
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
@@ -25,7 +21,8 @@ class JavaStringTypeRenderer @Inject constructor(override val vrapTypeProvider: 
         val content = """
                 |package ${vrapType.`package`};
                 |
-                |import com.fasterxml.jackson.annotation.JsonProperty;
+                |import com.fasterxml.jackson.annotation.JsonCreator;
+                |import com.fasterxml.jackson.annotation.JsonValue;
                 |import java.lang.String;
                 |import java.util.Arrays;
                 |import java.util.Optional;
@@ -33,22 +30,47 @@ class JavaStringTypeRenderer @Inject constructor(override val vrapTypeProvider: 
                 |
                 |${type.toComment().escapeAll()}
                 |${JavaSubTemplates.generatedAnnotation}
-                |public enum ${vrapType.simpleClassName} {
+                |public interface ${vrapType.simpleClassName} {
                 |
-                |    <${type.enumFields()}>
+                |    <${type.enumConsts()}>
+                |    
+                |    enum ${vrapType.simpleClassName}Enum implements ${vrapType.simpleClassName} {
+                |        <${type.enumFields()}>
+                |        private final String jsonName;
                 |
-                |    private final String jsonName;
-                |
-                |    private ${vrapType.simpleClassName}(final String jsonName) {
-                |        this.jsonName = jsonName;
+                |        private ${vrapType.simpleClassName}Enum(final String jsonName) {
+                |            this.jsonName = jsonName;
+                |        }
+                |        public String getJsonName() {
+                |            return jsonName;
+                |        }
                 |    }
                 |
-                |    public String getJsonName() {
-                |        return jsonName;
+                |    @JsonValue
+                |    String getJsonName();
+                |    String name();
+                |
+                |    @JsonCreator
+                |    public static ${vrapType.simpleClassName} findEnum(String value) {
+                |        return findEnumViaJsonName(value).orElse(new ${vrapType.simpleClassName}() {
+                |            @Override
+                |            public String getJsonName() {
+                |                return value;
+                |            }
+                |
+                |            @Override
+                |            public String name() {
+                |                return value.toUpperCase();
+                |            }
+                |        });
                 |    }
                 |
                 |    public static Optional\<${vrapType.simpleClassName}\> findEnumViaJsonName(String jsonName) {
                 |        return Arrays.stream(values()).filter(t -\> t.getJsonName().equals(jsonName)).findFirst();
+                |    }
+                |    
+                |    public static ${vrapType.simpleClassName}[] values() {
+                |        return ${vrapType.simpleClassName}Enum.values();
                 |    }
                 |}
                 """.trimMargin().keepIndentation()
@@ -63,12 +85,19 @@ class JavaStringTypeRenderer @Inject constructor(override val vrapTypeProvider: 
     fun StringType.enumFields() = enumValues()
             ?.map {
                 """
-                |${it.toComment()?.escapeAll()?:""}
-                |@JsonProperty("${it.value}")
                 |${it.value.enumValueName()}("${it.value}")
             """.trimMargin()
             }
             ?.joinToString(separator = ",\n\n", postfix = ";")
+
+    fun StringType.enumConsts() = enumValues()
+            ?.map {
+                """
+                |${it.toComment()?.escapeAll()?:""}
+                |${this.toVrapType().simpleName()} ${it.value.enumValueName()} = ${this.toVrapType().simpleName()}Enum.${it.value.enumValueName()}
+            """.trimMargin()
+            }
+            ?.joinToString(separator = ";\n", postfix = ";")
 
     fun StringType.enumValues() =  enum?.filter { it is StringInstance }
             ?.map { it as StringInstance }
