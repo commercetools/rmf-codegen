@@ -30,4 +30,11 @@ uninstallVrapCli(){
     rm -f $COMMAND_SYM_LINK
 }
 
-installVrapCli
+if ! [[ -f $JAR_FILE_PATH ]] || ! codegen_loc="$(type -p "rmf-codegen")" || [[ -z $codegen_loc ]] ; then
+  installVrapCli
+else
+  INSTALLED_VERSION=`rmf-codegen -v`
+  if [ "$CODEGEN_VERSION" != "$INSTALLED_VERSION" ]; then
+    installVrapCli
+  fi
+fi
