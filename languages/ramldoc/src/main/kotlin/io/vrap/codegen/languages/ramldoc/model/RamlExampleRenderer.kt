@@ -61,7 +61,15 @@ class RamlExampleRenderer @Inject constructor(val allMethods: MutableList<Method
     private fun render(method: Method): List<TemplateFile> {
         val files = listOf<TemplateFile>()
 
-        val examples = method.responses.filter { response -> response.isSuccessfull() }.flatMap { it.bodies.flatMap { body -> body.inlineTypes.flatMap { inlineType -> inlineType.examples.map { example -> "${method.toRequestName()}-${it.statusCode}-${if (example.name.isNotEmpty()) example.name else "default"}" to example } } } }.toMap()
+        val examples = method.responses.filter { response -> response.isSuccessfull() }.flatMap { it.bodies.flatMap { body -> body.inlineTypes.flatMap { inlineType -> inlineType.examples.map { example -> "${method.toRequestName()}-${it.statusCode}-${if (example.name.isNotEmpty()) example.name else "default"}" to example } } } }.plus(method.bodies.flatMap {
+            method.bodies.flatMap {
+                body -> body.inlineTypes.flatMap {
+                    inlineType -> inlineType.examples.map {
+                        example -> "${method.toRequestName()}-${if (example.name.isNotEmpty()) example.name else "default"}" to example
+                    }
+                }
+            }
+        }).toMap()
 
         return files.plus(examples.map {
             renderExample(it.key, it.value)
