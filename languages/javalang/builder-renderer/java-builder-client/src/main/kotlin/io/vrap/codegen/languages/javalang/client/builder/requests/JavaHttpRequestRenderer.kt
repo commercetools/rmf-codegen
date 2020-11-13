@@ -38,6 +38,7 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
             |import java.io.InputStream;
             |import java.io.IOException;
             |
+            |import java.net.URI;
             |import java.nio.file.Files;
             |
             |import java.time.Duration;
@@ -198,19 +199,29 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
         """.trimMargin().escapeAll()
         val bodySetter: String = if(bodyName != null){
             if(this.bodies[0].type.isFile())
-                "try{httpRequest.setBody(Files.readAllBytes(file.toPath()));}catch(Exception e){e.printStackTrace();}"
-            else "try{httpRequest.setBody(apiHttpClient().getSerializerService().toJsonByteArray($bodyName));}catch(Exception e){e.printStackTrace();}"
+                """
+                |try {
+                |    return new ApiHttpRequest(ApiHttpMethod.${this.method.name}, URI.create(httpRequestPath), getHeaders(), Files.readAllBytes(file.toPath()));
+                |} catch (Exception e) {
+                |    e.printStackTrace();
+                |}
+                |""".trimMargin()
+            else
+                """
+                |try {
+                |    final byte[] body = apiHttpClient().getSerializerService().toJsonByteArray($bodyName);
+                |    return new ApiHttpRequest(ApiHttpMethod.${this.method.name}, URI.create(httpRequestPath), getHeaders(), body);
+                |} catch(Exception e) {
+                |    e.printStackTrace();
+                |}
+                |""".trimMargin()
         } else ""
 
         return """
             |public ApiHttpRequest createHttpRequest() {
-            |    ApiHttpRequest httpRequest = new ApiHttpRequest();
             |    <$requestPathGeneration>
-            |    httpRequest.setUri(httpRequestPath); 
-            |    httpRequest.setMethod(ApiHttpMethod.${this.method.name});
-            |    httpRequest.setHeaders(getHeaders());
             |    $bodySetter
-            |    return httpRequest;
+            |    return new ApiHttpRequest(ApiHttpMethod.${this.method.name}, URI.create(httpRequestPath), getHeaders(), null);
             |}
         """.trimMargin()
     }
