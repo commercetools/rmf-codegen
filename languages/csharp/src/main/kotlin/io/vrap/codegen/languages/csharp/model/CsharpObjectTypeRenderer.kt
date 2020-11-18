@@ -54,21 +54,8 @@ class CsharpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider
             .map { it.toCsharpProperty(this) }.joinToString(separator = "\n\n")
 
     private fun Property.toCsharpProperty(objectType: ObjectType): String {
-
-        val isEnumProp = this.type.toVrapType() is VrapEnumType
-        val isListOfEnumProp = this.type.toVrapType() is VrapArrayType && (this.type.toVrapType() as VrapArrayType).itemType is VrapEnumType
         val propName = this.name.capitalize()
         val typeName = this.type.toVrapType().simpleName()
-
-        if(isEnumProp || isListOfEnumProp)
-        {
-            val pType = if (isEnumProp) "string" else """List\<string\>"""
-            val pEnumType = if(isEnumProp) typeName else (this.type.toVrapType() as VrapArrayType).itemType.simpleName()
-            return  """public $pType $propName { get; set;}
-                        |
-                        |[JsonIgnore]
-                        |public $typeName ${propName}AsEnum =\> this.$propName.GetEnum\<$pEnumType\>();"""
-        }
 
         var nullableChar = if(!this.required && this.type.toVrapType().isValueType()) "?" else ""
         return "public ${typeName}$nullableChar $propName { get; set;}"
@@ -79,17 +66,28 @@ class CsharpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider
         return if(!isEmptyConstructor)
             """public ${className}()
                 |{ 
-                |${this.getConstructorContentForDiscriminator()}
+                |   ${this.getConstructorContentForDiscriminator()}
                 |}"""
         else
             ""
         }
     fun ObjectType.getConstructorContentForDiscriminator(): String {
-        return if (discriminatorValue != null)
-            """
-            |   this.${(this.type as ObjectTypeImpl).discriminator.capitalize()} = "${this.discriminatorValue}";
-            """.trimMargin()
-        else
-            ""
+        var content = ""
+        if (this.discriminator() != null && this.discriminatorValue != null)
+        {
+            val enumName : String = this.allProperties.filter { it.name == this.discriminator() }.get(0).type.toVrapType().simpleName()
+            if(enumName == "string") {
+                content = "this.${(this.type as ObjectTypeImpl).discriminator.capitalize()} = \"${this.discriminatorValue}\";"
+            }
+            else
+            {
+                content = "this.${(this.type as ObjectTypeImpl).discriminator.capitalize()} = $enumName.FindEnum(\"${this.discriminatorValue}\");"
+            }
+
+        }
+        else {
+            content = ""
+        }
+        return content
     }
 }

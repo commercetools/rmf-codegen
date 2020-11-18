@@ -23,12 +23,38 @@ class CsharpStringTypeRenderer @Inject constructor(override val vrapTypeProvider
 
         val content = """
                 |using System.ComponentModel;
-                |
+                |using System.Linq;
+                |using commercetools.Base.CustomAttributes;
+                |using commercetools.Base.Models;
                 |namespace ${vrapType.csharpPackage()}
                 |{
                 |   public enum ${vrapType.simpleClassName}
                 |   {
                 |       <${type.enumFields()}>
+                |   }
+                |   public class ${vrapType.simpleClassName}Wrapper : I${vrapType.simpleClassName}
+                |   {
+                |       public string JsonName { get; internal set; }
+                |       public ${vrapType.simpleClassName}? Value { get; internal set; }
+                |   }
+                |   [EnumInterfaceCreator(typeof(I${vrapType.simpleClassName}), "FindEnum")]
+                |   public interface I${vrapType.simpleClassName} : IJsonName
+                |   {
+                |       <${type.enumStaticFields("${vrapType.simpleClassName}")}>
+                |       
+                |        ${vrapType.simpleClassName}? Value { get; }
+                |        
+                |        static I${vrapType.simpleClassName}[] Values()
+                |        {
+                |           return new[]
+                |           {
+                |               <${type.enumFieldsAsNames()}>
+                |           };
+                |        }
+                |        static I${vrapType.simpleClassName} FindEnum(string value)
+                |        {
+                |           return Values().FirstOrDefault(origin =\> origin.JsonName == value) ?? new ${vrapType.simpleClassName}Wrapper() {JsonName = value};
+                |        }
                 |   }
                 |}
                 """.trimMargin().keepIndentation()
@@ -49,6 +75,24 @@ class CsharpStringTypeRenderer @Inject constructor(override val vrapTypeProvider
             """.trimMargin()
             }
             ?.joinToString(separator = ",\n\n", postfix = "")
+
+    fun StringType.enumStaticFields(enumName: String) = enumValues()
+            ?.map {
+                """
+                 | public static I${enumName} ${it.value.enumValueName()} = new ${enumName}Wrapper
+                 |  {Value = ${enumName}.${it.value.enumValueName()}, JsonName = "${it.value}"}; 
+            """.trimMargin()
+            }
+            ?.joinToString(separator = "\n\n", postfix = "")
+
+    fun StringType.enumFieldsAsNames() = enumValues()
+            ?.map {
+                """
+                 | ${it.value.enumValueName()} 
+            """.trimMargin()
+            }
+            ?.joinToString(separator = ",\n", postfix = "")
+
 
     fun StringType.enumValues() =  enum?.filter { it is StringInstance }
             ?.map { it as StringInstance }
