@@ -25,6 +25,7 @@ dependencies {
 //    compile 'com.google.inject:guice:4.2.4-20200419-NEWAOP-BETA'
     compile 'org.slf4j:slf4j-simple:1.7.25'
     compile 'commons-io:commons-io:2.6'
+    implementation 'io.reactivex.rxjava3:rxjava:3.0.7'
 
     testCompile "org.assertj:assertj-core:3.16.0"
     testCompile 'junit:junit:4.13'
