@@ -1,8 +1,13 @@
 package io.vrap.rmf.codegen.rendring
 
 import com.google.inject.Inject
+import io.reactivex.rxjava3.core.Flowable
+import io.reactivex.rxjava3.schedulers.Schedulers
 import io.vrap.rmf.codegen.common.generator.core.ResourceCollection
-import io.vrap.rmf.codegen.di.*
+import io.vrap.rmf.codegen.di.ApiGitHash
+import io.vrap.rmf.codegen.di.EnumStringTypes
+import io.vrap.rmf.codegen.di.NamedScalarTypes
+import io.vrap.rmf.codegen.di.PatternStringTypes
 import io.vrap.rmf.codegen.io.DataSink
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.raml.model.resources.Method
@@ -10,6 +15,7 @@ import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.types.ObjectType
 import io.vrap.rmf.raml.model.types.StringType
 import io.vrap.rmf.raml.model.types.UnionType
+import org.reactivestreams.Publisher
 import org.slf4j.LoggerFactory
 
 class CoreCodeGenerator @Inject constructor(val dataSink: DataSink,
@@ -24,6 +30,7 @@ class CoreCodeGenerator @Inject constructor(val dataSink: DataSink,
                                             ) {
 
     private val LOGGER = LoggerFactory.getLogger(CoreCodeGenerator::class.java)
+    private val PARALLELISM = 100
 
     @Inject(optional = true)
     lateinit var objectTypeGenerators: MutableSet<ObjectTypeRenderer>
@@ -64,70 +71,68 @@ class CoreCodeGenerator @Inject constructor(val dataSink: DataSink,
             LOGGER.info("data sink cleanup unsuccessful")
         }
 
-        dataSink.write(TemplateFile( relativePath = "gen.properties", content = """
+        val templateFiles :MutableList<Publisher<TemplateFile>> = mutableListOf()
+
+        templateFiles.add(Flowable.just(TemplateFile( relativePath = "gen.properties", content = """
             hash=${gitHash}
-        """.trimIndent()))
+        """.trimIndent())))
 
         if (::objectTypeGenerators.isInitialized) {
             LOGGER.info("generating files for object types")
-            objectTypeGenerators.flatMap { objectTypeRenderer ->
-                allObjectTypes.map { objectTypeRenderer.render(it) }
-            }. map { dataSink.write(it) }
+            templateFiles.add(Flowable.fromIterable(objectTypeGenerators).flatMap { renderer -> Flowable.fromIterable(allObjectTypes).map { renderer.render(it) } } )
         }
 
         if (::unionTypeGenerators.isInitialized) {
             LOGGER.info("generating files for union types")
-            unionTypeGenerators.flatMap { unionTypeRenderer ->
-                allUnionTypes.map { unionTypeRenderer.render(it) }
-            }. map { dataSink.write(it) }
+            templateFiles.add(Flowable.fromIterable(unionTypeGenerators).flatMap { renderer -> Flowable.fromIterable(allUnionTypes).map { renderer.render(it) } } )
+
         }
 
         if (::enumStringTypeGenerators.isInitialized) {
             LOGGER.info("generating files for enum string types")
-            enumStringTypeGenerators.flatMap { stringTypeRenderer ->
-                allEnumStringTypes.map { stringTypeRenderer.render(it) }
-            }.map { dataSink.write(it) }
+            templateFiles.add(Flowable.fromIterable(enumStringTypeGenerators).flatMap { renderer -> Flowable.fromIterable(allEnumStringTypes).map { renderer.render(it) } } )
         }
 
         if (::patternStringTypeGenerators.isInitialized) {
             LOGGER.info("generating files for pattern string types")
-            patternStringTypeGenerators.flatMap { stringTypeRenderer ->
-                allPatternStringTypes.map { stringTypeRenderer.render(it) }
-            }.map { dataSink.write(it) }
+            templateFiles.add(Flowable.fromIterable(patternStringTypeGenerators).flatMap { renderer -> Flowable.fromIterable(allPatternStringTypes).map { renderer.render(it) } } )
         }
 
         if (::namedScalarTypeGenerators.isInitialized) {
             LOGGER.info("generating files for named string types")
-            namedScalarTypeGenerators.flatMap { scalarTypeRenderer ->
-                allNamedScalarTypes.map { scalarTypeRenderer.render(it) }
-            }.map { dataSink.write(it) }
+            templateFiles.add(Flowable.fromIterable(namedScalarTypeGenerators).flatMap { renderer -> Flowable.fromIterable(allNamedScalarTypes).map { renderer.render(it) } } )
         }
 
         if (::allResourcesGenerators.isInitialized) {
             LOGGER.info("generating files for resource collections")
-            allResourcesGenerators.flatMap { resCollectionRenderer ->
-                allResourceCollections.map { resCollectionRenderer.render(it) }
-            }.map { dataSink.write(it) }
+            templateFiles.add(Flowable.fromIterable(allResourcesGenerators).flatMap { renderer -> Flowable.fromIterable(allResourceCollections).map { renderer.render(it) } } )
         }
 
         if (::allResourceMethodGenerators.isInitialized) {
             LOGGER.info("generating files for resource methods")
-            allResourceMethodGenerators.flatMap { resMethodRenderer ->
-                allResourceMethods.map { resMethodRenderer.render(it) }
-            }.map { dataSink.write(it) }
+            templateFiles.add(Flowable.fromIterable(allResourceMethodGenerators).flatMap { renderer -> Flowable.fromIterable(allResourceMethods).map { renderer.render(it) } } )
         }
 
         if (::allResourceGenerators.isInitialized) {
             LOGGER.info("generating files for resource methods")
-            allResourceGenerators.flatMap { resMethodRenderer ->
-                allResources.map { resMethodRenderer.render(it) }
-            }.map { dataSink.write(it) }
+            templateFiles.add(Flowable.fromIterable(allResourceGenerators).flatMap { renderer -> Flowable.fromIterable(allResources).map { renderer.render(it) } } )
         }
 
         if(::fileProducers.isInitialized){
             LOGGER.info("generating types for file producers")
             fileProducers.flatMap { it.produceFiles() }.map { dataSink.write(it) }
+            templateFiles.add(Flowable.fromIterable(fileProducers).flatMap { Flowable.fromIterable(it.produceFiles()) } )
         }
+
+        Flowable.concat(templateFiles)
+                .observeOn(Schedulers.io())
+                .parallel(PARALLELISM)
+                .map { dataSink.write(it) }
+                .sequential()
+                .blockingSubscribe(
+                        {},
+                        { error -> LOGGER.error("Error occured while generating files",error)}
+                )
 
         dataSink.postClean()
 
