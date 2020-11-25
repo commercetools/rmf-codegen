@@ -23,8 +23,8 @@ cache/
 requests.log
 composer.lock
 rmf-codegen.iml
-rmf-codegen.iml
 generated-code/build
 generated-code/out
 languages/javalang/builder-renderer/generated-code/src/main
 rmf-gen.jar
+rmf-codegen.*
