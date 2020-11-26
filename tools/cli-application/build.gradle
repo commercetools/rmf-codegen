@@ -19,8 +19,8 @@ graal {
     mainClass 'io.vrap.rmf.codegen.cli.MainKt'
     outputName 'rmf-codegen'
     javaVersion '11'
-    // force building a native image and rather let if fail instead of building a fallback image
-    option '--no-fallback --allow-incomplete-classpath --enable-http --enable-https'
+    // force building a native image and rather let if fail at runtime instead of building a fallback image
+    option '--allow-incomplete-classpath'
 }
 
 publishing {
