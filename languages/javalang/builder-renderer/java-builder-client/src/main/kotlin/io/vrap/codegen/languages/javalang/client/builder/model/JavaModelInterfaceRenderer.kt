@@ -93,6 +93,7 @@ class JavaModelInterfaceRenderer @Inject constructor(override val vrapTypeProvid
             |@JsonSubTypes({
             |   <${this.subTypes
                     .filter { (it as ObjectType).discriminatorValue != null }
+                    .sortedBy { anyType -> anyType.name }
                     .map {
                         val vrapType = vrapTypeProvider.doSwitch(it) as VrapObjectType
                         "@JsonSubTypes.Type(value = ${vrapType.`package`.toJavaPackage()}.${vrapType.simpleClassName}Impl.class, name = \"${(it as ObjectType).discriminatorValue}\")" 
