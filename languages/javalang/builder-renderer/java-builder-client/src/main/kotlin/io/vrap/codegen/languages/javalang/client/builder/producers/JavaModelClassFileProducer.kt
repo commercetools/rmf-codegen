@@ -193,7 +193,7 @@ class JavaModelClassFileProducer @Inject constructor(override val vrapTypeProvid
 
         val emptyConstructor : String = """
             |public ${vrapType.simpleClassName}Impl() {
-            |   
+            |    <$discriminatorAssignment>
             |}
         """.trimMargin()
 
