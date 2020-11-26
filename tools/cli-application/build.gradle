@@ -18,6 +18,7 @@ apply plugin: 'com.palantir.graal'
 graal {
     mainClass 'io.vrap.rmf.codegen.cli.MainKt'
     outputName 'rmf-codegen'
+    javaVersion '11'
 }
 
 publishing {
