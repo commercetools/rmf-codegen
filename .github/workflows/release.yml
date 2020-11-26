@@ -24,7 +24,11 @@ jobs:
       - name: Setup Java
         uses: actions/setup-java@v1
         with:
-          java-version: "8"
+          java-version: "11"
+
+      - name: Setup Windows SDK (if on win)
+        if: runner.os == 'Windows'
+        uses: ilammy/msvc-dev-cmd@v1
 
       - name: Build ${{ matrix.name }} native image
         uses: eskatos/gradle-command-action@v1
@@ -49,7 +53,7 @@ jobs:
       - name: Setup Java
         uses: actions/setup-java@v1
         with:
-          java-version: "8"
+          java-version: "11"
 
       - name: Build JAR
         uses: eskatos/gradle-command-action@v1
