@@ -28,3 +28,4 @@ generated-code/out
 languages/javalang/builder-renderer/generated-code/src/main
 rmf-gen.jar
 rmf-codegen.*
+.vscode/settings.json

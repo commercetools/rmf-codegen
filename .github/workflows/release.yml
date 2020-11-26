@@ -12,10 +12,10 @@ jobs:
           - os: macos-latest
             name: Mac OS X
             artifact: rmf-codegen.darwin
-          # windows fails silently, TODO
-          - os: windows-latest
-            name: Windows
-            artifact: rmf-codegen.win32
+          # windows fails with a relatively unclear message, TODO
+          # - os: windows-latest
+          #   name: Windows
+          #   artifact: rmf-codegen.win32
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
@@ -129,13 +129,13 @@ jobs:
           asset_name: rmf-codegen.darwin
           asset_content_type: application/octet-stream
 
-      - name: Upload Windows Binary
-        id: upload-windows-asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_github_release.outputs.upload_url }}
-          asset_path: rmf-codegen.win32/rmf-codegen
-          asset_name: rmf-codegen.exe
-          asset_content_type: application/octet-stream
+      # - name: Upload Windows Binary
+      #   id: upload-windows-asset
+      #   uses: actions/upload-release-asset@v1
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   with:
+      #     upload_url: ${{ steps.create_github_release.outputs.upload_url }}
+      #     asset_path: rmf-codegen.win32/rmf-codegen
+      #     asset_name: rmf-codegen.exe
+      #     asset_content_type: application/octet-stream
