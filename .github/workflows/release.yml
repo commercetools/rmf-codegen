@@ -1,5 +1,10 @@
-on: [push]
-name: AutoRelease (playground graalvm)
+on:
+  push:
+    branches:
+      # TODO switch to master before applying to the original repository
+      - nk-build-native-and-release-to-github
+
+name: Release
 jobs:
   build-native:
     name: Build all native images
@@ -12,7 +17,7 @@ jobs:
           - os: macos-latest
             name: Mac OS X
             artifact: rmf-codegen.darwin
-          # windows fails with a relatively unclear message, TODO
+          # TODO windows fails with a relatively unclear message
           # - os: windows-latest
           #   name: Windows
           #   artifact: rmf-codegen.win32
