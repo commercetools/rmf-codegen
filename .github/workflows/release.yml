@@ -1,10 +1,10 @@
 on:
   push:
     branches:
-      # TODO switch to master before applying to the original repository
-      - nk-build-native-and-release-to-github
+      - master
 
-name: Release
+name: AutoRelease (GitHub & native images)
+
 jobs:
   build-native:
     name: Build all native images
@@ -17,7 +17,7 @@ jobs:
           - os: macos-latest
             name: Mac OS X
             artifact: rmf-codegen.darwin
-          # TODO windows fails with a relatively unclear message
+          # TODO windows fails, reason not known yet
           # - os: windows-latest
           #   name: Windows
           #   artifact: rmf-codegen.win32
@@ -30,14 +30,6 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: "11"
-
-      # - name: Setup Windows SDK (if on win)
-      #   if: runner.os == 'Windows'
-      #   uses: ilammy/msvc-dev-cmd@v1
-
-      # - name: Setup Windows SDK for Java 8 (if on win)
-      #   if: runner.os == 'Windows'
-      #   run: choco install windows-sdk-7.1 kb2519277
 
       - name: Build ${{ matrix.name }} native image
         uses: eskatos/gradle-command-action@v1
@@ -84,15 +76,6 @@ jobs:
           commit_user_name: Auto Mation
           commit_user_email: automation@commercetools.com
           commit_author: Auto Mation <automation@commercetools.com>
-
-      # commented out in fork, activate again in official repo and when this runs only on master
-      # - name: Create Bintray Release
-      #   uses: eskatos/gradle-command-action@v1
-      #   with:
-      #     arguments: --build-cache bintrayUpload writeVersionToReadme --info --stacktrace
-      #   env:
-      #     BINTRAY_USER: ${{ secrets.BINTRAY_USER }}
-      #     BINTRAY_KEY: ${{ secrets.BINTRAY_KEY }}
 
       - name: Create GitHub Release
         id: create_github_release

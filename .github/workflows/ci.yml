@@ -3,7 +3,7 @@ on:
     branches:
       - master
 
-name: AutoRelease
+name: AutoRelease (BinTray)
 
 jobs:
   release:
@@ -18,7 +18,7 @@ jobs:
       - name: Setup Java
         uses: actions/setup-java@v1
         with:
-          java-version: '8'
+          java-version: "8"
 
       - name: Build and Test
         run: ./gradlew --build-cache clean check
