@@ -18,9 +18,9 @@ jobs:
             name: Mac OS X
             artifact: rmf-codegen.darwin
           # TODO windows fails with a relatively unclear message
-          # - os: windows-latest
-          #   name: Windows
-          #   artifact: rmf-codegen.win32
+          - os: windows-latest
+            name: Windows
+            artifact: rmf-codegen.win32
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
@@ -31,9 +31,13 @@ jobs:
         with:
           java-version: "11"
 
-      - name: Setup Windows SDK (if on win)
+      # - name: Setup Windows SDK (if on win)
+      #   if: runner.os == 'Windows'
+      #   uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Setup Windows SDK for Java 8 (if on win)
         if: runner.os == 'Windows'
-        uses: ilammy/msvc-dev-cmd@v1
+        run: choco install windows-sdk-7.1 kb2519277
 
       - name: Build ${{ matrix.name }} native image
         uses: eskatos/gradle-command-action@v1
@@ -134,13 +138,13 @@ jobs:
           asset_name: rmf-codegen.darwin
           asset_content_type: application/octet-stream
 
-      # - name: Upload Windows Binary
-      #   id: upload-windows-asset
-      #   uses: actions/upload-release-asset@v1
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #   with:
-      #     upload_url: ${{ steps.create_github_release.outputs.upload_url }}
-      #     asset_path: rmf-codegen.win32/rmf-codegen
-      #     asset_name: rmf-codegen.exe
-      #     asset_content_type: application/octet-stream
+      - name: Upload Windows Binary
+        id: upload-windows-asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_github_release.outputs.upload_url }}
+          asset_path: rmf-codegen.win32/rmf-codegen
+          asset_name: rmf-codegen.exe
+          asset_content_type: application/octet-stream
