@@ -35,9 +35,9 @@ jobs:
       #   if: runner.os == 'Windows'
       #   uses: ilammy/msvc-dev-cmd@v1
 
-      - name: Setup Windows SDK for Java 8 (if on win)
-        if: runner.os == 'Windows'
-        run: choco install windows-sdk-7.1 kb2519277
+      # - name: Setup Windows SDK for Java 8 (if on win)
+      #   if: runner.os == 'Windows'
+      #   run: choco install windows-sdk-7.1 kb2519277
 
       - name: Build ${{ matrix.name }} native image
         uses: eskatos/gradle-command-action@v1
