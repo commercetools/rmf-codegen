@@ -141,6 +141,9 @@ class ServerRenderer @Inject constructor(
                         |        options: {
                         |          abortEarly: false
                         |        },
+                        |        query: {
+                        |          <${it.queryParameters.map { "${it.name}: ${it.type.toVrapType().simpleJoiName()}()" }.joinToString(separator = ",\n")}>
+                        |        },
                         |        failAction,
                         |      },${it.auth()}
                         |    }
@@ -216,17 +219,22 @@ class ServerRenderer @Inject constructor(
     }
 
     private fun joiValidatorImports(moduleName: String): String {
-        return api.allMethods()
+        val bodyTypes = api.allMethods()
                 .filter { it.bodies.isNotEmpty() }
                 .map { it.bodies[0] }
                 .filter { it.type != null }
                 .map { it.type.toVrapType() }
+        val queryTypes = api.allMethods()
+                .flatMap { it.queryParameters }
+                .filter { it.type != null }
+                .map { it.type.toVrapType() }
+        return bodyTypes
+                .plus(queryTypes)
                 .distinct()
                 .map {
                     it.joiImportStatement()
                 }
                 .joinToString(separator = "\n")
-
     }
 
     private fun VrapType.joiImportStatement():String {
@@ -234,6 +242,10 @@ class ServerRenderer @Inject constructor(
             is VrapObjectType -> {
                 val joiType = this.toJoiVrapType()
                 "import { ${joiType.simpleClassName} } from '${joiType.`package`}'"
+            }
+            is VrapEnumType -> {
+                val joiType = this
+                "import { ${joiType.simpleJoiName()} } from '${joiType.`package`.toJoiPackageName()}'"
             }
             is VrapArrayType -> {
                 return this.itemType.joiImportStatement()
