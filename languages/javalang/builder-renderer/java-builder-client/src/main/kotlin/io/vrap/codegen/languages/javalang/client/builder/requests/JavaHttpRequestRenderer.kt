@@ -15,6 +15,7 @@ import io.vrap.rmf.codegen.types.VrapScalarType
 import io.vrap.rmf.codegen.types.VrapType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.resources.Method
+import io.vrap.rmf.raml.model.types.ArrayType
 import io.vrap.rmf.raml.model.types.QueryParameter
 import io.vrap.rmf.raml.model.util.StringCaseFormat
 import org.eclipse.emf.ecore.EObject
@@ -263,10 +264,18 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
                 """.trimMargin().escapeAll() }
             .joinToString(separator = "\n\n")
 
+    private fun QueryParameter.witherType() : String {
+        val type = this.type;
+        return when (type) {
+            is ArrayType -> type.items.toVrapType().simpleName()
+            else -> type.toVrapType().simpleName()
+        }
+    }
+
     private fun Method.queryParamsSetters() : String = this.queryParameters
             .filter { it.getAnnotation(PLACEHOLDER_PARAM_ANNOTATION, true) == null }
             .map { """
-                |public ${this.toRequestName()} with${it.fieldName().capitalize()}(final ${it.type.toVrapType().simpleName()} ${it.fieldName()}){
+                |public ${this.toRequestName()} with${it.fieldName().capitalize()}(final ${it.witherType()} ${it.fieldName()}){
                 |    return new ${this.toRequestName()}(this).addQueryParam("${it.fieldName()}", ${it.fieldName()});
                 |}
             """.trimMargin().escapeAll() }
