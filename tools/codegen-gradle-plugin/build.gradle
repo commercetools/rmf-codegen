@@ -73,6 +73,7 @@ dependencies {
 }
 
 shadowJar{
+    zip64 true
     append "plugin.properties"
 }
 

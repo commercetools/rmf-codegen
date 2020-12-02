@@ -7,6 +7,7 @@ import io.vrap.codegen.languages.extensions.resource
 import io.vrap.codegen.languages.extensions.returnType
 import io.vrap.codegen.languages.typescript.*
 import io.vrap.codegen.languages.typescript.client.files_producers.ClientConstants
+import io.vrap.codegen.languages.typescript.joi.simpleJoiName
 import io.vrap.codegen.languages.typescript.model.TsObjectTypeExtensions
 import io.vrap.codegen.languages.typescript.model.simpleTSName
 import io.vrap.rmf.codegen.di.ClientPackageName
@@ -22,6 +23,7 @@ import io.vrap.rmf.raml.model.modules.Api
 import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.resources.ResourceContainer
+import io.vrap.rmf.raml.model.types.QueryParameter
 import io.vrap.rmf.raml.model.types.StringType
 
 
@@ -123,7 +125,7 @@ class RequestBuilder @Inject constructor(
                         val allQueryParamsOptional = it.queryParameters.map { !it.required }.reduce(Boolean::and)
                         queryParamsArg =
                                 """|queryArgs${if (allQueryParamsOptional) "?" else ""}: {
-                            |   <${it.queryParameters.filter { !it.isPatternProperty() }.map { "'${it.name}'${if (it.required) "" else "?"}: ${it.type.toVrapType().simpleTSName()} | ${it.type.toVrapType().simpleTSName()}[]" }.joinToString(separator = "\n")}>
+                            |   <${it.queryParameters.filter { !it.isPatternProperty() }.map { "'${it.name}'${if (it.required) "" else "?"}: ${it.type.toVrapType().simpleTSName()}" }.joinToString(separator = "\n")}>
                             |   [key: string]: QueryParam
                             |},""".trimMargin()
                     }
