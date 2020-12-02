@@ -14,6 +14,7 @@ import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.resources.ResourceContainer
 import io.vrap.rmf.raml.model.types.ArrayInstance
+import io.vrap.rmf.raml.model.types.QueryParameter
 import io.vrap.rmf.raml.model.types.StringInstance
 
 class ServerRenderer @Inject constructor(
@@ -142,7 +143,7 @@ class ServerRenderer @Inject constructor(
                         |          abortEarly: false
                         |        },
                         |        query: {
-                        |          <${it.queryParameters.map { "${it.name}: ${it.type.toVrapType().simpleJoiName()}()" }.joinToString(separator = ",\n")}>
+                        |          <${it.queryParameters.map { "${it.name}: ${it.toJoiSchema()}" }.joinToString(separator = ",\n")}>
                         |        },
                         |        failAction,
                         |      },${it.auth()}
@@ -150,6 +151,17 @@ class ServerRenderer @Inject constructor(
                         |}
                     """.trimMargin()
                 }.joinToString(separator = ",\n")
+    }
+
+    private fun QueryParameter.toJoiSchema(): String {
+        return when (val vrapType = this.type.toVrapType()) {
+            is VrapArrayType -> {
+                "Joi.array().single().items(${vrapType.itemType.simpleJoiName()}())"
+            }
+            else -> {
+                "${vrapType.simpleJoiName()}()"
+            }
+        }
     }
 
     private fun Method.auth(): String {
