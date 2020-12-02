@@ -153,6 +153,12 @@ class ServerRenderer @Inject constructor(
                 }.joinToString(separator = ",\n")
     }
 
+    /**
+     * This renders the joi validation code for hapi query parameters.
+     * If the type of a query parameter is array, then joi parses each instance of the query parameter and returns them as an array.
+     * This happens due to the `.single()` validation even in case of just one instance of the query parameter.
+     * (see also: https://www.jonaspauthier.com/hapijs-multiple-query-arguments/)
+     */
     private fun QueryParameter.toJoiSchema(): String {
         return when (val vrapType = this.type.toVrapType()) {
             is VrapArrayType -> {
