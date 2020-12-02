@@ -103,6 +103,15 @@ class JavaModelDraftBuilderFileProducer @Inject constructor(override val vrapTyp
                 |    this.values = values;
                 |    return this;
                 |}
+                |
+                |public ${type.simpleClassName}Builder addValue(final String key, final ${propType.fullClassName()} value) {
+                |    if (this.values == null) {
+                |        values = new HashMap<>();
+                |    }
+                |    values.put(key, value);
+                |    return this;
+                |}
+
             """.escapeAll().trimMargin().keepIndentation()
         } else if (propType is VrapArrayType) {
             var propertyName = property.name

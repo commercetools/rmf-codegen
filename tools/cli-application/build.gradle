@@ -18,6 +18,9 @@ apply plugin: 'com.palantir.graal'
 graal {
     mainClass 'io.vrap.rmf.codegen.cli.MainKt'
     outputName 'rmf-codegen'
+    javaVersion '11'
+    // force building a native image and rather let if fail at runtime instead of building a fallback image
+    option '--allow-incomplete-classpath'
 }
 
 publishing {
@@ -37,6 +40,7 @@ dependencies {
     compile project(':languages:php')
     compile project(':languages:csharp')
     compile project(':languages:ramldoc')
+    compile project(':languages:oas')
 
     compile 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
     compile 'com.google.guava:guava:29.0-jre'

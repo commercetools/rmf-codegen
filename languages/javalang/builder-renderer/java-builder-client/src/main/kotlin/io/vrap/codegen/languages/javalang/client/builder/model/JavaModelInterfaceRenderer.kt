@@ -1,5 +1,6 @@
 package io.vrap.codegen.languages.javalang.client.builder.model
 
+import com.google.common.collect.Lists
 import com.google.inject.Inject
 import io.vrap.codegen.languages.extensions.hasSubtypes
 import io.vrap.codegen.languages.extensions.isPatternProperty
@@ -13,9 +14,8 @@ import io.vrap.rmf.codegen.rendring.utils.keepIndentation
 import io.vrap.rmf.codegen.types.VrapArrayType
 import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
-import io.vrap.rmf.raml.model.types.ArrayType
-import io.vrap.rmf.raml.model.types.ObjectType
-import io.vrap.rmf.raml.model.types.Property
+import io.vrap.rmf.raml.model.types.*
+import io.vrap.rmf.raml.model.types.Annotation
 import io.vrap.rmf.raml.model.types.util.TypesSwitch
 import org.eclipse.emf.ecore.EObject
 
@@ -23,6 +23,16 @@ class JavaModelInterfaceRenderer @Inject constructor(override val vrapTypeProvid
 
     override fun render(type: ObjectType): TemplateFile {
         val vrapType = vrapTypeProvider.doSwitch(type).toJavaVType() as VrapObjectType
+
+        val extends = Lists.newArrayList(type.type?.toVrapType()?.simpleName())
+                .plus(
+                    when (val ex = type.getAnnotation("java-extends") ) {
+                        is Annotation -> {
+                            (ex.value as StringInstance).value.escapeAll()
+                        }
+                        else -> null
+                    }
+                ).filterNotNull()
 
         val content= """
             |package ${vrapType.`package`};
@@ -45,7 +55,7 @@ class JavaModelInterfaceRenderer @Inject constructor(override val vrapTypeProvid
             |<${type.subTypesAnnotations()}>
             |<${JavaSubTemplates.generatedAnnotation}>
             |<${type.jsonDeserialize()}>
-            |public interface ${vrapType.simpleClassName} ${type.type?.toVrapType()?.simpleName()?.let { "extends $it" } ?: ""} {
+            |public interface ${vrapType.simpleClassName} ${if (extends.isNotEmpty()) { "extends ${extends.joinToString(separator = ", ")}" } else ""} {
             |
             |    <${type.getters().escapeAll()}>
             |
@@ -83,6 +93,7 @@ class JavaModelInterfaceRenderer @Inject constructor(override val vrapTypeProvid
             |@JsonSubTypes({
             |   <${this.subTypes
                     .filter { (it as ObjectType).discriminatorValue != null }
+                    .sortedBy { anyType -> anyType.name }
                     .map {
                         val vrapType = vrapTypeProvider.doSwitch(it) as VrapObjectType
                         "@JsonSubTypes.Type(value = ${vrapType.`package`.toJavaPackage()}.${vrapType.simpleClassName}Impl.class, name = \"${(it as ObjectType).discriminatorValue}\")" 
