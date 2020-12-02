@@ -113,6 +113,8 @@ fun UriParameter.renderUriParameter(): String {
             |- name: ${this.name}
             |  in: path
             |  required: ${this.required}
+            |  schema:
+            |    type: ${this.type.name ?: "string"}
         """.trimMargin().keepAngleIndent()
 }
 

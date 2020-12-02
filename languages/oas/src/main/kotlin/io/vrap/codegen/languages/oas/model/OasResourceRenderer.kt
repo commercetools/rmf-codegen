@@ -95,8 +95,8 @@ class OasResourceRenderer @Inject constructor(val api: Api, val vrapTypeProvider
             |${response.statusCode}:
             |  description: |-
             |    <<${response.description?.value?.trim() ?: response.statusCode}>>
-            |  content:
-            |    <<${response.bodies.joinToString("\n") { renderBody(it, method, response) } }>>
+            |  content:${if (response.bodies.size > 0) """
+            |    <<${response.bodies.joinToString("\n") { renderBody(it, method, response) } }>>""" else " {}"}
         """.trimMargin().keepAngleIndent()
     }
 
@@ -147,6 +147,12 @@ class OasResourceRenderer @Inject constructor(val api: Api, val vrapTypeProvider
             |  default: ${queryParameter.type.default.toYaml()}""" else ""}
             |  in: query
             |  required: ${queryParameter.required}
+            |  style: form
+            |  schema:
+            |    type: array
+            |    items:
+            |      type: ${queryParameter.type.name ?: "string"}
+            |  explode: true
         """.trimMargin().keepAngleIndent()
     }
 }
