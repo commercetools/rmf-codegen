@@ -9,6 +9,8 @@ import io.vrap.codegen.languages.csharp.modules.CsharpClientBuilderModule
 import io.vrap.codegen.languages.csharp.modules.CsharpModule
 import io.vrap.codegen.languages.java.base.JavaBaseTypes
 import io.vrap.codegen.languages.javalang.client.builder.module.JavaCompleteModule
+import io.vrap.codegen.languages.oas.model.OasBaseTypes
+import io.vrap.codegen.languages.oas.model.OasModelModule
 import io.vrap.codegen.languages.php.PhpBaseTypes
 import io.vrap.codegen.languages.php.base.PhpBaseModule
 import io.vrap.codegen.languages.php.model.PhpModelModule
@@ -43,8 +45,9 @@ enum class GenerationTarget {
     POSTMAN,
     RAML_DOC,
     CSHARP_CLIENT,
+    OAS,
 }
-const val ValidTargets = "JAVA_CLIENT, TYPESCRIPT_CLIENT, CSHARP_CLIENT, PHP_CLIENT, PHP_BASE, PHP_TEST, POSTMAN, RAML_DOC"
+const val ValidTargets = "JAVA_CLIENT, TYPESCRIPT_CLIENT, CSHARP_CLIENT, PHP_CLIENT, PHP_BASE, PHP_TEST, POSTMAN, RAML_DOC, OAS"
 
 @CommandLine.Command(name = "generate",description = ["Generate source code from a RAML specification."])
 class GenerateSubcommand : Callable<Int> {
@@ -180,6 +183,17 @@ class GenerateSubcommand : Callable<Int> {
                     )
                     val generatorModule = GeneratorModule(apiProvider, ramlConfig, RamldocBaseTypes)
                     GeneratorComponent(generatorModule, RamldocModelModule())
+                }
+                GenerationTarget.OAS -> {
+                    val ramlConfig = CodeGeneratorConfig(
+                            sharedPackage = generatorConfig.sharedPackage,
+                            basePackageName = generatorConfig.basePackageName,
+                            modelPackage = generatorConfig.modelPackage,
+                            clientPackage = generatorConfig.clientPackage,
+                            outputFolder = generatorConfig.outputFolder
+                    )
+                    val generatorModule = GeneratorModule(apiProvider, ramlConfig, OasBaseTypes)
+                    GeneratorComponent(generatorModule, OasModelModule())
                 }
             }
             generatorComponent.generateFiles()
