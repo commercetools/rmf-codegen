@@ -16,7 +16,10 @@ import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapScalarType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.modules.Api
+import io.vrap.rmf.raml.model.security.OAuth20Settings
+import io.vrap.rmf.raml.model.security.SecurityScheme
 import io.vrap.rmf.raml.model.types.*
+import io.vrap.rmf.raml.model.util.StringCaseFormat
 
 class OasRenderer @Inject constructor(val api: Api, override val vrapTypeProvider: VrapTypeProvider, @AllAnyTypes val anyTypeList: MutableList<AnyType>) : EObjectExtensions, FileProducer {
     @Inject
@@ -44,11 +47,38 @@ class OasRenderer @Inject constructor(val api: Api, override val vrapTypeProvide
             |
             |paths:
             |  <<${api.allContainedResources.sortedWith(compareBy { it.resourcePath }).joinToString("\n") { resourceRenderer.render(it).content }}>>
+            |
+            |components:
+            |  securitySchemes:
+            |    <<${api.securitySchemes.joinToString("\n") { renderScheme(it)}}>>
         """.trimMargin().keepAngleIndent()
 
         return TemplateFile(relativePath = "openapi.yaml",
                 content = content
         )
+    }
+
+    private fun renderScheme(scheme: SecurityScheme): String {
+        return """
+            |${scheme.name}:
+            |  <<${when(scheme.settings) {
+                is OAuth20Settings -> renderOAuth2(scheme.settings as OAuth20Settings)
+                else -> ""
+            }}>>
+        """.trimMargin().keepAngleIndent()
+    }
+
+    private fun renderOAuth2(scheme: OAuth20Settings): String {
+        return """
+            |type: oauth2
+            |flows:
+            |  <<${scheme.authorizationGrants.joinToString { """
+            |  ${StringCaseFormat.LOWER_CAMEL_CASE.apply(it)}:
+            |    tokenUrl: ${scheme.accessTokenUri}
+            |    scopes:
+            |      <<${scheme.scopes.distinct().joinToString("\": \"\"\n\"", "\"", "\": \"\"")}>>
+            |""".trimMargin().keepAngleIndent() }}>>
+        """.trimMargin().keepAngleIndent()
     }
 
 //    private fun oauth2(): TemplateFile {
