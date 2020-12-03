@@ -14,6 +14,13 @@ import io.vrap.rmf.codegen.rendring.*
 
 object JavaCompleteModule: AbstractModule() {
     override fun configure() {
+        val generators = Multibinder.newSetBinder(binder(), CodeGenerator::class.java)
+        generators.addBinding().to(ObjectTypeGenerator::class.java)
+        generators.addBinding().to(StringTypeGenerator::class.java)
+        generators.addBinding().to(FileGenerator::class.java)
+        generators.addBinding().to(ResourceGenerator::class.java)
+        generators.addBinding().to(MethodGenerator::class.java)
+
         val objectTypeBinder = Multibinder.newSetBinder(binder(), ObjectTypeRenderer::class.java)
         objectTypeBinder.addBinding().to(JavaModelInterfaceRenderer::class.java)
 
@@ -27,7 +34,7 @@ object JavaCompleteModule: AbstractModule() {
 
         val resourceTypeBinder = Multibinder.newSetBinder(binder(), ResourceRenderer::class.java)
         resourceTypeBinder.addBinding().to(JavaRequestBuilderResourceRenderer::class.java)
-        
+
         val methodTypeBinder = Multibinder.newSetBinder(binder(), MethodRenderer::class.java)
         methodTypeBinder.addBinding().to(JavaHttpRequestRenderer::class.java)
     }

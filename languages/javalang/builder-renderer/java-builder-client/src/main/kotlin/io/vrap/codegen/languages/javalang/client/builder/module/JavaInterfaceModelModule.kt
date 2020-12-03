@@ -13,6 +13,11 @@ import io.vrap.rmf.codegen.rendring.*
 
 object JavaInterfaceModelModule : AbstractModule() {
     override fun configure() {
+        val generators = Multibinder.newSetBinder(binder(), CodeGenerator::class.java)
+        generators.addBinding().to(ObjectTypeGenerator::class.java)
+        generators.addBinding().to(StringTypeGenerator::class.java)
+        generators.addBinding().to(FileGenerator::class.java)
+
         val objectTypeBinder = Multibinder.newSetBinder(JavaInterfaceModelModule.binder(), ObjectTypeRenderer::class.java)
         objectTypeBinder.addBinding().to(JavaModelInterfaceRenderer::class.java)
 

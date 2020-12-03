@@ -10,6 +10,7 @@ import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.types.ObjectType
 import io.vrap.rmf.raml.model.types.StringType
+import io.vrap.rmf.raml.model.types.UnionType
 import org.reactivestreams.Publisher
 import org.slf4j.LoggerFactory
 import kotlin.concurrent.fixedRateTimer
@@ -55,7 +56,8 @@ class FileGenerator: CodeGenerator {
 }
 class ObjectTypeGenerator @Inject constructor(allTypes: MutableList<ObjectType>) : CodeGeneratorImpl<ObjectTypeRenderer, ObjectType>(allTypes)
 class StringTypeGenerator @Inject constructor(@EnumStringTypes allTypes: MutableList<StringType>) : CodeGeneratorImpl<StringTypeRenderer, StringType>(allTypes)
+class UnionTypeGenerator @Inject constructor(allTypes: MutableList<UnionType>) : CodeGeneratorImpl<UnionTypeRenderer, UnionType>(allTypes)
 class PatternStringTypeGenerator @Inject constructor(@PatternStringTypes allTypes: MutableList<StringType>) : CodeGeneratorImpl<PatternStringTypeRenderer, StringType>(allTypes)
 class NamedScalarTypeGenerator @Inject constructor(@NamedScalarTypes allTypes: MutableList<StringType>) : CodeGeneratorImpl<NamedScalarTypeRenderer, StringType>(allTypes)
 class ResourceGenerator @Inject constructor(allTypes: MutableList<Resource>) : CodeGeneratorImpl<ResourceRenderer, Resource>(allTypes)
-class MethodTypeGenerator @Inject constructor(allTypes: MutableList<Method>) : CodeGeneratorImpl<MethodRenderer, Method>(allTypes)
+class MethodGenerator @Inject constructor(allTypes: MutableList<Method>) : CodeGeneratorImpl<MethodRenderer, Method>(allTypes)

@@ -3,12 +3,18 @@ package io.vrap.codegen.languages.php.model
 
 import com.google.inject.AbstractModule
 import com.google.inject.multibindings.Multibinder
-import io.vrap.codegen.languages.php.test.PhpRequestTestRenderer
 import io.vrap.rmf.codegen.rendring.*
 
 class PhpModelModule: AbstractModule() {
 
     override fun configure() {
+        val generators = Multibinder.newSetBinder(binder(), CodeGenerator::class.java)
+        generators.addBinding().to(ObjectTypeGenerator::class.java)
+        generators.addBinding().to(UnionTypeGenerator::class.java)
+        generators.addBinding().to(FileGenerator::class.java)
+        generators.addBinding().to(MethodGenerator::class.java)
+        generators.addBinding().to(ResourceGenerator::class.java)
+
         val objectTypeBinder = Multibinder.newSetBinder(binder(), ObjectTypeRenderer::class.java)
         objectTypeBinder.addBinding().to(PhpInterfaceObjectTypeRenderer::class.java)
         objectTypeBinder.addBinding().to(PhpObjectTypeRenderer::class.java)

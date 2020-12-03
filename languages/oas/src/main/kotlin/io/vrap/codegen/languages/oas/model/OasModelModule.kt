@@ -21,6 +21,9 @@ class OasModelModule : AbstractModule() {
 //        val resourceBinder = Multibinder.newSetBinder(binder(), ResourceRenderer::class.java)
 //        resourceBinder.addBinding().to(OasResourceRenderer::class.java)
 
+        val generators = Multibinder.newSetBinder(binder(), CodeGenerator::class.java)
+        generators.addBinding().to(FileGenerator::class.java)
+
         val fileBinder = Multibinder.newSetBinder(binder(), FileProducer::class.java)
         fileBinder.addBinding().to(OasRenderer::class.java)
 //        fileBinder.addBinding().to(RamlExampleRenderer::class.java)
