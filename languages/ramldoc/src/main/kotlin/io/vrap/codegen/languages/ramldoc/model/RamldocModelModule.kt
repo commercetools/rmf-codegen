@@ -6,6 +6,14 @@ import io.vrap.rmf.codegen.rendring.*
 
 class RamldocModelModule : AbstractModule() {
     override fun configure() {
+        val generators = Multibinder.newSetBinder(binder(), CodeGenerator::class.java)
+        generators.addBinding().to(ObjectTypeGenerator::class.java)
+        generators.addBinding().to(StringTypeGenerator::class.java)
+        generators.addBinding().to(PatternStringTypeGenerator::class.java)
+        generators.addBinding().to(NamedScalarTypeGenerator::class.java)
+        generators.addBinding().to(ResourceGenerator::class.java)
+        generators.addBinding().to(FileGenerator::class.java)
+
         val objectTypeBinder = Multibinder.newSetBinder(binder(), ObjectTypeRenderer::class.java)
         objectTypeBinder.addBinding().to(RamlObjectTypeRenderer::class.java)
 

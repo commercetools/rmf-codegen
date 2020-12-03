@@ -33,6 +33,9 @@ class CoreCodeGenerator @Inject constructor(val dataSink: DataSink,
     private val PARALLELISM = 100
 
     @Inject(optional = true)
+    lateinit var generators: MutableSet<CodeGenerator>
+
+    @Inject(optional = true)
     lateinit var objectTypeGenerators: MutableSet<ObjectTypeRenderer>
 
     @Inject(optional = true)
@@ -77,52 +80,57 @@ class CoreCodeGenerator @Inject constructor(val dataSink: DataSink,
             hash=${gitHash}
         """.trimIndent())))
 
-        if (::objectTypeGenerators.isInitialized) {
-            LOGGER.info("generating files for object types")
-            templateFiles.add(Flowable.fromIterable(objectTypeGenerators).flatMap { renderer -> Flowable.fromIterable(allObjectTypes).map { renderer.render(it) } } )
+        if (::generators.isInitialized) {
+            templateFiles.addAll(generators.flatMap { generator -> generator.generate() })
+        } else {
+            if (::objectTypeGenerators.isInitialized) {
+                LOGGER.info("generating files for object types")
+                templateFiles.add(Flowable.fromIterable(objectTypeGenerators).flatMap { renderer -> Flowable.fromIterable(allObjectTypes).map { renderer.render(it) } } )
+            }
+
+            if (::unionTypeGenerators.isInitialized) {
+                LOGGER.info("generating files for union types")
+                templateFiles.add(Flowable.fromIterable(unionTypeGenerators).flatMap { renderer -> Flowable.fromIterable(allUnionTypes).map { renderer.render(it) } } )
+
+            }
+
+            if (::enumStringTypeGenerators.isInitialized) {
+                LOGGER.info("generating files for enum string types")
+                templateFiles.add(Flowable.fromIterable(enumStringTypeGenerators).flatMap { renderer -> Flowable.fromIterable(allEnumStringTypes).map { renderer.render(it) } } )
+            }
+
+            if (::patternStringTypeGenerators.isInitialized) {
+                LOGGER.info("generating files for pattern string types")
+                templateFiles.add(Flowable.fromIterable(patternStringTypeGenerators).flatMap { renderer -> Flowable.fromIterable(allPatternStringTypes).map { renderer.render(it) } } )
+            }
+
+            if (::namedScalarTypeGenerators.isInitialized) {
+                LOGGER.info("generating files for named string types")
+                templateFiles.add(Flowable.fromIterable(namedScalarTypeGenerators).flatMap { renderer -> Flowable.fromIterable(allNamedScalarTypes).map { renderer.render(it) } } )
+            }
+
+            if (::allResourcesGenerators.isInitialized) {
+                LOGGER.info("generating files for resource collections")
+                templateFiles.add(Flowable.fromIterable(allResourcesGenerators).flatMap { renderer -> Flowable.fromIterable(allResourceCollections).map { renderer.render(it) } } )
+            }
+
+            if (::allResourceMethodGenerators.isInitialized) {
+                LOGGER.info("generating files for resource methods")
+                templateFiles.add(Flowable.fromIterable(allResourceMethodGenerators).flatMap { renderer -> Flowable.fromIterable(allResourceMethods).map { renderer.render(it) } } )
+            }
+
+            if (::allResourceGenerators.isInitialized) {
+                LOGGER.info("generating files for resource methods")
+                templateFiles.add(Flowable.fromIterable(allResourceGenerators).flatMap { renderer -> Flowable.fromIterable(allResources).map { renderer.render(it) } } )
+            }
+            if(::fileProducers.isInitialized){
+                LOGGER.info("generating types for file producers")
+                fileProducers.flatMap { it.produceFiles() }.map { dataSink.write(it) }
+                templateFiles.add(Flowable.fromIterable(fileProducers).flatMap { Flowable.fromIterable(it.produceFiles()) } )
+            }
         }
 
-        if (::unionTypeGenerators.isInitialized) {
-            LOGGER.info("generating files for union types")
-            templateFiles.add(Flowable.fromIterable(unionTypeGenerators).flatMap { renderer -> Flowable.fromIterable(allUnionTypes).map { renderer.render(it) } } )
 
-        }
-
-        if (::enumStringTypeGenerators.isInitialized) {
-            LOGGER.info("generating files for enum string types")
-            templateFiles.add(Flowable.fromIterable(enumStringTypeGenerators).flatMap { renderer -> Flowable.fromIterable(allEnumStringTypes).map { renderer.render(it) } } )
-        }
-
-        if (::patternStringTypeGenerators.isInitialized) {
-            LOGGER.info("generating files for pattern string types")
-            templateFiles.add(Flowable.fromIterable(patternStringTypeGenerators).flatMap { renderer -> Flowable.fromIterable(allPatternStringTypes).map { renderer.render(it) } } )
-        }
-
-        if (::namedScalarTypeGenerators.isInitialized) {
-            LOGGER.info("generating files for named string types")
-            templateFiles.add(Flowable.fromIterable(namedScalarTypeGenerators).flatMap { renderer -> Flowable.fromIterable(allNamedScalarTypes).map { renderer.render(it) } } )
-        }
-
-        if (::allResourcesGenerators.isInitialized) {
-            LOGGER.info("generating files for resource collections")
-            templateFiles.add(Flowable.fromIterable(allResourcesGenerators).flatMap { renderer -> Flowable.fromIterable(allResourceCollections).map { renderer.render(it) } } )
-        }
-
-        if (::allResourceMethodGenerators.isInitialized) {
-            LOGGER.info("generating files for resource methods")
-            templateFiles.add(Flowable.fromIterable(allResourceMethodGenerators).flatMap { renderer -> Flowable.fromIterable(allResourceMethods).map { renderer.render(it) } } )
-        }
-
-        if (::allResourceGenerators.isInitialized) {
-            LOGGER.info("generating files for resource methods")
-            templateFiles.add(Flowable.fromIterable(allResourceGenerators).flatMap { renderer -> Flowable.fromIterable(allResources).map { renderer.render(it) } } )
-        }
-
-        if(::fileProducers.isInitialized){
-            LOGGER.info("generating types for file producers")
-            fileProducers.flatMap { it.produceFiles() }.map { dataSink.write(it) }
-            templateFiles.add(Flowable.fromIterable(fileProducers).flatMap { Flowable.fromIterable(it.produceFiles()) } )
-        }
 
         Flowable.concat(templateFiles)
                 .observeOn(Schedulers.io())
