@@ -54,6 +54,7 @@ class FileGenerator: CodeGenerator {
         return templateFiles;
     }
 }
+
 class ObjectTypeGenerator @Inject constructor(allTypes: MutableList<ObjectType>) : CodeGeneratorImpl<ObjectTypeRenderer, ObjectType>(allTypes)
 class StringTypeGenerator @Inject constructor(@EnumStringTypes allTypes: MutableList<StringType>) : CodeGeneratorImpl<StringTypeRenderer, StringType>(allTypes)
 class UnionTypeGenerator @Inject constructor(allTypes: MutableList<UnionType>) : CodeGeneratorImpl<UnionTypeRenderer, UnionType>(allTypes)

@@ -125,7 +125,6 @@ class CoreCodeGenerator @Inject constructor(val dataSink: DataSink,
             }
             if(::fileProducers.isInitialized){
                 LOGGER.info("generating types for file producers")
-                fileProducers.flatMap { it.produceFiles() }.map { dataSink.write(it) }
                 templateFiles.add(Flowable.fromIterable(fileProducers).flatMap { Flowable.fromIterable(it.produceFiles()) } )
             }
         }
