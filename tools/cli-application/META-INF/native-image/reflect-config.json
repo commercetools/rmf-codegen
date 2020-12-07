@@ -1,0 +1,615 @@
+[
+{
+  "name":"com.fasterxml.jackson.databind.ser.Serializers[]"
+},
+{
+  "name":"com.google.common.util.concurrent.AbstractFuture",
+  "fields":[
+    {"name":"listeners", "allowUnsafeAccess":true}, 
+    {"name":"value", "allowUnsafeAccess":true}, 
+    {"name":"waiters", "allowUnsafeAccess":true}
+  ]
+},
+{
+  "name":"com.google.common.util.concurrent.AbstractFuture$Waiter",
+  "fields":[
+    {"name":"next", "allowUnsafeAccess":true}, 
+    {"name":"thread", "allowUnsafeAccess":true}
+  ]
+},
+{
+  "name":"com.google.inject.AbstractModule",
+  "allDeclaredMethods":true
+},
+{
+  "name":"com.google.inject.Module",
+  "allDeclaredMethods":true
+},
+{
+  "name":"com.google.inject.internal.Annotations",
+  "methods":[{"name":"determineWhetherToQuote","parameterTypes":[] }]
+},
+{
+  "name":"com.google.inject.internal.Element",
+  "allDeclaredMethods":true
+},
+{
+  "name":"com.google.inject.internal.InjectorShell$RootModule",
+  "allDeclaredMethods":true
+},
+{
+  "name":"com.google.inject.internal.InternalProviderInstanceBindingImpl$CyclicFactory",
+  "allDeclaredFields":true,
+  "allDeclaredMethods":true
+},
+{
+  "name":"com.google.inject.internal.InternalProviderInstanceBindingImpl$Factory",
+  "allDeclaredFields":true,
+  "allDeclaredMethods":true
+},
+{
+  "name":"com.google.inject.internal.ProviderMethod",
+  "allDeclaredFields":true,
+  "allDeclaredMethods":true
+},
+{
+  "name":"com.google.inject.internal.ProviderMethod$FastClassProviderMethod",
+  "allDeclaredFields":true,
+  "allDeclaredMethods":true
+},
+{
+  "name":"com.google.inject.internal.RealMultibinder",
+  "allDeclaredMethods":true
+},
+{
+  "name":"com.google.inject.internal.RealMultibinder$RealMultibinderCollectionOfProvidersProvider",
+  "allDeclaredFields":true,
+  "allDeclaredMethods":true
+},
+{
+  "name":"com.google.inject.internal.RealMultibinder$RealMultibinderProvider",
+  "allDeclaredFields":true,
+  "allDeclaredMethods":true
+},
+{
+  "name":"com.google.inject.internal.cglib.core.$MethodWrapper$MethodWrapperKey",
+  "allDeclaredMethods":true
+},
+{
+  "name":"com.google.inject.internal.cglib.core.$MethodWrapper$MethodWrapperKey$$$KeyFactoryByCGLIB$$e23ecb5d",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"com.google.inject.name.Named",
+  "allDeclaredMethods":true
+},
+{
+  "name":"com.google.inject.util.Modules$EmptyModule",
+  "allDeclaredMethods":true
+},
+{
+  "name":"io.vrap.codegen.languages.extensions.EObjectExtensions",
+  "allDeclaredMethods":true
+},
+{
+  "name":"io.vrap.codegen.languages.extensions.ExtensionsBase",
+  "allDeclaredMethods":true
+},
+{
+  "name":"io.vrap.codegen.languages.ramldoc.model.ApiRamlRenderer",
+  "allDeclaredFields":true,
+  "allDeclaredMethods":true,
+  "allDeclaredConstructors":true
+},
+{
+  "name":"io.vrap.codegen.languages.ramldoc.model.ApiRamlRenderer$$FastClassByGuice$$94af9549",
+  "methods":[{"name":"<init>","parameterTypes":["java.lang.Class"] }]
+},
+{
+  "name":"io.vrap.codegen.languages.ramldoc.model.RamlExampleRenderer",
+  "allDeclaredFields":true,
+  "allDeclaredMethods":true,
+  "allDeclaredConstructors":true
+},
+{
+  "name":"io.vrap.codegen.languages.ramldoc.model.RamlExampleRenderer$$FastClassByGuice$$57a5167d",
+  "methods":[{"name":"<init>","parameterTypes":["java.lang.Class"] }]
+},
+{
+  "name":"io.vrap.codegen.languages.ramldoc.model.RamlObjectTypeRenderer",
+  "allDeclaredFields":true,
+  "allDeclaredMethods":true,
+  "allDeclaredConstructors":true
+},
+{
+  "name":"io.vrap.codegen.languages.ramldoc.model.RamlObjectTypeRenderer$$FastClassByGuice$$4eb892cc",
+  "methods":[{"name":"<init>","parameterTypes":["java.lang.Class"] }]
+},
+{
+  "name":"io.vrap.codegen.languages.ramldoc.model.RamlResourceRenderer",
+  "allDeclaredFields":true,
+  "allDeclaredMethods":true,
+  "allDeclaredConstructors":true
+},
+{
+  "name":"io.vrap.codegen.languages.ramldoc.model.RamlResourceRenderer$$FastClassByGuice$$603f56c1",
+  "methods":[{"name":"<init>","parameterTypes":["java.lang.Class"] }]
+},
+{
+  "name":"io.vrap.codegen.languages.ramldoc.model.RamlScalarTypeRenderer",
+  "allDeclaredFields":true,
+  "allDeclaredMethods":true,
+  "allDeclaredConstructors":true
+},
+{
+  "name":"io.vrap.codegen.languages.ramldoc.model.RamlScalarTypeRenderer$$FastClassByGuice$$97c773f9",
+  "methods":[{"name":"<init>","parameterTypes":["java.lang.Class"] }]
+},
+{
+  "name":"io.vrap.codegen.languages.ramldoc.model.RamldocModelModule",
+  "allDeclaredMethods":true
+},
+{
+  "name":"io.vrap.rmf.codegen.cli.GenerateSubcommand",
+  "allDeclaredFields":true,
+  "allDeclaredMethods":true,
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.vrap.rmf.codegen.cli.RMFCommand",
+  "allDeclaredFields":true,
+  "allDeclaredMethods":true
+},
+{
+  "name":"io.vrap.rmf.codegen.cli.VerifySubcommand",
+  "allDeclaredFields":true,
+  "allDeclaredMethods":true
+},
+{
+  "name":"io.vrap.rmf.codegen.di.AllAnyTypes",
+  "allDeclaredMethods":true
+},
+{
+  "name":"io.vrap.rmf.codegen.di.ApiGitHash",
+  "allDeclaredMethods":true
+},
+{
+  "name":"io.vrap.rmf.codegen.di.BasePackageName",
+  "allDeclaredMethods":true
+},
+{
+  "name":"io.vrap.rmf.codegen.di.ClientPackageName",
+  "allDeclaredMethods":true
+},
+{
+  "name":"io.vrap.rmf.codegen.di.DefaultPackage",
+  "allDeclaredMethods":true
+},
+{
+  "name":"io.vrap.rmf.codegen.di.EnumStringTypes",
+  "allDeclaredMethods":true
+},
+{
+  "name":"io.vrap.rmf.codegen.di.GeneratorModule",
+  "allDeclaredMethods":true,
+  "allDeclaredConstructors":true
+},
+{
+  "name":"io.vrap.rmf.codegen.di.GeneratorModule$$FastClassByGuice$$941d88ff",
+  "methods":[{"name":"<init>","parameterTypes":["java.lang.Class"] }]
+},
+{
+  "name":"io.vrap.rmf.codegen.di.ModelPackageName",
+  "allDeclaredMethods":true
+},
+{
+  "name":"io.vrap.rmf.codegen.di.NamedScalarTypes",
+  "allDeclaredMethods":true
+},
+{
+  "name":"io.vrap.rmf.codegen.di.OutputFolder",
+  "allDeclaredMethods":true
+},
+{
+  "name":"io.vrap.rmf.codegen.di.PatternStringTypes",
+  "allDeclaredMethods":true
+},
+{
+  "name":"io.vrap.rmf.codegen.di.SharedPackageName",
+  "allDeclaredMethods":true
+},
+{
+  "name":"io.vrap.rmf.codegen.rendring.CoreCodeGenerator",
+  "allDeclaredFields":true,
+  "allDeclaredMethods":true,
+  "allDeclaredConstructors":true
+},
+{
+  "name":"io.vrap.rmf.codegen.rendring.CoreCodeGenerator$$FastClassByGuice$$e93edc7b",
+  "methods":[{"name":"<init>","parameterTypes":["java.lang.Class"] }]
+},
+{
+  "name":"io.vrap.rmf.codegen.rendring.FileProducer",
+  "allDeclaredMethods":true
+},
+{
+  "name":"io.vrap.rmf.codegen.rendring.NamedScalarTypeRenderer",
+  "allDeclaredMethods":true
+},
+{
+  "name":"io.vrap.rmf.codegen.rendring.ObjectTypeRenderer",
+  "allDeclaredMethods":true
+},
+{
+  "name":"io.vrap.rmf.codegen.rendring.PatternStringTypeRenderer",
+  "allDeclaredMethods":true
+},
+{
+  "name":"io.vrap.rmf.codegen.rendring.Renderer",
+  "allDeclaredMethods":true
+},
+{
+  "name":"io.vrap.rmf.codegen.rendring.ResourceRenderer",
+  "allDeclaredMethods":true
+},
+{
+  "name":"io.vrap.rmf.codegen.rendring.StringTypeRenderer",
+  "allDeclaredMethods":true
+},
+{
+  "name":"io.vrap.rmf.codegen.types.PackageProvider",
+  "allDeclaredFields":true,
+  "allDeclaredMethods":true,
+  "allDeclaredConstructors":true
+},
+{
+  "name":"io.vrap.rmf.codegen.types.PackageProvider$$FastClassByGuice$$730262b9",
+  "methods":[{"name":"<init>","parameterTypes":["java.lang.Class"] }]
+},
+{
+  "name":"io.vrap.rmf.codegen.types.VrapTypeProvider",
+  "allDeclaredFields":true,
+  "allDeclaredMethods":true,
+  "allDeclaredConstructors":true
+},
+{
+  "name":"io.vrap.rmf.codegen.types.VrapTypeProvider$$FastClassByGuice$$978128b4",
+  "methods":[{"name":"<init>","parameterTypes":["java.lang.Class"] }]
+},
+{
+  "name":"io.vrap.rmf.nodes.Node[]"
+},
+{
+  "name":"io.vrap.rmf.nodes.PropertyNode[]"
+},
+{
+  "name":"io.vrap.rmf.raml.model.modules.LibraryUse[]"
+},
+{
+  "name":"io.vrap.rmf.raml.model.resources.Method[]"
+},
+{
+  "name":"io.vrap.rmf.raml.model.resources.Resource[]"
+},
+{
+  "name":"io.vrap.rmf.raml.model.resources.UriParameter[]"
+},
+{
+  "name":"io.vrap.rmf.raml.model.responses.Body[]"
+},
+{
+  "name":"io.vrap.rmf.raml.model.responses.Response[]"
+},
+{
+  "name":"io.vrap.rmf.raml.model.security.SecuredBy[]"
+},
+{
+  "name":"io.vrap.rmf.raml.model.security.SecurityScheme[]"
+},
+{
+  "name":"io.vrap.rmf.raml.model.types.AnnotationTarget[]"
+},
+{
+  "name":"io.vrap.rmf.raml.model.types.Annotation[]"
+},
+{
+  "name":"io.vrap.rmf.raml.model.types.AnyAnnotationType[]"
+},
+{
+  "name":"io.vrap.rmf.raml.model.types.AnyType[]"
+},
+{
+  "name":"io.vrap.rmf.raml.model.types.Example[]"
+},
+{
+  "name":"io.vrap.rmf.raml.model.types.Header[]"
+},
+{
+  "name":"io.vrap.rmf.raml.model.types.Instance[]"
+},
+{
+  "name":"io.vrap.rmf.raml.model.types.PropertyValue[]"
+},
+{
+  "name":"io.vrap.rmf.raml.model.types.Property[]"
+},
+{
+  "name":"io.vrap.rmf.raml.model.types.QueryParameter[]"
+},
+{
+  "name":"java.io.Serializable",
+  "allDeclaredMethods":true
+},
+{
+  "name":"java.lang.Boolean",
+  "methods":[{"name":"parseBoolean","parameterTypes":["java.lang.String"] }]
+},
+{
+  "name":"java.lang.Byte",
+  "methods":[{"name":"parseByte","parameterTypes":["java.lang.String"] }]
+},
+{
+  "name":"java.lang.ClassLoader",
+  "methods":[{"name":"defineClass","parameterTypes":["java.lang.String","byte[]","int","int","java.security.ProtectionDomain"] }]
+},
+{
+  "name":"java.lang.Cloneable",
+  "allDeclaredMethods":true
+},
+{
+  "name":"java.lang.Comparable",
+  "allDeclaredMethods":true
+},
+{
+  "name":"java.lang.Double",
+  "methods":[{"name":"parseDouble","parameterTypes":["java.lang.String"] }]
+},
+{
+  "name":"java.lang.Float",
+  "methods":[{"name":"parseFloat","parameterTypes":["java.lang.String"] }]
+},
+{
+  "name":"java.lang.Integer",
+  "methods":[{"name":"parseInt","parameterTypes":["java.lang.String"] }]
+},
+{
+  "name":"java.lang.Iterable",
+  "allDeclaredMethods":true
+},
+{
+  "name":"java.lang.Long",
+  "methods":[{"name":"parseLong","parameterTypes":["java.lang.String"] }]
+},
+{
+  "name":"java.lang.Number",
+  "allDeclaredFields":true,
+  "allDeclaredMethods":true
+},
+{
+  "name":"java.lang.Object",
+  "allDeclaredFields":true,
+  "allDeclaredMethods":true
+},
+{
+  "name":"java.lang.Object[]"
+},
+{
+  "name":"java.lang.Short",
+  "methods":[{"name":"parseShort","parameterTypes":["java.lang.String"] }]
+},
+{
+  "name":"java.lang.String[]"
+},
+{
+  "name":"java.math.BigInteger",
+  "allDeclaredFields":true,
+  "allDeclaredMethods":true,
+  "allDeclaredConstructors":true
+},
+{
+  "name":"java.nio.file.Path"
+},
+{
+  "name":"java.nio.file.Paths",
+  "methods":[{"name":"get","parameterTypes":["java.lang.String","java.lang.String[]"] }]
+},
+{
+  "name":"java.sql.Connection"
+},
+{
+  "name":"java.sql.Date"
+},
+{
+  "name":"java.sql.Driver"
+},
+{
+  "name":"java.sql.DriverManager",
+  "methods":[
+    {"name":"getConnection","parameterTypes":["java.lang.String"] }, 
+    {"name":"getDriver","parameterTypes":["java.lang.String"] }
+  ]
+},
+{
+  "name":"java.sql.Time",
+  "methods":[{"name":"<init>","parameterTypes":["long"] }]
+},
+{
+  "name":"java.sql.Timestamp",
+  "methods":[{"name":"valueOf","parameterTypes":["java.lang.String"] }]
+},
+{
+  "name":"java.time.Duration",
+  "methods":[{"name":"parse","parameterTypes":["java.lang.CharSequence"] }]
+},
+{
+  "name":"java.time.Instant",
+  "methods":[{"name":"parse","parameterTypes":["java.lang.CharSequence"] }]
+},
+{
+  "name":"java.time.LocalDate",
+  "methods":[{"name":"parse","parameterTypes":["java.lang.CharSequence"] }]
+},
+{
+  "name":"java.time.LocalDateTime",
+  "methods":[{"name":"parse","parameterTypes":["java.lang.CharSequence"] }]
+},
+{
+  "name":"java.time.LocalTime",
+  "methods":[{"name":"parse","parameterTypes":["java.lang.CharSequence"] }]
+},
+{
+  "name":"java.time.MonthDay",
+  "methods":[{"name":"parse","parameterTypes":["java.lang.CharSequence"] }]
+},
+{
+  "name":"java.time.OffsetDateTime",
+  "methods":[{"name":"parse","parameterTypes":["java.lang.CharSequence"] }]
+},
+{
+  "name":"java.time.OffsetTime",
+  "methods":[{"name":"parse","parameterTypes":["java.lang.CharSequence"] }]
+},
+{
+  "name":"java.time.Period",
+  "methods":[{"name":"parse","parameterTypes":["java.lang.CharSequence"] }]
+},
+{
+  "name":"java.time.Year",
+  "methods":[{"name":"parse","parameterTypes":["java.lang.CharSequence"] }]
+},
+{
+  "name":"java.time.YearMonth",
+  "methods":[{"name":"parse","parameterTypes":["java.lang.CharSequence"] }]
+},
+{
+  "name":"java.time.ZoneId",
+  "methods":[{"name":"of","parameterTypes":["java.lang.String"] }]
+},
+{
+  "name":"java.time.ZoneOffset",
+  "methods":[{"name":"of","parameterTypes":["java.lang.String"] }]
+},
+{
+  "name":"java.time.ZonedDateTime",
+  "methods":[{"name":"parse","parameterTypes":["java.lang.CharSequence"] }]
+},
+{
+  "name":"java.util.AbstractCollection",
+  "allDeclaredFields":true,
+  "allDeclaredMethods":true
+},
+{
+  "name":"java.util.AbstractList",
+  "allDeclaredFields":true,
+  "allDeclaredMethods":true
+},
+{
+  "name":"java.util.Collection",
+  "allDeclaredMethods":true
+},
+{
+  "name":"java.util.List",
+  "allDeclaredMethods":true
+},
+{
+  "name":"java.util.RandomAccess",
+  "allDeclaredMethods":true
+},
+{
+  "name":"org.eclipse.emf.common.notify.NotifyingList",
+  "allDeclaredMethods":true
+},
+{
+  "name":"org.eclipse.emf.common.notify.impl.NotifyingListImpl",
+  "allDeclaredFields":true,
+  "allDeclaredMethods":true
+},
+{
+  "name":"org.eclipse.emf.common.util.AbstractEList",
+  "allDeclaredFields":true,
+  "allDeclaredMethods":true
+},
+{
+  "name":"org.eclipse.emf.common.util.BasicEList",
+  "allDeclaredFields":true,
+  "allDeclaredMethods":true
+},
+{
+  "name":"org.eclipse.emf.common.util.EList",
+  "allDeclaredMethods":true
+},
+{
+  "name":"org.eclipse.emf.ecore.EAnnotation[]"
+},
+{
+  "name":"org.eclipse.emf.ecore.EClassifier[]"
+},
+{
+  "name":"org.eclipse.emf.ecore.EEnumLiteral[]"
+},
+{
+  "name":"org.eclipse.emf.ecore.EGenericType[]"
+},
+{
+  "name":"org.eclipse.emf.ecore.EOperation[]"
+},
+{
+  "name":"org.eclipse.emf.ecore.EParameter[]"
+},
+{
+  "name":"org.eclipse.emf.ecore.EStructuralFeature$Setting",
+  "allDeclaredMethods":true
+},
+{
+  "name":"org.eclipse.emf.ecore.EStructuralFeature[]"
+},
+{
+  "name":"org.eclipse.emf.ecore.ETypeParameter[]"
+},
+{
+  "name":"org.eclipse.emf.ecore.impl.EStringToStringMapEntryImpl[]"
+},
+{
+  "name":"org.eclipse.emf.ecore.util.ComposedSwitch",
+  "allDeclaredFields":true,
+  "allDeclaredMethods":true
+},
+{
+  "name":"org.eclipse.emf.ecore.util.EObjectContainmentEList",
+  "allDeclaredFields":true,
+  "allDeclaredMethods":true,
+  "allDeclaredConstructors":true
+},
+{
+  "name":"org.eclipse.emf.ecore.util.EObjectEList",
+  "allDeclaredFields":true,
+  "allDeclaredMethods":true
+},
+{
+  "name":"org.eclipse.emf.ecore.util.EcoreEList",
+  "allDeclaredFields":true,
+  "allDeclaredMethods":true
+},
+{
+  "name":"org.eclipse.emf.ecore.util.InternalEList",
+  "allDeclaredMethods":true
+},
+{
+  "name":"org.eclipse.emf.ecore.util.InternalEList$Unsettable",
+  "allDeclaredMethods":true
+},
+{
+  "name":"org.eclipse.emf.ecore.util.NotifyingInternalEListImpl",
+  "allDeclaredFields":true,
+  "allDeclaredMethods":true
+},
+{
+  "name":"org.eclipse.emf.ecore.util.Switch",
+  "allDeclaredFields":true,
+  "allDeclaredMethods":true
+},
+{
+  "name":"sun.misc.Unsafe",
+  "allDeclaredFields":true
+}
+]

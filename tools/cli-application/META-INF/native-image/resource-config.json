@@ -1,0 +1,8 @@
+{
+  "resources":[
+    {"pattern":"\\Qbuiltin-types.raml\\E"}, 
+    {"pattern":"\\Qorg/eclipse/emf/ecore/plugin/EcorePlugin.class\\E"}, 
+    {"pattern":"\\Qorg/slf4j/impl/StaticLoggerBinder.class\\E"}
+  ],
+  "bundles":[]
+}

@@ -118,6 +118,8 @@ cd tools/cli-application/
 The native executable can then be found at `./tools/cli-application/build/graal/rmf-codegen`.
 It's currently only tested with Mac OS X. It emits error messages but the functionality works.
 
+The graalvm native image configuration has to be re-generated regulary using the `tools/cli-application/generate-graal-config.sh` script.
+
 ### Why did we choose kotlin for writing our code generators?
 
 We choose kotlin because of the following features:
