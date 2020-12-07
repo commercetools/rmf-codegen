@@ -18,8 +18,10 @@ apply plugin: 'com.palantir.graal'
 graal {
     mainClass 'io.vrap.rmf.codegen.cli.MainKt'
     outputName 'rmf-codegen'
+    graalVersion '20.3.0'
     javaVersion '11'
     // force building a native image and rather let if fail at runtime instead of building a fallback image
+    // see https://www.graalvm.org/reference-manual/native-image/Options/ for all options. 
     options.add("--allow-incomplete-classpath")
     // options.add("--report-unsupported-elements-at-runtime")
     options.add("--no-fallback")

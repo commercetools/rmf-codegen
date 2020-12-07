@@ -1,5 +1,11 @@
 [
 {
+  "name":"byte[]"
+},
+{
+  "name":"char[]"
+},
+{
   "name":"com.fasterxml.jackson.databind.ser.Serializers[]"
 },
 {
@@ -86,6 +92,9 @@
 {
   "name":"com.google.inject.util.Modules$EmptyModule",
   "allDeclaredMethods":true
+},
+{
+  "name":"int[]"
 },
 {
   "name":"io.vrap.codegen.languages.extensions.EObjectExtensions",
