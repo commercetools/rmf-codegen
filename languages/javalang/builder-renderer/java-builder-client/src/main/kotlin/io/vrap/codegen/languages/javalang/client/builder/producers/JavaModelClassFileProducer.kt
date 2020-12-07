@@ -9,6 +9,7 @@ import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.FileProducer
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
 import io.vrap.rmf.codegen.rendring.utils.keepIndentation
+import io.vrap.rmf.codegen.rendring.utils.keepSingleAngleIndent
 import io.vrap.rmf.codegen.types.VrapArrayType
 import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
@@ -41,7 +42,9 @@ class JavaModelClassFileProducer @Inject constructor(override val vrapTypeProvid
                 |import com.fasterxml.jackson.annotation.JsonInclude;
                 |import com.fasterxml.jackson.annotation.JsonCreator;
                 |import com.fasterxml.jackson.annotation.JsonProperty;
-                |
+                |import org.apache.commons.lang3.builder.EqualsBuilder;
+                |import org.apache.commons.lang3.builder.HashCodeBuilder;
+
                 |
                 |<${type.toComment().escapeAll()}>
                 |<${JavaSubTemplates.generatedAnnotation}>
@@ -54,6 +57,8 @@ class JavaModelClassFileProducer @Inject constructor(override val vrapTypeProvid
                 |    <${type.getters().escapeAll()}>
                 |
                 |    <${type.setters().escapeAll()}>
+                |
+                |    <${type.equalsMethod().escapeAll()}>
                 |
                 |}
         """.trimMargin().keepIndentation()
@@ -75,6 +80,51 @@ class JavaModelClassFileProducer @Inject constructor(override val vrapTypeProvid
             } else {
                 "private ${vrapType.fullClassName()} ${this.name.lowerCamelCase()};"
             }
+        }
+    }
+
+    private fun ObjectType.equalsMethod() : String {
+        val vrapType = vrapTypeProvider.doSwitch(this).toJavaVType() as VrapObjectType
+        return """
+            |@Override
+            |public boolean equals(Object o) {
+            |    if (this == o) return true;
+            |
+            |    if (o == null || getClass() != o.getClass()) return false;
+            |
+            |    ${vrapType.simpleClassName}Impl that = (${vrapType.simpleClassName}Impl) o;
+            |
+            |    return new EqualsBuilder()
+            |            <${this.allProperties.joinToString("\n") { it.equalsMethod() }}>
+            |            .isEquals();
+            |}
+            |
+            |@Override
+            |public int hashCode() {
+            |    return new HashCodeBuilder(17, 37)
+            |        <${this.allProperties.joinToString("\n") { it.hashMethod() }}>
+            |        .toHashCode();
+            |}
+        """.trimMargin().keepIndentation()
+    }
+
+    private fun Property.equalsMethod(): String {
+        if (this.isPatternProperty()) {
+            return ".append(values, that.values)"
+        } else if (this.name.equals("interface")) {
+            return ".append(_interface, that._interface)"
+        } else {
+            return ".append(${this.name.lowerCamelCase()}, that.${this.name.lowerCamelCase()})"
+        }
+    }
+
+    private fun Property.hashMethod(): String {
+        if (this.isPatternProperty()) {
+            return ".append(values)"
+        } else if (this.name.equals("interface")) {
+            return ".append(_interface)"
+        } else {
+            return ".append(${this.name.lowerCamelCase()})"
         }
     }
 
