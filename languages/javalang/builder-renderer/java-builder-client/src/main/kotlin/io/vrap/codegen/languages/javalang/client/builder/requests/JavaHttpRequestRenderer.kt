@@ -1,5 +1,6 @@
 package io.vrap.codegen.languages.javalang.client.builder.requests
 
+import com.google.common.collect.Lists
 import com.google.inject.Inject
 import io.vrap.codegen.languages.extensions.resource
 import io.vrap.codegen.languages.extensions.toComment
@@ -15,8 +16,10 @@ import io.vrap.rmf.codegen.types.VrapScalarType
 import io.vrap.rmf.codegen.types.VrapType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.resources.Method
+import io.vrap.rmf.raml.model.types.Annotation
 import io.vrap.rmf.raml.model.types.ArrayType
 import io.vrap.rmf.raml.model.types.QueryParameter
+import io.vrap.rmf.raml.model.types.StringInstance
 import io.vrap.rmf.raml.model.util.StringCaseFormat
 import org.eclipse.emf.ecore.EObject
 
@@ -29,6 +32,16 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
 
     override fun render(type: Method): TemplateFile {
         val vrapType = vrapTypeProvider.doSwitch(type as EObject) as VrapObjectType
+
+        val implements = Lists.newArrayList<String>()
+                .plus(
+                        when (val ex = type.getAnnotation("java-implements") ) {
+                            is Annotation -> {
+                                (ex.value as StringInstance).value.escapeAll()
+                            }
+                            else -> null
+                        }
+                ).filterNotNull()
 
         val content = """
             |package ${vrapType.`package`.toJavaPackage()};
@@ -60,7 +73,7 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
             |
             |<${type.toComment().escapeAll()}>
             |<${JavaSubTemplates.generatedAnnotation}>
-            |public class ${type.toRequestName()} extends ApiMethod\<${type.toRequestName()}, ${type.javaReturnType(vrapTypeProvider)}\> {
+            |public class ${type.toRequestName()} extends ApiMethod\<${type.toRequestName()}, ${type.javaReturnType(vrapTypeProvider)}\>${if (implements.isNotEmpty()) " implements ${implements.joinToString(", ")}" else ""} {
             |
             |    <${type.fields()}>
             |
