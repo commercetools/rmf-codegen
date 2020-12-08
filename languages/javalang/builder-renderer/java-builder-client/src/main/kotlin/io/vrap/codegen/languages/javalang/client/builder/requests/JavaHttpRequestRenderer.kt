@@ -60,7 +60,7 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
             |
             |<${type.toComment().escapeAll()}>
             |<${JavaSubTemplates.generatedAnnotation}>
-            |public class ${type.toRequestName()} extends ApiMethod\<${type.toRequestName()}\> {
+            |public class ${type.toRequestName()} extends ApiMethod\<${type.toRequestName()}, ${type.javaReturnType(vrapTypeProvider)}\> {
             |
             |    <${type.fields()}>
             |
@@ -236,13 +236,11 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
 
     private fun Method.executeBlockingMethod() : String {
         return """
-            |@SuppressWarnings("unchecked")
             |@Override
             |public ApiHttpResponse\<${this.javaReturnType(vrapTypeProvider)}\> executeBlocking(){
             |    return executeBlocking(Duration.ofSeconds(60));
             |}
             |
-            |@SuppressWarnings("unchecked")
             |@Override
             |public ApiHttpResponse\<${this.javaReturnType(vrapTypeProvider)}\> executeBlocking(Duration timeout){
             |    return blockingWait(execute(), timeout);
@@ -252,7 +250,6 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
 
     private fun Method.executeMethod() : String {
         return """
-            |@SuppressWarnings("unchecked")
             |@Override
             |public CompletableFuture\<ApiHttpResponse\<${this.javaReturnType(vrapTypeProvider)}\>\> execute(){
             |    return apiHttpClient().execute(this.createHttpRequest(), ${this.javaReturnType(vrapTypeProvider)}.class);
