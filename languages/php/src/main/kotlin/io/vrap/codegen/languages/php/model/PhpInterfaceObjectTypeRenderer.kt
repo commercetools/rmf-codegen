@@ -104,6 +104,7 @@ class PhpInterfaceObjectTypeRenderer @Inject constructor(override val vrapTypePr
             else -> emptyList<Property>()
         }
         return this.properties
+                .filter { it.getAnnotation("deprecated") == null }
                 .filter { superTypeAllProperties.none { property -> it.name == property.name } }
                 .joinToString(separator = "\n") { it.toPhpConstant() }
     }
@@ -124,10 +125,12 @@ class PhpInterfaceObjectTypeRenderer @Inject constructor(override val vrapTypePr
         val discriminator = this.discriminatorProperty()
         return this.properties
                 .filter { property -> property != discriminator }
+                .filter { it.getAnnotation("deprecated") == null }
                 .filter { !it.isPatternProperty() }.joinToString(separator = "\n\n") { it.setter() }
     }
 
     private fun ObjectType.getters() = this.properties
+            .filter { it.getAnnotation("deprecated") == null }
             .filter { !it.isPatternProperty() }.joinToString(separator = "\n\n") { it.getter() }
 
     private fun Property.setter(): String {

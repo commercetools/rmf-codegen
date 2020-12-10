@@ -63,6 +63,7 @@ class JavaModelDraftBuilderFileProducer @Inject constructor(override val vrapTyp
     }
 
     private fun ObjectType.fields() = this.allProperties
+            .filter { it.getAnnotation("deprecated") == null }
             .filter { it.name != this.discriminator() }
             .map { it.toField() }
             .joinToString(separator = "\n\n")
@@ -91,6 +92,7 @@ class JavaModelDraftBuilderFileProducer @Inject constructor(override val vrapTyp
         val vrapType = vrapTypeProvider.doSwitch(this).toJavaVType() as VrapObjectType
 
         return this.allProperties
+                .filter { it.getAnnotation("deprecated") == null }
                 .filter { it.name != this.discriminator() }
                 .map { assignment(it, vrapType) }.joinToString(separator = "\n\n")
     }
@@ -144,7 +146,11 @@ class JavaModelDraftBuilderFileProducer @Inject constructor(override val vrapTyp
     }
 
     private fun ObjectType.getters() : String {
-        return this.allProperties.filter { it.name != this.discriminator() }.map { it.getter() }.joinToString(separator = "\n\n")
+        return this.allProperties
+                .filter { it.getAnnotation("deprecated") == null }
+                .filter { it.name != this.discriminator() }
+                .map { it.getter() }
+                .joinToString(separator = "\n\n")
     }
 
     private fun Property.getter() : String {
@@ -177,6 +183,7 @@ class JavaModelDraftBuilderFileProducer @Inject constructor(override val vrapTyp
     private fun ObjectType.buildMethodBody() : String {
         val vrapType = vrapTypeProvider.doSwitch(this).toJavaVType() as VrapObjectType
         val constructorArguments = this.allProperties
+                .filter { it.getAnnotation("deprecated") == null }
                 .filter { it.name != this.discriminator() }
                 .map {
                     if(it.isPatternProperty()) {
@@ -204,6 +211,7 @@ class JavaModelDraftBuilderFileProducer @Inject constructor(override val vrapTyp
     private fun ObjectType.templateMethod(): String {
         val vrapType = vrapTypeProvider.doSwitch(this).toJavaVType() as VrapObjectType
         val fieldsAssignment : String = this.allProperties
+                .filter { it.getAnnotation("deprecated") == null }
                 .filter {it.name != this.discriminator()}
                 .map {
                     if(it.isPatternProperty()){

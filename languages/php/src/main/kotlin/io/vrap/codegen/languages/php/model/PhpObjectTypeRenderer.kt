@@ -127,9 +127,9 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
             | * @psalm-suppress MissingParamType
             | */
             |public function __construct(
-            |    <<${this.allProperties.filter { property -> property != discriminator }.filter { !it.isPatternProperty() }.joinToString(",\n") { it.toParam() }}>>
+            |    <<${this.allProperties.filter { it.getAnnotation("deprecated") == null }.filter { property -> property != discriminator }.filter { !it.isPatternProperty() }.joinToString(",\n") { it.toParam() }}>>
             |) {
-            |    <<${this.allProperties.filter { property -> property != discriminator }.filter { !it.isPatternProperty() }.joinToString("\n") { "$!this->${it.name} = $${it.name};" }}>>
+            |    <<${this.allProperties.filter { it.getAnnotation("deprecated") == null }.filter { property -> property != discriminator }.filter { !it.isPatternProperty() }.joinToString("\n") { "$!this->${it.name} = $${it.name};" }}>>
             |    ${if (discriminator != null) "$!this->${discriminator.name} = static::DISCRIMINATOR_VALUE;" else ""}
             |}
         """.trimMargin()
@@ -195,10 +195,12 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
         val discriminator = this.discriminatorProperty()
         return this.allProperties
                 .filter { property -> property != discriminator }
+                .filter { it.getAnnotation("deprecated") == null }
                 .filter { !it.isPatternProperty() }.joinToString(separator = "\n\n") { it.setter() }
     }
 
     private fun ObjectType.getters() = this.allProperties
+            .filter { it.getAnnotation("deprecated") == null }
             .filter { !it.isPatternProperty() }.joinToString(separator = "\n\n") { it.getter() }
 
     private fun ObjectType.unionGetters() = this.allProperties
@@ -206,7 +208,8 @@ class PhpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: V
 
     private fun ObjectType.serializer(): String {
         val dtProperties = this.allProperties
-            .filter { it.type is DateTimeOnlyType || it.type is DateTimeType || it.type is DateOnlyType || it.type is TimeOnlyType }
+                .filter { it.getAnnotation("deprecated") == null }
+                .filter { it.type is DateTimeOnlyType || it.type is DateTimeType || it.type is DateOnlyType || it.type is TimeOnlyType }
 
         if (dtProperties.isNotEmpty()) {
             return """

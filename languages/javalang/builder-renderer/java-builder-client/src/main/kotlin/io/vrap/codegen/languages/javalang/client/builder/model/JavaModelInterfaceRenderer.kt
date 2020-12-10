@@ -127,6 +127,7 @@ class JavaModelInterfaceRenderer @Inject constructor(override val vrapTypeProvid
     }
 
     private fun ObjectType.getters() = this.properties
+            .filter { it.getAnnotation("deprecated") == null }
             .map { it.getter() }
             .joinToString(separator = "\n")
 
@@ -149,6 +150,7 @@ class JavaModelInterfaceRenderer @Inject constructor(override val vrapTypeProvid
     }
 
     private fun ObjectType.setters() = this.properties
+            .filter { it.getAnnotation("deprecated") == null }
             .filter { it.name != this.discriminator() }
             .map { it.setter() }
             .joinToString(separator = "\n\n")
@@ -200,6 +202,7 @@ class JavaModelInterfaceRenderer @Inject constructor(override val vrapTypeProvid
         }else {
             val vrapType = vrapTypeProvider.doSwitch(this) as VrapObjectType
             val fieldsAssignment : String = this.allProperties
+                    .filter { it.getAnnotation("deprecated") == null }
                     .filter {it.name != this.discriminator()}
                     .map {
                         if(!it.isPatternProperty()){
