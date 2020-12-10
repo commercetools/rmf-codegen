@@ -26,12 +26,14 @@ class JavaApiRootFileProducer @Inject constructor(@ClientPackageName val clientP
             |
             |import io.vrap.rmf.base.client.ApiHttpClient;
             |
+            |import java.io.Closeable;
+            |import java.io.IOException;
             |import java.util.List;
             |import java.util.Arrays;
             |import io.vrap.rmf.base.client.utils.Generated;
             |
             |<${JavaSubTemplates.generatedAnnotation}>
-            |public class ApiRoot {
+            |public class ApiRoot implements Closeable {
             |
             |    private final ApiHttpClient apiHttpClient;
             |
@@ -45,6 +47,10 @@ class JavaApiRootFileProducer @Inject constructor(@ClientPackageName val clientP
             |
             |    <${api.subResources()}>
             |
+            |    @Override
+            |    public void close() throws IOException {
+            |        apiHttpClient.close();
+            |    }
             |}
         """.trimMargin().keepIndentation()
 
