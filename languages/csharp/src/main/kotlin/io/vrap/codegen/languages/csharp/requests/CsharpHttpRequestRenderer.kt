@@ -92,7 +92,7 @@ class CsharpHttpRequestRenderer @Inject constructor(override val vrapTypeProvide
                 if(methodBodyVrapType.`package`=="")
                     "private ${methodBodyVrapType.simpleClassName} ${methodBodyVrapType.simpleClassName.capitalize()};"
                 else
-                    "private ${methodBodyVrapType.`package`.toCsharpPackage()}.${methodBodyVrapType.simpleClassName} ${methodBodyVrapType.simpleClassName.capitalize()};"
+                    "private ${methodBodyVrapType.`package`.toCsharpPackage()}.I${methodBodyVrapType.simpleClassName} ${methodBodyVrapType.simpleClassName.capitalize()};"
             }else {
                 "private JsonElement jsonNode;"
             }
@@ -131,7 +131,7 @@ class CsharpHttpRequestRenderer @Inject constructor(override val vrapTypeProvide
                 if(methodBodyVrapType.`package`=="")
                     methodBodyArgument = "${methodBodyVrapType.simpleClassName} ${methodBodyVrapType.simpleClassName.decapitalize()}"
                 else
-                    methodBodyArgument = "${methodBodyVrapType.`package`.toCsharpPackage()}.${methodBodyVrapType.simpleClassName} ${methodBodyVrapType.simpleClassName.decapitalize()}"
+                    methodBodyArgument = "${methodBodyVrapType.`package`.toCsharpPackage()}.I${methodBodyVrapType.simpleClassName} ${methodBodyVrapType.simpleClassName.decapitalize()}"
                 constructorArguments.add(methodBodyArgument)
                 val methodBodyAssignment = "this.${methodBodyVrapType.simpleClassName.capitalize()} = ${methodBodyVrapType.simpleClassName.decapitalize()};"
                 constructorAssignments.add(methodBodyAssignment)

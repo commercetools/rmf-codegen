@@ -59,21 +59,9 @@ class CsharpModelInterfaceRenderer @Inject constructor(override val vrapTypeProv
             .map { it.toCsharpProperty(this) }.joinToString(separator = "\n\n")
 
     private fun Property.toCsharpProperty(objectType: ObjectType): String {
-
-        val isEnumProp = this.type.toVrapType() is VrapEnumType
-        val isListOfEnumProp = this.type.toVrapType() is VrapArrayType && (this.type.toVrapType() as VrapArrayType).itemType is VrapEnumType
         val propName = this.name.capitalize()
         val typeName = this.type.toVrapType().simpleName()
         var overrideProp = this.shouldOverrideThisProperty(objectType)
-
-        if(isEnumProp || isListOfEnumProp)
-        {
-            val pType = if (isEnumProp) "string" else """List\<string\>"""
-            val pEnumType = if(isEnumProp) typeName else (this.type.toVrapType() as VrapArrayType).itemType.simpleName()
-            return  """$pType $propName { get; set;}
-                        |
-                        |$typeName ${propName}AsEnum { get; }"""
-        }
 
         var nullableChar = if(!this.required && this.type.toVrapType().isValueType()) "?" else ""
         var newKeyword = if(overrideProp) "new " else ""

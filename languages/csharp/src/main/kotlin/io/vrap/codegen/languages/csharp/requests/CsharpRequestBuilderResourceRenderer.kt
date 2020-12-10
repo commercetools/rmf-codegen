@@ -114,7 +114,7 @@ class CsharpRequestBuilderResourceRenderer @Inject constructor(val api: Api, ove
                 if(methodBodyVrapType.`package`=="")
                     methodBodyArgument = "${methodBodyVrapType.simpleClassName} ${methodBodyVrapType.simpleClassName.decapitalize()}"
                 else
-                    methodBodyArgument = "${methodBodyVrapType.`package`}.${methodBodyVrapType.simpleClassName} ${methodBodyVrapType.simpleClassName.decapitalize()}"
+                    methodBodyArgument = "${methodBodyVrapType.`package`}.I${methodBodyVrapType.simpleClassName} ${methodBodyVrapType.simpleClassName.decapitalize()}"
                 methodBodyArgument
             } else {
                 "JsonElement jsonNode"

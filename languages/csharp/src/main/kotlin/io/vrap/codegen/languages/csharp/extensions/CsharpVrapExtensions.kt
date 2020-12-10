@@ -8,7 +8,7 @@ fun VrapType.simpleName(): String {
     return when (this) {
         is VrapScalarType -> this.scalarType
         is VrapDateTimeType -> this.simpleClassName
-        is VrapEnumType -> this.simpleClassName
+        is VrapEnumType -> "I"+this.simpleClassName
         is VrapObjectType -> if(this.simpleClassName == "DateTime" || this.simpleClassName == "Object") this.simpleClassName else "I${this.simpleClassName}"
         is VrapAnyType -> this.baseType
         is VrapArrayType -> """List\<${this.itemType.simpleName()}\>"""
