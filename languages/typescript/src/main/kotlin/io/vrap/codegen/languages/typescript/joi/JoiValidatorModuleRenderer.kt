@@ -82,10 +82,10 @@ class JoiValidatorModuleRenderer @Inject constructor(override val vrapTypeProvid
                 .filterIsInstance(ObjectType::class.java)
                 .filter { !it.discriminatorValue.isNullOrEmpty() }
                 .map {
-                    "${it.toVrapType().simpleJoiName()}()"
-                }.joinToString(separator = ", ")
+                    "when(Joi.object({ '${this.discriminator}': '${it.discriminatorValue}' }).unknown(), {then: ${it.toVrapType().simpleJoiName()}()} )"
+                }.joinToString(separator = ".")
 
-            schemaDeclaration = """schema.${toVrapType().simpleJoiName()} = Joi.lazy(() =\> Joi.alternatives([$allSubsCases]))"""
+            schemaDeclaration = """schema.${toVrapType().simpleJoiName()} = Joi.lazy(() =\> Joi.alternatives().$allSubsCases)"""
         } else {
             schemaDeclaration =  """schema.${toVrapType().simpleJoiName()} = <${renderPropertySchemas()}>"""
         }
