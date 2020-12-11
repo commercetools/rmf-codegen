@@ -64,15 +64,18 @@ class JoiValidatorModuleRenderer @Inject constructor(override val vrapTypeProvid
             |schema.${toVrapType().simpleJoiName()} = Joi.lazy(() =\> Joi.alternatives($arrayArg))
             |
         """
-        return (schemaDeclaration + toVrapType().renderSchemaExportFunction()).trimMargin()
+        return toVrapType().renderSchemaExportFunction(schemaDeclaration).trimMargin()
     }
 
-    fun VrapType.renderSchemaExportFunction(): String {
+    fun VrapType.renderSchemaExportFunction(schemaDeclaration: String): String {
         return """
             |export function ${simpleJoiName()}() : Joi.AnySchema {
+            |   if (!schema.${simpleJoiName()}) {
+            |     $schemaDeclaration
+            |   }
             |   return schema.${simpleJoiName()}
             |}
-        """
+        """.trimMargin()
     }
 
     fun ObjectType.renderJoiObjectSchema(): String {
@@ -89,7 +92,7 @@ class JoiValidatorModuleRenderer @Inject constructor(override val vrapTypeProvid
         } else {
             schemaDeclaration =  """schema.${toVrapType().simpleJoiName()} = <${renderPropertySchemas()}>"""
         }
-        return (schemaDeclaration + toVrapType().renderSchemaExportFunction()).trimIndent()
+        return toVrapType().renderSchemaExportFunction(schemaDeclaration).trimIndent()
     }
 
     fun ObjectType.renderPropertySchemas(): String {
@@ -106,20 +109,20 @@ class JoiValidatorModuleRenderer @Inject constructor(override val vrapTypeProvid
         val additionalProperties = this.additionalProperties?:true
         val unknown = if (additionalProperties) ".unknown()" else ""
         return if (patternProperties.isNullOrEmpty())
-            """ |Joi.lazy(() =\> Joi.object()${unknown}.keys({
+            """ |Joi.object()${unknown}.keys({
                 |   <$nonPatternProperties>
-                |}))
+                |})
             """.trimMargin()
         else {
             if (nonPatternProperties.isNotBlank())
                 """
-                |Joi.lazy(() =\> Joi.object().keys({
+                |Joi.object().keys({
                 |   <$nonPatternProperties>
-                |}))
+                |})
                 |$patternProperties
             """.trimMargin()
             else
-                "Joi.lazy(() =\\> Joi.object()<$patternProperties>)"
+                "Joi.object()<$patternProperties>"
         }
     }
 
