@@ -210,22 +210,40 @@ class CsharpHttpRequestRenderer @Inject constructor(override val vrapTypeProvide
         //only for post methods
         if(this.methodName.toLowerCase() == "post" && bodyName != null)
         {
-            bodyBlock = "\n\n" +
-                    """
-            |public override HttpRequestMessage Build()
-            |{
-            |   var request = base.Build();
-            |   if (SerializerService != null)
-            |   {
-            |       var body = this.SerializerService.Serialize(${bodyName});
-            |       if(!string.IsNullOrEmpty(body))
-            |       {
-            |           request.Content = new StringContent(body);
-            |       }
-            |   }
-            |   return request;
-            |}
-        """.trimMargin()
+            if(this.bodies[0].type.isFile())
+            {
+                bodyBlock = "\n\n" +
+                        """
+                    |public override HttpRequestMessage Build()
+                    |{
+                    |   var request = base.Build();
+                    |   if ($bodyName != null && $bodyName.Length \> 0)
+                    |   {
+                    |       request.Content = new StreamContent($bodyName);
+                    |   }
+                    |   return request;
+                    |}
+                """.trimMargin()
+            }
+            else
+            {
+                bodyBlock = "\n\n" +
+                        """
+                    |public override HttpRequestMessage Build()
+                    |{
+                    |   var request = base.Build();
+                    |   if (SerializerService != null)
+                    |   {
+                    |       var body = this.SerializerService.Serialize(${bodyName});
+                    |       if(!string.IsNullOrEmpty(body))
+                    |       {
+                    |           request.Content = new StringContent(body);
+                    |       }
+                    |   }
+                    |   return request;
+                    |}
+                """.trimMargin()
+            }
         }
         return executeBlock + bodyBlock
     }
