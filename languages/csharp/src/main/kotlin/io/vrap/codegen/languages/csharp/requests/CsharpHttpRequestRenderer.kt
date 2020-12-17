@@ -171,7 +171,7 @@ class CsharpHttpRequestRenderer @Inject constructor(override val vrapTypeProvide
             .filter { it.getAnnotation(PLACEHOLDER_PARAM_ANNOTATION, true) == null }
             .map { """
                 |public List<string> Get${it.fieldName().capitalize()}() {
-                |    return this.GetQueryParam("${it.fieldName()}");
+                |    return this.GetQueryParam("${it.name}");
                 |}
                 """.trimMargin().escapeAll() }
             .joinToString(separator = "\n\n")
@@ -180,7 +180,7 @@ class CsharpHttpRequestRenderer @Inject constructor(override val vrapTypeProvide
             .filter { it.getAnnotation(PLACEHOLDER_PARAM_ANNOTATION, true) == null }
             .map { """
                 |public ${this.toRequestName()} With${it.fieldName().capitalize()}(${it.type.toVrapType().simpleName()} ${it.fieldName()}){
-                |    return this.AddQueryParam("${it.fieldName()}", ${it.fieldNameAsString(it.type.toVrapType().simpleName())});
+                |    return this.AddQueryParam("${it.name}", ${it.fieldNameAsString(it.type.toVrapType().simpleName())});
                 |}
             """.trimMargin().escapeAll() }
             .joinToString(separator = "\n\n")
