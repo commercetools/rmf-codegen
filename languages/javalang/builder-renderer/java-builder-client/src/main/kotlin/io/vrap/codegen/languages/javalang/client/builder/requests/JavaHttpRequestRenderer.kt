@@ -282,7 +282,7 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
             .filter { it.getAnnotation(PLACEHOLDER_PARAM_ANNOTATION, true) == null }
             .map { """
                 |public List<String> get${it.fieldName().capitalize()}() {
-                |    return this.getQueryParam("${it.fieldName()}");
+                |    return this.getQueryParam("${it.name}");
                 |}
                 """.trimMargin().escapeAll() }
             .joinToString(separator = "\n\n")
@@ -299,7 +299,7 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
             .filter { it.getAnnotation(PLACEHOLDER_PARAM_ANNOTATION, true) == null }
             .map { """
                 |public ${this.toRequestName()} with${it.fieldName().capitalize()}(final ${it.witherType()} ${it.fieldName()}){
-                |    return copy().addQueryParam("${it.fieldName()}", ${it.fieldName()});
+                |    return copy().addQueryParam("${it.name}", ${it.fieldName()});
                 |}
             """.trimMargin().escapeAll() }
             .joinToString(separator = "\n\n")
