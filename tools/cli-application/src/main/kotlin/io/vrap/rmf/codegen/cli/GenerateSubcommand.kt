@@ -22,6 +22,9 @@ import io.vrap.codegen.languages.ramldoc.model.RamldocModelModule
 import io.vrap.codegen.languages.typescript.client.TypescriptClientModule
 import io.vrap.codegen.languages.typescript.model.TypeScriptBaseTypes
 import io.vrap.codegen.languages.typescript.model.TypescriptModelModule
+import io.vrap.codegen.languages.python.client.PythonClientModule
+import io.vrap.codegen.languages.python.model.PythonBaseTypes
+import io.vrap.codegen.languages.python.model.PythonModelModule
 import io.vrap.rmf.codegen.CodeGeneratorConfig
 import io.vrap.rmf.codegen.di.ApiProvider
 import io.vrap.rmf.codegen.di.GeneratorComponent
@@ -46,8 +49,9 @@ enum class GenerationTarget {
     RAML_DOC,
     CSHARP_CLIENT,
     OAS,
+    PYTHON_CLIENT,
 }
-const val ValidTargets = "JAVA_CLIENT, TYPESCRIPT_CLIENT, CSHARP_CLIENT, PHP_CLIENT, PHP_BASE, PHP_TEST, POSTMAN, RAML_DOC, OAS"
+const val ValidTargets = "JAVA_CLIENT, TYPESCRIPT_CLIENT, CSHARP_CLIENT, PHP_CLIENT, PHP_BASE, PHP_TEST, POSTMAN, RAML_DOC, OAS, PYTHON_CLIENT"
 
 @CommandLine.Command(name = "generate",description = ["Generate source code from a RAML specification."])
 class GenerateSubcommand : Callable<Int> {
@@ -194,6 +198,10 @@ class GenerateSubcommand : Callable<Int> {
                     )
                     val generatorModule = GeneratorModule(apiProvider, ramlConfig, OasBaseTypes)
                     GeneratorComponent(generatorModule, OasModelModule())
+                }
+                GenerationTarget.PYTHON_CLIENT -> {
+                    val generatorModule = GeneratorModule(apiProvider, generatorConfig, PythonBaseTypes)
+                    GeneratorComponent(generatorModule, PythonModelModule, PythonClientModule)
                 }
             }
             generatorComponent.generateFiles()
