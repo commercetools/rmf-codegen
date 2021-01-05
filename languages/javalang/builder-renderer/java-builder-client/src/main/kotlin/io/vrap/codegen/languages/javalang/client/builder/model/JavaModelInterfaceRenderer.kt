@@ -135,11 +135,11 @@ class JavaModelInterfaceRenderer @Inject constructor(override val vrapTypeProvid
         }else {
             """
                 |public static ${vrapType.simpleClassName}Builder builder(){
-                |    return ${vrapType.simpleClassName}Builder::of();
+                |    return ${vrapType.simpleClassName}Builder.of();
                 |}
                 |
-                |public static ${vrapType.simpleClassName}Builder builder(final Cart template){
-                |    return ${vrapType.simpleClassName}Builder::of(template);
+                |public static ${vrapType.simpleClassName}Builder builder(final ${vrapType.simpleClassName} template){
+                |    return ${vrapType.simpleClassName}Builder.of(template);
                 |}
                 |
              """.trimMargin()
