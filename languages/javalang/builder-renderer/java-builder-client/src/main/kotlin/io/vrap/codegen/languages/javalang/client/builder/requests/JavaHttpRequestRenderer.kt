@@ -16,6 +16,7 @@ import io.vrap.rmf.codegen.types.VrapScalarType
 import io.vrap.rmf.codegen.types.VrapType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.resources.Method
+import io.vrap.rmf.raml.model.resources.Trait
 import io.vrap.rmf.raml.model.types.Annotation
 import io.vrap.rmf.raml.model.types.ArrayType
 import io.vrap.rmf.raml.model.types.QueryParameter
@@ -41,7 +42,11 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
                             }
                             else -> null
                         }
-                ).filterNotNull()
+                )
+                .plus(
+                        type.`is`.map { "${it.trait.className()}<${type.toRequestName()}>".escapeAll() }
+                )
+                .filterNotNull()
 
         val content = """
             |package ${vrapType.`package`.toJavaPackage()};
@@ -108,6 +113,12 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
                 relativePath = "${vrapType.`package`}.${type.toRequestName()}".replace(".", "/") + ".java",
                 content = content
         )
+    }
+
+    private fun Trait.className(): String {
+        val vrapType = vrapTypeProvider.doSwitch(this as EObject) as VrapObjectType
+
+        return "${vrapType.`package`.toJavaPackage()}.${vrapType.simpleClassName}"
     }
 
     private fun Method.constructor(): String? {

@@ -14,6 +14,7 @@ import io.vrap.rmf.raml.model.elements.NamedElement
 import io.vrap.rmf.raml.model.modules.Api
 import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Resource
+import io.vrap.rmf.raml.model.resources.Trait
 import io.vrap.rmf.raml.model.types.AnyType
 import io.vrap.rmf.raml.model.types.ObjectType
 import io.vrap.rmf.raml.model.types.StringType
@@ -149,6 +150,15 @@ class GeneratorModule constructor(
     @Provides
     @Singleton
     fun allResourceMethods(ramlApi: Api): List<Method> = ramlApi.allContainedResources.flatMap { it.methods }
+
+    @Provides
+    @Singleton
+    fun allTraits(ramlApi: Api): List<Trait> {
+        val result = mutableListOf<Trait>()
+        if (ramlApi.traits != null) result.addAll(ramlApi.traits)
+        ramlApi.uses?.forEach { if (it.library.traits != null) result.addAll(it.library.traits) }
+        return result
+    }
 
     @Provides
     @Singleton

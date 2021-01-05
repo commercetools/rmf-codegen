@@ -4,6 +4,7 @@ import com.google.common.base.CaseFormat
 import com.google.inject.Inject
 import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Resource
+import io.vrap.rmf.raml.model.resources.Trait
 import io.vrap.rmf.raml.model.resources.util.ResourcesSwitch
 
 class ResourcesTypeProvider @Inject constructor(val packageProvider: PackageProvider) : ResourcesSwitch<VrapType>() {
@@ -17,5 +18,9 @@ class ResourcesTypeProvider @Inject constructor(val packageProvider: PackageProv
     override fun caseMethod(method: Method): VrapType {
         val resource = method.eContainer() as Resource
         return VrapObjectType(packageProvider.doSwitch(method), "${classNameMapper.convert(resource.resourcePathName)}${method.methodName.capitalize()}")
+    }
+
+    override fun caseTrait(trait: Trait): VrapType {
+        return VrapObjectType(packageProvider.doSwitch(trait), "${classNameMapper.convert(trait.name)}Trait")
     }
 }

@@ -8,6 +8,7 @@ import io.vrap.rmf.codegen.di.PatternStringTypes
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Resource
+import io.vrap.rmf.raml.model.resources.Trait
 import io.vrap.rmf.raml.model.types.ObjectType
 import io.vrap.rmf.raml.model.types.StringType
 import io.vrap.rmf.raml.model.types.UnionType
@@ -62,3 +63,4 @@ class PatternStringTypeGenerator @Inject constructor(@PatternStringTypes allType
 class NamedScalarTypeGenerator @Inject constructor(@NamedScalarTypes allTypes: MutableList<StringType>) : CodeGeneratorImpl<NamedScalarTypeRenderer, StringType>(allTypes)
 class ResourceGenerator @Inject constructor(allTypes: MutableList<Resource>) : CodeGeneratorImpl<ResourceRenderer, Resource>(allTypes)
 class MethodGenerator @Inject constructor(allTypes: MutableList<Method>) : CodeGeneratorImpl<MethodRenderer, Method>(allTypes)
+class TraitGenerator @Inject constructor(allTypes: MutableList<Trait>) : CodeGeneratorImpl<TraitRenderer, Trait>(allTypes)

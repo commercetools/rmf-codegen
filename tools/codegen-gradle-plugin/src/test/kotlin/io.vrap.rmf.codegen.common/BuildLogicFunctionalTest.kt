@@ -94,12 +94,6 @@ class BuildLogicFunctionalTest {
         |               client_package = 'com.commercetools.client2'
         |               target = 'joiValidator'
         |          }
-        |          springClient {
-        |               path = file('import-api3/build/generated-classes')
-        |               models_package = 'com.commercetools.models2'
-        |               client_package = 'com.commercetools.client2'
-        |               target = 'javaSpringClient'
-        |          }
         |       }
         |    }
         |}

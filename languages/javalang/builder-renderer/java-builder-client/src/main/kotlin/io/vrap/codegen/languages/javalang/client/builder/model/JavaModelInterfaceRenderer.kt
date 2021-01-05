@@ -65,6 +65,8 @@ class JavaModelInterfaceRenderer @Inject constructor(override val vrapTypeProvid
             |
             |    <${type.templateMethodBody()}>
             |
+            |    <${type.staticBuilderMethod()}>
+            |
             |    default \<T\> T with${vrapType.simpleClassName}(Function\<${vrapType.simpleClassName}, T\> helper) {
             |        return helper.apply(this);
             |    }
@@ -118,8 +120,26 @@ class JavaModelInterfaceRenderer @Inject constructor(override val vrapTypeProvid
             ""
         }else {
             """
-                |public static ${vrapType.simpleClassName}Impl of(){
+                |public static ${vrapType.simpleClassName} of(){
                 |    return new ${vrapType.simpleClassName}Impl();
+                |}
+                |
+             """.trimMargin()
+        }
+    }
+
+    private fun ObjectType.staticBuilderMethod() : String {
+        val vrapType = vrapTypeProvider.doSwitch(this) as VrapObjectType
+        return if(this.isAbstract()) {
+            ""
+        }else {
+            """
+                |public static ${vrapType.simpleClassName}Builder builder(){
+                |    return ${vrapType.simpleClassName}Builder::of();
+                |}
+                |
+                |public static ${vrapType.simpleClassName}Builder builder(final Cart template){
+                |    return ${vrapType.simpleClassName}Builder::of(template);
                 |}
                 |
              """.trimMargin()
@@ -215,7 +235,7 @@ class JavaModelInterfaceRenderer @Inject constructor(override val vrapTypeProvid
                     .joinToString(separator = "\n")
 
             """
-            |public static ${vrapType.simpleClassName}Impl of(final ${vrapType.simpleClassName} template) {
+            |public static ${vrapType.simpleClassName} of(final ${vrapType.simpleClassName} template) {
             |    ${vrapType.simpleClassName}Impl instance = new ${vrapType.simpleClassName}Impl();
             |    <$fieldsAssignment>
             |    return instance;
