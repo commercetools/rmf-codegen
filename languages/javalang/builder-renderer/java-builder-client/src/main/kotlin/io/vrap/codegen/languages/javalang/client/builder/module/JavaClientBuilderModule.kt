@@ -14,6 +14,11 @@ import io.vrap.rmf.codegen.rendring.*
 
 object JavaClientBuilderModule: AbstractModule() {
     override fun configure() {
+        val generators = Multibinder.newSetBinder(binder(), CodeGenerator::class.java)
+        generators.addBinding().to(FileGenerator::class.java)
+        generators.addBinding().to(ResourceGenerator::class.java)
+        generators.addBinding().to(MethodGenerator::class.java)
+
         val fileTypeBinder = Multibinder.newSetBinder(binder(), FileProducer::class.java)
         fileTypeBinder.addBinding().to(JavaApiRootFileProducer::class.java)
         val resourceTypeBinder = Multibinder.newSetBinder(binder(), ResourceRenderer::class.java)

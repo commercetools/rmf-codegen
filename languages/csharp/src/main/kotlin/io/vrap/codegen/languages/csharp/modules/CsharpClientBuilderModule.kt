@@ -9,9 +9,13 @@ import io.vrap.rmf.codegen.rendring.*
 
 object CsharpClientBuilderModule: AbstractModule() {
     override fun configure() {
-       val resourceTypeBinder = Multibinder.newSetBinder(binder(), ResourceRenderer::class.java)
-       resourceTypeBinder.addBinding().to(CsharpRequestBuilderResourceRenderer::class.java)
-       val methodTypeBinder = Multibinder.newSetBinder(binder(), MethodRenderer::class.java)
+        val generators = Multibinder.newSetBinder(binder(), CodeGenerator::class.java)
+        generators.addBinding().to(MethodGenerator::class.java)
+        generators.addBinding().to(ResourceGenerator::class.java)
+
+        val resourceTypeBinder = Multibinder.newSetBinder(binder(), ResourceRenderer::class.java)
+        resourceTypeBinder.addBinding().to(CsharpRequestBuilderResourceRenderer::class.java)
+        val methodTypeBinder = Multibinder.newSetBinder(binder(), MethodRenderer::class.java)
         methodTypeBinder.addBinding().to(CsharpHttpRequestRenderer::class.java)
     }
 }
