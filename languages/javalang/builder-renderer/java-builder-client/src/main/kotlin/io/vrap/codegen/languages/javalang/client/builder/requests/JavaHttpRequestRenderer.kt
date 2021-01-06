@@ -261,11 +261,6 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
     private fun Method.executeBlockingMethod() : String {
         return """
             |@Override
-            |public ApiHttpResponse\<${this.javaReturnType(vrapTypeProvider)}\> executeBlocking(){
-            |    return executeBlocking(Duration.ofSeconds(60));
-            |}
-            |
-            |@Override
             |public ApiHttpResponse\<${this.javaReturnType(vrapTypeProvider)}\> executeBlocking(Duration timeout){
             |    return blockingWait(execute(), timeout);
             |}
