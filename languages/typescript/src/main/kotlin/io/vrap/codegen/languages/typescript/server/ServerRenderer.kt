@@ -136,9 +136,9 @@ class ServerRenderer @Inject constructor(
                         |   options: {
                         |      validate: {
                         |        <${if(it.hasBody()) "payload: ${it.bodies[0].type.toVrapType().simpleJoiName()}()," else ""}>
-                        |        params: {
+                        |        params: Joi.object({
                         |          <${it.resource().fullUri.variables.map { "$it: requiredString" }.joinToString(separator = ",\n")}>
-                        |        },
+                        |        }),
                         |        options: {
                         |          abortEarly: false
                         |        },
