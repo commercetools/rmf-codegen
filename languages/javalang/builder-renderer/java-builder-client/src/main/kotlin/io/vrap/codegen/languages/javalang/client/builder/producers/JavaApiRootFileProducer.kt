@@ -48,8 +48,10 @@ class JavaApiRootFileProducer @Inject constructor(@ClientPackageName val clientP
             |    <${api.subResources()}>
             |
             |    @Override
-            |    public void close() throws IOException {
-            |        apiHttpClient.close();
+            |    public void close() {
+            |        try {
+            |            apiHttpClient.close();
+            |        } catch (final Throwable ignored) { }
             |    }
             |}
         """.trimMargin().keepIndentation()
