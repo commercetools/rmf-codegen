@@ -312,13 +312,18 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
                 val template = o.value.stream().filter { propertyValue -> propertyValue.name == "template" }.findFirst().orElse(null).value as StringInstance
                 val value = "String.format(\"" + template.value.replace("<" + placeholder.value + ">", "%s") + "\", " + placeholder.value + ")"
 
-                val methodName = "with" + StringCaseFormat.UPPER_CAMEL_CASE.apply(paramName.value)
+                val methodName = StringCaseFormat.UPPER_CAMEL_CASE.apply(paramName.value)
                 val parameters =  "final String " + StringCaseFormat.LOWER_CAMEL_CASE.apply(placeholder.value) + ", final ${it.witherType()} " + paramName.value
 
                 return """
-                |public ${this.toRequestName()} $methodName($parameters){
+                |public ${this.toRequestName()} with$methodName($parameters){
+                |    return copy().withQueryParam($value, ${paramName.value});
+                |}
+                |
+                |public ${this.toRequestName()} add$methodName($parameters){
                 |    return copy().addQueryParam($value, ${paramName.value});
                 |}
+
             """.trimMargin().escapeAll()
 
             }
@@ -328,6 +333,10 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
             .filter { it.getAnnotation(PLACEHOLDER_PARAM_ANNOTATION, true) == null }
             .map { """
                 |public ${this.toRequestName()} with${it.fieldName().capitalize()}(final ${it.witherType()} ${it.fieldName()}){
+                |    return copy().withQueryParam("${it.name}", ${it.fieldName()});
+                |}
+                |
+                |public ${this.toRequestName()} add${it.fieldName().capitalize()}(final ${it.witherType()} ${it.fieldName()}){
                 |    return copy().addQueryParam("${it.name}", ${it.fieldName()});
                 |}
             """.trimMargin().escapeAll() }
