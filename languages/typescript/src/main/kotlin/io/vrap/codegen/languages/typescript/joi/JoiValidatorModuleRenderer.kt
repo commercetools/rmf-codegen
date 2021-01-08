@@ -34,10 +34,6 @@ class JoiValidatorModuleRenderer @Inject constructor(override val vrapTypeProvid
            |import * as Joi from 'joi'
            |${getImportsForJoiModule(moduleName, types)}
            |
-           |const schema = {
-           |  <${types.map { it.renderSchemaPlaceholder() }.joinToString(separator = ",\n")}>
-           |}
-           |
            |${types.filterNot { it is StringType && it.pattern != null }.map { it.renderJoiSchema() }.joinToString(separator = "\n\n")}
        """.trimMargin().keepIndentation()
         return TemplateFile(content, moduleName.replace(".", "/") + ".ts")
@@ -61,7 +57,7 @@ class JoiValidatorModuleRenderer @Inject constructor(override val vrapTypeProvid
         val arrayArg:String = this.getOneOf().map { "${it.toVrapType().simpleJoiName()}()"}
                 .joinToString(prefix = "[",separator = ",",postfix = "]")
         val schemaDeclaration = """
-            |schema.${toVrapType().simpleJoiName()} = Joi.lazy(() =\> Joi.alternatives($arrayArg))
+            |Joi.alternatives($arrayArg)
             |
         """
         return toVrapType().renderSchemaExportFunction(schemaDeclaration).trimMargin()
@@ -69,12 +65,7 @@ class JoiValidatorModuleRenderer @Inject constructor(override val vrapTypeProvid
 
     fun VrapType.renderSchemaExportFunction(schemaDeclaration: String): String {
         return """
-            |export function ${simpleJoiName()}() : Joi.AnySchema {
-            |   if (!schema.${simpleJoiName()}) {
-            |     $schemaDeclaration
-            |   }
-            |   return schema.${simpleJoiName()}
-            |}
+            |export const ${simpleJoiName()} = () =\> $schemaDeclaration
         """.trimMargin()
     }
 
@@ -85,12 +76,12 @@ class JoiValidatorModuleRenderer @Inject constructor(override val vrapTypeProvid
                 .filterIsInstance(ObjectType::class.java)
                 .filter { !it.discriminatorValue.isNullOrEmpty() }
                 .map {
-                    "when(Joi.object({ '${this.discriminator}': '${it.discriminatorValue}' }).unknown(), {then: ${it.toVrapType().simpleJoiName()}()} )"
-                }.joinToString(separator = ".")
+                    "Joi.link('#${it.toVrapType().simpleJoiName()}')"
+                }.joinToString(separator = ", ")
 
-            schemaDeclaration = """schema.${toVrapType().simpleJoiName()} = Joi.lazy(() =\> Joi.alternatives().$allSubsCases)"""
+            schemaDeclaration = """ Joi.alternatives().match('one').try($allSubsCases)"""
         } else {
-            schemaDeclaration =  """schema.${toVrapType().simpleJoiName()} = <${renderPropertySchemas()}>"""
+            schemaDeclaration =  """<${renderPropertySchemas()}>"""
         }
         return toVrapType().renderSchemaExportFunction(schemaDeclaration).trimIndent()
     }
@@ -128,7 +119,7 @@ class JoiValidatorModuleRenderer @Inject constructor(override val vrapTypeProvid
 
     fun Property.renderPropertyTypeSchema(current : ObjectType): String {
         val vrapType: VrapType = this.type.toVrapType()
-        val discriminatorConstraint = if (this == current.discriminatorProperty()) ".only('${current.discriminatorValue}')" else ""
+        val discriminatorConstraint = if (this == current.discriminatorProperty()) ".valid('${current.discriminatorValue}')" else ""
         val requiredConstraint = if (this.required) ".required()" else ".optional()"
         val maxConstraint = if (this.type is ArrayType && (this.type as ArrayType).maxItems != null) ".max(${(this.type as ArrayType).maxItems})" else ""
         return "${name}: ${vrapType.renderTypeRef()}${maxConstraint}${discriminatorConstraint}${requiredConstraint}"
@@ -155,8 +146,8 @@ class JoiValidatorModuleRenderer @Inject constructor(override val vrapTypeProvid
         |   <${this.enumFields()}>
         |]
         |
-        |export function ${vrapType.simpleJoiName()}(): Joi.AnySchema {
-        |   return Joi.string().only(${vrapType.simpleJoiName()}Values)
+        |export const ${vrapType.simpleJoiName()} = () =\> {
+        |   return Joi.string().valid(...${vrapType.simpleJoiName()}Values)
         |}
         """.trimMargin()
     }
