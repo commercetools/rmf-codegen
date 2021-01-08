@@ -17,10 +17,8 @@ import io.vrap.rmf.codegen.types.VrapType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Trait
+import io.vrap.rmf.raml.model.types.*
 import io.vrap.rmf.raml.model.types.Annotation
-import io.vrap.rmf.raml.model.types.ArrayType
-import io.vrap.rmf.raml.model.types.QueryParameter
-import io.vrap.rmf.raml.model.types.StringInstance
 import io.vrap.rmf.raml.model.util.StringCaseFormat
 import org.eclipse.emf.ecore.EObject
 
@@ -99,6 +97,8 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
             |    <${type.pathArgumentsSetters()}>
             |
             |    <${type.queryParamsSetters()}>
+            |
+            |    <${type.queryParamsTemplateSetters()}>
             |    
             |    @Override
             |    protected ${type.toRequestName()} copy()
@@ -300,6 +300,29 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
             else -> type.toVrapType().simpleName()
         }
     }
+
+    private fun Method.queryParamsTemplateSetters() : String = this.queryParameters
+            .filter { it.getAnnotation(PLACEHOLDER_PARAM_ANNOTATION, true) != null }
+            .map {
+                val anno = it.getAnnotation("placeholderParam", true)
+                val o = anno.value as ObjectInstance
+                val paramName = o.value.stream().filter { propertyValue -> propertyValue.name == "paramName" }.findFirst().orElse(null).value as StringInstance
+                val placeholder = o.value.stream().filter { propertyValue -> propertyValue.name == "placeholder" }.findFirst().orElse(null).value as StringInstance
+
+                val template = o.value.stream().filter { propertyValue -> propertyValue.name == "template" }.findFirst().orElse(null).value as StringInstance
+                val value = "String.format(\"" + template.value.replace("<" + placeholder.value + ">", "%s") + "\", " + placeholder.value + ")"
+
+                val methodName = "with" + StringCaseFormat.UPPER_CAMEL_CASE.apply(paramName.value)
+                val parameters =  "final String " + StringCaseFormat.LOWER_CAMEL_CASE.apply(placeholder.value) + ", final ${it.witherType()} " + paramName.value
+
+                return """
+                |public ${this.toRequestName()} $methodName($parameters){
+                |    return copy().addQueryParam($value, ${paramName.value});
+                |}
+            """.trimMargin().escapeAll()
+
+            }
+            .joinToString(separator = "\n\n")
 
     private fun Method.queryParamsSetters() : String = this.queryParameters
             .filter { it.getAnnotation(PLACEHOLDER_PARAM_ANNOTATION, true) == null }
