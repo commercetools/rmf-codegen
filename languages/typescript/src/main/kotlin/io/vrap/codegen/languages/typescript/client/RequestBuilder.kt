@@ -125,8 +125,8 @@ class RequestBuilder @Inject constructor(
                         val allQueryParamsOptional = it.queryParameters.map { !it.required }.reduce(Boolean::and)
                         queryParamsArg =
                                 """|queryArgs${if (allQueryParamsOptional) "?" else ""}: {
-                            |   <${it.queryParameters.filter { !it.isPatternProperty() }.map { "'${it.name}'${if (it.required) "" else "?"}: ${it.type.toVrapType().simpleTSName()}" }.joinToString(separator = "\n")}>
-                            |   [key: string]: QueryParam
+                            |   <${it.queryParameters.filter { !it.isPatternProperty() }.map { "'${it.name}'${if (it.required) "" else "?"}: ${it.parameterType()}" }.joinToString(separator = "\n")}>
+                            |   [key: string]: QueryParam | QueryParam[]
                             |},""".trimMargin()
                     }
                     if (!it.bodies.isEmpty()) {
@@ -179,6 +179,15 @@ class RequestBuilder @Inject constructor(
                     |
                  """.trimMargin()
                 }.joinToString(separator = "")
+    }
+
+
+    private fun QueryParameter.parameterType(): String {
+        val vrapType = this.type.toVrapType()
+        return when(vrapType) {
+            is VrapArrayType -> "${vrapType.itemType.simpleTSName()} | ${vrapType.simpleTSName()}"
+            else -> vrapType.simpleTSName()
+        }
     }
 
     fun Method.headersPartInMethodSigniture(): String {

@@ -20,9 +20,16 @@ class TestCodeGenerator {
 
     companion object {
         private val userProvidedPath = System.getenv("TEST_RAML_FILE")
+        private val userProvidedOutputPath = System.getenv("OUTPUT_FOLDER")
+
         private val apiPath : Path = Paths.get(if (userProvidedPath == null) "../../api-spec/api.raml" else userProvidedPath)
+        private val outputFolder : Path = Paths.get(if (userProvidedOutputPath == null) "build/gensrc" else userProvidedOutputPath)
+
         val apiProvider: ApiProvider = ApiProvider(apiPath)
-        val generatorConfig = CodeGeneratorConfig(basePackageName = "")
+        val generatorConfig = CodeGeneratorConfig(
+                basePackageName = "",
+                outputFolder = Paths.get("${outputFolder}")
+        )
     }
 
 
@@ -48,12 +55,12 @@ class TestCodeGenerator {
         val modelGeneratorComponent = GeneratorComponent(modelGeneratorModule, TypescriptModelModule)
         modelGeneratorComponent.generateFiles()
 
-        // Generate the server code 
+        // Generate the server code
         val serverGeneratorConfig = CodeGeneratorConfig(modelPackage = "",clientPackage = "")
         val serverGeneratorModule = GeneratorModule(apiProvider, serverGeneratorConfig, TypeScriptBaseTypes)
         val serverGeneratorComponent = GeneratorComponent(serverGeneratorModule, TypescriptServerModule)
         serverGeneratorComponent.generateFiles()
-        
+
 
     }
 
