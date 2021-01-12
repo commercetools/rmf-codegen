@@ -15,6 +15,7 @@ import io.vrap.rmf.codegen.types.VrapScalarType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.impl.ResourceImpl
+import io.vrap.rmf.raml.model.types.ArrayType
 import io.vrap.rmf.raml.model.types.QueryParameter
 import io.vrap.rmf.raml.model.util.StringCaseFormat
 import org.eclipse.emf.ecore.EObject
@@ -179,12 +180,19 @@ class CsharpHttpRequestRenderer @Inject constructor(override val vrapTypeProvide
     private fun Method.queryParamsSetters() : String = this.queryParameters
             .filter { it.getAnnotation(PLACEHOLDER_PARAM_ANNOTATION, true) == null }
             .map { """
-                |public ${this.toRequestName()} With${it.fieldName().capitalize()}(${it.type.toVrapType().simpleName()} ${it.fieldName()}){
-                |    return this.AddQueryParam("${it.name}", ${it.fieldNameAsString(it.type.toVrapType().simpleName())});
+                |public ${this.toRequestName()} With${it.fieldName().capitalize()}(${it.witherType()} ${it.fieldName()}){
+                |    return this.AddQueryParam("${it.name}", ${it.fieldNameAsString(it.witherType())});
                 |}
             """.trimMargin().escapeAll() }
             .joinToString(separator = "\n\n")
 
+    private fun QueryParameter.witherType() : String {
+        val type = this.type;
+        return when (type) {
+            is ArrayType -> type.items.toVrapType().simpleName()
+            else -> type.toVrapType().simpleName()
+        }
+    }
 
     private fun Method.executeAndBuild() : String {
         var executeBlock =
