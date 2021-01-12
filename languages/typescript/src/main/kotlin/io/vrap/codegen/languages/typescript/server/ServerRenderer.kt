@@ -142,9 +142,9 @@ class ServerRenderer @Inject constructor(
                         |        options: {
                         |          abortEarly: false
                         |        },
-                        |        query: {
+                        |        query: Joi.object({
                         |          <${it.queryParameters.map { "${it.name}: ${it.toJoiSchema()}" }.joinToString(separator = ",\n")}>
-                        |        },
+                        |        }),
                         |        failAction,
                         |      },${it.auth()}
                         |    }
