@@ -126,7 +126,7 @@ class RequestBuilder @Inject constructor(
                         queryParamsArg =
                                 """|queryArgs${if (allQueryParamsOptional) "?" else ""}: {
                             |   <${it.queryParameters.filter { !it.isPatternProperty() }.map { "'${it.name}'${if (it.required) "" else "?"}: ${it.parameterType()}" }.joinToString(separator = "\n")}>
-                            |   [key: string]: QueryParam | QueryParam[]
+                            |   [key: string]: QueryParam
                             |},""".trimMargin()
                     }
                     if (!it.bodies.isEmpty()) {
@@ -198,7 +198,7 @@ class RequestBuilder @Inject constructor(
                 .map { "'${it.name}': ${(it.type as StringType).enum.map { "'${it.value}'" }.joinToString(separator = " | ")}" }
                 .joinToString(separator = "\n")
         }>
-            |   [key:string]:string
+            |   [key:string]: string | string[]
             |},
         """.trimMargin()
     }
