@@ -18,6 +18,8 @@ class JoiValidatorModuleRenderer @Inject constructor(override val vrapTypeProvid
     @Inject
     @AllAnyTypes
     lateinit var allAnyTypes: MutableList<AnyType>
+    private var joiAlternativesTypes: MutableList<String> = ArrayList()
+    private var recursionTypes: MutableList<String> = ArrayList()
 
     override fun produceFiles(): List<TemplateFile> {
         return allAnyTypes.groupBy { it.moduleName() }
@@ -27,24 +29,26 @@ class JoiValidatorModuleRenderer @Inject constructor(override val vrapTypeProvid
     }
 
 
-    fun buildModule(moduleName: String, types: List<AnyType>): TemplateFile {
+    private fun buildModule(moduleName: String, types: List<AnyType>): TemplateFile {
+        val joiSchema = types.filterNot { it is StringType && it.pattern != null }.joinToString(separator = "\n\n") { it.renderJoiSchema() }
+
         val content = """
            |$tsGeneratedComment
            |
            |import * as Joi from 'joi'
            |${getImportsForJoiModule(moduleName, types)}
            |
-           |${types.filterNot { it is StringType && it.pattern != null }.map { it.renderJoiSchema() }.joinToString(separator = "\n\n")}
+           |$joiSchema
+           |
        """.trimMargin().keepIndentation()
+
+        joiAlternativesTypes.clear()
+        recursionTypes.clear()
         return TemplateFile(content, moduleName.replace(".", "/") + ".ts")
 
     }
 
-    fun AnyType.renderSchemaPlaceholder() : String {
-        return """<${toVrapType().simpleJoiName()}: null>"""
-    }
-
-    fun AnyType.renderJoiSchema(): String {
+    private fun AnyType.renderJoiSchema(): String {
         return when (this) {
             is ObjectType -> this.renderJoiObjectSchema()
             is StringType -> this.renderJoiStringSchema()
@@ -53,7 +57,7 @@ class JoiValidatorModuleRenderer @Inject constructor(override val vrapTypeProvid
         }
     }
 
-    fun UnionType.renderJoiUnionSchema():String {
+    private fun UnionType.renderJoiUnionSchema():String {
         val arrayArg:String = this.getOneOf().map { "${it.toVrapType().simpleJoiName()}()"}
                 .joinToString(prefix = "[",separator = ",",postfix = "]")
         val schemaDeclaration = """
@@ -63,40 +67,61 @@ class JoiValidatorModuleRenderer @Inject constructor(override val vrapTypeProvid
         return toVrapType().renderSchemaExportFunction(schemaDeclaration).trimMargin()
     }
 
-    fun VrapType.renderSchemaExportFunction(schemaDeclaration: String): String {
+    private fun VrapType.renderSchemaExportFunction(schemaDeclaration: String): String {
+        val attachedId = if(recursionTypes.contains(simpleJoiName())) ".id('${simpleJoiName()}')" else ""
         return """
-            |export const ${simpleJoiName()} = () =\> $schemaDeclaration
+            |export const ${simpleJoiName()} = () =\> ${schemaDeclaration}${attachedId}
         """.trimMargin()
     }
 
-    fun ObjectType.renderJoiObjectSchema(): String {
+    private fun ObjectType.renderJoiObjectSchema(): String {
         val schemaDeclaration : String
         if (this.hasSubtypes()) {
+            val parentType = this.toVrapType().simpleJoiName()
+            val sharedSchema: MutableList<String> = ArrayList()
             val allSubsCases = this.subTypes
-                .filterIsInstance(ObjectType::class.java)
-                .filter { !it.discriminatorValue.isNullOrEmpty() }
-                .map {
-                    "Joi.link('#${it.toVrapType().simpleJoiName()}')"
-                }.joinToString(separator = ", ")
+                    .filterIsInstance(ObjectType::class.java)
+                    .filter { !it.discriminatorValue.isNullOrEmpty() }
+                    .map {
+                        val typeName = it.toVrapType().simpleJoiName()
+                        val existMainType = it.allProperties
+                                .filter { !it.isPatternProperty() }
+                                .sortedWith(PropertiesComparator)
+                                .filter {
+                                    it.type.toVrapType().simpleJoiName() == parentType
+                                }
 
-            schemaDeclaration = """ Joi.alternatives().match('one').try($allSubsCases)"""
+                        if(existMainType.isNotEmpty()){
+                            sharedSchema.add("$typeName")
+                            recursionTypes.add("$typeName")
+
+                            "Joi.link('#$typeName')"
+                        } else "$typeName()"
+
+                    }.joinToString(separator = ", ")
+
+            val id = if(sharedSchema.isNotEmpty()) """.id('$parentType').${sharedSchema.joinToString(separator = ".") { "shared($it())" }}""" else ""
+            joiAlternativesTypes.add(this.toVrapType().simpleJoiName())
+
+            schemaDeclaration = """Joi.alternatives().try($allSubsCases)$id"""
+
         } else {
             schemaDeclaration =  """<${renderPropertySchemas()}>"""
         }
         return toVrapType().renderSchemaExportFunction(schemaDeclaration).trimIndent()
     }
 
-    fun ObjectType.renderPropertySchemas(): String {
-        val nonPatternProperties = this.allProperties
+    private fun ObjectType.renderPropertySchemas(): String {
+        val discriminatorProperty = this.allProperties
                 .filter { !it.isPatternProperty() }
                 .sortedWith(PropertiesComparator)
-                .map { it.renderPropertyTypeSchema(this) }
-                .joinToString(separator = ",\n")
-        val patternProperties = this.allProperties
-                .filter { it.isPatternProperty() }
-                .map { ".pattern(${it.asRegExp()}, ${it.type.toVrapType().simpleJoiName()}())" }
-                .joinToString(separator = "\n")
+                .contains(this.discriminatorProperty())
 
+        val nonPatternProperties = this.allProperties
+                .filter { !it.isPatternProperty() }
+                .sortedWith(PropertiesComparator).joinToString(separator = ",\n") { it.renderPropertyTypeSchema(this, discriminatorProperty) }
+        val patternProperties = this.allProperties
+                .filter { it.isPatternProperty() }.joinToString(separator = "\n") { ".pattern(${it.asRegExp()}, ${it.type.toVrapType().simpleJoiName()}())" }
         val additionalProperties = this.additionalProperties?:true
         val unknown = if (additionalProperties) ".unknown()" else ""
         return if (patternProperties.isNullOrEmpty())
@@ -117,15 +142,18 @@ class JoiValidatorModuleRenderer @Inject constructor(override val vrapTypeProvid
         }
     }
 
-    fun Property.renderPropertyTypeSchema(current : ObjectType): String {
+    private fun Property.renderPropertyTypeSchema(current : ObjectType, discriminatorProperty: Boolean): String {
         val vrapType: VrapType = this.type.toVrapType()
         val discriminatorConstraint = if (this == current.discriminatorProperty()) ".valid('${current.discriminatorValue}')" else ""
         val requiredConstraint = if (this.required) ".required()" else ".optional()"
         val maxConstraint = if (this.type is ArrayType && (this.type as ArrayType).maxItems != null) ".max(${(this.type as ArrayType).maxItems})" else ""
-        return "${name}: ${vrapType.renderTypeRef()}${maxConstraint}${discriminatorConstraint}${requiredConstraint}"
+        val joiLink = joiAlternativesTypes.contains(vrapType.simpleJoiName()) && discriminatorProperty
+        val joiSchema = if(joiLink)"Joi.link('#${vrapType.simpleJoiName()}')" else vrapType.renderTypeRef()
+
+        return "${name}: ${joiSchema}${maxConstraint}${discriminatorConstraint}${requiredConstraint}"
     }
 
-    fun VrapType.renderTypeRef(): String {
+    private fun VrapType.renderTypeRef(): String {
         return when (this) {
             is VrapArrayType -> {
                 "Joi.array().items(${this.itemType.renderTypeRef()})"
@@ -138,7 +166,7 @@ class JoiValidatorModuleRenderer @Inject constructor(override val vrapTypeProvid
         }
     }
 
-    fun StringType.renderJoiStringSchema(): String {
+    private fun StringType.renderJoiStringSchema(): String {
         val vrapType = this.toVrapType() as VrapEnumType
 
         return """
@@ -152,19 +180,19 @@ class JoiValidatorModuleRenderer @Inject constructor(override val vrapTypeProvid
         """.trimMargin()
     }
 
-    fun StringType.enumFields(): String = this.enumJsonNames()
+    private fun StringType.enumFields(): String = this.enumJsonNames()
         .map { "'$it'" }
         .joinToString(separator = ",\n")
 
 
-    fun StringType.enumJsonNames() = this.enum?.filter { it is StringInstance }
+    private fun StringType.enumJsonNames() = this.enum?.filter { it is StringInstance }
         ?.map { it as StringInstance }
         ?.map { it.value }
         ?.filterNotNull() ?: listOf()
 
-    fun Property.isPatternProperty() = this.name.startsWith("/") && this.name.endsWith("/")
+    private fun Property.isPatternProperty() = this.name.startsWith("/") && this.name.endsWith("/")
 
-    fun Property.asRegExp() = if (this.name.equals("//")) "/.*/" else this.name
+    private fun Property.asRegExp() = if (this.name.equals("//")) "/.*/" else this.name
 
     /**
      * in typescript optional properties should come after required ones
