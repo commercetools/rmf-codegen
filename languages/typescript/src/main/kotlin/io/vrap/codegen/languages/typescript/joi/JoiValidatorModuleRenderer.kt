@@ -1,5 +1,4 @@
 package io.vrap.codegen.languages.typescript.joi
-
 import com.google.inject.Inject
 import io.vrap.codegen.languages.extensions.discriminatorProperty
 import io.vrap.codegen.languages.extensions.hasSubtypes
@@ -18,8 +17,8 @@ class JoiValidatorModuleRenderer @Inject constructor(override val vrapTypeProvid
     @Inject
     @AllAnyTypes
     lateinit var allAnyTypes: MutableList<AnyType>
-    private var joiAlternativesTypes: MutableList<String> = ArrayList()
-    private var recursionTypes: MutableList<String> = ArrayList()
+    private var joiAlternativesTypes: List<String> = ArrayList()
+    private var recursionTypes: List<String> = ArrayList()
 
     override fun produceFiles(): List<TemplateFile> {
         return allAnyTypes.groupBy { it.moduleName() }
@@ -28,8 +27,9 @@ class JoiValidatorModuleRenderer @Inject constructor(override val vrapTypeProvid
                 .toList()
     }
 
-
     private fun buildModule(moduleName: String, types: List<AnyType>): TemplateFile {
+        recursionTypes = types.filterIsInstance<ObjectType>().flatMap { it.renderJoiObjectSchema().second }
+        joiAlternativesTypes = types.filterIsInstance<ObjectType>().flatMap { it.renderJoiObjectSchema().third }
         val joiSchema = types.filterNot { it is StringType && it.pattern != null }.joinToString(separator = "\n\n") { it.renderJoiSchema() }
 
         val content = """
@@ -42,15 +42,13 @@ class JoiValidatorModuleRenderer @Inject constructor(override val vrapTypeProvid
            |
        """.trimMargin().keepIndentation()
 
-        joiAlternativesTypes.clear()
-        recursionTypes.clear()
         return TemplateFile(content, moduleName.replace(".", "/") + ".ts")
 
     }
 
     private fun AnyType.renderJoiSchema(): String {
         return when (this) {
-            is ObjectType -> this.renderJoiObjectSchema()
+            is ObjectType -> this.renderJoiObjectSchema().first
             is StringType -> this.renderJoiStringSchema()
             is UnionType -> this.renderJoiUnionSchema()
             else -> throw IllegalArgumentException("unhandled case ${this.javaClass}")
@@ -74,7 +72,9 @@ class JoiValidatorModuleRenderer @Inject constructor(override val vrapTypeProvid
         """.trimMargin()
     }
 
-    private fun ObjectType.renderJoiObjectSchema(): String {
+    private fun ObjectType.renderJoiObjectSchema(): Triple<String, List<String>, List<String>> {
+        val recursionTypes = ArrayList<String>()
+        val joiAlternativesTypes = ArrayList<String>()
         val schemaDeclaration : String
         if (this.hasSubtypes()) {
             val parentType = this.toVrapType().simpleJoiName()
@@ -108,7 +108,7 @@ class JoiValidatorModuleRenderer @Inject constructor(override val vrapTypeProvid
         } else {
             schemaDeclaration =  """<${renderPropertySchemas()}>"""
         }
-        return toVrapType().renderSchemaExportFunction(schemaDeclaration).trimIndent()
+        return Triple(toVrapType().renderSchemaExportFunction(schemaDeclaration).trimIndent(), recursionTypes, joiAlternativesTypes)
     }
 
     private fun ObjectType.renderPropertySchemas(): String {
