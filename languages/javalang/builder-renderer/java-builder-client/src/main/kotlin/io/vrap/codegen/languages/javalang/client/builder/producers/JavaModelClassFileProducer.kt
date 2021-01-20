@@ -240,7 +240,7 @@ class JavaModelClassFileProducer @Inject constructor(override val vrapTypeProvid
                     if(enumName != "String"){
                         "this.${this.discriminator()} = $enumName.findEnum(\"${this.discriminatorValue}\");"
                     }else{
-                        "this.${this.discriminator()} =  ${vrapType.simpleClassName}.${this.discriminatorValue.enumValueName()};"
+                        "this.${this.discriminator()} =  ${this.discriminatorValue.enumValueName()};"
                     }
                 } else {
                     ""
