@@ -1,8 +1,8 @@
 import java.nio.file.Paths
 
 plugins {
-    id 'org.jetbrains.kotlin.jvm' version '1.4.20'
-    id "org.jetbrains.kotlin.kapt" version "1.4.20"
+    id 'org.jetbrains.kotlin.jvm' version '1.4.21'
+    id "org.jetbrains.kotlin.kapt" version "1.4.21"
 }
 
 compileKotlin {
@@ -14,11 +14,12 @@ compileTestKotlin {
 
 apply plugin: 'com.github.johnrengelman.shadow'
 apply plugin: 'com.palantir.graal'
+apply plugin: 'kotlin-kapt'
 
 graal {
     mainClass 'io.vrap.rmf.codegen.cli.MainKt'
     outputName 'rmf-codegen'
-    graalVersion '20.3.0'
+    graalVersion '21.0.0'
     javaVersion '11'
     // force building a native image and rather let if fail at runtime instead of building a fallback image
     // see https://www.graalvm.org/reference-manual/native-image/Options/ for all options. 
@@ -104,8 +105,8 @@ dependencies {
 
     compile 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
     compile 'com.google.guava:guava:30.0-jre'
-    compile 'info.picocli:picocli:4.5.2'
-    kapt 'info.picocli:picocli-codegen:4.5.2'
+    compile 'info.picocli:picocli:4.6.1'
+    kapt 'info.picocli:picocli-codegen:4.6.1'
     compile group: 'io.methvin', name: 'directory-watcher', version: '0.9.9'
     implementation "io.reactivex.rxjava3:rxjava:3.0.8"
 }
