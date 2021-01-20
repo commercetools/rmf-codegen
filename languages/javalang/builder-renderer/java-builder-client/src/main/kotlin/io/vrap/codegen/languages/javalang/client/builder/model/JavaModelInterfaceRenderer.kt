@@ -57,6 +57,8 @@ class JavaModelInterfaceRenderer @Inject constructor(override val vrapTypeProvid
             |<${type.jsonDeserialize()}>
             |public interface ${vrapType.simpleClassName} ${if (extends.isNotEmpty()) { "extends ${extends.joinToString(separator = ", ")}" } else ""} {
             |
+            |    <${type.discriminatorValueConst()}>
+            |
             |    <${type.getters().escapeAll()}>
             |
             |    <${type.setters().escapeAll()}>
@@ -88,17 +90,26 @@ class JavaModelInterfaceRenderer @Inject constructor(override val vrapTypeProvid
         }
     }
 
+    private fun ObjectType.discriminatorValueConst(): String {
+        if (this.discriminatorValue == null) return "";
+
+        return "String ${this.discriminatorValue.enumValueName()} = \"${this.discriminatorValue}\";";
+    }
+
     private fun ObjectType.subTypesAnnotations(): String {
         val vrapType = vrapTypeProvider.doSwitch(this).toJavaVType() as VrapObjectType
         return if (this.hasSubtypes())
             """
             |@JsonSubTypes({
-            |   <${this.subTypes
-                    .filter { (it as ObjectType).discriminatorValue != null }
+            |   <${
+                this.subTypes
+                    .asSequence()
+                    .filterIsInstance<ObjectType>()
+                    .filter { it.discriminatorValue != null }
                     .sortedBy { anyType -> anyType.name }
                     .map {
-                        val vrapType = vrapTypeProvider.doSwitch(it) as VrapObjectType
-                        "@JsonSubTypes.Type(value = ${vrapType.`package`.toJavaPackage()}.${vrapType.simpleClassName}Impl.class, name = \"${(it as ObjectType).discriminatorValue}\")" 
+                        val vrapSubType = vrapTypeProvider.doSwitch(it) as VrapObjectType
+                        "@JsonSubTypes.Type(value = ${vrapSubType.`package`.toJavaPackage()}.${vrapSubType.simpleClassName}Impl.class, name = ${vrapSubType.simpleClassName}.${it.discriminatorValue.enumValueName()})" 
                     }
                     .joinToString(separator = ",\n")}>
             |})
