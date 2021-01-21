@@ -46,7 +46,7 @@ gradlePlugin {
 
 pluginBundle {
     website = 'http://www.vrap.io/'
-    vcsUrl = 'https://github.com/vrapio/rmf-codegen/tree/master/codegen-gradle-plugin'
+    vcsUrl = 'https://github.com/vrapio/rmf-codegen/tree/main/codegen-gradle-plugin'
     plugins {
         gradlePlugin {
             id = 'io.vrap.rmf.codegen-plugin'

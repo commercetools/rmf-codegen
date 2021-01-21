@@ -21,7 +21,7 @@ The code generators are written in [kotlin](https://kotlinlang.org/).
 To install the rmf-codegen cli, run the following command
 
 ```
-curl -o- -s https://raw.githubusercontent.com/vrapio/rmf-codegen/master/scripts/install.sh | bash
+curl -o- -s https://raw.githubusercontent.com/vrapio/rmf-codegen/main/scripts/install.sh | bash
 ```
 
 You will find a new command available `rmf-codegen`, you can check that all is good by executing `rmf-codegen -v`
@@ -121,7 +121,7 @@ We choose kotlin because of the following features:
 - it has very good IDE support, which makes writing code generators very easy
 
 These features make developing code generators for different programming languges/frameworks very easy.
-An example of a Java Spring code generator can be found here: [codegen-renderers/src/main/kotlin/io/vrap/codegen/languages/java/client/SpringClientRenderer.kt](https://github.com/vrapio/rmf-codegen/blob/master/codegen-renderers/src/main/kotlin/io/vrap/codegen/languages/java/client/SpringClientRenderer.kt)
+An example of a Java Spring code generator can be found here: [codegen-renderers/src/main/kotlin/io/vrap/codegen/languages/java/client/SpringClientRenderer.kt](https://github.com/vrapio/rmf-codegen/blob/main/codegen-renderers/src/main/kotlin/io/vrap/codegen/languages/java/client/SpringClientRenderer.kt)
 
 # Running tests against your own RAML files
 
