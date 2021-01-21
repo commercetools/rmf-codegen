@@ -50,7 +50,6 @@ class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider:
             |package ${vrapType.`package`.toJavaPackage()};
             |
             |import io.vrap.rmf.base.client.utils.Utils;
-            |import io.vrap.rmf.base.client.utils.json.VrapJsonUtils;
             |
             |import java.io.InputStream;
             |import java.io.IOException;
