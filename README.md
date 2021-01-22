@@ -30,6 +30,13 @@ You will find a new command available `rmf-codegen`, you can check that all is g
 
 The [`commercetools-docs-kit`](https://github.com/commercetools/commercetools-docs-kit) provides an NPM package that automates the download of the JAR and provides the `rmf-codegen` command to JavaScript projects without global installation. (find at [NPM](https://www.npmjs.com/login?next=/package/@commercetools-docs/rmf-codegen))
 
+## Docker
+
+Docker images for the code generator are available in the Github Container Registry
+
+```
+docker pull docker.pkg.github.com/commercetools/rmf-codegen/codegen:latest
+```
 ## Usage
 
 General Usage:
