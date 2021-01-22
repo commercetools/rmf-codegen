@@ -7,7 +7,7 @@ import io.vrap.rmf.codegen.rendring.CoreCodeGenerator
 class GeneratorComponent(generatorModule: GeneratorModule, vararg modules:  Module) {
 
     private val coreCodeGenerator = CoreCodeGenerator(
-                FileDataSink(generatorModule.outpuFolder()),
+                generatorModule.dataSink(),
                 generatorModule.provideGitHash(),
                 modules.flatMap { module -> module.configure(generatorModule) }.toSet()
         )
