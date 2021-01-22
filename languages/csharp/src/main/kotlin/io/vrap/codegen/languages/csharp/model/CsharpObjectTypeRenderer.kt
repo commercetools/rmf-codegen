@@ -19,11 +19,7 @@ import io.vrap.rmf.raml.model.types.Property
 import io.vrap.rmf.raml.model.types.impl.ObjectTypeImpl
 
 
-class CsharpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : CsharpObjectTypeExtensions, EObjectExtensions, ObjectTypeRenderer {
-
-    @Inject
-    @BasePackageName
-    lateinit var basePackagePrefix:String
+class CsharpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider, private val basePackagePrefix: String) : CsharpObjectTypeExtensions, EObjectExtensions, ObjectTypeRenderer {
 
     override fun render(type: ObjectType): TemplateFile {
         val vrapType = vrapTypeProvider.doSwitch(type) as VrapObjectType

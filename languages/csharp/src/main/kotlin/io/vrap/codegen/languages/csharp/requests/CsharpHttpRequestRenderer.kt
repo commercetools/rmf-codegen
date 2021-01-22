@@ -22,11 +22,7 @@ import org.eclipse.emf.ecore.EObject
 
 const val PLACEHOLDER_PARAM_ANNOTATION = "placeholderParam"
 
-class CsharpHttpRequestRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : MethodRenderer, CsharpObjectTypeExtensions, EObjectExtensions {
-
-    @Inject
-    @BasePackageName
-    lateinit var basePackagePrefix:String
+class CsharpHttpRequestRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider, private val basePackagePrefix: String) : MethodRenderer, CsharpObjectTypeExtensions, EObjectExtensions {
 
     override fun render(type: Method): TemplateFile {
 

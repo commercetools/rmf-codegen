@@ -20,47 +20,37 @@ interface CodeGenerator {
     fun generate(): MutableList<Publisher<TemplateFile>>
 }
 
-abstract class CodeGeneratorImpl<TRenderer: Renderer<T>, T> @Inject constructor(private val allTypes: MutableList<T>): CodeGenerator {
+abstract class CodeGeneratorImpl<TRenderer: Renderer<T>, T> @Inject constructor(val generators: Set<TRenderer>, private val allTypes: List<T>): CodeGenerator {
     private val LOGGER = LoggerFactory.getLogger(CodeGenerator::class.java)
-
-    @Inject(optional = true)
-    lateinit var generators: MutableSet<TRenderer>
 
     override fun generate(): MutableList<Publisher<TemplateFile>> {
         val templateFiles :MutableList<Publisher<TemplateFile>> = mutableListOf()
 
-        if (::generators.isInitialized) {
-            LOGGER.info("generating files with " + this.javaClass.simpleName)
-            templateFiles.add(Flowable.fromIterable(generators).flatMap { renderer -> Flowable.fromIterable(allTypes).map { renderer.render(it) } } )
-        }
+        LOGGER.info("generating files with " + this.javaClass.simpleName)
+        templateFiles.add(Flowable.fromIterable(generators).flatMap { renderer -> Flowable.fromIterable(allTypes).map { renderer.render(it) } } )
 
         return templateFiles;
     }
 }
 
-class FileGenerator: CodeGenerator {
+class FileGenerator constructor(val fileProducers: Set<FileProducer>): CodeGenerator {
     private val LOGGER = LoggerFactory.getLogger(CodeGenerator::class.java)
-
-    @Inject(optional = true)
-    lateinit var fileProducers: MutableSet<FileProducer>
 
     override fun generate(): MutableList<Publisher<TemplateFile>> {
         val templateFiles :MutableList<Publisher<TemplateFile>> = mutableListOf()
 
-        if (::fileProducers.isInitialized) {
-            LOGGER.info("generating files with " + this.javaClass.simpleName)
-            templateFiles.add(Flowable.fromIterable(fileProducers).flatMap { Flowable.fromIterable(it.produceFiles()) })
-        }
+        LOGGER.info("generating files with " + this.javaClass.simpleName)
+        templateFiles.add(Flowable.fromIterable(fileProducers).flatMap { Flowable.fromIterable(it.produceFiles()) })
 
         return templateFiles;
     }
 }
 
-class ObjectTypeGenerator @Inject constructor(allTypes: MutableList<ObjectType>) : CodeGeneratorImpl<ObjectTypeRenderer, ObjectType>(allTypes)
-class StringTypeGenerator @Inject constructor(@EnumStringTypes allTypes: MutableList<StringType>) : CodeGeneratorImpl<StringTypeRenderer, StringType>(allTypes)
-class UnionTypeGenerator @Inject constructor(allTypes: MutableList<UnionType>) : CodeGeneratorImpl<UnionTypeRenderer, UnionType>(allTypes)
-class PatternStringTypeGenerator @Inject constructor(@PatternStringTypes allTypes: MutableList<StringType>) : CodeGeneratorImpl<PatternStringTypeRenderer, StringType>(allTypes)
-class NamedScalarTypeGenerator @Inject constructor(@NamedScalarTypes allTypes: MutableList<StringType>) : CodeGeneratorImpl<NamedScalarTypeRenderer, StringType>(allTypes)
-class ResourceGenerator @Inject constructor(allTypes: MutableList<Resource>) : CodeGeneratorImpl<ResourceRenderer, Resource>(allTypes)
-class MethodGenerator @Inject constructor(allTypes: MutableList<Method>) : CodeGeneratorImpl<MethodRenderer, Method>(allTypes)
-class TraitGenerator @Inject constructor(allTypes: MutableList<Trait>) : CodeGeneratorImpl<TraitRenderer, Trait>(allTypes)
+class ObjectTypeGenerator @Inject constructor(generators: Set<ObjectTypeRenderer>, allTypes: List<ObjectType>) : CodeGeneratorImpl<ObjectTypeRenderer, ObjectType>(generators, allTypes)
+class StringTypeGenerator @Inject constructor(generators: Set<StringTypeRenderer>, @EnumStringTypes allTypes: List<StringType>) : CodeGeneratorImpl<StringTypeRenderer, StringType>(generators, allTypes)
+class UnionTypeGenerator @Inject constructor(generators: Set<UnionTypeRenderer>, allTypes: List<UnionType>) : CodeGeneratorImpl<UnionTypeRenderer, UnionType>(generators, allTypes)
+class PatternStringTypeGenerator @Inject constructor(generators: Set<PatternStringTypeRenderer>, @PatternStringTypes allTypes: List<StringType>) : CodeGeneratorImpl<PatternStringTypeRenderer, StringType>(generators, allTypes)
+class NamedScalarTypeGenerator @Inject constructor(generators: Set<NamedScalarTypeRenderer>, @NamedScalarTypes allTypes: List<StringType>) : CodeGeneratorImpl<NamedScalarTypeRenderer, StringType>(generators, allTypes)
+class ResourceGenerator @Inject constructor(generators: Set<ResourceRenderer>, allTypes: List<Resource>) : CodeGeneratorImpl<ResourceRenderer, Resource>(generators, allTypes)
+class MethodGenerator @Inject constructor(generators: Set<MethodRenderer>, allTypes: List<Method>) : CodeGeneratorImpl<MethodRenderer, Method>(generators, allTypes)
+class TraitGenerator @Inject constructor(generators: Set<TraitRenderer>, allTypes: List<Trait>) : CodeGeneratorImpl<TraitRenderer, Trait>(generators, allTypes)

@@ -7,21 +7,21 @@ import io.reactivex.rxjava3.schedulers.Schedulers
 import io.vrap.codegen.languages.csharp.CsharpBaseTypes
 import io.vrap.codegen.languages.csharp.modules.CsharpClientBuilderModule
 import io.vrap.codegen.languages.csharp.modules.CsharpModule
-import io.vrap.codegen.languages.java.base.JavaBaseTypes
-import io.vrap.codegen.languages.javalang.client.builder.module.JavaCompleteModule
-import io.vrap.codegen.languages.oas.model.OasBaseTypes
-import io.vrap.codegen.languages.oas.model.OasModelModule
-import io.vrap.codegen.languages.php.PhpBaseTypes
-import io.vrap.codegen.languages.php.base.PhpBaseModule
-import io.vrap.codegen.languages.php.model.PhpModelModule
-import io.vrap.codegen.languages.php.test.PhpTestModule
-import io.vrap.codegen.languages.postman.model.PostmanBaseTypes
-import io.vrap.codegen.languages.postman.model.PostmanModelModule
-import io.vrap.codegen.languages.ramldoc.model.RamldocBaseTypes
-import io.vrap.codegen.languages.ramldoc.model.RamldocModelModule
-import io.vrap.codegen.languages.typescript.client.TypescriptClientModule
-import io.vrap.codegen.languages.typescript.model.TypeScriptBaseTypes
-import io.vrap.codegen.languages.typescript.model.TypescriptModelModule
+//import io.vrap.codegen.languages.java.base.JavaBaseTypes
+//import io.vrap.codegen.languages.javalang.client.builder.module.JavaCompleteModule
+//import io.vrap.codegen.languages.oas.model.OasBaseTypes
+//import io.vrap.codegen.languages.oas.model.OasModelModule
+//import io.vrap.codegen.languages.php.PhpBaseTypes
+//import io.vrap.codegen.languages.php.base.PhpBaseModule
+//import io.vrap.codegen.languages.php.model.PhpModelModule
+//import io.vrap.codegen.languages.php.test.PhpTestModule
+//import io.vrap.codegen.languages.postman.model.PostmanBaseTypes
+//import io.vrap.codegen.languages.postman.model.PostmanModelModule
+//import io.vrap.codegen.languages.ramldoc.model.RamldocBaseTypes
+//import io.vrap.codegen.languages.ramldoc.model.RamldocModelModule
+//import io.vrap.codegen.languages.typescript.client.TypescriptClientModule
+//import io.vrap.codegen.languages.typescript.model.TypeScriptBaseTypes
+//import io.vrap.codegen.languages.typescript.model.TypescriptModelModule
 import io.vrap.rmf.codegen.CodeGeneratorConfig
 import io.vrap.rmf.codegen.di.ApiProvider
 import io.vrap.rmf.codegen.di.GeneratorComponent
@@ -145,56 +145,57 @@ class GenerateSubcommand : Callable<Int> {
         val generateDuration = measureTimeMillis {
             val apiProvider = ApiProvider(ramlFileLocation)
             val generatorComponent: GeneratorComponent = when (target) {
-                GenerationTarget.JAVA_CLIENT -> {
-                    val generatorModule = GeneratorModule(apiProvider, generatorConfig, JavaBaseTypes)
-                    GeneratorComponent(generatorModule, JavaCompleteModule)
-                }
-                GenerationTarget.TYPESCRIPT_CLIENT -> {
-                    val generatorModule = GeneratorModule(apiProvider, generatorConfig, TypeScriptBaseTypes)
-                    GeneratorComponent(generatorModule, TypescriptModelModule, TypescriptClientModule)
-                }
-                GenerationTarget.PHP_CLIENT -> {
-                    val generatorModule = GeneratorModule(apiProvider, generatorConfig, PhpBaseTypes)
-                    GeneratorComponent(generatorModule, PhpModelModule())
-                }
-                GenerationTarget.PHP_BASE -> {
-                    val generatorModule = GeneratorModule(apiProvider, generatorConfig, PhpBaseTypes)
-                    GeneratorComponent(generatorModule, PhpBaseModule())
-                }
-                GenerationTarget.PHP_TEST -> {
-                    val generatorModule = GeneratorModule(apiProvider, generatorConfig, PhpBaseTypes)
-                    GeneratorComponent(generatorModule, PhpTestModule())
-                }
+//                GenerationTarget.JAVA_CLIENT -> {
+//                    val generatorModule = GeneratorModule(apiProvider, generatorConfig, JavaBaseTypes)
+//                    GeneratorComponent(generatorModule, JavaCompleteModule)
+//                }
+//                GenerationTarget.TYPESCRIPT_CLIENT -> {
+//                    val generatorModule = GeneratorModule(apiProvider, generatorConfig, TypeScriptBaseTypes)
+//                    GeneratorComponent(generatorModule, TypescriptModelModule, TypescriptClientModule)
+//                }
+//                GenerationTarget.PHP_CLIENT -> {
+//                    val generatorModule = GeneratorModule(apiProvider, generatorConfig, PhpBaseTypes)
+//                    GeneratorComponent(generatorModule, PhpModelModule())
+//                }
+//                GenerationTarget.PHP_BASE -> {
+//                    val generatorModule = GeneratorModule(apiProvider, generatorConfig, PhpBaseTypes)
+//                    GeneratorComponent(generatorModule, PhpBaseModule())
+//                }
+//                GenerationTarget.PHP_TEST -> {
+//                    val generatorModule = GeneratorModule(apiProvider, generatorConfig, PhpBaseTypes)
+//                    GeneratorComponent(generatorModule, PhpTestModule())
+//                }
                 GenerationTarget.CSHARP_CLIENT -> {
                     val generatorModule = GeneratorModule(apiProvider, generatorConfig, CsharpBaseTypes)
                     GeneratorComponent(generatorModule, CsharpModule, CsharpClientBuilderModule)
                 }
-                GenerationTarget.POSTMAN -> {
-                    val generatorModule = GeneratorModule(apiProvider, generatorConfig, PostmanBaseTypes)
-                    GeneratorComponent(generatorModule, PostmanModelModule())
-                }
-                GenerationTarget.RAML_DOC -> {
-                    val ramlConfig = CodeGeneratorConfig(
-                            sharedPackage = generatorConfig.sharedPackage,
-                            basePackageName = generatorConfig.basePackageName,
-                            modelPackage = generatorConfig.modelPackage,
-                            clientPackage = generatorConfig.clientPackage,
-                            outputFolder = generatorConfig.outputFolder
-                    )
-                    val generatorModule = GeneratorModule(apiProvider, ramlConfig, RamldocBaseTypes)
-                    GeneratorComponent(generatorModule, RamldocModelModule())
-                }
-                GenerationTarget.OAS -> {
-                    val ramlConfig = CodeGeneratorConfig(
-                            sharedPackage = generatorConfig.sharedPackage,
-                            basePackageName = generatorConfig.basePackageName,
-                            modelPackage = generatorConfig.modelPackage,
-                            clientPackage = generatorConfig.clientPackage,
-                            outputFolder = generatorConfig.outputFolder
-                    )
-                    val generatorModule = GeneratorModule(apiProvider, ramlConfig, OasBaseTypes)
-                    GeneratorComponent(generatorModule, OasModelModule())
-                }
+//                GenerationTarget.POSTMAN -> {
+//                    val generatorModule = GeneratorModule(apiProvider, generatorConfig, PostmanBaseTypes)
+//                    GeneratorComponent(generatorModule, PostmanModelModule())
+//                }
+//                GenerationTarget.RAML_DOC -> {
+//                    val ramlConfig = CodeGeneratorConfig(
+//                            sharedPackage = generatorConfig.sharedPackage,
+//                            basePackageName = generatorConfig.basePackageName,
+//                            modelPackage = generatorConfig.modelPackage,
+//                            clientPackage = generatorConfig.clientPackage,
+//                            outputFolder = generatorConfig.outputFolder
+//                    )
+//                    val generatorModule = GeneratorModule(apiProvider, ramlConfig, RamldocBaseTypes)
+//                    GeneratorComponent(generatorModule, RamldocModelModule())
+//                }
+//                GenerationTarget.OAS -> {
+//                    val ramlConfig = CodeGeneratorConfig(
+//                            sharedPackage = generatorConfig.sharedPackage,
+//                            basePackageName = generatorConfig.basePackageName,
+//                            modelPackage = generatorConfig.modelPackage,
+//                            clientPackage = generatorConfig.clientPackage,
+//                            outputFolder = generatorConfig.outputFolder
+//                    )
+//                    val generatorModule = GeneratorModule(apiProvider, ramlConfig, OasBaseTypes)
+//                    GeneratorComponent(generatorModule, OasModelModule())
+//                }
+                else -> throw Exception()
             }
             generatorComponent.generateFiles()
         }

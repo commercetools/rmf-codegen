@@ -34,13 +34,13 @@ publishing {
 String dir = "${buildDir.toString()}/gensrc/main/kotlin/io/vrap/rmf/codegen/cli/info"
 
 dependencies {
-    compile project(':languages:javalang:builder-renderer:java-builder-client')
-    compile project(':languages:typescript')
-    compile project(':languages:postman')
-    compile project(':languages:php')
+//    compile project(':languages:javalang:builder-renderer:java-builder-client')
+//    compile project(':languages:typescript')
+//    compile project(':languages:postman')
+//    compile project(':languages:php')
     compile project(':languages:csharp')
-    compile project(':languages:ramldoc')
-    compile project(':languages:oas')
+//    compile project(':languages:ramldoc')
+//    compile project(':languages:oas')
 
     compile 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
     compile 'com.google.guava:guava:29.0-jre'

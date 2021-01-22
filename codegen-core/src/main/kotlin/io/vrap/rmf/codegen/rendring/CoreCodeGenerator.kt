@@ -18,53 +18,10 @@ import io.vrap.rmf.raml.model.types.UnionType
 import org.reactivestreams.Publisher
 import org.slf4j.LoggerFactory
 
-class CoreCodeGenerator @Inject constructor(val dataSink: DataSink,
-                                            private val allObjectTypes: MutableList<ObjectType>,
-                                            private val allUnionTypes: MutableList<UnionType>,
-                                            @EnumStringTypes private val allEnumStringTypes : MutableList<StringType>,
-                                            @PatternStringTypes private val allPatternStringTypes : MutableList<StringType>,
-                                            @NamedScalarTypes private val allNamedScalarTypes: MutableList<StringType>,
-                                            private val allResourceCollections: MutableList<ResourceCollection>,
-                                            private val allResourceMethods: MutableList<Method>,
-                                            private val allResources: MutableList<Resource>
-                                            ) {
+class CoreCodeGenerator @Inject constructor(val dataSink: DataSink, val gitHash: String, val generators: Set<CodeGenerator>) {
 
     private val LOGGER = LoggerFactory.getLogger(CoreCodeGenerator::class.java)
     private val PARALLELISM = 100
-
-    @Inject(optional = true)
-    lateinit var generators: MutableSet<CodeGenerator>
-
-    @Inject(optional = true)
-    lateinit var objectTypeGenerators: MutableSet<ObjectTypeRenderer>
-
-    @Inject(optional = true)
-    lateinit var unionTypeGenerators: MutableSet<UnionTypeRenderer>
-
-    @Inject(optional = true)
-    lateinit var enumStringTypeGenerators: MutableSet<StringTypeRenderer>
-
-    @Inject(optional = true)
-    lateinit var patternStringTypeGenerators: MutableSet<PatternStringTypeRenderer>
-
-    @Inject(optional = true)
-    lateinit var namedScalarTypeGenerators: MutableSet<NamedScalarTypeRenderer>
-
-    @Inject(optional = true)
-    lateinit var allResourcesGenerators: MutableSet<ResourceCollectionRenderer>
-
-    @Inject(optional = true)
-    lateinit var allResourceMethodGenerators: MutableSet<MethodRenderer>
-
-    @Inject(optional = true)
-    lateinit var allResourceGenerators: MutableSet<ResourceRenderer>
-
-    @Inject(optional = true)
-    lateinit var fileProducers: MutableSet<FileProducer>
-
-    @Inject(optional = true)
-    @ApiGitHash
-    lateinit var gitHash: String
 
     fun generate() {
 

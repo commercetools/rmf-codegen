@@ -1,15 +1,11 @@
 package io.vrap.rmf.codegen.di
 
-import com.google.inject.AbstractModule
 import com.google.inject.Provides
 import com.google.inject.Singleton
 import io.vrap.rmf.codegen.common.generator.core.ResourceCollection
 import io.vrap.rmf.codegen.io.DataSink
 import io.vrap.rmf.codegen.io.FileDataSink
-import io.vrap.rmf.codegen.types.LanguageBaseTypes
-import io.vrap.rmf.codegen.types.VrapObjectType
-import io.vrap.rmf.codegen.types.VrapType
-import io.vrap.rmf.codegen.types.VrapTypeProvider
+import io.vrap.rmf.codegen.types.*
 import io.vrap.rmf.raml.model.elements.NamedElement
 import io.vrap.rmf.raml.model.modules.Api
 import io.vrap.rmf.raml.model.resources.Method
@@ -29,12 +25,10 @@ import java.nio.file.Path
 @SuppressWarnings("unused")
 class GeneratorModule constructor(
         private val apiProvider: ApiProvider,
-        @get:Provides @get:Singleton val generatorConfig: io.vrap.rmf.codegen.CodeGeneratorConfig,
-        @get:Provides @get:Singleton val languageBaseTypes: LanguageBaseTypes,
+        val generatorConfig: io.vrap.rmf.codegen.CodeGeneratorConfig,
+        val languageBaseTypes: LanguageBaseTypes,
         private val defaultPackage: String = "io/vrap/rmf"
-
-
-) : AbstractModule() {
+) {
 
     companion object {
         private val LOGGER = LoggerFactory.getLogger(io.vrap.rmf.codegen.di.GeneratorModule::class.java)
@@ -42,6 +36,14 @@ class GeneratorModule constructor(
 
     private val filterSwitch = UserProvidedResourcesFilterSwitch()
 
+
+    fun vrapTypeProvider(): VrapTypeProvider {
+        return VrapTypeProvider(
+                PackageProvider(providePackageName(), provideModelPackageName(), provideClientPackageName()),
+                languageBaseTypes,
+                generatorConfig.customTypeMapping
+        )
+    }
 
     @Provides
     @Singleton
@@ -56,7 +58,7 @@ class GeneratorModule constructor(
 
     @Provides
     @Singleton
-    fun dataSink(@OutputFolder path: Path): DataSink = FileDataSink(path)
+    fun dataSink(): DataSink = FileDataSink(outpuFolder())
 
     @Provides
     @Singleton
@@ -65,10 +67,9 @@ class GeneratorModule constructor(
     @Provides
     @Singleton
     @BasePackageName
-    fun providePackageName(
-            @DefaultPackage defaultPackage: String,
-            api: Api
-    ): String {
+    fun providePackageName(): String {
+        val defaultPackage = defaultPackage();
+        val api = provideRamlModel();
         if (generatorConfig.basePackageName == null && api.baseUri == null) {
             LOGGER.warn("Could not find proper package name configuration. Using default $defaultPackage")
             return defaultPackage
@@ -84,20 +85,29 @@ class GeneratorModule constructor(
     @Provides
     @Singleton
     @ModelPackageName
-    fun provideModelPackageName(@BasePackageName basePackageName: String): String = generatorConfig.modelPackage
-            ?: if (basePackageName.isBlank()) "models" else "$basePackageName/models"
+    fun provideModelPackageName(): String {
+        val basePackageName = providePackageName()
+        return generatorConfig.modelPackage
+                ?: if (basePackageName.isBlank()) "models" else "$basePackageName/models"
+    }
 
     @Provides
     @Singleton
     @ClientPackageName
-    fun provideClientPackageName(@BasePackageName basePackageName: String): String = generatorConfig.clientPackage
-            ?: if (basePackageName.isBlank()) "client" else "$basePackageName/client"
+    fun provideClientPackageName(): String {
+        val basePackageName = providePackageName()
+        return generatorConfig.modelPackage
+                ?: if (basePackageName.isBlank()) "client" else "$basePackageName/client"
+    }
 
     @Provides
     @Singleton
     @SharedPackageName
-    fun provideSharedPackageName(@BasePackageName basePackageName: String): String = generatorConfig.sharedPackage
-            ?: if (basePackageName.isBlank()) "shared" else "$basePackageName/shared"
+    fun provideSharedPackageName(): String {
+        val basePackageName = providePackageName()
+        return generatorConfig.sharedPackage
+                ?: if (basePackageName.isBlank()) "shared" else "$basePackageName/shared"
+    }
 
     @Provides
     @Singleton
@@ -111,8 +121,9 @@ class GeneratorModule constructor(
     @Provides
     @Singleton
     @AllAnyTypes
-    fun allAnyTypes(ramlApi: Api): List<AnyType> {
+    fun allAnyTypes(): List<AnyType> {
         val result = mutableListOf<AnyType>()
+        val ramlApi = provideRamlModel();
         ramlApi.types?.forEach { result.add(it) }
         ramlApi.uses?.flatMap { it.library.types }?.forEach { result.add(it) }
         return result.filter { filterSwitch.doSwitch(it) }
@@ -120,41 +131,42 @@ class GeneratorModule constructor(
 
     @Provides
     @Singleton
-    fun allObjectTypes(@AllAnyTypes anyTypeList: MutableList<AnyType>): List<ObjectType> = anyTypeList.filter { it is ObjectType }.map { it as ObjectType }
+    fun allObjectTypes(): List<ObjectType> = allAnyTypes().filter { it is ObjectType }.map { it as ObjectType }
 
     @Provides
     @Singleton
-    fun allUnionTypes(@AllAnyTypes anyTypeList: MutableList<AnyType>): List<UnionType> = anyTypeList.filter { it is UnionType }.map { it as UnionType }
+    fun allUnionTypes(): List<UnionType> = allAnyTypes().filter { it is UnionType }.map { it as UnionType }
 
     @Provides
     @Singleton
     @EnumStringTypes
-    fun allEnumStringTypes(@AllAnyTypes anyTypeList: MutableList<AnyType>): List<StringType> = anyTypeList.filter { it is StringType && it.enum.isNotEmpty() }.map { it as StringType }
+    fun allEnumStringTypes(): List<StringType> = allAnyTypes().filter { it is StringType && it.enum.isNotEmpty() }.map { it as StringType }
 
     @Provides
     @Singleton
     @PatternStringTypes
-    fun allPatternStringTypes(@AllAnyTypes anyTypeList: MutableList<AnyType>): List<StringType> = anyTypeList.filter { it is StringType && it.pattern != null }.map { it as StringType }
+    fun allPatternStringTypes(): List<StringType> = allAnyTypes().filter { it is StringType && it.pattern != null }.map { it as StringType }
 
     @Provides
     @Singleton
     @NamedScalarTypes
-    fun allNamedScalarTypes(@AllAnyTypes anyTypeList: MutableList<AnyType>): List<StringType> = anyTypeList.filter {
+    fun allNamedScalarTypes(): List<StringType> = allAnyTypes().filter {
         it is StringType && it.pattern == null && it.enum.isNullOrEmpty()
     }.map { it as StringType }
 
     @Provides
     @Singleton
-    fun allResources(ramlApi: Api): List<Resource> = ramlApi.allContainedResources
+    fun allResources(): List<Resource> = provideRamlModel().allContainedResources
 
     @Provides
     @Singleton
-    fun allResourceMethods(ramlApi: Api): List<Method> = ramlApi.allContainedResources.flatMap { it.methods }
+    fun allResourceMethods(): List<Method> = provideRamlModel().allContainedResources.flatMap { it.methods }
 
     @Provides
     @Singleton
-    fun allTraits(ramlApi: Api): List<Trait> {
+    fun allTraits(): List<Trait> {
         val result = mutableListOf<Trait>()
+        val ramlApi = provideRamlModel()
         if (ramlApi.traits != null) result.addAll(ramlApi.traits)
         ramlApi.uses?.forEach { if (it.library.traits != null) result.addAll(it.library.traits) }
         return result
@@ -162,7 +174,8 @@ class GeneratorModule constructor(
 
     @Provides
     @Singleton
-    fun resourceCollection(resources: MutableList<Resource>, vrapTypeProvider: VrapTypeProvider): List<ResourceCollection> {
+    fun resourceCollection(vrapTypeProvider: VrapTypeProvider): List<ResourceCollection> {
+        val resources = allResources()
         return resources.groupBy { (vrapTypeProvider.doSwitch(it) as VrapObjectType).simpleClassName }
                 .map { entry: Map.Entry<String, List<Resource>> ->
                     ResourceCollection(vrapTypeProvider.doSwitch(entry.value[0]), entry.value)
@@ -188,5 +201,4 @@ class GeneratorModule constructor(
             override fun defaultCase(`object`: EObject?): Boolean? = false
         }
     }
-
 }

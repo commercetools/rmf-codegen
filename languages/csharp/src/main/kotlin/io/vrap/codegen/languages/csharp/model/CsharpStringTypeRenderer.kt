@@ -12,11 +12,7 @@ import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.types.StringInstance
 import io.vrap.rmf.raml.model.types.StringType
 
-class CsharpStringTypeRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : CsharpObjectTypeExtensions, EObjectExtensions, StringTypeRenderer {
-
-    @Inject
-    @BasePackageName
-    lateinit var basePackagePrefix:String
+class CsharpStringTypeRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider, private val basePackagePrefix: String) : CsharpObjectTypeExtensions, EObjectExtensions, StringTypeRenderer {
 
     override fun render(type: StringType): TemplateFile {
         val vrapType = vrapTypeProvider.doSwitch(type) as VrapEnumType

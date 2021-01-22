@@ -15,11 +15,7 @@ import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.resources.ResourceContainer
 import io.vrap.rmf.raml.model.resources.impl.ResourceImpl
 
-class CsharpRequestBuilderResourceRenderer @Inject constructor(val api: Api, override val vrapTypeProvider: VrapTypeProvider) : ResourceRenderer, CsharpEObjectTypeExtensions {
-
-    @Inject
-    @BasePackageName
-    lateinit var basePackagePrefix:String
+class CsharpRequestBuilderResourceRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider, private val basePackagePrefix: String) : ResourceRenderer, CsharpEObjectTypeExtensions {
 
     override fun render(type: Resource): TemplateFile {
         val vrapType = vrapTypeProvider.doSwitch(type).toCsharpVType() as VrapObjectType
