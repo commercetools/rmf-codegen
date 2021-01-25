@@ -1,21 +1,18 @@
 package io.vrap.codegen.languages.csharp.requests
 
-import com.google.inject.Inject
 import io.vrap.codegen.languages.csharp.extensions.*
 import io.vrap.codegen.languages.extensions.*
-import io.vrap.rmf.codegen.di.BasePackageName
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.ResourceRenderer
 import io.vrap.rmf.codegen.rendring.utils.keepIndentation
 import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
-import io.vrap.rmf.raml.model.modules.Api
 import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.resources.ResourceContainer
 import io.vrap.rmf.raml.model.resources.impl.ResourceImpl
 
-class CsharpRequestBuilderResourceRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider, private val basePackagePrefix: String) : ResourceRenderer, CsharpEObjectTypeExtensions {
+class CsharpRequestBuilderResourceRenderer constructor(override val vrapTypeProvider: VrapTypeProvider, private val basePackagePrefix: String) : ResourceRenderer, CsharpEObjectTypeExtensions {
 
     override fun render(type: Resource): TemplateFile {
         val vrapType = vrapTypeProvider.doSwitch(type).toCsharpVType() as VrapObjectType

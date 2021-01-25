@@ -1,6 +1,5 @@
 package io.vrap.codegen.languages.typescript.server
 
-import com.google.inject.Inject
 import io.vrap.codegen.languages.extensions.*
 import io.vrap.codegen.languages.typescript.*
 import io.vrap.codegen.languages.typescript.joi.simpleJoiName
@@ -17,7 +16,7 @@ import io.vrap.rmf.raml.model.types.ArrayInstance
 import io.vrap.rmf.raml.model.types.QueryParameter
 import io.vrap.rmf.raml.model.types.StringInstance
 
-class ServerRenderer @Inject constructor(
+class ServerRenderer constructor(
         val api: Api,
         override val vrapTypeProvider: VrapTypeProvider,
         val constantsProvider: ConstantsProvider,

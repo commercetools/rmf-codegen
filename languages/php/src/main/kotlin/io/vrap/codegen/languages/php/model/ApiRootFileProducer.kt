@@ -1,6 +1,5 @@
 package io.vrap.codegen.languages.php.model
 
-import com.google.inject.Inject
 import io.vrap.codegen.languages.php.AbstractRequestBuilder
 import io.vrap.codegen.languages.php.ClientConstants
 import io.vrap.codegen.languages.php.PhpSubTemplates
@@ -14,7 +13,7 @@ import io.vrap.rmf.codegen.rendring.utils.keepAngleIndent
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.modules.Api
 
-class ApiRootFileProducer @Inject constructor(api: Api, vrapTypeProvider: VrapTypeProvider, clientConstants: ClientConstants) : FileProducer, AbstractRequestBuilder(api, vrapTypeProvider, clientConstants) {
+class ApiRootFileProducer constructor(api: Api, vrapTypeProvider: VrapTypeProvider, clientConstants: ClientConstants) : FileProducer, AbstractRequestBuilder(api, vrapTypeProvider, clientConstants) {
 
     override fun produceFiles(): List<TemplateFile> = listOf(
         produceApiRoot(api)

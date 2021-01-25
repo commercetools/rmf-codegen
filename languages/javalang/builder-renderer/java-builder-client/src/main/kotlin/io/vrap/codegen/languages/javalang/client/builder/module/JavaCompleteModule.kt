@@ -1,7 +1,5 @@
 package io.vrap.codegen.languages.javalang.client.builder.module
 
-import com.google.inject.AbstractModule
-import com.google.inject.multibindings.Multibinder
 import io.vrap.codegen.languages.javalang.client.builder.model.JavaModelInterfaceRenderer
 import io.vrap.codegen.languages.javalang.client.builder.model.JavaStringTypeRenderer
 import io.vrap.codegen.languages.javalang.client.builder.model.JavaTraitRenderer

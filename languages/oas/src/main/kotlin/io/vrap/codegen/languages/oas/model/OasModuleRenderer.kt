@@ -9,7 +9,6 @@ import com.fasterxml.jackson.databind.SerializerProvider
 import com.fasterxml.jackson.databind.ser.BeanPropertyWriter
 import com.fasterxml.jackson.databind.ser.PropertyWriter
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter
-import com.google.inject.Inject
 import io.vrap.codegen.languages.extensions.EObjectExtensions
 import io.vrap.codegen.languages.oas.extensions.InstanceSerializer
 import io.vrap.codegen.languages.oas.extensions.ObjectInstanceSerializer
@@ -27,7 +26,7 @@ import org.emfjson.jackson.handlers.BaseURIHandler
 import org.emfjson.jackson.module.EMFModule
 import java.io.IOException
 
-class OasModuleRenderer @Inject constructor(val api: Api, override val vrapTypeProvider: VrapTypeProvider) : EObjectExtensions, FileProducer {
+class OasModuleRenderer constructor(val api: Api, override val vrapTypeProvider: VrapTypeProvider) : EObjectExtensions, FileProducer {
 
     override fun produceFiles(): List<TemplateFile> {
         return listOf(

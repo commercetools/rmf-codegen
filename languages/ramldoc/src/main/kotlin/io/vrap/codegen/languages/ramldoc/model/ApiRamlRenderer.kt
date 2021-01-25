@@ -1,6 +1,5 @@
 package io.vrap.codegen.languages.ramldoc.model
 
-import com.google.inject.Inject
 import io.vrap.codegen.languages.extensions.EObjectExtensions
 import io.vrap.codegen.languages.extensions.toResourceName
 import io.vrap.codegen.languages.ramldoc.extensions.packageDir
@@ -18,7 +17,7 @@ import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.modules.Api
 import io.vrap.rmf.raml.model.types.*
 
-class ApiRamlRenderer @Inject constructor(val api: Api, override val vrapTypeProvider: VrapTypeProvider, @AllAnyTypes val anyTypeList: List<AnyType>, @ModelPackageName val modelPackageName: String) : EObjectExtensions, FileProducer {
+class ApiRamlRenderer constructor(val api: Api, override val vrapTypeProvider: VrapTypeProvider, @AllAnyTypes val anyTypeList: List<AnyType>, @ModelPackageName val modelPackageName: String) : EObjectExtensions, FileProducer {
 
     override fun produceFiles(): List<TemplateFile> {
         return listOf(

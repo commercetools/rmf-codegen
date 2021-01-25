@@ -1,11 +1,9 @@
 package io.vrap.codegen.languages.php.model
 
 import com.damnhandy.uri.template.UriTemplate
-import com.google.inject.Inject
 import io.vrap.codegen.languages.php.ClientConstants
 import io.vrap.codegen.languages.php.PhpSubTemplates
 import io.vrap.codegen.languages.php.extensions.*
-import io.vrap.rmf.codegen.di.BasePackageName
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.FileProducer
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
@@ -15,7 +13,7 @@ import io.vrap.rmf.raml.model.resources.UriParameter
 import io.vrap.rmf.raml.model.types.ObjectInstance
 import io.vrap.rmf.raml.model.util.StringCaseFormat
 
-class PhpFileProducer @Inject constructor(val api: Api, clientConstants: ClientConstants) : FileProducer {
+class PhpFileProducer constructor(val api: Api, clientConstants: ClientConstants) : FileProducer {
 
     private val basePackagePrefix = clientConstants.basePackagePrefix
 

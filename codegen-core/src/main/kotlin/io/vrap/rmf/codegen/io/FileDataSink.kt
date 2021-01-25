@@ -1,13 +1,12 @@
 package io.vrap.rmf.codegen.io
 
-import com.google.inject.Inject
 import org.apache.commons.io.FileUtils
 import org.apache.commons.io.filefilter.TrueFileFilter
 import java.io.File
 import java.nio.file.Path
 import java.util.concurrent.TimeUnit
 
-class FileDataSink @Inject constructor(val outputFolder:Path): DataSink {
+class FileDataSink constructor(val outputFolder:Path): DataSink {
 
     private val generatedFiles = mutableListOf<File>()
 

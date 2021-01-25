@@ -9,7 +9,7 @@ object TypescriptModelModule : Module {
     override fun configure(generatorModule: GeneratorModule) = setOf<CodeGenerator>(
             FileGenerator(
                     setOf(
-                            TypeScriptModuleRenderer(generatorModule.vrapTypeProvider())
+                            TypeScriptModuleRenderer(generatorModule.vrapTypeProvider(), generatorModule.allAnyTypes())
                     )
             )
     )

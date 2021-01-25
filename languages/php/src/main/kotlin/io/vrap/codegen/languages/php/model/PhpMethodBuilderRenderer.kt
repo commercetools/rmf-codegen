@@ -1,6 +1,5 @@
 package io.vrap.codegen.languages.php.model
 
-import com.google.inject.Inject
 import io.vrap.codegen.languages.php.AbstractRequestBuilder
 import io.vrap.codegen.languages.php.ClientConstants
 import io.vrap.codegen.languages.php.PhpSubTemplates
@@ -15,7 +14,7 @@ import io.vrap.rmf.raml.model.modules.Api
 import io.vrap.rmf.raml.model.resources.Resource
 import org.eclipse.emf.ecore.EObject
 
-class PhpMethodBuilderRenderer @Inject constructor(api: Api, vrapTypeProvider: VrapTypeProvider, clientConstants: ClientConstants) : ResourceRenderer, AbstractRequestBuilder(api, vrapTypeProvider, clientConstants) {
+class PhpMethodBuilderRenderer constructor(api: Api, vrapTypeProvider: VrapTypeProvider, clientConstants: ClientConstants) : ResourceRenderer, AbstractRequestBuilder(api, vrapTypeProvider, clientConstants) {
 
     private val resourcePackage = "Resource"
 

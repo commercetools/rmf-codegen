@@ -1,7 +1,5 @@
 package io.vrap.codegen.languages.php.test
 
-import com.google.common.collect.Lists
-import com.google.inject.Inject
 import io.vrap.codegen.languages.extensions.getMethodName
 import io.vrap.codegen.languages.php.PhpSubTemplates
 import io.vrap.codegen.languages.php.extensions.*
@@ -21,7 +19,7 @@ import io.vrap.rmf.raml.model.types.QueryParameter
 import io.vrap.rmf.raml.model.types.StringInstance
 import org.eclipse.emf.ecore.EObject
 
-class PhpRequestTestRenderer @Inject constructor(api: Api, vrapTypeProvider: VrapTypeProvider, clientConstants: ClientConstants) : ResourceRenderer, AbstractRequestBuilder(api, vrapTypeProvider, clientConstants), EObjectTypeExtensions {
+class PhpRequestTestRenderer constructor(api: Api, vrapTypeProvider: VrapTypeProvider, clientConstants: ClientConstants) : ResourceRenderer, AbstractRequestBuilder(api, vrapTypeProvider, clientConstants), EObjectTypeExtensions {
     private val resourcePackage = "Resource"
 
     override fun render(type: Resource): TemplateFile {

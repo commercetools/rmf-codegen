@@ -1,6 +1,5 @@
 package io.vrap.codegen.languages.javalang.dsl;
 
-import com.google.inject.Inject
 import io.vrap.codegen.languages.java.base.JavaSubTemplates
 import io.vrap.codegen.languages.java.base.extensions.JavaEObjectTypeExtensions
 import io.vrap.codegen.languages.java.base.extensions.JavaObjectTypeExtensions
@@ -11,7 +10,7 @@ import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.types.ObjectType
 
-class GroovyDslRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : JavaObjectTypeExtensions, JavaEObjectTypeExtensions, ObjectTypeRenderer {
+class GroovyDslRenderer constructor(override val vrapTypeProvider: VrapTypeProvider) : JavaObjectTypeExtensions, JavaEObjectTypeExtensions, ObjectTypeRenderer {
 
     override fun render(type: ObjectType): TemplateFile {
 

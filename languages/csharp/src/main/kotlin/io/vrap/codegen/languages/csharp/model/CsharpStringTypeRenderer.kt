@@ -1,6 +1,5 @@
 package io.vrap.codegen.languages.csharp.model
 
-import com.google.inject.Inject
 import io.vrap.codegen.languages.csharp.extensions.*
 import io.vrap.codegen.languages.extensions.EObjectExtensions
 import io.vrap.rmf.codegen.di.BasePackageName
@@ -12,7 +11,7 @@ import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.types.StringInstance
 import io.vrap.rmf.raml.model.types.StringType
 
-class CsharpStringTypeRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider, @BasePackageName private val basePackagePrefix: String) : CsharpObjectTypeExtensions, EObjectExtensions, StringTypeRenderer {
+class CsharpStringTypeRenderer constructor(override val vrapTypeProvider: VrapTypeProvider, @BasePackageName private val basePackagePrefix: String) : CsharpObjectTypeExtensions, EObjectExtensions, StringTypeRenderer {
 
     override fun render(type: StringType): TemplateFile {
         val vrapType = vrapTypeProvider.doSwitch(type) as VrapEnumType

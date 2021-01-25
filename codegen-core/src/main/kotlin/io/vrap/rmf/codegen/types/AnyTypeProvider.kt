@@ -1,10 +1,9 @@
 package io.vrap.rmf.codegen.types
 
-import com.google.inject.Inject
 import io.vrap.rmf.raml.model.types.*
 import io.vrap.rmf.raml.model.types.util.TypesSwitch
 
-class AnyTypeProvider @Inject constructor(val packageProvider: PackageProvider, val languageBaseTypes: LanguageBaseTypes) : TypesSwitch<VrapType>() {
+class AnyTypeProvider constructor(val packageProvider: PackageProvider, val languageBaseTypes: LanguageBaseTypes) : TypesSwitch<VrapType>() {
 
     override fun caseUnionType(unionType: UnionType): VrapType {
         val oneOfWithoutNilType = unionType.oneOf

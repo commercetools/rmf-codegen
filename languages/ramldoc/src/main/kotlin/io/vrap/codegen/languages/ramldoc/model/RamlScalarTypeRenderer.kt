@@ -1,6 +1,5 @@
 package io.vrap.codegen.languages.ramldoc.model
 
-import com.google.inject.Inject
 import io.vrap.codegen.languages.extensions.ExtensionsBase
 import io.vrap.codegen.languages.ramldoc.extensions.packageDir
 import io.vrap.codegen.languages.ramldoc.extensions.renderAnnotation
@@ -15,7 +14,7 @@ import io.vrap.rmf.codegen.types.*
 import io.vrap.rmf.raml.model.types.*
 import java.lang.Exception
 
-class RamlScalarTypeRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider, @ModelPackageName val modelPackageName: String) : ExtensionsBase, StringTypeRenderer, PatternStringTypeRenderer, NamedScalarTypeRenderer {
+class RamlScalarTypeRenderer constructor(override val vrapTypeProvider: VrapTypeProvider, @ModelPackageName val modelPackageName: String) : ExtensionsBase, StringTypeRenderer, PatternStringTypeRenderer, NamedScalarTypeRenderer {
 
     override fun render(type: StringType): TemplateFile {
         return when (val vrapType = vrapTypeProvider.doSwitch(type)) {

@@ -1,6 +1,5 @@
 package io.vrap.rmf.codegen.types
 
-import com.google.inject.Inject
 import io.vrap.rmf.codegen.di.BasePackageName
 import io.vrap.rmf.codegen.di.ClientPackageName
 import io.vrap.rmf.codegen.di.ModelPackageName
@@ -15,7 +14,7 @@ import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.util.ComposedSwitch
 
 
-class PackageProvider @Inject constructor(
+class PackageProvider constructor(
         @BasePackageName val basePackage: String,
         @ModelPackageName val localModelPackage: String,
         @ClientPackageName val clientPackage: String

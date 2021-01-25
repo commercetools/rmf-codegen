@@ -1,13 +1,12 @@
 package io.vrap.rmf.codegen.types
 
 import com.google.common.base.CaseFormat
-import com.google.inject.Inject
 import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.resources.Trait
 import io.vrap.rmf.raml.model.resources.util.ResourcesSwitch
 
-class ResourcesTypeProvider @Inject constructor(val packageProvider: PackageProvider) : ResourcesSwitch<VrapType>() {
+class ResourcesTypeProvider constructor(val packageProvider: PackageProvider) : ResourcesSwitch<VrapType>() {
 
     private val classNameMapper = CaseFormat.LOWER_HYPHEN.converterTo(CaseFormat.UPPER_CAMEL)
 

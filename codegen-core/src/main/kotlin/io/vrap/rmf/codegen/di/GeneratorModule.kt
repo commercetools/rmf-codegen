@@ -1,7 +1,5 @@
 package io.vrap.rmf.codegen.di
 
-import com.google.inject.Provides
-import com.google.inject.Singleton
 import io.vrap.rmf.codegen.common.generator.core.ResourceCollection
 import io.vrap.rmf.codegen.io.DataSink
 import io.vrap.rmf.codegen.io.FileDataSink
@@ -45,29 +43,19 @@ class GeneratorModule constructor(
         )
     }
 
-    @Provides
-    @Singleton
     @DefaultPackage
     fun defaultPackage(): String = defaultPackage
 
 
-    @Provides
-    @Singleton
     @OutputFolder
     fun outpuFolder(): Path = generatorConfig.outputFolder
 
-    @Provides
-    @Singleton
     @GenDataSink
     fun dataSink(): DataSink = FileDataSink(outpuFolder())
 
-    @Provides
-    @Singleton
     @CustomTypeMapping
     fun customTypeMapping(): Map<String, VrapType> = generatorConfig.customTypeMapping
 
-    @Provides
-    @Singleton
     @BasePackageName
     fun providePackageName(): String {
         val defaultPackage = defaultPackage();
@@ -84,8 +72,6 @@ class GeneratorModule constructor(
         }
     }
 
-    @Provides
-    @Singleton
     @ModelPackageName
     fun provideModelPackageName(): String {
         val basePackageName = providePackageName()
@@ -93,8 +79,6 @@ class GeneratorModule constructor(
                 ?: if (basePackageName.isBlank()) "models" else "$basePackageName/models"
     }
 
-    @Provides
-    @Singleton
     @ClientPackageName
     fun provideClientPackageName(): String {
         val basePackageName = providePackageName()
@@ -102,8 +86,6 @@ class GeneratorModule constructor(
                 ?: if (basePackageName.isBlank()) "client" else "$basePackageName/client"
     }
 
-    @Provides
-    @Singleton
     @SharedPackageName
     fun provideSharedPackageName(): String {
         val basePackageName = providePackageName()
@@ -111,18 +93,12 @@ class GeneratorModule constructor(
                 ?: if (basePackageName.isBlank()) "shared" else "$basePackageName/shared"
     }
 
-    @Provides
-    @Singleton
     @RamlApi
     fun provideRamlModel(): Api = apiProvider.api
 
-    @Provides
-    @Singleton
     @ApiGitHash
     fun provideGitHash(): String = apiProvider.gitHash
 
-    @Provides
-    @Singleton
     @AllAnyTypes
     fun allAnyTypes(): List<AnyType> {
         val result = mutableListOf<AnyType>()
@@ -132,45 +108,29 @@ class GeneratorModule constructor(
         return result.filter { filterSwitch.doSwitch(it) }
     }
 
-    @Provides
-    @Singleton
     @AllObjectTypes
     fun allObjectTypes(): List<ObjectType> = allAnyTypes().filter { it is ObjectType }.map { it as ObjectType }
 
-    @Provides
-    @Singleton
     @AllUnionTypes
     fun allUnionTypes(): List<UnionType> = allAnyTypes().filter { it is UnionType }.map { it as UnionType }
 
-    @Provides
-    @Singleton
     @EnumStringTypes
     fun allEnumStringTypes(): List<StringType> = allAnyTypes().filter { it is StringType && it.enum.isNotEmpty() }.map { it as StringType }
 
-    @Provides
-    @Singleton
     @PatternStringTypes
     fun allPatternStringTypes(): List<StringType> = allAnyTypes().filter { it is StringType && it.pattern != null }.map { it as StringType }
 
-    @Provides
-    @Singleton
     @NamedScalarTypes
     fun allNamedScalarTypes(): List<StringType> = allAnyTypes().filter {
         it is StringType && it.pattern == null && it.enum.isNullOrEmpty()
     }.map { it as StringType }
 
-    @Provides
-    @Singleton
     @AllResources
     fun allResources(): List<Resource> = provideRamlModel().allContainedResources
 
-    @Provides
-    @Singleton
     @AllResourceMethods
     fun allResourceMethods(): List<Method> = provideRamlModel().allContainedResources.flatMap { it.methods }
 
-    @Provides
-    @Singleton
     @AllTraits
     fun allTraits(): List<Trait> {
         val result = mutableListOf<Trait>()
@@ -180,8 +140,6 @@ class GeneratorModule constructor(
         return result
     }
 
-    @Provides
-    @Singleton
     @AllResourceCollections
     fun resourceCollection(vrapTypeProvider: VrapTypeProvider): List<ResourceCollection> {
         val resources = allResources()

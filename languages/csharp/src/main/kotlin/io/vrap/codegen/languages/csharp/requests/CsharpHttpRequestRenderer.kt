@@ -1,11 +1,9 @@
 package io.vrap.codegen.languages.csharp.requests
 
-import com.google.inject.Inject
 import io.vrap.codegen.languages.csharp.extensions.*
 import io.vrap.codegen.languages.extensions.EObjectExtensions
 import io.vrap.codegen.languages.extensions.resource
 import io.vrap.codegen.languages.extensions.toRequestName
-import io.vrap.rmf.codegen.di.BasePackageName
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.MethodRenderer
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
@@ -22,7 +20,7 @@ import org.eclipse.emf.ecore.EObject
 
 const val PLACEHOLDER_PARAM_ANNOTATION = "placeholderParam"
 
-class CsharpHttpRequestRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider, private val basePackagePrefix: String) : MethodRenderer, CsharpObjectTypeExtensions, EObjectExtensions {
+class CsharpHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTypeProvider, private val basePackagePrefix: String) : MethodRenderer, CsharpObjectTypeExtensions, EObjectExtensions {
 
     override fun render(type: Method): TemplateFile {
 

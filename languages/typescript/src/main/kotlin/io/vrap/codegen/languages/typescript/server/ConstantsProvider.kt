@@ -1,12 +1,10 @@
 package io.vrap.codegen.languages.typescript.server
 
-import com.google.inject.BindingAnnotation
 import io.vrap.rmf.codegen.di.ClientPackageName
 import io.vrap.rmf.codegen.types.VrapLibraryType
 import io.vrap.rmf.codegen.types.VrapObjectType
-import javax.inject.Inject
 
-class ConstantsProvider @Inject constructor(@ClientPackageName val client_package: String){
+class ConstantsProvider constructor(@ClientPackageName val client_package: String){
 
     val parametersModule = "$client_package/parameters"
 

@@ -1,12 +1,10 @@
 package io.vrap.codegen.languages.typescript.client.files_producers
 
-import com.google.inject.Inject
 import io.vrap.codegen.languages.typescript.tsGeneratedComment
-import io.vrap.rmf.codegen.di.ClientPackageName
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.FileProducer
 
-class ClientFileProducer @Inject constructor(val clientConstants: ClientConstants) : FileProducer {
+class ClientFileProducer constructor(val clientConstants: ClientConstants) : FileProducer {
 
 
     override fun produceFiles(): List<TemplateFile> {

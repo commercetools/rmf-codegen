@@ -1,6 +1,5 @@
 package io.vrap.rmf.codegen.rendring
 
-import com.google.inject.Inject
 import io.reactivex.rxjava3.core.Flowable
 import io.vrap.rmf.codegen.di.*
 import io.vrap.rmf.codegen.io.TemplateFile
@@ -18,7 +17,7 @@ interface CodeGenerator {
     fun generate(): MutableList<Publisher<TemplateFile>>
 }
 
-abstract class CodeGeneratorImpl<TRenderer: Renderer<T>, T> @Inject constructor(val generators: Set<TRenderer>, private val allTypes: List<T>): CodeGenerator {
+abstract class CodeGeneratorImpl<TRenderer: Renderer<T>, T> constructor(val generators: Set<TRenderer>, private val allTypes: List<T>): CodeGenerator {
     private val LOGGER = LoggerFactory.getLogger(CodeGenerator::class.java)
 
     override fun generate(): MutableList<Publisher<TemplateFile>> {
@@ -44,11 +43,11 @@ class FileGenerator constructor(val fileProducers: Set<FileProducer>): CodeGener
     }
 }
 
-class ObjectTypeGenerator @Inject constructor(generators: Set<ObjectTypeRenderer>, @AllObjectTypes allTypes: List<ObjectType>) : CodeGeneratorImpl<ObjectTypeRenderer, ObjectType>(generators, allTypes)
-class StringTypeGenerator @Inject constructor(generators: Set<StringTypeRenderer>, @EnumStringTypes allTypes: List<StringType>) : CodeGeneratorImpl<StringTypeRenderer, StringType>(generators, allTypes)
-class UnionTypeGenerator @Inject constructor(generators: Set<UnionTypeRenderer>, @AllUnionTypes allTypes: List<UnionType>) : CodeGeneratorImpl<UnionTypeRenderer, UnionType>(generators, allTypes)
-class PatternStringTypeGenerator @Inject constructor(generators: Set<PatternStringTypeRenderer>, @PatternStringTypes allTypes: List<StringType>) : CodeGeneratorImpl<PatternStringTypeRenderer, StringType>(generators, allTypes)
-class NamedScalarTypeGenerator @Inject constructor(generators: Set<NamedScalarTypeRenderer>, @NamedScalarTypes allTypes: List<StringType>) : CodeGeneratorImpl<NamedScalarTypeRenderer, StringType>(generators, allTypes)
-class ResourceGenerator @Inject constructor(generators: Set<ResourceRenderer>, @AllResources allTypes: List<Resource>) : CodeGeneratorImpl<ResourceRenderer, Resource>(generators, allTypes)
-class MethodGenerator @Inject constructor(generators: Set<MethodRenderer>, @AllResourceMethods allTypes: List<Method>) : CodeGeneratorImpl<MethodRenderer, Method>(generators, allTypes)
-class TraitGenerator @Inject constructor(generators: Set<TraitRenderer>, @AllTraits allTypes: List<Trait>) : CodeGeneratorImpl<TraitRenderer, Trait>(generators, allTypes)
+class ObjectTypeGenerator constructor(generators: Set<ObjectTypeRenderer>, @AllObjectTypes allTypes: List<ObjectType>) : CodeGeneratorImpl<ObjectTypeRenderer, ObjectType>(generators, allTypes)
+class StringTypeGenerator constructor(generators: Set<StringTypeRenderer>, @EnumStringTypes allTypes: List<StringType>) : CodeGeneratorImpl<StringTypeRenderer, StringType>(generators, allTypes)
+class UnionTypeGenerator constructor(generators: Set<UnionTypeRenderer>, @AllUnionTypes allTypes: List<UnionType>) : CodeGeneratorImpl<UnionTypeRenderer, UnionType>(generators, allTypes)
+class PatternStringTypeGenerator constructor(generators: Set<PatternStringTypeRenderer>, @PatternStringTypes allTypes: List<StringType>) : CodeGeneratorImpl<PatternStringTypeRenderer, StringType>(generators, allTypes)
+class NamedScalarTypeGenerator constructor(generators: Set<NamedScalarTypeRenderer>, @NamedScalarTypes allTypes: List<StringType>) : CodeGeneratorImpl<NamedScalarTypeRenderer, StringType>(generators, allTypes)
+class ResourceGenerator constructor(generators: Set<ResourceRenderer>, @AllResources allTypes: List<Resource>) : CodeGeneratorImpl<ResourceRenderer, Resource>(generators, allTypes)
+class MethodGenerator constructor(generators: Set<MethodRenderer>, @AllResourceMethods allTypes: List<Method>) : CodeGeneratorImpl<MethodRenderer, Method>(generators, allTypes)
+class TraitGenerator constructor(generators: Set<TraitRenderer>, @AllTraits allTypes: List<Trait>) : CodeGeneratorImpl<TraitRenderer, Trait>(generators, allTypes)

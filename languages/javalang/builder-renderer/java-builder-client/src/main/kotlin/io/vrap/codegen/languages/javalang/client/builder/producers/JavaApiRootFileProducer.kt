@@ -1,6 +1,5 @@
 package io.vrap.codegen.languages.javalang.client.builder.producers
 
-import com.google.inject.Inject
 import io.vrap.codegen.languages.extensions.getMethodName
 import io.vrap.codegen.languages.extensions.toResourceName
 import io.vrap.codegen.languages.java.base.JavaSubTemplates
@@ -10,11 +9,10 @@ import io.vrap.rmf.codegen.di.RamlApi
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.FileProducer
 import io.vrap.rmf.codegen.rendring.utils.keepIndentation
-import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.modules.Api
 import io.vrap.rmf.raml.model.resources.ResourceContainer
 
-class JavaApiRootFileProducer @Inject constructor(@ClientPackageName val clientPackage: String, @RamlApi val api: Api) : FileProducer {
+class JavaApiRootFileProducer constructor(@ClientPackageName val clientPackage: String, @RamlApi val api: Api) : FileProducer {
 
     override fun produceFiles(): List<TemplateFile> {
         return listOf(generateApiRoot(api))

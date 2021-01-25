@@ -1,13 +1,11 @@
 package io.vrap.codegen.languages.typescript.client
 
-import com.google.inject.Inject
 import io.vrap.codegen.languages.extensions.getMethodName
 import io.vrap.codegen.languages.extensions.isPatternProperty
 import io.vrap.codegen.languages.extensions.resource
 import io.vrap.codegen.languages.extensions.returnType
 import io.vrap.codegen.languages.typescript.*
 import io.vrap.codegen.languages.typescript.client.files_producers.ClientConstants
-import io.vrap.codegen.languages.typescript.joi.simpleJoiName
 import io.vrap.codegen.languages.typescript.model.TsObjectTypeExtensions
 import io.vrap.codegen.languages.typescript.model.simpleTSName
 import io.vrap.rmf.codegen.di.ClientPackageName
@@ -27,7 +25,7 @@ import io.vrap.rmf.raml.model.types.QueryParameter
 import io.vrap.rmf.raml.model.types.StringType
 
 
-class RequestBuilder @Inject constructor(
+class RequestBuilder constructor(
         @ClientPackageName val client_package: String,
         private val clientConstants: ClientConstants,
         val api: Api,
