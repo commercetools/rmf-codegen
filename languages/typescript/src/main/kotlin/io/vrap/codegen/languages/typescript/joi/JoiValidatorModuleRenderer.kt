@@ -13,10 +13,8 @@ import io.vrap.rmf.codegen.rendring.utils.keepIndentation
 import io.vrap.rmf.codegen.types.*
 import io.vrap.rmf.raml.model.types.*
 
-class JoiValidatorModuleRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : JoiObjectTypeExtensions, TsObjectTypeExtensions, FileProducer {
-    @Inject
-    @AllAnyTypes
-    lateinit var allAnyTypes: MutableList<AnyType>
+class JoiValidatorModuleRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider, @AllAnyTypes val allAnyTypes: List<AnyType>) : JoiObjectTypeExtensions, TsObjectTypeExtensions, FileProducer {
+
     private var joiAlternativesTypes: List<String> = ArrayList()
     private var recursionTypes: List<String> = ArrayList()
 

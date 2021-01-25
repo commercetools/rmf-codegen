@@ -28,7 +28,7 @@ class TestCodeGenerator {
         )
 
         val generatorModule = GeneratorModule(apiProvider, generatorConfig, OasBaseTypes)
-        val generatorComponent = GeneratorComponent(generatorModule, OasModelModule())
+        val generatorComponent = GeneratorComponent(generatorModule, OasModelModule)
         generatorComponent.generateFiles()
     }
 

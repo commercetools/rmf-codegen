@@ -4,6 +4,7 @@ import com.google.inject.Inject
 import io.vrap.codegen.languages.java.base.extensions.JavaEObjectTypeExtensions
 import io.vrap.codegen.languages.java.base.extensions.JavaObjectTypeExtensions
 import io.vrap.codegen.languages.java.base.extensions.simpleName
+import io.vrap.rmf.codegen.di.AllObjectTypes
 import io.vrap.rmf.codegen.di.EnumStringTypes
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.FileProducer
@@ -15,15 +16,7 @@ import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.types.*
 import io.vrap.rmf.raml.model.util.StringCaseFormat
 
-class PlantUmlDiagramProducer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : JavaObjectTypeExtensions, JavaEObjectTypeExtensions, FileProducer {
-
-    @Inject
-    lateinit var allObjectTypes: MutableList<ObjectType>
-
-    @Inject
-    @EnumStringTypes
-    lateinit var allStringTypes: MutableList<StringType>
-
+class PlantUmlDiagramProducer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider, @AllObjectTypes val allObjectTypes: List<ObjectType>, @EnumStringTypes val allStringTypes: List<StringType>) : JavaObjectTypeExtensions, JavaEObjectTypeExtensions, FileProducer {
 
     override fun produceFiles(): List<TemplateFile> = listOf(
             TemplateFile(relativePath = "diagram.puml",

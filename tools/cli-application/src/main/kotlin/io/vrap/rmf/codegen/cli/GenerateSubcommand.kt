@@ -7,8 +7,8 @@ import io.reactivex.rxjava3.schedulers.Schedulers
 import io.vrap.codegen.languages.csharp.CsharpBaseTypes
 import io.vrap.codegen.languages.csharp.modules.CsharpClientBuilderModule
 import io.vrap.codegen.languages.csharp.modules.CsharpModule
-//import io.vrap.codegen.languages.java.base.JavaBaseTypes
-//import io.vrap.codegen.languages.javalang.client.builder.module.JavaCompleteModule
+import io.vrap.codegen.languages.java.base.JavaBaseTypes
+import io.vrap.codegen.languages.javalang.client.builder.module.JavaCompleteModule
 import io.vrap.codegen.languages.oas.model.OasBaseTypes
 import io.vrap.codegen.languages.oas.model.OasModelModule
 import io.vrap.codegen.languages.php.PhpBaseTypes
@@ -145,10 +145,10 @@ class GenerateSubcommand : Callable<Int> {
         val generateDuration = measureTimeMillis {
             val apiProvider = ApiProvider(ramlFileLocation)
             val generatorComponent: GeneratorComponent = when (target) {
-//                GenerationTarget.JAVA_CLIENT -> {
-//                    val generatorModule = GeneratorModule(apiProvider, generatorConfig, JavaBaseTypes)
-//                    GeneratorComponent(generatorModule, JavaCompleteModule)
-//                }
+                GenerationTarget.JAVA_CLIENT -> {
+                    val generatorModule = GeneratorModule(apiProvider, generatorConfig, JavaBaseTypes)
+                    GeneratorComponent(generatorModule, JavaCompleteModule)
+                }
                 GenerationTarget.TYPESCRIPT_CLIENT -> {
                     val generatorModule = GeneratorModule(apiProvider, generatorConfig, TypeScriptBaseTypes)
                     GeneratorComponent(generatorModule, TypescriptModelModule, TypescriptClientModule)

@@ -40,7 +40,7 @@ class TestCodeGenerator {
         )
 
         val generatorModule = GeneratorModule(apiProvider, generatorConfig, PhpBaseTypes)
-        val generatorComponent = GeneratorComponent(generatorModule, PhpModelModule())
+        val generatorComponent = GeneratorComponent(generatorModule, PhpModelModule)
         generatorComponent.generateFiles()
 
         if (runPhpUnitTest && userProvidedPath != null) {
@@ -54,7 +54,7 @@ class TestCodeGenerator {
         )
 
         val generatorModuleTests = GeneratorModule(apiProvider, generatorConfigTests, PhpBaseTypes)
-        val generatorComponentTests = GeneratorComponent(generatorModuleTests, PhpTestModule())
+        val generatorComponentTests = GeneratorComponent(generatorModuleTests, PhpTestModule)
         generatorComponentTests.generateFiles()
     }
 
@@ -67,7 +67,7 @@ class TestCodeGenerator {
         )
 
         val generatorModule = GeneratorModule(importProvider, generatorConfig, PhpBaseTypes)
-        val generatorComponent = GeneratorComponent(generatorModule, PhpModelModule())
+        val generatorComponent = GeneratorComponent(generatorModule, PhpModelModule)
         generatorComponent.generateFiles()
 
         if (runPhpUnitTest && importerUserProvidedPath != null) {
@@ -81,7 +81,7 @@ class TestCodeGenerator {
         )
 
         val generatorModuleTests = GeneratorModule(importProvider, generatorConfigTests, PhpBaseTypes)
-        val generatorComponentTests = GeneratorComponent(generatorModuleTests, PhpTestModule())
+        val generatorComponentTests = GeneratorComponent(generatorModuleTests, PhpTestModule)
         generatorComponentTests.generateFiles()
     }
 
@@ -94,7 +94,7 @@ class TestCodeGenerator {
         )
 
         val generatorModule = GeneratorModule(mlProvider, generatorConfig, PhpBaseTypes)
-        val generatorComponent = GeneratorComponent(generatorModule, PhpModelModule())
+        val generatorComponent = GeneratorComponent(generatorModule, PhpModelModule)
         generatorComponent.generateFiles()
 
         if (runPhpUnitTest && mlUserProvidedPath != null) {
@@ -108,7 +108,7 @@ class TestCodeGenerator {
         )
 
         val generatorModuleTests = GeneratorModule(mlProvider, generatorConfigTests, PhpBaseTypes)
-        val generatorComponentTests = GeneratorComponent(generatorModuleTests, PhpTestModule())
+        val generatorComponentTests = GeneratorComponent(generatorModuleTests, PhpTestModule)
         generatorComponentTests.generateFiles()
     }
 
@@ -120,7 +120,7 @@ class TestCodeGenerator {
         )
 
         val generatorModule = GeneratorModule(apiProvider, generatorConfig, PhpBaseTypes)
-        val generatorComponent = GeneratorComponent(generatorModule, PhpBaseModule())
+        val generatorComponent = GeneratorComponent(generatorModule, PhpBaseModule)
         generatorComponent.generateFiles()
     }
 
