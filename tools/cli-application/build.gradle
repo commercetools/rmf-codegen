@@ -26,8 +26,8 @@ graal {
     options.add("--no-fallback")
     // not a safe idea, but if a class can really not be added as a dependency missing code can be allowed:
     // options.add("--allow-incomplete-classpath")
-    // asking for build time initialization in combination with "allow incomplete classpath" seems to give better error output
-    // options.add("--initialize-at-build-time")
+    // asking for build time initialization seems to give better error output
+    options.add("--initialize-at-build-time")
 
 }
 
