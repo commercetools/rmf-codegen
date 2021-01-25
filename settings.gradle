@@ -13,6 +13,4 @@ include 'languages:ramldoc'
 
 include 'tools:cli-application'
 
-
-
 include 'tools:codegen-gradle-plugin'

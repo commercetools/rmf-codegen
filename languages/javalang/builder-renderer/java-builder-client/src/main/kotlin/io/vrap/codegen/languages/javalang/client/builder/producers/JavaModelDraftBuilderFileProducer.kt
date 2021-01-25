@@ -1,9 +1,9 @@
 package io.vrap.codegen.languages.javalang.client.builder.producers
 
-import com.google.inject.Inject
 import io.vrap.codegen.languages.extensions.isPatternProperty
 import io.vrap.codegen.languages.java.base.JavaSubTemplates
 import io.vrap.codegen.languages.java.base.extensions.*
+import io.vrap.rmf.codegen.di.AllObjectTypes
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.FileProducer
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
@@ -16,7 +16,7 @@ import io.vrap.rmf.raml.model.types.Property
 import javax.lang.model.SourceVersion
 
 
-class JavaModelDraftBuilderFileProducer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider, private val allObjectTypes: MutableList<ObjectType>) : JavaObjectTypeExtensions, JavaEObjectTypeExtensions, FileProducer {
+class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvider: VrapTypeProvider, @AllObjectTypes private val allObjectTypes: List<ObjectType>) : JavaObjectTypeExtensions, JavaEObjectTypeExtensions, FileProducer {
 
     override fun produceFiles(): List<TemplateFile> {
         return allObjectTypes.filter { !it.isAbstract() }.map { render(it) }

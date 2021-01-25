@@ -1,9 +1,9 @@
 package io.vrap.codegen.languages.php.model
 
 import com.google.common.collect.Lists
-import com.google.inject.Inject
 import io.vrap.codegen.languages.extensions.getMethodName
 import io.vrap.codegen.languages.php.AbstractRequestBuilder
+import io.vrap.codegen.languages.php.ClientConstants
 import io.vrap.codegen.languages.php.extensions.*
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.FileProducer
@@ -14,7 +14,7 @@ import io.vrap.rmf.raml.model.modules.Api
 import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Resource
 
-class DocsProducer @Inject constructor(api: Api, vrapTypeProvider: VrapTypeProvider) : FileProducer, AbstractRequestBuilder(api, vrapTypeProvider) {
+class DocsProducer constructor(api: Api, vrapTypeProvider: VrapTypeProvider, clientConstants: ClientConstants) : FileProducer, AbstractRequestBuilder(api, vrapTypeProvider, clientConstants) {
 
     override fun produceFiles(): List<TemplateFile> = listOf(
             requestBuilder(api)

@@ -1,17 +1,11 @@
 package io.vrap.codegen.languages.csharp.model
 
-import com.google.inject.Inject
 import io.vrap.codegen.languages.csharp.extensions.*
 import io.vrap.codegen.languages.extensions.EObjectExtensions
-import io.vrap.codegen.languages.extensions.discriminatorProperty
-import io.vrap.codegen.languages.extensions.hasSubtypes
-import io.vrap.codegen.languages.extensions.namedSubTypes
 import io.vrap.rmf.codegen.di.BasePackageName
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.ObjectTypeRenderer
 import io.vrap.rmf.codegen.rendring.utils.keepIndentation
-import io.vrap.rmf.codegen.types.VrapArrayType
-import io.vrap.rmf.codegen.types.VrapEnumType
 import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.types.ObjectType
@@ -19,11 +13,7 @@ import io.vrap.rmf.raml.model.types.Property
 import io.vrap.rmf.raml.model.types.impl.ObjectTypeImpl
 
 
-class CsharpObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : CsharpObjectTypeExtensions, EObjectExtensions, ObjectTypeRenderer {
-
-    @Inject
-    @BasePackageName
-    lateinit var basePackagePrefix:String
+class CsharpObjectTypeRenderer constructor(override val vrapTypeProvider: VrapTypeProvider, @BasePackageName private val basePackagePrefix: String) : CsharpObjectTypeExtensions, EObjectExtensions, ObjectTypeRenderer {
 
     override fun render(type: ObjectType): TemplateFile {
         val vrapType = vrapTypeProvider.doSwitch(type) as VrapObjectType

@@ -1,6 +1,5 @@
 package io.vrap.codegen.languages.typescript.client.files_producers
 
-import com.google.inject.Inject
 import io.vrap.codegen.languages.extensions.getMethodName
 import io.vrap.codegen.languages.typescript.model.TsObjectTypeExtensions
 import io.vrap.codegen.languages.typescript.tsGeneratedComment
@@ -17,7 +16,7 @@ import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.modules.Api
 import io.vrap.rmf.raml.model.resources.ResourceContainer
 
-class ApiRootFileProducer @Inject constructor(
+class ApiRootFileProducer constructor(
         @ClientPackageName val client_package: String,
         val clientConstants: ClientConstants,
         val api: Api,

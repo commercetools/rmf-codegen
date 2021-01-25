@@ -1,22 +1,31 @@
 package io.vrap.codegen.languages.typescript.client
 
-import com.google.inject.AbstractModule
-import com.google.inject.multibindings.Multibinder
 import io.vrap.codegen.languages.typescript.client.files_producers.ApiRootFileProducer
+import io.vrap.codegen.languages.typescript.client.files_producers.ClientConstants
 import io.vrap.codegen.languages.typescript.client.files_producers.ClientFileProducer
 import io.vrap.codegen.languages.typescript.client.files_producers.IndexFileProducer
+import io.vrap.rmf.codegen.di.GeneratorModule
+import io.vrap.rmf.codegen.di.Module
 import io.vrap.rmf.codegen.rendring.*
 
-object TypescriptClientModule : AbstractModule() {
-    override fun configure() {
-        val generators = Multibinder.newSetBinder(binder(), CodeGenerator::class.java)
-        generators.addBinding().to(ResourceGenerator::class.java)
-        generators.addBinding().to(FileGenerator::class.java)
+object TypescriptClientModule : Module {
 
-        Multibinder.newSetBinder(binder(), ResourceRenderer::class.java).addBinding().to(RequestBuilder::class.java)
-        Multibinder.newSetBinder(binder(), FileProducer::class.java).addBinding().to(ApiRootFileProducer::class.java)
-        Multibinder.newSetBinder(binder(), FileProducer::class.java).addBinding().to(ClientFileProducer::class.java)
-        Multibinder.newSetBinder(binder(), FileProducer::class.java).addBinding().to(IndexFileProducer::class.java)
+    override fun configure(generatorModule: GeneratorModule) = setOf<CodeGenerator> (
+            ResourceGenerator(
+                    setOf(
+                            RequestBuilder(generatorModule.provideClientPackageName(), generatorModule.clientConstants(), generatorModule.provideRamlModel(), generatorModule.vrapTypeProvider())
+                    ),
+                    generatorModule.allResources()
+            ),
+            FileGenerator(
+                    setOf(
+                            ApiRootFileProducer(generatorModule.provideClientPackageName(), generatorModule.clientConstants(), generatorModule.provideRamlModel(), generatorModule.vrapTypeProvider()),
+                            ClientFileProducer(generatorModule.clientConstants()),
+                            IndexFileProducer(generatorModule.clientConstants(), generatorModule.vrapTypeProvider(), generatorModule.allAnyTypes())
+                    )
+            )
+    )
 
-    }
+    private fun GeneratorModule.clientConstants() =
+            ClientConstants(this.provideSharedPackageName(), this.provideClientPackageName(), this.providePackageName())
 }

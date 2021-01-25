@@ -1,7 +1,6 @@
 package io.vrap.codegen.languages.typescript.server
 
 
-import com.google.inject.Inject
 import io.vrap.codegen.languages.extensions.*
 import io.vrap.codegen.languages.typescript.*
 import io.vrap.codegen.languages.typescript.model.simpleTSName
@@ -16,7 +15,7 @@ import io.vrap.rmf.raml.model.resources.ResourceContainer
 import java.lang.Error
 import java.nio.file.Paths
 
-class ParameterGenerator @Inject constructor(
+class ParameterGenerator constructor(
         val api: Api,
         val constantsProvider: ConstantsProvider,
         @ClientPackageName val clientPackageName: String,
@@ -88,7 +87,7 @@ class ParameterGenerator @Inject constructor(
         |       <${this.resource().fullUri.variables.map{ "$it: string" }.joinToString("\n")}>
         |}
     """.trimMargin()
-    
+
 
     private fun Method.bodyDefinition(): String = this.bodies
             .map { it.type.toVrapType().simpleTSName() }

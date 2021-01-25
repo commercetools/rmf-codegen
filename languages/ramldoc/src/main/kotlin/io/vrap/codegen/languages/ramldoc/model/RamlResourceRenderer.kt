@@ -1,6 +1,5 @@
 package io.vrap.codegen.languages.ramldoc.model
 
-import com.google.inject.Inject
 import io.vrap.codegen.languages.extensions.*
 import io.vrap.codegen.languages.extensions.toResourceName
 import io.vrap.codegen.languages.ramldoc.extensions.*
@@ -21,7 +20,7 @@ import io.vrap.rmf.raml.model.security.SecuredBy
 import io.vrap.rmf.raml.model.types.*
 import org.eclipse.emf.ecore.EObject
 
-class RamlResourceRenderer @Inject constructor(val api: Api, val vrapTypeProvider: VrapTypeProvider) : ResourceRenderer {
+class RamlResourceRenderer constructor(val api: Api, val vrapTypeProvider: VrapTypeProvider) : ResourceRenderer {
     override fun render(type: Resource): TemplateFile {
         val vrapType = vrapTypeProvider.doSwitch(type as EObject) as VrapObjectType
 

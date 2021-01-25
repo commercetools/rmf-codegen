@@ -1,14 +1,13 @@
 package io.vrap.rmf.codegen.types
 
-import com.google.inject.Inject
 import io.vrap.rmf.raml.model.elements.NamedElement
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.util.ComposedSwitch
 import org.slf4j.LoggerFactory
 
-class VrapTypeProvider @Inject constructor(packageProvider: PackageProvider,
+class VrapTypeProvider constructor(packageProvider: PackageProvider,
                                            val languageBaseTypes: LanguageBaseTypes,
-                                           val customTypeMapping: MutableMap<String, VrapType>
+                                           val customTypeMapping: Map<String, VrapType>
 ) : ComposedSwitch<VrapType>() {
 
 

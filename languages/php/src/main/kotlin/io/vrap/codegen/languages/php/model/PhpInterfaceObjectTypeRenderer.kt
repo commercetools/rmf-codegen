@@ -1,8 +1,8 @@
 package io.vrap.codegen.languages.php.model
 
-import com.google.inject.Inject
 import io.vrap.codegen.languages.extensions.discriminatorProperty
 import io.vrap.codegen.languages.extensions.isPatternProperty
+import io.vrap.codegen.languages.php.ClientConstants
 import io.vrap.codegen.languages.php.PhpSubTemplates
 import io.vrap.codegen.languages.php.extensions.*
 import io.vrap.rmf.codegen.di.BasePackageName
@@ -18,15 +18,11 @@ import io.vrap.rmf.raml.model.types.*
 import io.vrap.rmf.raml.model.types.Annotation
 import io.vrap.rmf.raml.model.util.StringCaseFormat
 
-class PhpInterfaceObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : ObjectTypeExtensions, EObjectTypeExtensions, ObjectTypeRenderer {
+class PhpInterfaceObjectTypeRenderer constructor(override val vrapTypeProvider: VrapTypeProvider, clientConstants: ClientConstants) : ObjectTypeExtensions, EObjectTypeExtensions, ObjectTypeRenderer {
 
-    @Inject
-    @BasePackageName
-    lateinit var basePackagePrefix:String
+    private val basePackagePrefix = clientConstants.basePackagePrefix
 
-    @Inject
-    @SharedPackageName
-    lateinit var sharedPackageName: String
+    private val sharedPackageName = clientConstants.sharedPackageName
 
     override fun render(type: ObjectType): TemplateFile {
 

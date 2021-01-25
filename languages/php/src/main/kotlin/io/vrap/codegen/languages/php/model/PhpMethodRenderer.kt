@@ -1,12 +1,9 @@
 package io.vrap.codegen.languages.php.model
 
 import com.google.common.net.MediaType
-import com.google.inject.Inject
+import io.vrap.codegen.languages.php.ClientConstants
 import io.vrap.codegen.languages.php.PhpSubTemplates
 import io.vrap.codegen.languages.php.extensions.*
-import io.vrap.rmf.codegen.di.BasePackageName
-import io.vrap.rmf.codegen.di.ClientPackageName
-import io.vrap.rmf.codegen.di.SharedPackageName
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.MethodRenderer
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
@@ -20,19 +17,13 @@ import io.vrap.rmf.raml.model.types.*
 import io.vrap.rmf.raml.model.types.impl.TypesFactoryImpl
 import org.eclipse.emf.ecore.EObject
 
-class PhpMethodRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : MethodRenderer, EObjectTypeExtensions {
+class PhpMethodRenderer constructor(override val vrapTypeProvider: VrapTypeProvider, clientConstants: ClientConstants) : MethodRenderer, EObjectTypeExtensions {
 
-    @Inject
-    @BasePackageName
-    lateinit var basePackagePrefix:String
+    protected val basePackagePrefix = clientConstants.basePackagePrefix
 
-    @Inject
-    @SharedPackageName
-    lateinit var sharedPackageName: String
+    protected val sharedPackageName = clientConstants.sharedPackageName
 
-    @Inject
-    @ClientPackageName
-    lateinit var clientPackageName: String
+    protected val clientPackageName = clientConstants.clientPackage
 
     private val resourcePackage = "Resource"
 

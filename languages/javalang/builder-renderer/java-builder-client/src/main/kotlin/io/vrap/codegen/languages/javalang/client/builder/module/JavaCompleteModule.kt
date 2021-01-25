@@ -1,7 +1,5 @@
 package io.vrap.codegen.languages.javalang.client.builder.module
 
-import com.google.inject.AbstractModule
-import com.google.inject.multibindings.Multibinder
 import io.vrap.codegen.languages.javalang.client.builder.model.JavaModelInterfaceRenderer
 import io.vrap.codegen.languages.javalang.client.builder.model.JavaStringTypeRenderer
 import io.vrap.codegen.languages.javalang.client.builder.model.JavaTraitRenderer
@@ -10,37 +8,33 @@ import io.vrap.codegen.languages.javalang.client.builder.producers.JavaModelClas
 import io.vrap.codegen.languages.javalang.client.builder.producers.JavaModelDraftBuilderFileProducer
 import io.vrap.codegen.languages.javalang.client.builder.requests.JavaHttpRequestRenderer
 import io.vrap.codegen.languages.javalang.client.builder.requests.JavaRequestBuilderResourceRenderer
+import io.vrap.rmf.codegen.di.GeneratorModule
+import io.vrap.rmf.codegen.di.Module
 
 import io.vrap.rmf.codegen.rendring.*
 
-object JavaCompleteModule: AbstractModule() {
-    override fun configure() {
-        val generators = Multibinder.newSetBinder(binder(), CodeGenerator::class.java)
-        generators.addBinding().to(ObjectTypeGenerator::class.java)
-        generators.addBinding().to(StringTypeGenerator::class.java)
-        generators.addBinding().to(FileGenerator::class.java)
-        generators.addBinding().to(ResourceGenerator::class.java)
-        generators.addBinding().to(MethodGenerator::class.java)
-        generators.addBinding().to(TraitGenerator::class.java)
+object JavaCompleteModule: Module {
 
-        val objectTypeBinder = Multibinder.newSetBinder(binder(), ObjectTypeRenderer::class.java)
-        objectTypeBinder.addBinding().to(JavaModelInterfaceRenderer::class.java)
-
-        val stringTypeBinder = Multibinder.newSetBinder(binder(), StringTypeRenderer::class.java)
-        stringTypeBinder.addBinding().to(JavaStringTypeRenderer::class.java)
-
-        val traitBinder = Multibinder.newSetBinder(binder(), TraitRenderer::class.java)
-        traitBinder.addBinding().to(JavaTraitRenderer::class.java)
-
-        val fileTypeBinder = Multibinder.newSetBinder(binder(), FileProducer::class.java)
-        fileTypeBinder.addBinding().to(JavaModelClassFileProducer::class.java)
-        fileTypeBinder.addBinding().to(JavaModelDraftBuilderFileProducer::class.java)
-        fileTypeBinder.addBinding().to(JavaApiRootFileProducer::class.java)
-
-        val resourceTypeBinder = Multibinder.newSetBinder(binder(), ResourceRenderer::class.java)
-        resourceTypeBinder.addBinding().to(JavaRequestBuilderResourceRenderer::class.java)
-
-        val methodTypeBinder = Multibinder.newSetBinder(binder(), MethodRenderer::class.java)
-        methodTypeBinder.addBinding().to(JavaHttpRequestRenderer::class.java)
-    }
+    override fun configure(generatorModule: GeneratorModule) = setOf<CodeGenerator> (
+            ObjectTypeGenerator(setOf(
+                    JavaModelInterfaceRenderer(generatorModule.vrapTypeProvider())
+            ), generatorModule.allObjectTypes()),
+            StringTypeGenerator(setOf(
+                    JavaStringTypeRenderer(generatorModule.vrapTypeProvider())
+            ), generatorModule.allEnumStringTypes()),
+            FileGenerator(setOf(
+                    JavaModelClassFileProducer(generatorModule.vrapTypeProvider(), generatorModule.allObjectTypes()),
+                    JavaModelDraftBuilderFileProducer(generatorModule.vrapTypeProvider(), generatorModule.allObjectTypes()),
+                    JavaApiRootFileProducer(generatorModule.provideClientPackageName(), generatorModule.provideRamlModel())
+            )),
+            ResourceGenerator(setOf(
+                    JavaRequestBuilderResourceRenderer(generatorModule.vrapTypeProvider())
+            ), generatorModule.allResources()),
+            MethodGenerator(setOf(
+                    JavaHttpRequestRenderer(generatorModule.vrapTypeProvider())
+            ), generatorModule.allResourceMethods()),
+            TraitGenerator(setOf(
+                    JavaTraitRenderer(generatorModule.vrapTypeProvider())
+            ), generatorModule.allTraits())
+    )
 }

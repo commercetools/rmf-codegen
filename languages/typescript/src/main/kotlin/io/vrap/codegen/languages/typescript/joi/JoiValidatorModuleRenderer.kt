@@ -1,5 +1,4 @@
 package io.vrap.codegen.languages.typescript.joi
-import com.google.inject.Inject
 import io.vrap.codegen.languages.extensions.discriminatorProperty
 import io.vrap.codegen.languages.extensions.hasSubtypes
 import io.vrap.codegen.languages.typescript.model.TsObjectTypeExtensions
@@ -13,10 +12,8 @@ import io.vrap.rmf.codegen.rendring.utils.keepIndentation
 import io.vrap.rmf.codegen.types.*
 import io.vrap.rmf.raml.model.types.*
 
-class JoiValidatorModuleRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : JoiObjectTypeExtensions, TsObjectTypeExtensions, FileProducer {
-    @Inject
-    @AllAnyTypes
-    lateinit var allAnyTypes: MutableList<AnyType>
+class JoiValidatorModuleRenderer constructor(override val vrapTypeProvider: VrapTypeProvider, @AllAnyTypes val allAnyTypes: List<AnyType>) : JoiObjectTypeExtensions, TsObjectTypeExtensions, FileProducer {
+
     private var joiAlternativesTypes: List<String> = ArrayList()
     private var recursionTypes: List<String> = ArrayList()
 

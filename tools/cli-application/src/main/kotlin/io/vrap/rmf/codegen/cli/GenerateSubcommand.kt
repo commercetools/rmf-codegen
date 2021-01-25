@@ -155,15 +155,15 @@ class GenerateSubcommand : Callable<Int> {
                 }
                 GenerationTarget.PHP_CLIENT -> {
                     val generatorModule = GeneratorModule(apiProvider, generatorConfig, PhpBaseTypes)
-                    GeneratorComponent(generatorModule, PhpModelModule())
+                    GeneratorComponent(generatorModule, PhpModelModule)
                 }
                 GenerationTarget.PHP_BASE -> {
                     val generatorModule = GeneratorModule(apiProvider, generatorConfig, PhpBaseTypes)
-                    GeneratorComponent(generatorModule, PhpBaseModule())
+                    GeneratorComponent(generatorModule, PhpBaseModule)
                 }
                 GenerationTarget.PHP_TEST -> {
                     val generatorModule = GeneratorModule(apiProvider, generatorConfig, PhpBaseTypes)
-                    GeneratorComponent(generatorModule, PhpTestModule())
+                    GeneratorComponent(generatorModule, PhpTestModule)
                 }
                 GenerationTarget.CSHARP_CLIENT -> {
                     val generatorModule = GeneratorModule(apiProvider, generatorConfig, CsharpBaseTypes)
@@ -171,7 +171,7 @@ class GenerateSubcommand : Callable<Int> {
                 }
                 GenerationTarget.POSTMAN -> {
                     val generatorModule = GeneratorModule(apiProvider, generatorConfig, PostmanBaseTypes)
-                    GeneratorComponent(generatorModule, PostmanModelModule())
+                    GeneratorComponent(generatorModule, PostmanModelModule)
                 }
                 GenerationTarget.RAML_DOC -> {
                     val ramlConfig = CodeGeneratorConfig(
@@ -182,7 +182,7 @@ class GenerateSubcommand : Callable<Int> {
                             outputFolder = generatorConfig.outputFolder
                     )
                     val generatorModule = GeneratorModule(apiProvider, ramlConfig, RamldocBaseTypes)
-                    GeneratorComponent(generatorModule, RamldocModelModule())
+                    GeneratorComponent(generatorModule, RamldocModelModule)
                 }
                 GenerationTarget.OAS -> {
                     val ramlConfig = CodeGeneratorConfig(
@@ -193,8 +193,9 @@ class GenerateSubcommand : Callable<Int> {
                             outputFolder = generatorConfig.outputFolder
                     )
                     val generatorModule = GeneratorModule(apiProvider, ramlConfig, OasBaseTypes)
-                    GeneratorComponent(generatorModule, OasModelModule())
+                    GeneratorComponent(generatorModule, OasModelModule)
                 }
+                else -> throw Exception()
             }
             generatorComponent.generateFiles()
         }

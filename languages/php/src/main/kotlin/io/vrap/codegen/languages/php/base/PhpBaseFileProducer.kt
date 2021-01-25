@@ -1,6 +1,6 @@
 package io.vrap.codegen.languages.php.base
 
-import com.google.inject.Inject
+import io.vrap.codegen.languages.php.ClientConstants
 import io.vrap.codegen.languages.php.PhpSubTemplates
 import io.vrap.codegen.languages.php.extensions.*
 import io.vrap.rmf.codegen.di.BasePackageName
@@ -9,11 +9,7 @@ import io.vrap.rmf.codegen.rendring.FileProducer
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
 import io.vrap.rmf.raml.model.modules.Api
 
-class PhpBaseFileProducer @Inject constructor(val api: Api) : FileProducer {
-
-    @Inject
-    @BasePackageName
-    lateinit var packagePrefix:String
+class PhpBaseFileProducer constructor(val api: Api, @BasePackageName val packagePrefix: String) : FileProducer {
 
     override fun produceFiles(): List<TemplateFile> = listOf(
             apiClientException(),

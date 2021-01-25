@@ -1,12 +1,11 @@
 package io.vrap.codegen.languages.typescript.client.files_producers
 
-import com.google.inject.Inject
 import io.vrap.rmf.codegen.di.BasePackageName
 import io.vrap.rmf.codegen.di.ClientPackageName
 import io.vrap.rmf.codegen.di.SharedPackageName
 import io.vrap.rmf.raml.model.util.StringCaseFormat
 
-class ClientConstants @Inject constructor(
+class ClientConstants constructor(
         @SharedPackageName
         val sharedPackage: String,
         @ClientPackageName

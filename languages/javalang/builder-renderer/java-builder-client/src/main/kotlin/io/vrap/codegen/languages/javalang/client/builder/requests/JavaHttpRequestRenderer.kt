@@ -1,7 +1,6 @@
 package io.vrap.codegen.languages.javalang.client.builder.requests
 
 import com.google.common.collect.Lists
-import com.google.inject.Inject
 import io.vrap.codegen.languages.extensions.resource
 import io.vrap.codegen.languages.extensions.toComment
 import io.vrap.codegen.languages.extensions.toRequestName
@@ -13,7 +12,6 @@ import io.vrap.rmf.codegen.rendring.utils.escapeAll
 import io.vrap.rmf.codegen.rendring.utils.keepIndentation
 import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapScalarType
-import io.vrap.rmf.codegen.types.VrapType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Trait
@@ -27,7 +25,7 @@ import org.eclipse.emf.ecore.EObject
  */
 const val PLACEHOLDER_PARAM_ANNOTATION = "placeholderParam"
 
-class JavaHttpRequestRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : MethodRenderer, JavaObjectTypeExtensions, JavaEObjectTypeExtensions {
+class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTypeProvider) : MethodRenderer, JavaObjectTypeExtensions, JavaEObjectTypeExtensions {
 
     override fun render(type: Method): TemplateFile {
         val vrapType = vrapTypeProvider.doSwitch(type as EObject) as VrapObjectType

@@ -1,6 +1,5 @@
 package io.vrap.codegen.languages.typescript.model
 
-import com.google.inject.Inject
 import io.vrap.codegen.languages.extensions.getSuperTypes
 import io.vrap.codegen.languages.extensions.isPatternProperty
 import io.vrap.codegen.languages.extensions.sortedByTopology
@@ -15,11 +14,7 @@ import io.vrap.rmf.codegen.types.VrapEnumType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.types.*
 
-class TypeScriptModuleRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : TsObjectTypeExtensions, FileProducer {
-
-    @Inject
-    @AllAnyTypes
-    lateinit var allAnyTypes: MutableList<AnyType>
+class TypeScriptModuleRenderer constructor(override val vrapTypeProvider: VrapTypeProvider, @AllAnyTypes val allAnyTypes: List<AnyType>) : TsObjectTypeExtensions, FileProducer {
 
     override fun produceFiles(): List<TemplateFile> {
         return allAnyTypes.filter { it is ObjectType || (it is StringType && it.pattern == null) }

@@ -1,6 +1,5 @@
 package io.vrap.codegen.languages.javalang.model;
 
-import com.google.inject.Inject
 import io.vrap.codegen.languages.extensions.*
 import io.vrap.codegen.languages.java.base.JavaSubTemplates
 import io.vrap.codegen.languages.java.base.extensions.*
@@ -18,7 +17,7 @@ import io.vrap.rmf.raml.model.types.util.TypesSwitch
 import org.eclipse.emf.ecore.EObject
 import java.util.*
 
-class JavaObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : JavaObjectTypeExtensions, JavaEObjectTypeExtensions, ObjectTypeRenderer {
+class JavaObjectTypeRenderer constructor(override val vrapTypeProvider: VrapTypeProvider) : JavaObjectTypeExtensions, JavaEObjectTypeExtensions, ObjectTypeRenderer {
 
     override fun render(type: ObjectType): TemplateFile {
 

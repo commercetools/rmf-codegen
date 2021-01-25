@@ -1,9 +1,9 @@
 package io.vrap.codegen.languages.php.test
 
 import com.damnhandy.uri.template.UriTemplate
-import com.google.inject.Inject
 import io.vrap.codegen.languages.extensions.getMethodName
 import io.vrap.codegen.languages.php.AbstractRequestBuilder
+import io.vrap.codegen.languages.php.ClientConstants
 import io.vrap.codegen.languages.php.PhpSubTemplates
 import io.vrap.codegen.languages.php.extensions.forcedLiteralEscape
 import io.vrap.codegen.languages.php.extensions.paramValues
@@ -18,7 +18,7 @@ import io.vrap.rmf.raml.model.modules.Api
 import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.util.StringCaseFormat
 
-class PhpTestRenderer @Inject constructor(api: Api, vrapTypeProvider: VrapTypeProvider) : FileProducer, AbstractRequestBuilder(api, vrapTypeProvider) {
+class PhpTestRenderer constructor(api: Api, vrapTypeProvider: VrapTypeProvider, clientConstants: ClientConstants) : FileProducer, AbstractRequestBuilder(api, vrapTypeProvider, clientConstants) {
 
     override fun produceFiles(): List<TemplateFile> = listOf(
             configTest(api),

@@ -1,6 +1,5 @@
 package io.vrap.codegen.languages.oas.model
 
-import com.google.inject.Inject
 import io.vrap.codegen.languages.extensions.ExtensionsBase
 import io.vrap.codegen.languages.extensions.isSuccessfull
 import io.vrap.codegen.languages.extensions.toRequestName
@@ -17,11 +16,7 @@ import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.types.*
 import org.eclipse.emf.ecore.util.EcoreUtil
 
-class RamlExampleRenderer @Inject constructor(val allMethods: MutableList<Method>, @AllAnyTypes val allAnyTypes: MutableList<AnyType>, override val vrapTypeProvider: VrapTypeProvider) : ExtensionsBase, FileProducer {
-
-    @Inject
-    @ModelPackageName
-    lateinit var modelPackageName: String
+class RamlExampleRenderer constructor(val allMethods: MutableList<Method>, @AllAnyTypes val allAnyTypes: List<AnyType>, override val vrapTypeProvider: VrapTypeProvider, @ModelPackageName val modelPackageName: String) : ExtensionsBase, FileProducer {
 
     override fun produceFiles(): List<TemplateFile> {
         return listOf<TemplateFile>()

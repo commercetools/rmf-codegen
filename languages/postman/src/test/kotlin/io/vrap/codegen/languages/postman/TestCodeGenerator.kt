@@ -28,7 +28,7 @@ class TestCodeGenerator {
         )
 
         val generatorModule = GeneratorModule(apiProvider, generatorConfig, PostmanBaseTypes)
-        val generatorComponent = GeneratorComponent(generatorModule, PostmanModelModule())
+        val generatorComponent = GeneratorComponent(generatorModule, PostmanModelModule)
         generatorComponent.generateFiles()
     }
 

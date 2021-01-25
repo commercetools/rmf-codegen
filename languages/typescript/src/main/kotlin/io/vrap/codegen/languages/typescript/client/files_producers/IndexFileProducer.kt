@@ -1,6 +1,5 @@
 package io.vrap.codegen.languages.typescript.client.files_producers
 
-import com.google.inject.Inject
 import io.vrap.codegen.languages.typescript.model.TsObjectTypeExtensions
 import io.vrap.codegen.languages.typescript.tsGeneratedComment
 import io.vrap.rmf.codegen.di.AllAnyTypes
@@ -11,10 +10,10 @@ import io.vrap.rmf.raml.model.types.AnyType
 import io.vrap.rmf.raml.model.types.ObjectType
 import io.vrap.rmf.raml.model.types.StringType
 
-class IndexFileProducer @Inject constructor(
+class IndexFileProducer constructor(
         private val clientConstants: ClientConstants,
         override val vrapTypeProvider: VrapTypeProvider,
-        @AllAnyTypes val allAnyTypes: MutableList<AnyType>
+        @AllAnyTypes val allAnyTypes: List<AnyType>
 ) : FileProducer, TsObjectTypeExtensions {
     override fun produceFiles(): List<TemplateFile> = listOf(TemplateFile(
             relativePath = "${clientConstants.indexFile}.ts",
@@ -34,7 +33,7 @@ class IndexFileProducer @Inject constructor(
             """.trimMargin()
     ))
 
-    fun MutableList<AnyType>.exportModels() =
+    fun List<AnyType>.exportModels() =
         this.filter { it is ObjectType || (it is StringType && it.pattern == null) }
                 .map {
                     "export * from '${it.moduleName()}'"

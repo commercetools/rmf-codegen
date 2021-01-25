@@ -1,9 +1,6 @@
 package io.vrap.rmf.codegen.di
 
-import com.google.inject.BindingAnnotation
 
-
-@BindingAnnotation
 @Target(AnnotationTarget.FIELD,
         AnnotationTarget.TYPE_PARAMETER,
         AnnotationTarget.VALUE_PARAMETER,
@@ -11,7 +8,6 @@ import com.google.inject.BindingAnnotation
 @Retention(AnnotationRetention.RUNTIME)
 annotation class DefaultPackage
 
-@BindingAnnotation
 @Target(AnnotationTarget.FIELD,
         AnnotationTarget.TYPE_PARAMETER,
         AnnotationTarget.VALUE_PARAMETER,
@@ -19,7 +15,6 @@ annotation class DefaultPackage
 @Retention(AnnotationRetention.RUNTIME)
 annotation class OutputFolder
 
-@BindingAnnotation
 @Target(AnnotationTarget.FIELD,
         AnnotationTarget.TYPE_PARAMETER,
         AnnotationTarget.VALUE_PARAMETER,
@@ -28,7 +23,6 @@ annotation class OutputFolder
 annotation class ClientPackageName
 
 
-@BindingAnnotation
 @Target(AnnotationTarget.FIELD,
         AnnotationTarget.TYPE_PARAMETER,
         AnnotationTarget.VALUE_PARAMETER,
@@ -36,7 +30,6 @@ annotation class ClientPackageName
 @Retention(AnnotationRetention.RUNTIME)
 annotation class ModelPackageName
 
-@BindingAnnotation
 @Target(AnnotationTarget.FIELD,
         AnnotationTarget.TYPE_PARAMETER,
         AnnotationTarget.VALUE_PARAMETER,
@@ -44,7 +37,6 @@ annotation class ModelPackageName
 @Retention(AnnotationRetention.RUNTIME)
 annotation class BasePackageName
 
-@BindingAnnotation
 @Target(AnnotationTarget.FIELD,
         AnnotationTarget.TYPE_PARAMETER,
         AnnotationTarget.VALUE_PARAMETER,
@@ -52,8 +44,6 @@ annotation class BasePackageName
 @Retention(AnnotationRetention.RUNTIME)
 annotation class ApiGitHash
 
-
-@BindingAnnotation
 @Target(AnnotationTarget.FIELD,
         AnnotationTarget.TYPE_PARAMETER,
         AnnotationTarget.VALUE_PARAMETER,
@@ -61,7 +51,6 @@ annotation class ApiGitHash
 @Retention(AnnotationRetention.RUNTIME)
 annotation class SharedPackageName
 
-@BindingAnnotation
 @Target(AnnotationTarget.FIELD,
         AnnotationTarget.TYPE_PARAMETER,
         AnnotationTarget.VALUE_PARAMETER,
@@ -69,7 +58,6 @@ annotation class SharedPackageName
 @Retention(AnnotationRetention.RUNTIME)
 annotation class EnumStringTypes
 
-@BindingAnnotation
 @Target(AnnotationTarget.FIELD,
         AnnotationTarget.TYPE_PARAMETER,
         AnnotationTarget.VALUE_PARAMETER,
@@ -77,7 +65,6 @@ annotation class EnumStringTypes
 @Retention(AnnotationRetention.RUNTIME)
 annotation class PatternStringTypes
 
-@BindingAnnotation
 @Target(AnnotationTarget.FIELD,
         AnnotationTarget.TYPE_PARAMETER,
         AnnotationTarget.VALUE_PARAMETER,
@@ -85,10 +72,72 @@ annotation class PatternStringTypes
 @Retention(AnnotationRetention.RUNTIME)
 annotation class NamedScalarTypes
 
-@BindingAnnotation
 @Target(AnnotationTarget.FIELD,
         AnnotationTarget.TYPE_PARAMETER,
         AnnotationTarget.VALUE_PARAMETER,
         AnnotationTarget.FUNCTION)
 @Retention(AnnotationRetention.RUNTIME)
 annotation class AllAnyTypes
+
+@Target(AnnotationTarget.FIELD,
+        AnnotationTarget.TYPE_PARAMETER,
+        AnnotationTarget.VALUE_PARAMETER,
+        AnnotationTarget.FUNCTION)
+@Retention(AnnotationRetention.RUNTIME)
+annotation class GenDataSink
+
+@Target(AnnotationTarget.FIELD,
+        AnnotationTarget.TYPE_PARAMETER,
+        AnnotationTarget.VALUE_PARAMETER,
+        AnnotationTarget.FUNCTION)
+@Retention(AnnotationRetention.RUNTIME)
+annotation class CustomTypeMapping
+
+@Target(AnnotationTarget.FIELD,
+        AnnotationTarget.TYPE_PARAMETER,
+        AnnotationTarget.VALUE_PARAMETER,
+        AnnotationTarget.FUNCTION)
+@Retention(AnnotationRetention.RUNTIME)
+annotation class RamlApi
+
+@Target(AnnotationTarget.FIELD,
+        AnnotationTarget.TYPE_PARAMETER,
+        AnnotationTarget.VALUE_PARAMETER,
+        AnnotationTarget.FUNCTION)
+@Retention(AnnotationRetention.RUNTIME)
+annotation class AllObjectTypes
+
+@Target(AnnotationTarget.FIELD,
+        AnnotationTarget.TYPE_PARAMETER,
+        AnnotationTarget.VALUE_PARAMETER,
+        AnnotationTarget.FUNCTION)
+@Retention(AnnotationRetention.RUNTIME)
+annotation class AllUnionTypes
+
+@Target(AnnotationTarget.FIELD,
+        AnnotationTarget.TYPE_PARAMETER,
+        AnnotationTarget.VALUE_PARAMETER,
+        AnnotationTarget.FUNCTION)
+@Retention(AnnotationRetention.RUNTIME)
+annotation class AllResources
+
+@Target(AnnotationTarget.FIELD,
+        AnnotationTarget.TYPE_PARAMETER,
+        AnnotationTarget.VALUE_PARAMETER,
+        AnnotationTarget.FUNCTION)
+@Retention(AnnotationRetention.RUNTIME)
+annotation class AllResourceMethods
+
+@Target(AnnotationTarget.FIELD,
+        AnnotationTarget.TYPE_PARAMETER,
+        AnnotationTarget.VALUE_PARAMETER,
+        AnnotationTarget.FUNCTION)
+@Retention(AnnotationRetention.RUNTIME)
+annotation class AllTraits
+
+@Target(AnnotationTarget.FIELD,
+        AnnotationTarget.TYPE_PARAMETER,
+        AnnotationTarget.VALUE_PARAMETER,
+        AnnotationTarget.FUNCTION)
+@Retention(AnnotationRetention.RUNTIME)
+annotation class AllResourceCollections

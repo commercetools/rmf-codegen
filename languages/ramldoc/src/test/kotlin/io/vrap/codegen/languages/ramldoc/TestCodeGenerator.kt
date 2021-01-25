@@ -28,7 +28,7 @@ class TestCodeGenerator {
         )
 
         val generatorModule = GeneratorModule(apiProvider, generatorConfig, RamldocBaseTypes)
-        val generatorComponent = GeneratorComponent(generatorModule, RamldocModelModule())
+        val generatorComponent = GeneratorComponent(generatorModule, RamldocModelModule)
         generatorComponent.generateFiles()
     }
 

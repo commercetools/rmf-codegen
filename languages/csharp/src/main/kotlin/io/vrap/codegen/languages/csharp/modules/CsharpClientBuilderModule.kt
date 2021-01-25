@@ -1,21 +1,26 @@
 package io.vrap.codegen.languages.csharp.modules
 
-import com.google.inject.AbstractModule
-import com.google.inject.multibindings.Multibinder
 import io.vrap.codegen.languages.csharp.requests.CsharpHttpRequestRenderer
 import io.vrap.codegen.languages.csharp.requests.CsharpRequestBuilderResourceRenderer
+import io.vrap.rmf.codegen.di.GeneratorModule
+import io.vrap.rmf.codegen.di.Module
 import io.vrap.rmf.codegen.rendring.*
 
 
-object CsharpClientBuilderModule: AbstractModule() {
-    override fun configure() {
-        val generators = Multibinder.newSetBinder(binder(), CodeGenerator::class.java)
-        generators.addBinding().to(MethodGenerator::class.java)
-        generators.addBinding().to(ResourceGenerator::class.java)
+object CsharpClientBuilderModule: Module {
 
-        val resourceTypeBinder = Multibinder.newSetBinder(binder(), ResourceRenderer::class.java)
-        resourceTypeBinder.addBinding().to(CsharpRequestBuilderResourceRenderer::class.java)
-        val methodTypeBinder = Multibinder.newSetBinder(binder(), MethodRenderer::class.java)
-        methodTypeBinder.addBinding().to(CsharpHttpRequestRenderer::class.java)
-    }
+    override fun configure(generatorModule: GeneratorModule) = setOf<CodeGenerator>(
+            MethodGenerator(
+                    setOf(
+                            CsharpHttpRequestRenderer(generatorModule.vrapTypeProvider(), generatorModule.providePackageName())
+                    ),
+                    generatorModule.allResourceMethods()
+            ),
+            ResourceGenerator(
+                    setOf(
+                            CsharpRequestBuilderResourceRenderer(generatorModule.vrapTypeProvider(), generatorModule.providePackageName())
+                    ),
+                    generatorModule.allResources()
+            )
+    )
 }
