@@ -23,9 +23,12 @@ graal {
     javaVersion '11'
     // force building a native image and rather let if fail at runtime instead of building a fallback image
     // see https://www.graalvm.org/reference-manual/native-image/Options/ for all options. 
-    options.add("--allow-incomplete-classpath")
-    // options.add("--report-unsupported-elements-at-runtime")
     options.add("--no-fallback")
+    // some (apparently unused since the CLI runs fine) parts of EMF refer to classes not present 
+    // in the dependencies so we need to allow graalvm's native image builder to ignore that (and potentially
+    // fail at runtime):
+    options.add("--allow-incomplete-classpath")
+
 }
 
 def pomConfig = {
