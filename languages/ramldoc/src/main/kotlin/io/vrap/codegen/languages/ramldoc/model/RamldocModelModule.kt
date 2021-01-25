@@ -1,36 +1,40 @@
 package io.vrap.codegen.languages.ramldoc.model
 
-import com.google.inject.AbstractModule
 import com.google.inject.multibindings.Multibinder
+import io.vrap.rmf.codegen.di.GeneratorModule
+import io.vrap.rmf.codegen.di.Module
 import io.vrap.rmf.codegen.rendring.*
 
-class RamldocModelModule : AbstractModule() {
-    override fun configure() {
-        val generators = Multibinder.newSetBinder(binder(), CodeGenerator::class.java)
-        generators.addBinding().to(ObjectTypeGenerator::class.java)
-        generators.addBinding().to(StringTypeGenerator::class.java)
-        generators.addBinding().to(PatternStringTypeGenerator::class.java)
-        generators.addBinding().to(NamedScalarTypeGenerator::class.java)
-        generators.addBinding().to(ResourceGenerator::class.java)
-        generators.addBinding().to(FileGenerator::class.java)
-
-        val objectTypeBinder = Multibinder.newSetBinder(binder(), ObjectTypeRenderer::class.java)
-        objectTypeBinder.addBinding().to(RamlObjectTypeRenderer::class.java)
-
-        val stringTypeBinder = Multibinder.newSetBinder(binder(), StringTypeRenderer::class.java)
-        stringTypeBinder.addBinding().to(RamlScalarTypeRenderer::class.java)
-
-        val patternStringTypeBinder = Multibinder.newSetBinder(binder(), PatternStringTypeRenderer::class.java)
-        patternStringTypeBinder.addBinding().to(RamlScalarTypeRenderer::class.java)
-
-        val namedScalarTypeBinder = Multibinder.newSetBinder(binder(), NamedScalarTypeRenderer::class.java)
-        namedScalarTypeBinder.addBinding().to(RamlScalarTypeRenderer::class.java)
-
-        val resourceBinder = Multibinder.newSetBinder(binder(), ResourceRenderer::class.java)
-        resourceBinder.addBinding().to(RamlResourceRenderer::class.java)
-
-        val fileBinder = Multibinder.newSetBinder(binder(), FileProducer::class.java)
-        fileBinder.addBinding().to(ApiRamlRenderer::class.java)
-        fileBinder.addBinding().to(RamlExampleRenderer::class.java)
-    }
+object RamldocModelModule : Module {
+    override fun configure(generatorModule: GeneratorModule) = setOf<CodeGenerator>(
+        ObjectTypeGenerator(
+                setOf(
+                        RamlObjectTypeRenderer(generatorModule.vrapTypeProvider(), generatorModule.provideModelPackageName())
+                ),
+                generatorModule.allObjectTypes()
+        ),
+        StringTypeGenerator(
+                setOf(
+                        RamlScalarTypeRenderer(generatorModule.vrapTypeProvider(), generatorModule.provideModelPackageName())
+                ),
+                generatorModule.allEnumStringTypes()
+        ),
+        PatternStringTypeGenerator(
+                setOf(
+                        RamlScalarTypeRenderer(generatorModule.vrapTypeProvider(), generatorModule.provideModelPackageName())
+                ), generatorModule.allPatternStringTypes()),
+        NamedScalarTypeGenerator(
+                setOf(
+                        RamlScalarTypeRenderer(generatorModule.vrapTypeProvider(), generatorModule.provideModelPackageName())
+                ), generatorModule.allNamedScalarTypes()),
+        ResourceGenerator(
+                setOf(
+                        RamlResourceRenderer(generatorModule.provideRamlModel(), generatorModule.vrapTypeProvider())
+                ), generatorModule.allResources()),
+        FileGenerator(
+                setOf(
+                        ApiRamlRenderer(generatorModule.provideRamlModel(), generatorModule.vrapTypeProvider(), generatorModule.allAnyTypes(), generatorModule.provideModelPackageName()),
+                        RamlExampleRenderer(generatorModule.allResourceMethods(), generatorModule.allAnyTypes(), generatorModule.vrapTypeProvider(), generatorModule.provideModelPackageName())
+                ))
+    )
 }

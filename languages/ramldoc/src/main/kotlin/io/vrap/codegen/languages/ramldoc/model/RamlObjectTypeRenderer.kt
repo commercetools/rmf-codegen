@@ -12,11 +12,7 @@ import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.types.*
 
-class RamlObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : ExtensionsBase, ObjectTypeRenderer {
-
-    @Inject
-    @ModelPackageName
-    lateinit var modelPackageName: String
+class RamlObjectTypeRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider, @ModelPackageName val modelPackageName: String) : ExtensionsBase, ObjectTypeRenderer {
 
     override fun render(type: ObjectType): TemplateFile {
         val vrapType = vrapTypeProvider.doSwitch(type) as VrapObjectType

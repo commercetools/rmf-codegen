@@ -15,11 +15,7 @@ import io.vrap.rmf.codegen.types.*
 import io.vrap.rmf.raml.model.types.*
 import java.lang.Exception
 
-class RamlScalarTypeRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : ExtensionsBase, StringTypeRenderer, PatternStringTypeRenderer, NamedScalarTypeRenderer {
-
-    @Inject
-    @ModelPackageName
-    lateinit var modelPackageName: String
+class RamlScalarTypeRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider, @ModelPackageName val modelPackageName: String) : ExtensionsBase, StringTypeRenderer, PatternStringTypeRenderer, NamedScalarTypeRenderer {
 
     override fun render(type: StringType): TemplateFile {
         return when (val vrapType = vrapTypeProvider.doSwitch(type)) {

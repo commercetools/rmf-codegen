@@ -21,10 +21,7 @@ import io.vrap.rmf.raml.model.security.SecurityScheme
 import io.vrap.rmf.raml.model.types.*
 import io.vrap.rmf.raml.model.util.StringCaseFormat
 
-class OasRenderer @Inject constructor(val api: Api, override val vrapTypeProvider: VrapTypeProvider, @AllAnyTypes val anyTypeList: MutableList<AnyType>) : EObjectExtensions, FileProducer {
-    @Inject
-    @ModelPackageName
-    lateinit var modelPackageName: String
+class OasRenderer @Inject constructor(val api: Api, override val vrapTypeProvider: VrapTypeProvider, @AllAnyTypes val anyTypeList: List<AnyType>, @ModelPackageName val modelPackageName: String) : EObjectExtensions, FileProducer {
 
     override fun produceFiles(): List<TemplateFile> {
         return listOf(

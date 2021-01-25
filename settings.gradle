@@ -6,10 +6,10 @@ include 'codegen-core'
 
 include 'languages:csharp'
 //include 'languages:php'
-//include 'languages:oas'
-//include 'languages:postman'
-//include 'languages:typescript'
-//include 'languages:ramldoc'
+include 'languages:oas'
+include 'languages:postman'
+include 'languages:typescript'
+include 'languages:ramldoc'
 
 include 'tools:cli-application'
 

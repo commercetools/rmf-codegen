@@ -58,10 +58,12 @@ class GeneratorModule constructor(
 
     @Provides
     @Singleton
+    @GenDataSink
     fun dataSink(): DataSink = FileDataSink(outpuFolder())
 
     @Provides
     @Singleton
+    @CustomTypeMapping
     fun customTypeMapping(): Map<String, VrapType> = generatorConfig.customTypeMapping
 
     @Provides
@@ -111,6 +113,7 @@ class GeneratorModule constructor(
 
     @Provides
     @Singleton
+    @RamlApi
     fun provideRamlModel(): Api = apiProvider.api
 
     @Provides
@@ -131,10 +134,12 @@ class GeneratorModule constructor(
 
     @Provides
     @Singleton
+    @AllObjectTypes
     fun allObjectTypes(): List<ObjectType> = allAnyTypes().filter { it is ObjectType }.map { it as ObjectType }
 
     @Provides
     @Singleton
+    @AllUnionTypes
     fun allUnionTypes(): List<UnionType> = allAnyTypes().filter { it is UnionType }.map { it as UnionType }
 
     @Provides
@@ -156,14 +161,17 @@ class GeneratorModule constructor(
 
     @Provides
     @Singleton
+    @AllResources
     fun allResources(): List<Resource> = provideRamlModel().allContainedResources
 
     @Provides
     @Singleton
+    @AllResourceMethods
     fun allResourceMethods(): List<Method> = provideRamlModel().allContainedResources.flatMap { it.methods }
 
     @Provides
     @Singleton
+    @AllTraits
     fun allTraits(): List<Trait> {
         val result = mutableListOf<Trait>()
         val ramlApi = provideRamlModel()
@@ -174,6 +182,7 @@ class GeneratorModule constructor(
 
     @Provides
     @Singleton
+    @AllResourceCollections
     fun resourceCollection(vrapTypeProvider: VrapTypeProvider): List<ResourceCollection> {
         val resources = allResources()
         return resources.groupBy { (vrapTypeProvider.doSwitch(it) as VrapObjectType).simpleClassName }
