@@ -232,6 +232,10 @@
   "allDeclaredMethods":true
 },
 {
+  "name":"org.eclipse.core.internal.runtime.Messages",
+  "allDeclaredFields":true
+},
+{
   "name":"org.eclipse.emf.common.notify.NotifyingList",
   "allDeclaredMethods":true
 },

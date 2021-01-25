@@ -24,10 +24,10 @@ graal {
     // force building a native image and rather let if fail at runtime instead of building a fallback image
     // see https://www.graalvm.org/reference-manual/native-image/Options/ for all options. 
     options.add("--no-fallback")
-    // some (apparently unused since the CLI runs fine) parts of EMF refer to classes not present 
-    // in the dependencies so we need to allow graalvm's native image builder to ignore that (and potentially
-    // fail at runtime):
-    options.add("--allow-incomplete-classpath")
+    // not a safe idea, but if a class can really not be added as a dependency missing code can be allowed:
+    // options.add("--allow-incomplete-classpath")
+    // asking for build time initialization in combination with "allow incomplete classpath" seems to give better error output
+    // options.add("--initialize-at-build-time")
 
 }
 
@@ -112,6 +112,14 @@ dependencies {
     kapt 'info.picocli:picocli-codegen:4.6.1'
     compile group: 'io.methvin', name: 'directory-watcher', version: '0.9.9'
     implementation "io.reactivex.rxjava3:rxjava:3.0.8"
+    
+    // (actually unnecessary) things graalvm native complains about to be missing:
+    // (created by brainlessly adding all packages of Classes reported to be missing)
+    compile'org.eclipse.platform:org.eclipse.equinox.preferences:3.8.0'
+    compile 'org.eclipse.platform:org.eclipse.core.resources:3.13.0'
+    compile 'org.eclipse.platform:org.eclipse.core.runtime:3.20.0'
+    compile 'org.eclipse.emf:org.eclipse.emf.common:2.21.0'
+    compile 'org.osgi:org.osgi.service.cm:1.6.0'
 }
 
 
