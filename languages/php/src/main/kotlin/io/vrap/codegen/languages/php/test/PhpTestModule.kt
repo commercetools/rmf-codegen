@@ -1,23 +1,27 @@
 
 package io.vrap.codegen.languages.php.test
 
-import com.google.inject.AbstractModule
-import com.google.inject.multibindings.Multibinder
-import io.vrap.codegen.languages.php.model.PhpFileProducer
-import io.vrap.codegen.languages.php.test.PhpRequestTestRenderer
+import io.vrap.codegen.languages.php.ClientConstants
+import io.vrap.rmf.codegen.di.GeneratorModule
+import io.vrap.rmf.codegen.di.Module
 import io.vrap.rmf.codegen.rendring.*
 
-class PhpTestModule: AbstractModule() {
+object PhpTestModule: Module {
 
-    override fun configure() {
-        val generators = Multibinder.newSetBinder(binder(), CodeGenerator::class.java)
-        generators.addBinding().to(ResourceGenerator::class.java)
-        generators.addBinding().to(FileGenerator::class.java)
+    override fun configure(generatorModule: GeneratorModule) = setOf<CodeGenerator> (
+        ResourceGenerator(
+                setOf(
+                     PhpRequestTestRenderer(generatorModule.provideRamlModel(), generatorModule.vrapTypeProvider(), generatorModule.clientConstants())
+                ),
+                generatorModule.allResources()
+        ),
+        FileGenerator(
+                setOf(
+                        PhpTestRenderer(generatorModule.provideRamlModel(), generatorModule.vrapTypeProvider(), generatorModule.clientConstants())
+                )
+        )
+    )
 
-        val resourceBinder = Multibinder.newSetBinder(binder(), ResourceRenderer::class.java)
-        resourceBinder.addBinding().to(PhpRequestTestRenderer::class.java)
-
-        val fileBinder = Multibinder.newSetBinder(binder(), FileProducer::class.java)
-        fileBinder.addBinding().to(PhpTestRenderer::class.java)
-    }
+    private fun GeneratorModule.clientConstants() =
+            ClientConstants(this.provideSharedPackageName(), this.provideClientPackageName(), this.providePackageName())
 }

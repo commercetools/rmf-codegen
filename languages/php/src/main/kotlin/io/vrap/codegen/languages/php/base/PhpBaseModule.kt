@@ -1,18 +1,18 @@
 
 package io.vrap.codegen.languages.php.base
 
-import com.google.inject.AbstractModule
-import com.google.inject.multibindings.Multibinder
+import io.vrap.rmf.codegen.di.GeneratorModule
+import io.vrap.rmf.codegen.di.Module
 import io.vrap.rmf.codegen.rendring.*
 
-class PhpBaseModule: AbstractModule() {
+object PhpBaseModule: Module {
 
-    override fun configure() {
-        val generators = Multibinder.newSetBinder(binder(), CodeGenerator::class.java)
-        generators.addBinding().to(FileGenerator::class.java)
-
-        val fileBinder = Multibinder.newSetBinder(binder(), FileProducer::class.java)
-        fileBinder.addBinding().to(PhpBaseFileProducer::class.java)
-        fileBinder.addBinding().to(PhpBaseTestFileProducer::class.java)
-    }
+    override fun configure(generatorModule: GeneratorModule) = setOf<CodeGenerator>(
+            FileGenerator(
+                    setOf(
+                            PhpBaseFileProducer(generatorModule.provideRamlModel(), generatorModule.providePackageName()),
+                            PhpBaseTestFileProducer(generatorModule.provideRamlModel(), generatorModule.providePackageName())
+                    )
+            )
+    )
 }

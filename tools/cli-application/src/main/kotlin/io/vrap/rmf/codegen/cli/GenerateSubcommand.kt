@@ -11,10 +11,10 @@ import io.vrap.codegen.languages.csharp.modules.CsharpModule
 //import io.vrap.codegen.languages.javalang.client.builder.module.JavaCompleteModule
 import io.vrap.codegen.languages.oas.model.OasBaseTypes
 import io.vrap.codegen.languages.oas.model.OasModelModule
-//import io.vrap.codegen.languages.php.PhpBaseTypes
-//import io.vrap.codegen.languages.php.base.PhpBaseModule
-//import io.vrap.codegen.languages.php.model.PhpModelModule
-//import io.vrap.codegen.languages.php.test.PhpTestModule
+import io.vrap.codegen.languages.php.PhpBaseTypes
+import io.vrap.codegen.languages.php.base.PhpBaseModule
+import io.vrap.codegen.languages.php.model.PhpModelModule
+import io.vrap.codegen.languages.php.test.PhpTestModule
 import io.vrap.codegen.languages.postman.model.PostmanBaseTypes
 import io.vrap.codegen.languages.postman.model.PostmanModelModule
 import io.vrap.codegen.languages.ramldoc.model.RamldocBaseTypes
@@ -153,18 +153,18 @@ class GenerateSubcommand : Callable<Int> {
                     val generatorModule = GeneratorModule(apiProvider, generatorConfig, TypeScriptBaseTypes)
                     GeneratorComponent(generatorModule, TypescriptModelModule, TypescriptClientModule)
                 }
-//                GenerationTarget.PHP_CLIENT -> {
-//                    val generatorModule = GeneratorModule(apiProvider, generatorConfig, PhpBaseTypes)
-//                    GeneratorComponent(generatorModule, PhpModelModule())
-//                }
-//                GenerationTarget.PHP_BASE -> {
-//                    val generatorModule = GeneratorModule(apiProvider, generatorConfig, PhpBaseTypes)
-//                    GeneratorComponent(generatorModule, PhpBaseModule())
-//                }
-//                GenerationTarget.PHP_TEST -> {
-//                    val generatorModule = GeneratorModule(apiProvider, generatorConfig, PhpBaseTypes)
-//                    GeneratorComponent(generatorModule, PhpTestModule())
-//                }
+                GenerationTarget.PHP_CLIENT -> {
+                    val generatorModule = GeneratorModule(apiProvider, generatorConfig, PhpBaseTypes)
+                    GeneratorComponent(generatorModule, PhpModelModule)
+                }
+                GenerationTarget.PHP_BASE -> {
+                    val generatorModule = GeneratorModule(apiProvider, generatorConfig, PhpBaseTypes)
+                    GeneratorComponent(generatorModule, PhpBaseModule)
+                }
+                GenerationTarget.PHP_TEST -> {
+                    val generatorModule = GeneratorModule(apiProvider, generatorConfig, PhpBaseTypes)
+                    GeneratorComponent(generatorModule, PhpTestModule)
+                }
                 GenerationTarget.CSHARP_CLIENT -> {
                     val generatorModule = GeneratorModule(apiProvider, generatorConfig, CsharpBaseTypes)
                     GeneratorComponent(generatorModule, CsharpModule, CsharpClientBuilderModule)

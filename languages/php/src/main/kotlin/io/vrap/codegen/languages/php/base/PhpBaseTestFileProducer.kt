@@ -8,11 +8,7 @@ import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.FileProducer
 import io.vrap.rmf.raml.model.modules.Api
 
-class PhpBaseTestFileProducer @Inject constructor(val api: Api) : FileProducer {
-
-    @Inject
-    @BasePackageName
-    lateinit var packagePrefix:String
+class PhpBaseTestFileProducer @Inject constructor(val api: Api, @BasePackageName val packagePrefix: String) : FileProducer {
 
     override fun produceFiles(): List<TemplateFile> = listOf(
         apiRequestTest()

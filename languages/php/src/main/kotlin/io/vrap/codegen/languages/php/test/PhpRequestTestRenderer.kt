@@ -6,6 +6,7 @@ import io.vrap.codegen.languages.extensions.getMethodName
 import io.vrap.codegen.languages.php.PhpSubTemplates
 import io.vrap.codegen.languages.php.extensions.*
 import io.vrap.codegen.languages.php.AbstractRequestBuilder
+import io.vrap.codegen.languages.php.ClientConstants
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.ResourceRenderer
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
@@ -20,7 +21,7 @@ import io.vrap.rmf.raml.model.types.QueryParameter
 import io.vrap.rmf.raml.model.types.StringInstance
 import org.eclipse.emf.ecore.EObject
 
-class PhpRequestTestRenderer @Inject constructor(api: Api, vrapTypeProvider: VrapTypeProvider) : ResourceRenderer, AbstractRequestBuilder(api, vrapTypeProvider), EObjectTypeExtensions {
+class PhpRequestTestRenderer @Inject constructor(api: Api, vrapTypeProvider: VrapTypeProvider, clientConstants: ClientConstants) : ResourceRenderer, AbstractRequestBuilder(api, vrapTypeProvider, clientConstants), EObjectTypeExtensions {
     private val resourcePackage = "Resource"
 
     override fun render(type: Resource): TemplateFile {

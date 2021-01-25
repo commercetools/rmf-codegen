@@ -13,16 +13,19 @@ object TypescriptClientModule : Module {
     override fun configure(generatorModule: GeneratorModule) = setOf<CodeGenerator> (
             ResourceGenerator(
                     setOf(
-                            RequestBuilder(generatorModule.provideClientPackageName(), ClientConstants(generatorModule.provideSharedPackageName(), generatorModule.provideClientPackageName(), generatorModule.providePackageName()), generatorModule.provideRamlModel(), generatorModule.vrapTypeProvider())
+                            RequestBuilder(generatorModule.provideClientPackageName(), generatorModule.clientConstants(), generatorModule.provideRamlModel(), generatorModule.vrapTypeProvider())
                     ),
                     generatorModule.allResources()
             ),
             FileGenerator(
                     setOf(
-                            ApiRootFileProducer(generatorModule.provideClientPackageName(), ClientConstants(generatorModule.provideSharedPackageName(), generatorModule.provideClientPackageName(), generatorModule.providePackageName()), generatorModule.provideRamlModel(), generatorModule.vrapTypeProvider()),
-                            ClientFileProducer(ClientConstants(generatorModule.provideSharedPackageName(), generatorModule.provideClientPackageName(), generatorModule.providePackageName())),
-                            IndexFileProducer(ClientConstants(generatorModule.provideSharedPackageName(), generatorModule.provideClientPackageName(), generatorModule.providePackageName()), generatorModule.vrapTypeProvider(), generatorModule.allAnyTypes())
+                            ApiRootFileProducer(generatorModule.provideClientPackageName(), generatorModule.clientConstants(), generatorModule.provideRamlModel(), generatorModule.vrapTypeProvider()),
+                            ClientFileProducer(generatorModule.clientConstants()),
+                            IndexFileProducer(generatorModule.clientConstants(), generatorModule.vrapTypeProvider(), generatorModule.allAnyTypes())
                     )
             )
     )
+
+    private fun GeneratorModule.clientConstants() =
+            ClientConstants(this.provideSharedPackageName(), this.provideClientPackageName(), this.providePackageName())
 }

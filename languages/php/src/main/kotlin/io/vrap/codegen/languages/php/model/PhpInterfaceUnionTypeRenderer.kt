@@ -1,6 +1,7 @@
 package io.vrap.codegen.languages.php.model
 
 import com.google.inject.Inject
+import io.vrap.codegen.languages.php.ClientConstants
 import io.vrap.codegen.languages.php.PhpSubTemplates
 import io.vrap.codegen.languages.php.extensions.*
 import io.vrap.rmf.codegen.di.BasePackageName
@@ -14,14 +15,11 @@ import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.types.Annotation
 import io.vrap.rmf.raml.model.types.UnionType
 
-class PhpInterfaceUnionTypeRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider) : ObjectTypeExtensions, EObjectTypeExtensions, UnionTypeRenderer {
-    @Inject
-    @BasePackageName
-    lateinit var basePackagePrefix:String
+class PhpInterfaceUnionTypeRenderer @Inject constructor(override val vrapTypeProvider: VrapTypeProvider, clientConstants: ClientConstants) : ObjectTypeExtensions, EObjectTypeExtensions, UnionTypeRenderer {
 
-    @Inject
-    @SharedPackageName
-    lateinit var sharedPackageName: String
+    private val basePackagePrefix = clientConstants.basePackagePrefix
+
+    private val sharedPackageName = clientConstants.sharedPackageName
 
     override fun render(type: UnionType): TemplateFile {
 

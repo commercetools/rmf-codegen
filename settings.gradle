@@ -5,7 +5,7 @@ include 'codegen-core'
 //include 'languages:javalang:java-renderer'
 
 include 'languages:csharp'
-//include 'languages:php'
+include 'languages:php'
 include 'languages:oas'
 include 'languages:postman'
 include 'languages:typescript'

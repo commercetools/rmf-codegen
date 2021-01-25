@@ -2,11 +2,10 @@ package io.vrap.codegen.languages.php.model
 
 import com.damnhandy.uri.template.UriTemplate
 import com.google.inject.Inject
+import io.vrap.codegen.languages.php.ClientConstants
 import io.vrap.codegen.languages.php.PhpSubTemplates
 import io.vrap.codegen.languages.php.extensions.*
 import io.vrap.rmf.codegen.di.BasePackageName
-import io.vrap.rmf.codegen.di.ClientPackageName
-import io.vrap.rmf.codegen.di.SharedPackageName
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.FileProducer
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
@@ -16,20 +15,13 @@ import io.vrap.rmf.raml.model.resources.UriParameter
 import io.vrap.rmf.raml.model.types.ObjectInstance
 import io.vrap.rmf.raml.model.util.StringCaseFormat
 
-class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
+class PhpFileProducer @Inject constructor(val api: Api, clientConstants: ClientConstants) : FileProducer {
 
-    @Inject
-    @BasePackageName
-    lateinit var packagePrefix:String
+    private val basePackagePrefix = clientConstants.basePackagePrefix
 
-    @Inject
-    @ClientPackageName
-    lateinit var clientPackageName: String
+    private val sharedPackageName = clientConstants.sharedPackageName
 
-    @Inject
-    @SharedPackageName
-    lateinit var sharedPackageName: String
-
+    private val clientPackageName = clientConstants.clientPackage
 
     override fun produceFiles(): List<TemplateFile> = listOf(
             authConfig(api),
@@ -41,7 +33,7 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
 
     private fun composerJson(): TemplateFile {
         val vendorName = sharedPackageName.toLowerCase()
-        val composerPackageName = packagePrefix.replace(sharedPackageName, "").trim('/').toLowerCase()
+        val composerPackageName = basePackagePrefix.replace(sharedPackageName, "").trim('/').toLowerCase()
         return TemplateFile(relativePath = "composer.json",
                 content = """
                     |{
@@ -51,15 +43,15 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
                     |  "description": "",
                     |  "autoload": {
                     |    "psr-4": {
-                    |      "${packagePrefix.toNamespaceName().escapeAll()}\\": [
+                    |      "${basePackagePrefix.toNamespaceName().escapeAll()}\\": [
                     |        "src/"
                     |      ]
                     |    }
                     |  },
                     |  "autoload-dev": {
                     |    "psr-4": {
-                    |      "${packagePrefix.toNamespaceName().escapeAll()}\\Test\\": [
-                    |        "test/unit/${packagePrefix.toNamespaceDir()}"
+                    |      "${basePackagePrefix.toNamespaceName().escapeAll()}\\Test\\": [
+                    |        "test/unit/${basePackagePrefix.toNamespaceDir()}"
                     |      ]
                     |    }
                     |  },
@@ -117,7 +109,7 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
     }
 
     private fun config(api: Api): TemplateFile {
-        return TemplateFile(relativePath = "src/${clientPackageName.replace(packagePrefix, "").toNamespaceDir()}/Config.php",
+        return TemplateFile(relativePath = "src/${clientPackageName.replace(basePackagePrefix, "").toNamespaceDir()}/Config.php",
                 content = """
                     |<?php
                     |${PhpSubTemplates.generatorInfo}
@@ -194,7 +186,7 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
 
     private fun authConfig(api: Api): TemplateFile {
 
-        return TemplateFile(relativePath = "src/${clientPackageName.replace(packagePrefix, "").toNamespaceDir()}/BaseAuthConfig.php",
+        return TemplateFile(relativePath = "src/${clientPackageName.replace(basePackagePrefix, "").toNamespaceDir()}/BaseAuthConfig.php",
                 content = """
                     |<?php
                     |${PhpSubTemplates.generatorInfo}
@@ -248,7 +240,7 @@ class PhpFileProducer @Inject constructor(val api: Api) : FileProducer {
     }
 
     private fun clientCredentialsConfig(api: Api): TemplateFile {
-        return TemplateFile(relativePath = "src/${clientPackageName.replace(packagePrefix, "").toNamespaceDir()}/ClientCredentialsConfig.php",
+        return TemplateFile(relativePath = "src/${clientPackageName.replace(basePackagePrefix, "").toNamespaceDir()}/ClientCredentialsConfig.php",
                 content = """
                     |<?php
                     |${PhpSubTemplates.generatorInfo}

@@ -19,22 +19,15 @@ import io.vrap.rmf.raml.model.types.FileType
 
 abstract class AbstractRequestBuilder constructor(
         val api: Api,
-        override val vrapTypeProvider: VrapTypeProvider
+        override val vrapTypeProvider: VrapTypeProvider,
+        clientConstants: ClientConstants
 ) : EObjectTypeExtensions {
 
-    @Inject
-    @BasePackageName
+    protected val basePackagePrefix = clientConstants.basePackagePrefix
 
-    lateinit var basePackagePrefix: String
+    protected val sharedPackageName = clientConstants.sharedPackageName
 
-    @Inject
-    @SharedPackageName
-    lateinit var sharedPackageName: String
-
-
-    @Inject
-    @ClientPackageName
-    lateinit var clientPackageName: String
+    protected val clientPackageName = clientConstants.clientPackage
 
     protected fun Resource.methods(): String {
         return this.methods.joinToString(separator = "") {
