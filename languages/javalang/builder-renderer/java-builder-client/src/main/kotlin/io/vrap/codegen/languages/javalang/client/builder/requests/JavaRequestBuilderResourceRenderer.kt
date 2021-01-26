@@ -107,7 +107,7 @@ class JavaRequestBuilderResourceRenderer constructor(override val vrapTypeProvid
                 val methodBodyArgument = "${methodBodyVrapType.`package`}.${methodBodyVrapType.simpleClassName} ${methodBodyVrapType.simpleClassName.decapitalize()}"
                 methodBodyArgument
             }else {
-                "com.fasterxml.jackson.databind.JsonNode jsonNode"
+                "Object obj"
             }
         }else {
             ""
@@ -123,7 +123,7 @@ class JavaRequestBuilderResourceRenderer constructor(override val vrapTypeProvid
             if(vrapType is VrapObjectType) {
                 requestArguments.add(vrapType.simpleClassName.decapitalize())
             }else {
-                requestArguments.add("jsonNode")
+                requestArguments.add("obj")
             }
         }
         return requestArguments.joinToString(separator = ", ")

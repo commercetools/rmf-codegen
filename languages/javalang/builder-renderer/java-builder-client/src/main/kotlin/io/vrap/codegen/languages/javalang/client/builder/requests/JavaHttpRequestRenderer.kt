@@ -133,8 +133,8 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
                 val methodBodyAssignment = "this.${methodBodyVrapType.simpleClassName.decapitalize()} = ${methodBodyVrapType.simpleClassName.decapitalize()};"
                 constructorAssignments.add(methodBodyAssignment)
             }else {
-                constructorArguments.add("com.fasterxml.jackson.databind.JsonNode jsonNode")
-                constructorAssignments.add("this.jsonNode = jsonNode;")
+                constructorArguments.add("Object obj")
+                constructorAssignments.add("this.obj = obj;")
             }
         }
 
@@ -156,7 +156,7 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
                 val methodBodyAssignment = "this.${methodBodyVrapType.simpleClassName.decapitalize()} = t.${methodBodyVrapType.simpleClassName.decapitalize()};"
                 constructorAssignments.add(methodBodyAssignment)
             } else {
-                constructorAssignments.add("this.jsonNode = t.jsonNode;")
+                constructorAssignments.add("this.obj = t.obj;")
             }
         }
 
@@ -176,7 +176,7 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
                 val methodBodyVrapType = this.bodies[0].type.toVrapType() as VrapObjectType
                 "private ${methodBodyVrapType.`package`.toJavaPackage()}.${methodBodyVrapType.simpleClassName} ${methodBodyVrapType.simpleClassName.decapitalize()};"
             }else {
-                "private com.fasterxml.jackson.databind.JsonNode jsonNode;"
+                "private Object obj;"
             }
         }else{
             ""
@@ -212,7 +212,7 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
                 val methodBodyVrapType = this.bodies[0].type.toVrapType() as VrapObjectType
                 methodBodyVrapType.simpleClassName.decapitalize()
             }else {
-                "jsonNode"
+                "obj"
             }
         }else {
             null
