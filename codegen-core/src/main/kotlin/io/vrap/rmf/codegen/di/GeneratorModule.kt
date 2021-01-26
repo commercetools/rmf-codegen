@@ -82,7 +82,7 @@ class GeneratorModule constructor(
     @ClientPackageName
     fun provideClientPackageName(): String {
         val basePackageName = providePackageName()
-        return generatorConfig.modelPackage
+        return generatorConfig.clientPackage
                 ?: if (basePackageName.isBlank()) "client" else "$basePackageName/client"
     }
 
