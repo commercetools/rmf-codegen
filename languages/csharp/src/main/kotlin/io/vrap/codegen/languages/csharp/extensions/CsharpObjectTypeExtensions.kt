@@ -26,11 +26,6 @@ interface CsharpObjectTypeExtensions : ExtensionsBase {
                 .sortedBy { it }
                 .distinct()
                 .toList()
-
-        //TODO: Get the package name of Attribute Type Dynamic
-        if(this.isTypeHaveAttributeProperty()) {
-            usingsList=usingsList.plusElement("Attribute = commercetools.Api.Models.Products.Attribute")
-        }
         return usingsList
     }
 
