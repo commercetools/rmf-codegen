@@ -14,6 +14,7 @@ import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.types.ObjectType
 import io.vrap.rmf.raml.model.types.Property
+import io.vrap.rmf.raml.model.types.UnionType
 
 
 class JavaModelClassFileProducer constructor(override val vrapTypeProvider: VrapTypeProvider, @AllObjectTypes private val allObjectTypes: List<ObjectType>) : JavaObjectTypeExtensions, JavaEObjectTypeExtensions, FileProducer {
@@ -169,7 +170,19 @@ class JavaModelClassFileProducer constructor(override val vrapTypeProvider: Vrap
             |   this.${this.name.lowerCamelCase()} = ${this.name.lowerCamelCase()};
             |}
             """.trimMargin()
-        }else {
+        } else if (this.type is UnionType) {
+            (this.type as UnionType).oneOf
+                .map { anyType -> """
+                    |public void set${this.name.upperCamelCase()}(final ${anyType.toVrapType().simpleName()} ${this.name.lowerCamelCase()}) {
+                    |    this.${this.name.lowerCamelCase()} = ${this.name.lowerCamelCase()};
+                    }""".trimMargin() }
+                .plus("""
+                    |public void set${this.name.upperCamelCase()}(final ${vrapType.fullClassName()} ${this.name.lowerCamelCase()}){
+                    |    this.${this.name.lowerCamelCase()} = ${this.name.lowerCamelCase()};
+                    |}
+                    """.trimMargin())
+                .joinToString("\n");
+        } else {
             """
             |public void set${this.name.upperCamelCase()}(final ${vrapType.fullClassName()} ${this.name.lowerCamelCase()}){
             |    this.${this.name.lowerCamelCase()} = ${this.name.lowerCamelCase()};

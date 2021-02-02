@@ -9,11 +9,13 @@ import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapType
 import io.vrap.rmf.raml.model.types.BooleanInstance
 import io.vrap.rmf.raml.model.types.ObjectType
+import io.vrap.rmf.raml.model.types.UnionType
 
 interface JavaObjectTypeExtensions : ExtensionsBase {
 
     fun ObjectType.getImports(): List<String> = this.properties
         .map { it.type }
+        .plus(this.properties.map { it.type }.filterIsInstance<UnionType>().flatMap { it.oneOf })
         //If the subtipes are in the same package they should be imported
         .plus(this.namedSubTypes())
         .plus(this.type)
@@ -29,7 +31,7 @@ interface JavaObjectTypeExtensions : ExtensionsBase {
     fun ObjectType.imports() = this.getImports().map { "import $it;" }.joinToString(separator = "\n")
 
     fun ObjectType.isAbstract() : Boolean = this.discriminator() != null && this.discriminator().isNotEmpty() && (this.discriminatorValue == null || this.discriminatorValue.isEmpty()) || this.hasAbstractAnnotation()
-    
+
     fun ObjectType.hasAbstractAnnotation() : Boolean {
         return (this.getAnnotation("abstract")?.value as BooleanInstance?)?.value ?: false
     }

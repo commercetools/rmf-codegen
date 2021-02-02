@@ -200,6 +200,11 @@ class JavaModelInterfaceRenderer constructor(override val vrapTypeProvider: Vrap
             |public void set${this.name.upperCamelCase()}(final ${vrapType.itemType.simpleName()} ...${this.name.lowerCamelCase()});
             |public void set${this.name.upperCamelCase()}(final ${vrapType.simpleName()} ${this.name.lowerCamelCase()});
             """.trimMargin()
+        } else if (this.type is UnionType) {
+            (this.type as UnionType).oneOf
+                .map { anyType -> "public void set${this.name.upperCamelCase()}(final ${anyType.toVrapType().simpleName()} ${this.name.lowerCamelCase()});" }
+                .plus("public void set${this.name.upperCamelCase()}(final ${vrapType.simpleName()} ${this.name.lowerCamelCase()});")
+                .joinToString("\n");
         } else {
             "public void set${this.name.upperCamelCase()}(final ${vrapType.simpleName()} ${this.name.lowerCamelCase()});"
         }
