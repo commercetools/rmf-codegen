@@ -83,6 +83,7 @@ dependencies {
     implementation project(':languages:postman')
     implementation project(':languages:python')
     implementation project(':languages:php')
+    implementation project(':languages:go')
     implementation project(':languages:csharp')
     implementation project(':languages:ramldoc')
     implementation project(':languages:oas')

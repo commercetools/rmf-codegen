@@ -10,6 +10,7 @@ include 'languages:oas'
 include 'languages:postman'
 include 'languages:typescript'
 include 'languages:python'
+include 'languages:go'
 include 'languages:ramldoc'
 
 include 'ctp-validators'
