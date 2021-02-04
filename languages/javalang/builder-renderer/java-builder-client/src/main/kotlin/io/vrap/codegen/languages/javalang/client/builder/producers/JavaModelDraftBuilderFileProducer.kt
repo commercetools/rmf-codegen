@@ -72,16 +72,19 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
         val vrapType = this.type.toVrapType()
         return if(this.isPatternProperty()){
             """
+                |${this.deprecationAnnotation()}
                 |${if(!this.required) "@Nullable" else ""}
                 |private Map<String, ${vrapType.fullClassName()}> values;
             """.escapeAll().trimMargin().keepIndentation()
         } else if(this.name.equals("interface")) {
             """
+                |${this.deprecationAnnotation()}
                 |${if (!this.required) "@Nullable" else ""}
                 |private ${vrapType.fullClassName()} _interface;
             """.trimMargin()
         }else{
             """
+            |${this.deprecationAnnotation()}
             |${if(!this.required) "@Nullable" else ""}
             |private ${vrapType.fullClassName()} ${this.name};
             """.escapeAll().trimMargin().keepIndentation()
@@ -101,11 +104,13 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
         val propType = property.type.toVrapType()
         return if(property.isPatternProperty()) {
             """
+                |${property.deprecationAnnotation()}
                 |public ${type.simpleClassName}Builder values(${if (!property.required) "@Nullable" else ""} final Map<String, ${propType.fullClassName()}> values){
                 |    this.values = values;
                 |    return this;
                 |}
                 |
+                |${property.deprecationAnnotation()}
                 |public ${type.simpleClassName}Builder addValue(final String key, final ${propType.fullClassName()} value) {
                 |    if (this.values == null) {
                 |        values = new HashMap<>();
@@ -121,11 +126,13 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
                 propertyName = "_$propertyName"
             }
             """
+                |${property.deprecationAnnotation()}
                 |public ${type.simpleClassName}Builder $propertyName(${if (!property.required) "@Nullable" else ""} final ${propType.itemType.fullClassName()} ...$propertyName) {
                 |    this.$propertyName = new ArrayList<>(Arrays.asList($propertyName));
                 |    return this;
                 |}
                 |
+                |${property.deprecationAnnotation()}
                 |public ${type.simpleClassName}Builder $propertyName(${if (!property.required) "@Nullable" else ""} final ${propType.fullClassName()} $propertyName) {
                 |    this.$propertyName = $propertyName;
                 |    return this;
@@ -137,6 +144,7 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
                 propertyName = "_$propertyName"
             }
             """
+                |${property.deprecationAnnotation()}
                 |public ${type.simpleClassName}Builder $propertyName(${if (!property.required) "@Nullable" else ""} final ${propType.fullClassName()} $propertyName) {
                 |    this.$propertyName = $propertyName;
                 |    return this;
@@ -158,6 +166,7 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
         val vrapType = this.type.toVrapType()
         return if(this.isPatternProperty()){
             """
+                |${this.deprecationAnnotation()}
                 |${if(!this.required) "@Nullable" else ""}
                 |public Map<String, ${vrapType.fullClassName()}> getValues(){
                 |    return this.values;
@@ -165,6 +174,7 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
             """.escapeAll().trimMargin().keepIndentation()
         } else if(this.name.equals("interface")) {
             """
+                |${this.deprecationAnnotation()}
                 |${if (!this.required) "@Nullable" else ""}
                 |public ${vrapType.fullClassName()} getInterface(){
                 |    return this._interface;
@@ -172,6 +182,7 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
             """.escapeAll().trimMargin().keepIndentation()
         }else{
             """
+                |${this.deprecationAnnotation()}
                 |${if(!this.required) "@Nullable" else ""}
                 |public ${vrapType.fullClassName()} get${this.name.capitalize()}(){
                 |    return this.${this.name};

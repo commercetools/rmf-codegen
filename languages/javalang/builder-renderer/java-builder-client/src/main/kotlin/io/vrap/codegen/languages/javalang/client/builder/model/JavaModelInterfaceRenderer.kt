@@ -189,24 +189,36 @@ class JavaModelInterfaceRenderer constructor(override val vrapTypeProvider: Vrap
         val vrapType = this.type.toVrapType()
         return if (this.isPatternProperty()) {
             """
+            |${this.deprecationAnnotation()}
             |@JsonAnySetter
             |public void setValue(String key, ${vrapType.simpleName()} value);
             """.trimMargin()
         } else if (this.name.equals("interface")) {
-            "public void setInterface(final ${vrapType.simpleName()} _interface);"
+            """
+            |${this.deprecationAnnotation()}
+            |public void setInterface(final ${vrapType.simpleName()} _interface);
+            |""".trimMargin()
         } else if (vrapType is VrapArrayType) {
             """
+            |${this.deprecationAnnotation()}
             |@JsonIgnore
             |public void set${this.name.upperCamelCase()}(final ${vrapType.itemType.simpleName()} ...${this.name.lowerCamelCase()});
             |public void set${this.name.upperCamelCase()}(final ${vrapType.simpleName()} ${this.name.lowerCamelCase()});
             """.trimMargin()
         } else if (this.type is UnionType) {
             (this.type as UnionType).oneOf
-                .map { anyType -> "public void set${this.name.upperCamelCase()}(final ${anyType.toVrapType().simpleName()} ${this.name.lowerCamelCase()});" }
-                .plus("public void set${this.name.upperCamelCase()}(final ${vrapType.simpleName()} ${this.name.lowerCamelCase()});")
+                .map { anyType -> """
+                    |${this.deprecationAnnotation()}
+                    |public void set${this.name.upperCamelCase()}(final ${anyType.toVrapType().simpleName()} ${this.name.lowerCamelCase()});""".trimMargin() }
+                .plus("""
+                    |${this.deprecationAnnotation()}
+                    |public void set${this.name.upperCamelCase()}(final ${vrapType.simpleName()} ${this.name.lowerCamelCase()});""".trimMargin())
                 .joinToString("\n");
         } else {
-            "public void set${this.name.upperCamelCase()}(final ${vrapType.simpleName()} ${this.name.lowerCamelCase()});"
+            """
+            |${this.deprecationAnnotation()}
+            |public void set${this.name.upperCamelCase()}(final ${vrapType.simpleName()} ${this.name.lowerCamelCase()});
+            |""".trimMargin()
         }
     }
 
@@ -218,9 +230,8 @@ class JavaModelInterfaceRenderer constructor(override val vrapTypeProvider: Vrap
         if (CascadeValidationCheck.doSwitch(this.type)) {
             validationAnnotations.add("@Valid")
         }
-        return validationAnnotations.joinToString(separator = "\n")
+        return validationAnnotations.plus(deprecationAnnotation().trim()).filterNot { it.isEmpty()}.joinToString(separator = "\n")
     }
-
 
     private fun ObjectType.jsonDeserialize() : String {
         val vrapType = vrapTypeProvider.doSwitch(this) as VrapObjectType

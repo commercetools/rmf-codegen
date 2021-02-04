@@ -9,6 +9,7 @@ import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapType
 import io.vrap.rmf.raml.model.types.BooleanInstance
 import io.vrap.rmf.raml.model.types.ObjectType
+import io.vrap.rmf.raml.model.types.Property
 import io.vrap.rmf.raml.model.types.UnionType
 
 interface JavaObjectTypeExtensions : ExtensionsBase {
@@ -34,6 +35,15 @@ interface JavaObjectTypeExtensions : ExtensionsBase {
 
     fun ObjectType.hasAbstractAnnotation() : Boolean {
         return (this.getAnnotation("abstract")?.value as BooleanInstance?)?.value ?: false
+    }
+
+    fun Property.deprecationAnnotation(): String {
+        val anno = this.getAnnotation("markDeprecated")
+        if (anno != null && (anno.value as BooleanInstance).value == true) {
+            return """
+                |@Deprecated""".trimMargin()
+        }
+        return "";
     }
 }
 
