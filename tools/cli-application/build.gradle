@@ -25,7 +25,7 @@ graal {
 
 publishing {
     publications {
-        Maven(MavenPublication) {
+        shadow(MavenPublication) {
             publication -> project.shadow.component(publication)
         }
     }
@@ -60,6 +60,10 @@ shadowJar {
     archiveFileName = 'rmf-gen.jar'
     minimize()
     destinationDirectory = file("../..")
+}
+
+artifacts {
+    archives shadowJar
 }
 
 task generateBuildInfo {

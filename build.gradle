@@ -13,6 +13,7 @@ plugins {
     id "com.github.ben-manes.versions" version "0.28.0"
     id 'maven'
     id 'maven-publish'
+    id 'signing'
 
     id 'java'
     id 'java-library' // needed to make sure that transitive deps have 'compile' scope
@@ -40,11 +41,37 @@ ext {
             cli: 'commons-cli:commons-cli:1.4',
             io: 'commons-io:commons-io:2.6'
     ]
+
+    scmProjectName = rootProject.name
+    scmRepo = 'github.com'
+    scmProjectPath = "commercetools/rmf-codegen.git"  // github relative path with .git extension
+    scmProjectUrl = "https://$scmRepo/$scmProjectPath"      // just as web-page
+    scmHttpsUrl = "https://$scmRepo/$scmProjectPath"        // common VCS read access
+    scmSshUrl = "git@$scmRepo:$scmProjectPath"              // developers VCS read-write repo
+    SNAPSHOT_SUFFIX = "-SNAPSHOT"
+    versionWIP = "development$SNAPSHOT_SUFFIX"
+}
+
+// maven-specific publishing settings
+def pomConfig = {
+    licenses {
+        license {
+            name "The Apache Software License, Version 2.0"
+            url "http://www.apache.org/licenses/LICENSE-2.0.txt"
+            distribution "repo"
+        }
+    }
+    scm {
+        connection "scm:git:$scmHttpsUrl"
+        developerConnection "scm:git:$scmSshUrl"
+        url "$scmProjectUrl"
+    }
 }
 
 import java.text.SimpleDateFormat
 
-def globalVersion = new Version("1.0.0-SNAPSHOT")
+def useTimestamp = findProperty("useTimestamp") as Boolean ?: false
+def globalVersion = new Version(findProperty("currentVersion") as String, useTimestamp)
 
 class Version {
     String originalVersion
@@ -53,14 +80,18 @@ class Version {
     Date buildTime
 
     Version(String versionValue) {
+        this(versionValue, false)
+    }
+    Version(String versionValue, Boolean useTimestamp) {
         buildTime = new Date()
         originalVersion = versionValue
+        thisVersion = originalVersion
         if (originalVersion.endsWith('-SNAPSHOT')) {
             status = 'integration'
-            thisVersion = originalVersion.substring(0, originalVersion.length() - 'SNAPSHOT'.length()) + getTimestamp()
+            if (useTimestamp)
+                thisVersion = originalVersion.substring(0, originalVersion.length() - 'SNAPSHOT'.length()) + getTimestamp()
         } else {
             status = 'release'
-            thisVersion = versionValue
         }
     }
 
@@ -89,15 +120,11 @@ subprojects { project ->
     repositories {
         mavenCentral()
         jcenter()
-//        maven {
-//            url "https://mcculls.github.io/guice-betas/maven2"
-//        }
     }
 
     apply plugin: 'idea'
     apply plugin: 'eclipse'
 
-    apply plugin: 'maven'
     apply plugin: 'maven-publish'
 
     apply plugin: 'java'
@@ -105,28 +132,82 @@ subprojects { project ->
     apply plugin: 'groovy'
     apply plugin: 'com.jfrog.bintray'
 
-    group='io.vrap.rmf.codegen'
+    group='com.commercetools.rmf'
     version=globalVersion
 
-    task sourceJar(type: Jar) {
+    task sourcesJar(type: Jar) {
         from sourceSets.main.allSource
         archiveClassifier = 'sources'
     }
 
-    bintray {
-        user = System.getenv('BINTRAY_USER')
-        key = System.getenv('BINTRAY_KEY')
-        publications = [ 'Maven' ]
-        publish = true
+    task javadocJar(type: Jar) {
+        group 'build'
+        classifier 'javadoc'
+        from javadoc
+    }
 
-        pkg {
-            repo = 'vrapio'
-            name = 'rmf-codegen'
-            userOrg = 'vrapio'
-            licenses = ['MIT']
-            vcsUrl = 'https://github.com/vrapio/rmf-codegen'
+
+    artifacts {
+        archives javadocJar, sourcesJar
+    }
+
+    publishing {
+        repositories {
+            maven {
+                if (version.status == 'release') {
+                    url("https://oss.sonatype.org/service/local/staging/deploy/maven2/")
+                } else {
+                    url("https://oss.sonatype.org/content/repositories/snapshots/")
+                }
+                credentials {
+                    username System.getenv('CTP_OSS_USER') ?: ''
+                    password System.getenv("CTP_OSS_SECRET") ?: ''
+                }
+            }
         }
+        publications {
+            rmfCodegen(MavenPublication) {
+                from components.java
+                artifact sourcesJar
+                artifact javadocJar
+                artifactId = project.name
+                version version
+                groupId group
+
+                pom {
+                    name = project.name
+                    description = project.description
+                    developers {
+                        developer {
+                            id = "jenschude"
+                            name = "Jens Schulze"
+                            email = "jens.schulze@commercetools.com"
+                        }
+                    }
+                    url = scmHttpsUrl
+                }
+                pom.withXml {
+                    def root = asNode()
+                    root.children().last() + pomConfig
+                }
+            }
+        }
+
     }
 
     sourceCompatibility = 1.8
+}
+
+allprojects {
+    apply plugin: 'signing'
+
+    signing {
+        required {
+            // signing is required if this is a release version and the artifacts are to be published
+            version.status == "release" && tasks.withType(PublishToMavenRepository).find {
+                gradle.taskGraph.hasTask it
+            }
+        }
+        sign publishing.publications
+    }
 }

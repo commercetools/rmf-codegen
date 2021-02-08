@@ -28,8 +28,10 @@ class BuilderTestCodeGenerator {
          * */
         private val generatedCodePath = System.getenv("GENERATED_CODE_PATH")
         private val generatedImporterCodePath = System.getenv("GENERATED_IMPORT_API_CODE_PATH")
-        private val apiPath : Path = Paths.get(if (userProvidedPath == null) "../api-spec/api.raml" else userProvidedPath)
-        private val importApiPath : Path = Paths.get(if (importApiProvidedPath == null) "../api-spec/api.raml" else importApiProvidedPath)
+        private val apiPath : Path = Paths.get(if (userProvidedPath == null) "../../../../api-spec/api.raml" else userProvidedPath)
+        private val importApiPath : Path = Paths.get(if (importApiProvidedPath == null) "../../../api-spec/api.raml" else importApiProvidedPath)
+        private val outputFolder : Path = Paths.get(if (generatedCodePath == null) "build/gensrc" else generatedCodePath)
+        private val outputFolderImporter : Path = Paths.get(if (generatedImporterCodePath == null) "build/gensrc/importer" else generatedImporterCodePath)
 
         val apiProvider: ApiProvider = ApiProvider(apiPath)
         val importApiProvider: ApiProvider = ApiProvider(importApiPath)
@@ -66,10 +68,10 @@ class BuilderTestCodeGenerator {
         }
     }
 
-    @Ignore
+//    @Ignore
     @Test
     fun generateJavaCompleteModule() {
-        val generatorConfig = CodeGeneratorConfig(basePackageName = "com.commercetools.api", outputFolder = Paths.get(generatedCodePath))
+        val generatorConfig = CodeGeneratorConfig(basePackageName = "com.commercetools.api", outputFolder = outputFolder)
         val generatorModule = GeneratorModule(apiProvider, generatorConfig, JavaBaseTypes)
         val generatorComponent = GeneratorComponent(generatorModule, JavaCompleteModule)
         generatorComponent.generateFiles()
@@ -78,7 +80,7 @@ class BuilderTestCodeGenerator {
     @Ignore
     @Test
     fun generateJavaImportApi() {
-        val generatorConfig = CodeGeneratorConfig(basePackageName = "com.commercetools.importer", outputFolder = Paths.get(generatedImporterCodePath))
+        val generatorConfig = CodeGeneratorConfig(basePackageName = "com.commercetools.importer", outputFolder = outputFolderImporter)
         val generatorModule = GeneratorModule(importApiProvider, generatorConfig, JavaBaseTypes)
         val generatorComponent = GeneratorComponent(generatorModule, JavaCompleteModule)
         generatorComponent.generateFiles()
