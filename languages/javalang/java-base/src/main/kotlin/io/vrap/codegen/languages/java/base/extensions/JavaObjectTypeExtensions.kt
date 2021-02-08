@@ -38,7 +38,7 @@ interface JavaObjectTypeExtensions : ExtensionsBase {
     }
 
     fun Property.deprecationAnnotation(): String {
-        val anno = this.getAnnotation("markDeprecated")
+        val anno = this.getAnnotation("markDeprecated", true)
         if (anno != null && (anno.value as BooleanInstance).value == true) {
             return """
                 |@Deprecated""".trimMargin()

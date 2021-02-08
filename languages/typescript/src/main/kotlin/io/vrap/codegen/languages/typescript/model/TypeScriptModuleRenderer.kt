@@ -55,7 +55,7 @@ class TypeScriptModuleRenderer constructor(override val vrapTypeProvider: VrapTy
                 """
                 |<${toTsComment().escapeAll()}>
                 |export type ${name} =
-                |  <${subTypes.filter { !it.isInlineType }.map { it.renderTypeExpr() }.joinToString(" |\n")}>
+                |  <${subTypes.filter { !it.isInlineType }.map { it.renderTypeExpr() }.sorted().joinToString(" |\n")}>
                 |;
                 """.trimMargin()
             } else {
@@ -100,10 +100,11 @@ class TypeScriptModuleRenderer constructor(override val vrapTypeProvider: VrapTy
         return renderProperties
             .filter { !it.isPatternProperty() && it.name != discriminator() }
             .map {
-                val comment = it.type.toTsCommentList().plus(it.deprecated())
+                val comments = it.type.toTsCommentList().plus(it.deprecated())
+                val comment = if (comments.isEmpty()) "" else comments.joinToString("\n*\t", "/**\n*\t", "\n*/").escapeAll()
                 val optional = if (it.required) "" else "?"
                 """
-                    |<${comment.joinToString("\n*\t", "/**\n*\t", "\n*/").escapeAll()}>
+                    |<${comment}>
                     |readonly ${it.name}${optional}: ${it.type.renderTypeExpr()}
                     """.trimMargin()
             }
@@ -111,7 +112,7 @@ class TypeScriptModuleRenderer constructor(override val vrapTypeProvider: VrapTy
     }
 
     fun Property.deprecated(): String {
-        val anno = this.getAnnotation("markDeprecated")
+        val anno = this.getAnnotation("markDeprecated", true)
         if (anno != null && (anno.value as BooleanInstance).value == true) {
             return "@deprecated";
         }
@@ -145,11 +146,13 @@ class TypeScriptModuleRenderer constructor(override val vrapTypeProvider: VrapTy
 
     private fun StringType.renderEnumValues(): String = enumValues()
         .map { "'${it}'" }
+        .sorted()
         .joinToString(" |\n")
 
 
     private fun StringType.enumValues() = enum?.filter { it is StringInstance }
         ?.map { (it as StringInstance).value }
+        ?.sorted()
         ?.filterNotNull() ?: listOf()
 
     /**
