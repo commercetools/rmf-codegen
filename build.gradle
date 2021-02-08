@@ -151,48 +151,59 @@ subprojects { project ->
         archives javadocJar, sourcesJar
     }
 
-    publishing {
-        repositories {
-            maven {
-                if (version.status == 'release') {
-                    url("https://oss.sonatype.org/service/local/staging/deploy/maven2/")
-                } else {
-                    url("https://oss.sonatype.org/content/repositories/snapshots/")
-                }
-                credentials {
-                    username System.getenv('CTP_OSS_USER') ?: ''
-                    password System.getenv("CTP_OSS_SECRET") ?: ''
-                }
-            }
-        }
-        publications {
-            rmfCodegen(MavenPublication) {
-                from components.java
-                artifact sourcesJar
-                artifact javadocJar
-                artifactId = project.name
-                version version
-                groupId group
-
-                pom {
-                    name = project.name
-                    description = project.description
-                    developers {
-                        developer {
-                            id = "jenschude"
-                            name = "Jens Schulze"
-                            email = "jens.schulze@commercetools.com"
-                        }
+    if (project.file("build.gradle").exists()) {
+        publishing {
+            repositories {
+                maven {
+                    name "MavenCentral"
+                    if (version.status == 'release') {
+                        url("https://oss.sonatype.org/service/local/staging/deploy/maven2/")
+                    } else {
+                        url("https://oss.sonatype.org/content/repositories/snapshots/")
                     }
-                    url = scmHttpsUrl
+                    credentials {
+                        username System.getenv('CTP_OSS_USER') ?: ''
+                        password System.getenv("CTP_OSS_SECRET") ?: ''
+                    }
                 }
-                pom.withXml {
-                    def root = asNode()
-                    root.children().last() + pomConfig
+                maven {
+                    name "MyGet"
+                    url("https://www.myget.org/F/commercetools-codegen/maven/")
+                    credentials {
+                        username System.getenv('CTP_MYGET_USER') ?: ''
+                        password System.getenv("CTP_MYGET_SECRET") ?: ''
+                    }
                 }
             }
-        }
+            publications {
+                rmfCodegen(MavenPublication) {
+                    from components.java
+                    artifact sourcesJar
+                    artifact javadocJar
+                    artifactId = project.name
+                    version version
+                    groupId group
 
+                    pom {
+                        name = project.name
+                        description = project.description
+                        developers {
+                            developer {
+                                id = "jenschude"
+                                name = "Jens Schulze"
+                                email = "jens.schulze@commercetools.com"
+                            }
+                        }
+                        url = scmHttpsUrl
+                    }
+                    pom.withXml {
+                        def root = asNode()
+                        root.children().last() + pomConfig
+                    }
+                }
+            }
+
+        }
     }
 
     sourceCompatibility = 1.8

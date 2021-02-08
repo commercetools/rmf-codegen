@@ -31,7 +31,7 @@ dependencies {
 gradlePlugin {
     plugins {
         gradlePlugin {
-            id = 'io.vrap.rmf.codegen-plugin'
+            id = 'com.commercetools.rmf.codegen-plugin'
             implementationClass = 'io.vrap.rmf.codegen.plugin.RamlCodegenPlugin'
         }
     }
