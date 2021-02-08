@@ -1,6 +1,7 @@
 package io.vrap.codegen.languages.typescript
 
 
+import com.google.common.collect.Lists
 import io.vrap.codegen.languages.extensions.resource
 import io.vrap.codegen.languages.extensions.toRequestName
 import io.vrap.codegen.languages.extensions.toResourceName
@@ -10,8 +11,7 @@ import io.vrap.rmf.codegen.types.*
 import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.resources.ResourceContainer
-import io.vrap.rmf.raml.model.types.DescriptionFacet
-import io.vrap.rmf.raml.model.types.StringType
+import io.vrap.rmf.raml.model.types.*
 import io.vrap.rmf.raml.model.util.StringCaseFormat
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -62,6 +62,14 @@ fun DescriptionFacet.toTsComment(): String {
     } else description.value
             .lines()
             .joinToString(prefix = "/**\n*\t", postfix = "\n*/", separator = "\n*\t")
+}
+
+fun DescriptionFacet.toTsCommentList(): List<String> {
+    val description = this.description
+    return if (description?.value.isNullOrBlank()) {
+        return Lists.newArrayList()
+    } else description.value
+        .lines()
 }
 
 fun Resource.toRequestBuilderName(): String = "${this.toResourceName()}RequestBuilder"

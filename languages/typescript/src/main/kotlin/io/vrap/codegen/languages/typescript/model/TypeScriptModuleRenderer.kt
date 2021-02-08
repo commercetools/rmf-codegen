@@ -5,6 +5,7 @@ import io.vrap.codegen.languages.extensions.isPatternProperty
 import io.vrap.codegen.languages.extensions.sortedByTopology
 import io.vrap.codegen.languages.typescript.tsGeneratedComment
 import io.vrap.codegen.languages.typescript.toTsComment
+import io.vrap.codegen.languages.typescript.toTsCommentList
 import io.vrap.rmf.codegen.di.AllAnyTypes
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.FileProducer
@@ -99,15 +100,24 @@ class TypeScriptModuleRenderer constructor(override val vrapTypeProvider: VrapTy
         return renderProperties
             .filter { !it.isPatternProperty() && it.name != discriminator() }
             .map {
-                val comment: String = it.type.toTsComment().escapeAll()
+                val comment = it.type.toTsCommentList().plus(it.deprecated())
                 val optional = if (it.required) "" else "?"
                 """
-                    |<${comment}>
+                    |<${comment.joinToString("\n*\t", "/**\n*\t", "\n*/").escapeAll()}>
                     |readonly ${it.name}${optional}: ${it.type.renderTypeExpr()}
                     """.trimMargin()
             }
             .joinToString(";\n")
     }
+
+    fun Property.deprecated(): String {
+        val anno = this.getAnnotation("markDeprecated")
+        if (anno != null && (anno.value as BooleanInstance).value == true) {
+            return "@deprecated";
+        }
+        return "";
+    }
+
 
     /**
      * Renders the typescript type expression for this types type.
