@@ -13,4 +13,4 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - run: tools/setup-signing-key.sh
+      - run: scripts/setup-signing-key.sh
