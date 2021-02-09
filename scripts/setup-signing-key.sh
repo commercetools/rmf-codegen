@@ -36,6 +36,7 @@ set -e
 # List available GPG keys
 gpg -K
 
-export PASSPHRASE=`cat signing_passphrase.txt`
-
+echo "PASSPHRASETXT=`cat signing_passphrase.txt`" >> $GITHUB_ENV
 rm signing_passphrase.txt
+
+export GITHUB_ENV
