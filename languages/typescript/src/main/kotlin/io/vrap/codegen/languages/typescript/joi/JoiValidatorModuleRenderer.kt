@@ -120,7 +120,7 @@ class JoiValidatorModuleRenderer constructor(override val vrapTypeProvider: Vrap
         val patternProperties = this.allProperties
                 .filter { it.isPatternProperty() }.joinToString(separator = "\n") { ".pattern(${it.asRegExp()}, ${it.type.toVrapType().simpleJoiName()}())" }
         val additionalProperties = this.additionalProperties?:true
-        val unknown = if (additionalProperties) ".unknown()" else ""
+        val unknown = if (!additionalProperties) ".unknown(false)" else ""
         return if (patternProperties.isNullOrEmpty())
             """ |Joi.object()${unknown}.keys({
                 |   <$nonPatternProperties>
