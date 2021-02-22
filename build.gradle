@@ -13,6 +13,7 @@ plugins {
     id "com.github.ben-manes.versions" version "0.28.0"
     id 'maven'
     id 'maven-publish'
+    id 'signing'
 
     id 'java'
     id 'java-library' // needed to make sure that transitive deps have 'compile' scope
@@ -40,7 +41,33 @@ ext {
             cli: 'commons-cli:commons-cli:1.4',
             io: 'commons-io:commons-io:2.6'
     ]
+
+    scmProjectName = rootProject.name
+    scmRepo = 'github.com'
+    scmProjectPath = "commercetools/rmf-codegen.git"  // github relative path with .git extension
+    scmProjectUrl = "https://$scmRepo/$scmProjectPath"      // just as web-page
+    scmHttpsUrl = "https://$scmRepo/$scmProjectPath"        // common VCS read access
+    scmSshUrl = "git@$scmRepo:$scmProjectPath"              // developers VCS read-write repo
+    SNAPSHOT_SUFFIX = "-SNAPSHOT"
+    versionWIP = "development$SNAPSHOT_SUFFIX"
 }
+
+// maven-specific publishing settings
+def pomConfig = {
+    licenses {
+        license {
+            name "The Apache Software License, Version 2.0"
+            url "http://www.apache.org/licenses/LICENSE-2.0.txt"
+            distribution "repo"
+        }
+    }
+    scm {
+        connection "scm:git:$scmHttpsUrl"
+        developerConnection "scm:git:$scmSshUrl"
+        url "$scmProjectUrl"
+    }
+}
+
 
 import java.text.SimpleDateFormat
 
@@ -55,12 +82,12 @@ class Version {
     Version(String versionValue) {
         buildTime = new Date()
         originalVersion = versionValue
+        thisVersion = versionValue
         if (originalVersion.endsWith('-SNAPSHOT')) {
             status = 'integration'
-            thisVersion = originalVersion.substring(0, originalVersion.length() - 'SNAPSHOT'.length()) + getTimestamp()
+//            thisVersion = originalVersion.substring(0, originalVersion.length() - 'SNAPSHOT'.length()) + getTimestamp()
         } else {
             status = 'release'
-            thisVersion = versionValue
         }
     }
 
@@ -85,6 +112,11 @@ tasks.register("writeVersionToReadme") {
     }
 }
 
+def excludeProject= [
+    'cli-application',
+    'codegen-gradle-plugin',
+]
+
 subprojects { project ->
     repositories {
         mavenCentral()
@@ -99,18 +131,79 @@ subprojects { project ->
 
     apply plugin: 'maven'
     apply plugin: 'maven-publish'
+    apply plugin: 'signing'
 
     apply plugin: 'java'
     apply plugin: 'java-library' // needed to make sure that transitive deps have 'compile' scope
     apply plugin: 'groovy'
     apply plugin: 'com.jfrog.bintray'
 
-    group='io.vrap.rmf.codegen'
+    group 'com.commercetools.rmf'
     version=globalVersion
 
-    task sourceJar(type: Jar) {
+    task sourcesJar(type: Jar) {
         from sourceSets.main.allSource
         archiveClassifier = 'sources'
+    }
+
+    task javadocJar(type: Jar) {
+        group 'build'
+        classifier 'javadoc'
+        from javadoc
+    }
+
+    artifacts {
+        archives javadocJar, sourcesJar
+    }
+
+    if (project.file("build.gradle").exists() && !excludeProject.contains(project.name)) {
+        publishing {
+            repositories {
+                maven {
+                    if (version.status == 'release') {
+                        url("https://oss.sonatype.org/service/local/staging/deploy/maven2/")
+                    } else {
+                        url("https://oss.sonatype.org/content/repositories/snapshots/")
+                    }
+                    credentials {
+                        username System.getenv('CTP_OSS_USER') ?: ''
+                        password System.getenv("CTP_OSS_SECRET") ?: ''
+                    }
+                }
+            }
+            publications {
+                Maven(MavenPublication) {
+                    from components.java
+                    artifact sourcesJar
+                    artifact javadocJar
+                    artifactId = project.name
+                    version version
+                    groupId group
+
+                    pom {
+                        name = project.name
+                        description = project.description
+                        developers {
+                            developer {
+                                id = "jenschude"
+                                name = "Jens Schulze"
+                                email = "jens.schulze@commercetools.com"
+                            }
+                        }
+                        url = scmHttpsUrl
+                    }
+                    pom.withXml {
+                        def root = asNode()
+                        root.children().last() + pomConfig
+                    }
+                }
+            }
+        }
+
+        signing {
+            useGpgCmd()
+            sign publishing.publications.Maven
+        }
     }
 
     bintray {
