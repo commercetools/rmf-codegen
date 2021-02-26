@@ -2,7 +2,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - main
+      - gradle_plugin
 
 name: AutoRelease (BinTray)
 
@@ -25,14 +25,19 @@ jobs:
         with:
           java-version: "8"
 
+      - run: scripts/setup-signing-key.sh
+          env:
+            DECRYPTER: ${{ secrets.DECRYPTER }}
+            SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
+            PASSPHRASE: ${{ secrets.PASSPHRASE }}
+            GRADLE_PUBLISH_KEY: ${{ secrets.GRADLE_PUBLISH_KEY }}
+            GRADLE_PUBLISH_SECRET: ${{ secrets.GRADLE_PUBLISH_SECRET }}
+
       - name: Build and Test
-        run: ./gradlew --build-cache clean check
+        run: export VERSION="1.0.0-`date '+%Y%m%d%H%M%S'`"; ./gradlew --build-cache -Pversion=$VERSION clean check
 
       - name: Release
-        run: ./gradlew --build-cache bintrayUpload writeVersionToReadme --info --stacktrace
-        env:
-          BINTRAY_USER: ${{ secrets.BINTRAY_USER }}
-          BINTRAY_KEY: ${{ secrets.BINTRAY_KEY }}
+        run: ./gradlew --build-cache publishPlugins
 
       - uses: stefanzweifel/git-auto-commit-action@v4.6.0
         with:
@@ -41,42 +46,42 @@ jobs:
           commit_user_email: automation@commercetools.com
           commit_author: Auto Mation <automation@commercetools.com>
 
-  # Push image to GitHub Packages.
-  # See also https://docs.docker.com/docker-hub/builds/
-  push:
-    # Ensure test job passes before pushing image.
-    needs: release
-
-    runs-on: ubuntu-latest
-    if: github.event_name == 'push'
-
-    steps:
-      - uses: actions/checkout@v2
-
-      - name: Build image
-        run: docker build . --file Dockerfile --tag $IMAGE_NAME
-
-      - name: Log into registry
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login docker.pkg.github.com -u ${{ github.actor }} --password-stdin
-
-      - name: Push image
-        run: |
-          IMAGE_ID=docker.pkg.github.com/${{ github.repository }}/$IMAGE_NAME
-
-          # Change all uppercase to lowercase
-          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
-
-          # Strip git ref prefix from version
-          VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
-
-          # Strip "v" prefix from tag name
-          [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
-
-          # Use Docker `latest` tag convention
-          [ "$VERSION" == "main" ] && VERSION=latest
-
-          echo IMAGE_ID=$IMAGE_ID
-          echo VERSION=$VERSION
-
-          docker tag $IMAGE_NAME $IMAGE_ID:$VERSION
-          docker push $IMAGE_ID:$VERSION
+#  # Push image to GitHub Packages.
+#  # See also https://docs.docker.com/docker-hub/builds/
+#  push:
+#    # Ensure test job passes before pushing image.
+#    needs: release
+#
+#    runs-on: ubuntu-latest
+#    if: github.event_name == 'push'
+#
+#    steps:
+#      - uses: actions/checkout@v2
+#
+#      - name: Build image
+#        run: docker build . --file Dockerfile --tag $IMAGE_NAME
+#
+#      - name: Log into registry
+#        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login docker.pkg.github.com -u ${{ github.actor }} --password-stdin
+#
+#      - name: Push image
+#        run: |
+#          IMAGE_ID=docker.pkg.github.com/${{ github.repository }}/$IMAGE_NAME
+#
+#          # Change all uppercase to lowercase
+#          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
+#
+#          # Strip git ref prefix from version
+#          VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
+#
+#          # Strip "v" prefix from tag name
+#          [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
+#
+#          # Use Docker `latest` tag convention
+#          [ "$VERSION" == "main" ] && VERSION=latest
+#
+#          echo IMAGE_ID=$IMAGE_ID
+#          echo VERSION=$VERSION
+#
+#          docker tag $IMAGE_NAME $IMAGE_ID:$VERSION
+#          docker push $IMAGE_ID:$VERSION
