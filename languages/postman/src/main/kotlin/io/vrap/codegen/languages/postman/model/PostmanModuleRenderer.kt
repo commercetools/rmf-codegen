@@ -15,8 +15,6 @@ import io.vrap.rmf.raml.model.types.*
 
 class PostmanModuleRenderer constructor(val api: Api, override val vrapTypeProvider: VrapTypeProvider) : EObjectExtensions, FileProducer {
 
-    private val githubPath = "https://github.com/commercetools/commercetools-postman-api-examples/raw/master/api"
-
     override fun produceFiles(): List<TemplateFile> {
         return listOf(
                 template(api),
