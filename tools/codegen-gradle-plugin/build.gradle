@@ -39,7 +39,7 @@ gradlePlugin {
 
 pluginBundle {
     website = 'https://github.com/commercetools/rmf-codegen'
-    vcsUrl = 'https://github.com/commercetools/rmf-codegen/tree/main/codegen-gradle-plugin'
+    vcsUrl = 'https://github.com/commercetools/rmf-codegen/tree/main/tools/codegen-gradle-plugin'
     plugins {
         gradlePlugin {
             id = 'com.commercetools.rmf.codegen-plugin'
