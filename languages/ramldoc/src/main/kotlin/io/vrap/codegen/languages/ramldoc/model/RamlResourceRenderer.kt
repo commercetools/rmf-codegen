@@ -152,7 +152,7 @@ class RamlResourceRenderer constructor(val api: Api, val vrapTypeProvider: VrapT
             |  required: ${queryParameter.required}
             |  <<${queryParameter.type.renderType()}>>${if (parameterExamples.isNotEmpty()) """
             |  examples:
-            |    <<${parameterExamples.joinToString("\n") { it.renderSimpleExample() }}>>""" else ""}
+            |    <<${parameterExamples.joinToString("\n") { it.renderSimpleExample().escapeAll() }}>>""" else ""}
         """.trimMargin().keepAngleIndent()
     }
 }
