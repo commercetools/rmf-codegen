@@ -10,7 +10,7 @@ echo ${PASSPHRASE} | base64 --decode > signing_passphrase.enc
 gcloud auth activate-service-account --key-file decrypter.json
 
 echo "Decrypt signing secrets"
-set -x
+
 gcloud kms decrypt \
   --project=commercetools-platform \
   --location=global \
@@ -36,6 +36,16 @@ set -e
 # List available GPG keys
 gpg -K
 
-export PASSPHRASE=`cat signing_passphrase.txt`
+KEYNAME=`gpg --with-colons --keyid-format long --list-keys automation@commercetools.de | grep fpr | cut -d ':' -f 10`
 
-rm signing_passphrase.txt
+mkdir -p ~/.gradle
+touch ~/.gradle/gradle.properties
+
+echo "signing.gnupg.executable=gpg" >> ~/.gradle/gradle.properties
+echo "signing.gnupg.keyName=$KEYNAME" >> ~/.gradle/gradle.properties
+echo "signing.gnupg.passphrase=$(<signing_passphrase.txt)" >> ~/.gradle/gradle.properties
+echo "gradle.publish.key=${GRADLE_PUBLISH_KEY}" >> ~/.gradle/gradle.properties
+echo "gradle.publish.secret=${GRADLE_PUBLISH_SECRET}" >> ~/.gradle/gradle.properties
+
+rm -rf signing_passphrase.txt signing_passphrase.enc signing_key.enc decrypter.json signing_key.asc
+

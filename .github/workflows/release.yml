@@ -3,7 +3,7 @@ on:
     tags:
       - '[0-9]+.[0-9]+.[0-9]+*'
 
-name: AutoRelease (GitHub & native images)
+name: AutoRelease
 
 jobs:
   build-native:
@@ -131,3 +131,41 @@ jobs:
       #     asset_path: rmf-codegen.win32/rmf-codegen
       #     asset_name: rmf-codegen.exe
       #     asset_content_type: application/octet-stream
+
+  release_maven:
+    name: Build and release to Maven
+
+    runs-on: ubuntu-latest
+    needs: release
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup Java
+        uses: actions/setup-java@v1
+        with:
+          java-version: "8"
+
+      - name: Retrieve branch name
+        id: branch_name
+        run: |
+          echo ::set-output name=SOURCE_NAME::${GITHUB_REF#refs/*/}
+          echo ::set-output name=SOURCE_BRANCH::${GITHUB_REF#refs/heads/}
+          echo ::set-output name=SOURCE_TAG::${GITHUB_REF#refs/tags/}
+
+      - run: scripts/setup-signing-key.sh
+        env:
+          DECRYPTER: ${{ secrets.DECRYPTER }}
+          SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
+          PASSPHRASE: ${{ secrets.PASSPHRASE }}
+          GRADLE_PUBLISH_KEY: ${{ secrets.GRADLE_PUBLISH_KEY }}
+          GRADLE_PUBLISH_SECRET: ${{ secrets.GRADLE_PUBLISH_SECRET }}
+
+      - name: Build and Release
+        run: ./gradlew -Pversion=$SOURCE_TAG clean check publishMavenPublicationToSonatype closeAndReleaseSonatypeStagingRepository :tools:codegen-gradle-plugin:publishPlugins
+        env:
+          CTP_OSS_USER: ${{ secrets.OSS_USER }}
+          CTP_OSS_SECRET: ${{ secrets.OSS_SECRET }}
+          SOURCE_TAG: ${{ steps.branch_name.outputs.SOURCE_TAG }}
+

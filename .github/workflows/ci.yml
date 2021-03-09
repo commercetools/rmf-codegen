@@ -1,18 +1,13 @@
 on:
-  workflow_dispatch:
-  push:
-    branches:
-      - main
+  - workflow_dispatch
+  - push
 
 name: AutoRelease (BinTray)
 
 
-env:
-  IMAGE_NAME: codegen
-
 jobs:
   release:
-    name: Build and release
+    name: Build and test
 
     runs-on: ubuntu-latest
 
@@ -25,58 +20,5 @@ jobs:
         with:
           java-version: "8"
 
-      - name: Build and Test
-        run: ./gradlew --build-cache clean check
-
-      - name: Release
-        run: ./gradlew --build-cache bintrayUpload writeVersionToReadme --info --stacktrace
-        env:
-          BINTRAY_USER: ${{ secrets.BINTRAY_USER }}
-          BINTRAY_KEY: ${{ secrets.BINTRAY_KEY }}
-
-      - uses: stefanzweifel/git-auto-commit-action@v4.6.0
-        with:
-          commit_message: "TASK: Updating version in README"
-          commit_user_name: Auto Mation
-          commit_user_email: automation@commercetools.com
-          commit_author: Auto Mation <automation@commercetools.com>
-
-  # Push image to GitHub Packages.
-  # See also https://docs.docker.com/docker-hub/builds/
-  push:
-    # Ensure test job passes before pushing image.
-    needs: release
-
-    runs-on: ubuntu-latest
-    if: github.event_name == 'push'
-
-    steps:
-      - uses: actions/checkout@v2
-
-      - name: Build image
-        run: docker build . --file Dockerfile --tag $IMAGE_NAME
-
-      - name: Log into registry
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login docker.pkg.github.com -u ${{ github.actor }} --password-stdin
-
-      - name: Push image
-        run: |
-          IMAGE_ID=docker.pkg.github.com/${{ github.repository }}/$IMAGE_NAME
-
-          # Change all uppercase to lowercase
-          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
-
-          # Strip git ref prefix from version
-          VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
-
-          # Strip "v" prefix from tag name
-          [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
-
-          # Use Docker `latest` tag convention
-          [ "$VERSION" == "main" ] && VERSION=latest
-
-          echo IMAGE_ID=$IMAGE_ID
-          echo VERSION=$VERSION
-
-          docker tag $IMAGE_NAME $IMAGE_ID:$VERSION
-          docker push $IMAGE_ID:$VERSION
+      - name: Build and Release
+        run: ./gradlew -Pversion=$VERSION clean check

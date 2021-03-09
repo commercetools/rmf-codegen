@@ -11,22 +11,18 @@ compileTestKotlin {
 
 apply plugin: 'java-gradle-plugin'
 apply plugin: 'com.gradle.plugin-publish'
-apply plugin: 'com.github.johnrengelman.shadow'
-
-publishing {
-    publications {
-        Maven(MavenPublication) {
-            from components.java
-        }
-    }
-}
 
 dependencies {
     compile project(':languages:javalang:java-renderer')
     compile project(':languages:javalang:builder-renderer:java-builder-client')
     compile project(':languages:typescript')
+    compile project(':languages:postman')
     compile project(':languages:python')
     compile project(':languages:php')
+    compile project(':languages:csharp')
+    compile project(':languages:ramldoc')
+    compile project(':languages:oas')
+
     compile gradleApi()
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
     testCompile 'junit:junit:4.13'
@@ -39,18 +35,18 @@ dependencies {
 gradlePlugin {
     plugins {
         gradlePlugin {
-            id = 'io.vrap.rmf.codegen-plugin'
+            id = 'com.commercetools.rmf.codegen-plugin'
             implementationClass = 'io.vrap.rmf.codegen.plugin.RamlCodegenPlugin'
         }
     }
 }
 
 pluginBundle {
-    website = 'http://www.vrap.io/'
-    vcsUrl = 'https://github.com/vrapio/rmf-codegen/tree/main/codegen-gradle-plugin'
+    website = 'https://github.com/commercetools/rmf-codegen'
+    vcsUrl = 'https://github.com/commercetools/rmf-codegen/tree/main/tools/codegen-gradle-plugin'
     plugins {
         gradlePlugin {
-            id = 'io.vrap.rmf.codegen-plugin'
+            id = 'com.commercetools.rmf.codegen-plugin'
             displayName = 'Raml codegenerator'
             description = 'This a code generator for the ramle specification, the supported language for this version is java'
             tags = ['RAML', 'java']
@@ -71,11 +67,6 @@ task createClasspathManifest {
 // Add the classpath file to the test runtime classpath
 dependencies {
     testRuntime files(createClasspathManifest)
-}
-
-shadowJar{
-    zip64 true
-    append "plugin.properties"
 }
 
 compileJava.finalizedBy(createClasspathManifest)

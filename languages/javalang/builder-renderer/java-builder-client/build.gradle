@@ -9,14 +9,6 @@ compileTestKotlin {
     kotlinOptions.jvmTarget = "1.8"
 }
 
-publishing {
-    publications {
-        Maven(MavenPublication) {
-            from components.java
-        }
-    }
-}
-
 dependencies {
     compile project(':languages:javalang:java-base')
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
