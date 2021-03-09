@@ -2,7 +2,7 @@ on:
   - workflow_dispatch
   - push
 
-name: AutoRelease (BinTray)
+name: CI
 
 
 jobs:
