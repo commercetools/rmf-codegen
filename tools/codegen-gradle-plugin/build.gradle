@@ -11,14 +11,18 @@ compileTestKotlin {
 
 apply plugin: 'java-gradle-plugin'
 apply plugin: 'com.gradle.plugin-publish'
-apply plugin: 'com.github.johnrengelman.shadow'
 
 dependencies {
     compile project(':languages:javalang:java-renderer')
     compile project(':languages:javalang:builder-renderer:java-builder-client')
     compile project(':languages:typescript')
+    compile project(':languages:postman')
     compile project(':languages:python')
     compile project(':languages:php')
+    compile project(':languages:csharp')
+    compile project(':languages:ramldoc')
+    compile project(':languages:oas')
+
     compile gradleApi()
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
     testCompile 'junit:junit:4.13'
@@ -63,11 +67,6 @@ task createClasspathManifest {
 // Add the classpath file to the test runtime classpath
 dependencies {
     testRuntime files(createClasspathManifest)
-}
-
-shadowJar{
-    zip64 true
-    append "plugin.properties"
 }
 
 compileJava.finalizedBy(createClasspathManifest)

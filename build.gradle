@@ -26,6 +26,8 @@ plugins {
     id 'org.inferred.processors' version '3.3.0'
     id 'com.github.johnrengelman.shadow' version '5.2.0'
     id 'com.palantir.graal' version '0.7.2'
+
+    id 'io.github.gradle-nexus.publish-plugin' version '1.0.0'
 }
 
 ext {
@@ -115,6 +117,21 @@ def excludeProject= [
     'codegen-gradle-plugin',
 ]
 
+nexusPublishing {
+    repositories {
+        sonatype {
+            username = System.getenv('CTP_OSS_USER')
+            password = System.getenv('CTP_OSS_SECRET')
+        }
+    }
+}
+
+group='com.commercetools.rmf'
+
+allprojects {
+    description = "RAML API client code generators based on the REST Modeling Framework. https://github.com/vrapio/rest-modeling-framework"
+}
+
 subprojects { project ->
     repositories {
         mavenCentral()
@@ -170,7 +187,7 @@ subprojects { project ->
                     from components.java
                     artifact sourcesJar
                     artifact javadocJar
-                    artifactId = project.name
+                    artifactId project.name
                     version version
                     groupId group
 
@@ -201,4 +218,5 @@ subprojects { project ->
     }
 
     sourceCompatibility = 1.8
+    targetCompatibility = 1.8
 }
