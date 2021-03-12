@@ -168,7 +168,7 @@ fun QueryParameter.methodName(): String {
         val paramName = o.value.stream().filter { propertyValue -> propertyValue.name == "paramName" }.findFirst().orElse(null).value as StringInstance
         return "with" + StringCaseFormat.UPPER_CAMEL_CASE.apply(paramName.value)
     }
-    return "with" + StringCaseFormat.UPPER_CAMEL_CASE.apply(this.name.replace(".", "-"))
+    return "with" + StringCaseFormat.UPPER_CAMEL_CASE.apply(this.name.replace(".", "-").replace("[", "-").replace("]", ""))
 }
 
 fun QueryParameter.methodParam(): String {
@@ -180,7 +180,7 @@ fun QueryParameter.methodParam(): String {
         val paramName = o.value.stream().filter { propertyValue -> propertyValue.name == "paramName" }.findFirst().orElse(null).value as StringInstance
         return "string $" + StringCaseFormat.LOWER_CAMEL_CASE.apply(placeholder.value) + ", $" + paramName.value
     }
-    return "$" + StringCaseFormat.LOWER_CAMEL_CASE.apply(this.name.replace(".", "-"))
+    return "$" + StringCaseFormat.LOWER_CAMEL_CASE.apply(this.name.replace(".", "-").replace("[", "-").replace("]", ""))
 }
 
 fun QueryParameter.paramName(): String {
@@ -191,7 +191,7 @@ fun QueryParameter.paramName(): String {
         val paramName = o.value.stream().filter { propertyValue -> propertyValue.name == "paramName" }.findFirst().orElse(null).value as StringInstance
         return "$" + paramName.value
     }
-    return "$" + StringCaseFormat.LOWER_CAMEL_CASE.apply(this.name.replace(".", "-"))
+    return "$" + StringCaseFormat.LOWER_CAMEL_CASE.apply(this.name.replace(".", "-").replace("[", "-").replace("]", ""))
 }
 
 fun QueryParameter.simpleParamName(): String {
@@ -202,7 +202,7 @@ fun QueryParameter.simpleParamName(): String {
         val paramName = o.value.stream().filter { propertyValue -> propertyValue.name == "paramName" }.findFirst().orElse(null).value as StringInstance
         return paramName.value
     }
-    return StringCaseFormat.LOWER_CAMEL_CASE.apply(this.name.replace(".", "-"))
+    return StringCaseFormat.LOWER_CAMEL_CASE.apply(this.name.replace(".", "-").replace("[", "-").replace("]", ""))
 }
 
 fun QueryParameter.template(): String {

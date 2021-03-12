@@ -26,7 +26,7 @@ jobs:
           GRADLE_PUBLISH_KEY: ${{ secrets.GRADLE_PUBLISH_KEY }}
           GRADLE_PUBLISH_SECRET: ${{ secrets.GRADLE_PUBLISH_SECRET }}
       - name: Build and Release
-        run: export VERSION="1.0.0-`date '+%Y%m%d%H%M%S'`"; ./gradlew -Pversion=$VERSION clean check publishMavenPublicationToSonatype closeAndReleaseSonatypeStagingRepository :tools:codegen-gradle-plugin:publishPlugins
+        run: export VERSION="1.0.0-`date '+%Y%m%d%H%M%S'`"; ./gradlew -Pversion=$VERSION clean check publishMavenPublicationToSonatype closeAndReleaseSonatypeStagingRepository :tools:codegen-gradle-plugin:publishPlugins writeVersionToReadme
         env:
           CTP_OSS_USER: ${{ secrets.OSS_USER }}
           CTP_OSS_SECRET: ${{ secrets.OSS_SECRET }}
@@ -34,6 +34,7 @@ jobs:
 
       - uses: stefanzweifel/git-auto-commit-action@v4.6.0
         with:
+          file_pattern: "scripts/install.sh"
           commit_message: "TASK: Updating version in README"
           commit_user_name: Auto Mation
           commit_user_email: automation@commercetools.com
