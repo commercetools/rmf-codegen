@@ -4,7 +4,9 @@ import org.apache.commons.io.FileUtils
 import org.apache.commons.io.filefilter.TrueFileFilter
 import java.io.File
 import java.nio.file.Path
-import java.util.concurrent.TimeUnit
+import java.security.MessageDigest
+import java.io.InputStream
+import java.lang.Exception
 
 class FileDataSink constructor(val outputFolder:Path): DataSink {
 
@@ -12,10 +14,36 @@ class FileDataSink constructor(val outputFolder:Path): DataSink {
 
     override fun write(templateFile: TemplateFile) {
         val outputFile = File("$outputFolder/${templateFile.relativePath}")
+        val content = templateFile.content.trimEnd().plus("\n")
+        if (outputFile.exists()) {
+            val fileHash = checksum(outputFile.inputStream())
+            val templateHash = checksum(content.byteInputStream())
+            if (fileHash != null && templateHash != null && fileHash.contentEquals(templateHash)) {
+                generatedFiles.add(outputFile)
+                return
+            }
+        }
         outputFile.parentFile.mkdirs()
         outputFile.createNewFile()
-        outputFile.bufferedWriter().use { it.write(templateFile.content.trimEnd().plus("\n")) }
+        outputFile.bufferedWriter().use { it.write(content) }
         generatedFiles.add(outputFile)
+    }
+
+    fun checksum(input: InputStream): ByteArray? {
+        try {
+            input.use { `in` ->
+                val digest = MessageDigest.getInstance("SHA1")
+                val block = ByteArray(4096)
+                var length: Int
+                while (`in`.read(block).also { length = it } > 0) {
+                    digest.update(block, 0, length)
+                }
+                return digest.digest()
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        return null
     }
 
     override fun postClean() {
