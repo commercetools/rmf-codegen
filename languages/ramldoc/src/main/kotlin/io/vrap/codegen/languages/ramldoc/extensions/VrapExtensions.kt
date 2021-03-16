@@ -151,7 +151,7 @@ fun AnyType.renderType(withDescription: Boolean = true): String {
     val builtinTypeName = BuiltinType.of(this.eClass()).map { it.getName() }.orElse("any")
     val typeName = if (this is NumberType && builtinTypeName == "number" && this.format.literal.findAnyOf(listOf("int", "long")) != null) "integer" else builtinTypeName
     val builtinType = "(builtinType): $typeName"
-    val description = if (withDescription && this.description?.value.isNullOrBlank().not()) {
+    val description = if (withDescription && this.isInlineType && this.description?.value.isNullOrBlank().not()) {
         """
         |description: |-
         |  <<${this.description.value.trim()}>>
