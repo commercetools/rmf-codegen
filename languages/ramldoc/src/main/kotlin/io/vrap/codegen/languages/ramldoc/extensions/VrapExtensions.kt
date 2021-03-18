@@ -284,6 +284,14 @@ fun Annotation.renderAnnotation(): String {
     }
 }
 
+class StringInstanceSerializer : JsonSerializer<StringInstance>() {
+
+    @Throws(IOException::class)
+    override fun serialize(value: StringInstance, gen: JsonGenerator, provider: SerializerProvider) {
+        gen.writeObject(value.value.trim())
+    }
+}
+
 class InstanceSerializer : JsonSerializer<Instance>() {
 
     @Throws(IOException::class)
@@ -312,10 +320,10 @@ fun Instance.toYaml(): String {
 
     val module = SimpleModule()
     module.addSerializer(ObjectInstance::class.java, ObjectInstanceSerializer())
+    module.addSerializer(StringInstance::class.java, StringInstanceSerializer())
     module.addSerializer<Instance>(ArrayInstance::class.java, InstanceSerializer())
     module.addSerializer<Instance>(IntegerInstance::class.java, InstanceSerializer())
     module.addSerializer<Instance>(BooleanInstance::class.java, InstanceSerializer())
-    module.addSerializer<Instance>(StringInstance::class.java, InstanceSerializer())
     module.addSerializer<Instance>(NumberInstance::class.java, InstanceSerializer())
     mapper.registerModule(module)
 
@@ -337,10 +345,10 @@ fun Instance.toJson(pretty: Boolean = true): String {
 
     val module = SimpleModule()
     module.addSerializer(ObjectInstance::class.java, ObjectInstanceSerializer())
+    module.addSerializer(StringInstance::class.java, StringInstanceSerializer())
     module.addSerializer<Instance>(ArrayInstance::class.java, InstanceSerializer())
     module.addSerializer<Instance>(IntegerInstance::class.java, InstanceSerializer())
     module.addSerializer<Instance>(BooleanInstance::class.java, InstanceSerializer())
-    module.addSerializer<Instance>(StringInstance::class.java, InstanceSerializer())
     module.addSerializer<Instance>(NumberInstance::class.java, InstanceSerializer())
     mapper.registerModule(module)
 

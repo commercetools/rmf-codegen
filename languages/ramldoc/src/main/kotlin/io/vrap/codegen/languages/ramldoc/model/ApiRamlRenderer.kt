@@ -2,10 +2,7 @@ package io.vrap.codegen.languages.ramldoc.model
 
 import io.vrap.codegen.languages.extensions.EObjectExtensions
 import io.vrap.codegen.languages.extensions.toResourceName
-import io.vrap.codegen.languages.ramldoc.extensions.packageDir
-import io.vrap.codegen.languages.ramldoc.extensions.renderAnnotation
-import io.vrap.codegen.languages.ramldoc.extensions.renderType
-import io.vrap.codegen.languages.ramldoc.extensions.renderUriParameter
+import io.vrap.codegen.languages.ramldoc.extensions.*
 import io.vrap.rmf.codegen.di.AllAnyTypes
 import io.vrap.rmf.codegen.di.ModelPackageName
 import io.vrap.rmf.codegen.io.TemplateFile
@@ -29,6 +26,9 @@ class ApiRamlRenderer constructor(val api: Api, override val vrapTypeProvider: V
     }
 
     private fun apiRaml(api: Api): TemplateFile {
+        val docsBaseUri = api.getAnnotation("docsBaseUri")
+        val docsBaseUriParameters = api.getAnnotation("docsBaseUriParameters")
+        val baseUri = if (docsBaseUri != null) { docsBaseUri.value.value as String} else { api.baseUri.template }
         val content = """
             |#%RAML 1.0
             |---
@@ -54,9 +54,11 @@ class ApiRamlRenderer constructor(val api: Api, override val vrapTypeProvider: V
             |    type: object
             |    allowedTargets: Method
             |  <<${api.annotationTypes.plus(api.uses.flatMap { libraryUse -> libraryUse.library.annotationTypes }).joinToString("\n") { renderAnnotationType(it) }}>>
-            |baseUri: ${api.baseUri.template}${if (api.baseUriParameters.size > 0) """
+            |baseUri: ${baseUri}${if (docsBaseUriParameters == null && api.baseUriParameters.size > 0) """
             |baseUriParameters:
-            |  <<${api.baseUriParameters.joinToString("\n") { it.renderUriParameter() }}>>""" else ""}
+            |  <<${api.baseUriParameters.joinToString("\n") { it.renderUriParameter() }}>>""" else ""}${if (docsBaseUriParameters != null) """
+            |baseUriParameters:
+            |  <<${(docsBaseUriParameters.value).toYaml()}>>""" else ""}
             |${api.annotations.joinToString("\n") { it.renderAnnotation() }}
             |securitySchemes:
             |  <<${api.securitySchemes.joinToString("\n") { "${it.name}: !include ${it.name}.raml" }}>>
