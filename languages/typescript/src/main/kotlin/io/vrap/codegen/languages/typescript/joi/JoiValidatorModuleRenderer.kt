@@ -118,7 +118,7 @@ class JoiValidatorModuleRenderer constructor(override val vrapTypeProvider: Vrap
                 .filter { !it.isPatternProperty() }
                 .sortedWith(PropertiesComparator).joinToString(separator = ",\n") { it.renderPropertyTypeSchema(this, discriminatorProperty) }
         val patternProperties = this.allProperties
-                .filter { it.isPatternProperty() }.joinToString(separator = "\n") { ".pattern(${it.asRegExp()}, ${it.type.toVrapType().simpleJoiName()}())" }
+                .filter { it.isPatternProperty() }.joinToString(separator = "\n") { ".pattern(${it.asRegExp()}, ${it.type.toVrapType().renderTypeRef()})" }
         val additionalProperties = this.additionalProperties?:true
         val unknown = if (!additionalProperties) ".unknown(false)" else ""
         return if (patternProperties.isNullOrEmpty())
