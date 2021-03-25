@@ -1,5 +1,6 @@
 package io.vrap.codegen.languages.javalang.client.builder.requests
 
+import com.google.common.net.MediaType
 import io.vrap.codegen.languages.extensions.getMethodName
 import io.vrap.codegen.languages.extensions.resource
 import io.vrap.codegen.languages.extensions.toParamName
@@ -104,9 +105,12 @@ class JavaRequestBuilderResourceRenderer constructor(override val vrapTypeProvid
         return if(this.bodies != null && this.bodies.isNotEmpty()){
             val methodBodyVrapType = this.bodies[0].type.toVrapType()
             if(methodBodyVrapType is VrapObjectType) {
-                val methodBodyArgument = "${methodBodyVrapType.`package`}.${methodBodyVrapType.simpleClassName} ${methodBodyVrapType.simpleClassName.decapitalize()}"
+                val methodBodyArgument =
+                    "${methodBodyVrapType.`package`}.${methodBodyVrapType.simpleClassName} ${methodBodyVrapType.simpleClassName.decapitalize()}"
                 methodBodyArgument
-            }else {
+            } else if (this.bodies[0].contentMediaType.`is`(MediaType.FORM_DATA)) {
+                "String body"
+            } else {
                 "Object obj"
             }
         }else {
@@ -122,7 +126,9 @@ class JavaRequestBuilderResourceRenderer constructor(override val vrapTypeProvid
             val vrapType = this.bodies[0].type.toVrapType()
             if(vrapType is VrapObjectType) {
                 requestArguments.add(vrapType.simpleClassName.decapitalize())
-            }else {
+            } else if (this.bodies[0].contentMediaType.`is`(MediaType.FORM_DATA)) {
+                requestArguments.add("body")
+            } else {
                 requestArguments.add("obj")
             }
         }

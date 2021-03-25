@@ -1,6 +1,7 @@
 package io.vrap.codegen.languages.javalang.client.builder.requests
 
 import com.google.common.collect.Lists
+import com.google.common.net.MediaType
 import io.vrap.codegen.languages.extensions.resource
 import io.vrap.codegen.languages.extensions.toComment
 import io.vrap.codegen.languages.extensions.toRequestName
@@ -53,6 +54,7 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
             |import java.io.IOException;
             |
             |import java.net.URI;
+            |import java.nio.charset.StandardCharsets;
             |import java.nio.file.Files;
             |
             |import java.time.Duration;
@@ -128,10 +130,16 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
         if(this.bodies != null && this.bodies.isNotEmpty()){
             if(this.bodies[0].type.toVrapType() is VrapObjectType) {
                 val methodBodyVrapType = this.bodies[0].type.toVrapType() as VrapObjectType
-                val methodBodyArgument = "${methodBodyVrapType.`package`.toJavaPackage()}.${methodBodyVrapType.simpleClassName} ${methodBodyVrapType.simpleClassName.decapitalize()}"
+                val methodBodyArgument =
+                    "${methodBodyVrapType.`package`.toJavaPackage()}.${methodBodyVrapType.simpleClassName} ${methodBodyVrapType.simpleClassName.decapitalize()}"
                 constructorArguments.add(methodBodyArgument)
-                val methodBodyAssignment = "this.${methodBodyVrapType.simpleClassName.decapitalize()} = ${methodBodyVrapType.simpleClassName.decapitalize()};"
+                val methodBodyAssignment =
+                    "this.${methodBodyVrapType.simpleClassName.decapitalize()} = ${methodBodyVrapType.simpleClassName.decapitalize()};"
                 constructorAssignments.add(methodBodyAssignment)
+            } else if (this.bodies[0].contentMediaType.`is`(MediaType.FORM_DATA)){
+                constructorArguments.add("String body")
+                constructorAssignments.add("this.addHeader(ApiHttpHeaders.CONTENT_TYPE, \"application/x-www-form-urlencoded\");")
+                constructorAssignments.add("this.body = body;")
             }else {
                 constructorArguments.add("Object obj")
                 constructorAssignments.add("this.obj = obj;")
@@ -155,6 +163,8 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
                 val methodBodyVrapType = this.bodies[0].type.toVrapType() as VrapObjectType
                 val methodBodyAssignment = "this.${methodBodyVrapType.simpleClassName.decapitalize()} = t.${methodBodyVrapType.simpleClassName.decapitalize()};"
                 constructorAssignments.add(methodBodyAssignment)
+            } else if (this.bodies[0].contentMediaType.`is`(MediaType.FORM_DATA)){
+                constructorAssignments.add("this.body = t.body;")
             } else {
                 constructorAssignments.add("this.obj = t.obj;")
             }
@@ -172,10 +182,12 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
         val pathArgs = this.pathArguments().map { "private String $it;" }.joinToString(separator = "\n")
 
         val body: String = if(this.bodies != null && this.bodies.isNotEmpty()){
-            if(this.bodies[0].type.toVrapType() is VrapObjectType){
+            if(this.bodies[0].type.toVrapType() is VrapObjectType) {
                 val methodBodyVrapType = this.bodies[0].type.toVrapType() as VrapObjectType
                 "private ${methodBodyVrapType.`package`.toJavaPackage()}.${methodBodyVrapType.simpleClassName} ${methodBodyVrapType.simpleClassName.decapitalize()};"
-            }else {
+            } else if (this.bodies[0].contentMediaType.`is`(MediaType.FORM_DATA)) {
+                "private String body;"
+            } else {
                 "private Object obj;"
             }
         }else{
@@ -234,6 +246,14 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
                 |    e.printStackTrace();
                 |}
                 |""".trimMargin()
+            else if (this.bodies[0].contentMediaType.`is`(MediaType.FORM_DATA))
+                """
+                |try {
+                |    return new ApiHttpRequest(ApiHttpMethod.${this.method.name}, URI.create(httpRequestPath), getHeaders(), this.body.getBytes(StandardCharsets.UTF_8));
+                |} catch (Exception e) {
+                |    e.printStackTrace();
+                |}
+                """.trimMargin()
             else
                 """
                 |try {
