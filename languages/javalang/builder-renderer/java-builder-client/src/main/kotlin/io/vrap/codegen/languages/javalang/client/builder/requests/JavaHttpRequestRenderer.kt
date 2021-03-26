@@ -66,6 +66,8 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
             |import java.util.concurrent.CompletableFuture;
             |import io.vrap.rmf.base.client.utils.Generated;
             |
+            |import javax.annotation.Nullable;
+            |
             |import java.io.UnsupportedEncodingException;
             |import java.net.URLEncoder;
             |import io.vrap.rmf.base.client.*;
@@ -99,6 +101,8 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
             |
             |    <${type.queryParamsTemplateSetters()}>
             |    
+            |    <${type.formParamMethods()}>
+            |
             |    @Override
             |    protected ${type.toRequestName()} copy()
             |    {
@@ -137,9 +141,9 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
                     "this.${methodBodyVrapType.simpleClassName.decapitalize()} = ${methodBodyVrapType.simpleClassName.decapitalize()};"
                 constructorAssignments.add(methodBodyAssignment)
             } else if (this.bodies[0].contentMediaType.`is`(MediaType.FORM_DATA)){
-                constructorArguments.add("String body")
-                constructorAssignments.add("this.addHeader(ApiHttpHeaders.CONTENT_TYPE, \"application/x-www-form-urlencoded\");")
-                constructorAssignments.add("this.body = body;")
+                constructorArguments.add("List<ParamEntry<String, String>> formParams".escapeAll())
+                constructorAssignments[0] = "super(apiHttpClient, new ApiHttpHeaders(new ApiHttpHeaders.StringHeaderEntry(ApiHttpHeaders.CONTENT_TYPE, \"application/x-www-form-urlencoded\")), new ArrayList<>());".escapeAll()
+                constructorAssignments.add("this.formParams = formParams;")
             }else {
                 constructorArguments.add("Object obj")
                 constructorAssignments.add("this.obj = obj;")
@@ -150,7 +154,7 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
             |public ${this.toRequestName()}(${constructorArguments.joinToString(separator = ", ")}) {
             |    <${constructorAssignments.joinToString(separator = "\n")}>
             |}
-        """.trimMargin().keepIndentation()
+        """.trimMargin().keepIndentation().escapeAll()
     }
 
     private fun Method.copyConstructor(): String? {
@@ -164,7 +168,7 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
                 val methodBodyAssignment = "this.${methodBodyVrapType.simpleClassName.decapitalize()} = t.${methodBodyVrapType.simpleClassName.decapitalize()};"
                 constructorAssignments.add(methodBodyAssignment)
             } else if (this.bodies[0].contentMediaType.`is`(MediaType.FORM_DATA)){
-                constructorAssignments.add("this.body = t.body;")
+                constructorAssignments.add("this.formParams = new ArrayList<>(t.formParams);".escapeAll())
             } else {
                 constructorAssignments.add("this.obj = t.obj;")
             }
@@ -174,7 +178,7 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
             |public ${this.toRequestName()}(${this.toRequestName()} t) {
             |    <${constructorAssignments.joinToString(separator = "\n")}>
             |}
-        """.trimMargin().keepIndentation()
+        """.trimMargin().keepIndentation().escapeAll()
     }
 
     private fun Method.fields(): String? {
@@ -186,7 +190,7 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
                 val methodBodyVrapType = this.bodies[0].type.toVrapType() as VrapObjectType
                 "private ${methodBodyVrapType.`package`.toJavaPackage()}.${methodBodyVrapType.simpleClassName} ${methodBodyVrapType.simpleClassName.decapitalize()};"
             } else if (this.bodies[0].contentMediaType.`is`(MediaType.FORM_DATA)) {
-                "private String body;"
+                "private List<ParamEntry<String, String>> formParams;".escapeAll()
             } else {
                 "private Object obj;"
             }
@@ -248,8 +252,9 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
                 |""".trimMargin()
             else if (this.bodies[0].contentMediaType.`is`(MediaType.FORM_DATA))
                 """
+                |
                 |try {
-                |    return new ApiHttpRequest(ApiHttpMethod.${this.method.name}, URI.create(httpRequestPath), getHeaders(), this.body.getBytes(StandardCharsets.UTF_8));
+                |    return new ApiHttpRequest(ApiHttpMethod.${this.method.name}, URI.create(httpRequestPath), getHeaders(), getFormParamUriString().getBytes(StandardCharsets.UTF_8));
                 |} catch (Exception e) {
                 |    e.printStackTrace();
                 |}
@@ -358,6 +363,84 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
                 |}
             """.trimMargin().escapeAll() }
             .joinToString(separator = "\n\n")
+
+    private fun Method.formParamMethods() : String =
+        if (this.bodies != null && !this.bodies.isEmpty() && this.bodies[0].contentMediaType.`is`(MediaType.FORM_DATA)) {
+            """
+                /**
+                 * add an additional form parameter
+                 * @param key form parameter name
+                 * @param value form parameter value
+                 * @param <V> value type
+                 * @return T
+                 */
+                public <V> ByProjectKeyProductProjectionsSearchPost addFormParam(final String key, final V value) {
+                    ByProjectKeyProductProjectionsSearchPost c = copy();
+                    c.formParams.add(new ParamEntry<>(key, value.toString()));
+                    return c;
+                }
+            
+                /**
+                 * set the form parameter with the specified value
+                 * @param key form parameter name
+                 * @param value form parameter value
+                 * @param <V> value type
+                 * @return T
+                 */
+                public <V> ByProjectKeyProductProjectionsSearchPost withFormParam(final String key, final V value) {
+                    return withoutFormParam(key).addFormParam(key, value);
+                }
+            
+                /**
+                 * removes the specified form parameter
+                 * @param key form parameter name
+                 * @return T
+                 */
+                public ByProjectKeyProductProjectionsSearchPost withoutFormParam(final String key) {
+                    ByProjectKeyProductProjectionsSearchPost c = copy();
+                    c.formParams = c.formParams.stream()
+                            .filter(e -> !e.getKey().equalsIgnoreCase(key))
+                            .collect(Collectors.toList());
+                    return c;
+                }
+            
+                /**
+                 * set the form parameters
+                 * @param formParams list of form parameters
+                 * @return T
+                 */
+                public ByProjectKeyProductProjectionsSearchPost withFormParams(final List<ParamEntry<String, String>> formParams) {
+                    ByProjectKeyProductProjectionsSearchPost c = copy();
+                    c.formParams = formParams;
+                    return c;
+                }
+            
+                public List<ParamEntry<String, String>> getFormParams() {
+                    return new ArrayList<>(this.formParams);
+                }
+            
+                public List<String> getFormParam(final String key) {
+                    return this.formParams.stream().filter(e -> e.getKey().equals(key)).map(ParamEntry::getValue).collect(Collectors.toList());
+                }
+                
+                public List<String> getFormParamUriStrings() {
+                    return this.formParams.stream().map(ParamEntry::toUriString).collect(Collectors.toList());
+                }
+
+                public String getFormParamUriString() {
+                    return this.formParams.stream().map(ParamEntry::toUriString).collect(Collectors.joining("&"));
+                }
+
+                @Nullable
+                public String getFirstFormParam(final String key) {
+                    return this.formParams.stream()
+                            .filter(e -> e.getKey().equals(key))
+                            .map(Map.Entry::getValue)
+                            .findFirst()
+                            .orElse(null);
+                }
+            """.trimIndent().escapeAll()
+        } else ""
 
     private fun Method.imports(): String {
         return this.queryParameters
