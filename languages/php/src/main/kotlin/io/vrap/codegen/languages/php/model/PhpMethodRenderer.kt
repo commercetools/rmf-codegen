@@ -40,7 +40,6 @@ class PhpMethodRenderer constructor(override val vrapTypeProvider: VrapTypeProvi
                 .plus("JsonObject")
                 .distinct().sorted()
 
-
         val content = """
             |<?php
             |${PhpSubTemplates.generatorInfo}
@@ -64,7 +63,7 @@ class PhpMethodRenderer constructor(override val vrapTypeProvider: VrapTypeProvi
             |class ${type.toRequestName()} extends ApiRequest
             |{
             |    /**
-            |     * @param ${if (type.firstBody()?.type is FileType) "?UploadedFileInterface " else "?object"} $!body
+            |     * @param ${if (type.firstBody()?.type is FileType) "?UploadedFileInterface " else "?object|string"} $!body
             |     * @psalm-param array<string, scalar|scalar[]> $!headers
             |     */
             |    public function __construct(${type.allParams()?.joinToString(separator = "") { "string $$it, " } ?: ""}${if (type.firstBody()?.type is FileType) "UploadedFileInterface " else ""}$!body = null, array $!headers = [], ClientInterface $!client = null)
