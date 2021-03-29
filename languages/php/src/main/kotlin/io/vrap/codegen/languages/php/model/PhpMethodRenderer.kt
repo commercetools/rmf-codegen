@@ -63,7 +63,7 @@ class PhpMethodRenderer constructor(override val vrapTypeProvider: VrapTypeProvi
             |class ${type.toRequestName()} extends ApiRequest
             |{
             |    /**
-            |     * @param ${if (type.firstBody()?.type is FileType) "?UploadedFileInterface " else "?object|string"} $!body
+            |     * @param ${if (type.firstBody()?.type is FileType) "?UploadedFileInterface " else "?object|array|string"} $!body
             |     * @psalm-param array<string, scalar|scalar[]> $!headers
             |     */
             |    public function __construct(${type.allParams()?.joinToString(separator = "") { "string $$it, " } ?: ""}${if (type.firstBody()?.type is FileType) "UploadedFileInterface " else ""}$!body = null, array $!headers = [], ClientInterface $!client = null)
@@ -71,7 +71,7 @@ class PhpMethodRenderer constructor(override val vrapTypeProvider: VrapTypeProvi
             |        $!uri = str_replace([${type.allParams()?.joinToString(separator = ", ") { "'{$it}'" } ?: ""}], [${type.allParams()?.joinToString(separator = ", ") { "$$it" } ?: ""}], '${type.apiResource().fullUri.template.trimStart('/')}');
             |        <<${type.firstBody()?.ensureContentType() ?: ""}>>
             |        <<${type.headers.filter { it.type?.default != null }.joinToString("\n\n") { "\$headers = \$this->ensureHeader(\$headers, '${it.name}', '${it.type.default.value}');" }}>>
-            |        parent::__construct($!client, '${type.methodName.toUpperCase()}', $!uri, $!headers, ${type.firstBody()?.serialize()?: "!is_null(\$body) ? json_encode(\$body) : null"});
+            |        parent::__construct($!client, '${type.methodName.toUpperCase()}', $!uri, $!headers, ${type.firstBody()?.serialize()?: "is_object(\$body) || is_array(\$body) ? json_encode(\$body) : \$body"});
             |    }
             |
             |    /**
@@ -160,23 +160,31 @@ class PhpMethodRenderer constructor(override val vrapTypeProvider: VrapTypeProvi
     }
 
     private fun Body.ensureContentType(): String {
-        if (this.type !is FileType) {
-            return ""
+        if (this.contentMediaType.`is`(MediaType.FORM_DATA)) {
+            return """
+                |if (!is_null($!body)) {
+                |    $!headers = $!this->ensureHeader($!headers, 'Content-Type', '${MediaType.FORM_DATA}');
+                |}
+            """.trimMargin()
         }
-        return """
-            |if (!is_null($!body)) {
-            |    $!mediaType = $!body->getClientMediaType();
-            |    if (!is_null($!mediaType)) {
-            |        $!headers = $!this->ensureHeader($!headers, 'Content-Type', $!mediaType);
-            |    }
-            |}
-        """.trimMargin()
+        if (this.type is FileType) {
+            return """
+                |if (!is_null($!body)) {
+                |    $!mediaType = $!body->getClientMediaType();
+                |    if (!is_null($!mediaType)) {
+                |        $!headers = $!this->ensureHeader($!headers, 'Content-Type', $!mediaType);
+                |    }
+                |}
+            """.trimMargin()
+        }
+        return ""
     }
+
     private fun Body.serialize(): String {
         if (this.type is FileType) {
             return "!is_null(\$body) ? \$body->getStream() : null"
         }
-        return "!is_null(\$body) ? json_encode(\$body) : null"
+        return "is_object(\$body) || is_array(\$body) ? json_encode(\$body) : \$body"
     }
 
     private fun Response.isSuccessfull(): Boolean = this.statusCode.toInt() in (200..299)

@@ -29,7 +29,7 @@ abstract class AbstractRequestBuilder constructor(
         return this.methods.joinToString(separator = "") {
             """
                 |/**
-                | * @psalm-param ${it.bodyType() ?: "?object "}$!body
+                | * @psalm-param ${it.bodyType() ?: "?object|array|string"} $!body
                 | * @psalm-param array<string, scalar|scalar[]> $!headers
                 | */
                 |public function ${it.methodName}(${it.bodyType() ?: ""}$!body = null, array $!headers = []): ${it.toRequestName()}
@@ -103,7 +103,7 @@ abstract class AbstractRequestBuilder constructor(
             return "?UploadedFileInterface "
         if (vrapType is VrapNilType || vrapType.simpleName() == "stdClass")
             return null
-        return "?${vrapType.simpleName()} "
+        return "?${vrapType.simpleName()}"
     }
 
 //    protected fun Response.isSuccessful(): Boolean = this.statusCode.toInt() in (200..299)
