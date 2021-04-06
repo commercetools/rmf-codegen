@@ -23,11 +23,66 @@ graal {
     option '--allow-incomplete-classpath'
 }
 
+def pomConfig = {
+    licenses {
+        license {
+            name "The Apache Software License, Version 2.0"
+            url "http://www.apache.org/licenses/LICENSE-2.0.txt"
+            distribution "repo"
+        }
+    }
+    scm {
+        connection "scm:git:$scmHttpsUrl"
+        developerConnection "scm:git:$scmSshUrl"
+        url "$scmProjectUrl"
+    }
+}
+
 publishing {
+    repositories {
+        maven {
+            if (version.status == 'release') {
+                url("https://oss.sonatype.org/service/local/staging/deploy/maven2/")
+            } else {
+                url("https://oss.sonatype.org/content/repositories/snapshots/")
+            }
+            credentials {
+                username System.getenv('CTP_OSS_USER') ?: ''
+                password System.getenv("CTP_OSS_SECRET") ?: ''
+            }
+        }
+    }
     publications {
         Maven(MavenPublication) {
-            publication -> project.shadow.component(publication)
+            artifact sourcesJar
+            artifact shadowJar
+            artifact javadocJar
+            artifactId = project.name
+            version version
+            groupId group
+
+            pom {
+                name = project.name
+                description = project.description
+                developers {
+                    developer {
+                        id = "jenschude"
+                        name = "Jens Schulze"
+                        email = "jens.schulze@commercetools.com"
+                    }
+                }
+                url = scmHttpsUrl
+            }
+            pom.withXml {
+                def root = asNode()
+                root.children().last() + pomConfig
+            }
         }
+    }
+
+    signing {
+        useGpgCmd()
+        sign publishing.publications.Maven
     }
 }
 
@@ -61,6 +116,10 @@ shadowJar {
     archiveFileName = 'rmf-gen.jar'
     minimize()
     destinationDirectory = file("../..")
+}
+
+artifacts {
+    archives shadowJar
 }
 
 task generateBuildInfo {

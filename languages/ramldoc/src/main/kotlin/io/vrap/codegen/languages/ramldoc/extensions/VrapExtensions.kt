@@ -12,8 +12,7 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
 import io.vrap.rmf.codegen.rendring.utils.keepAngleIndent
-import io.vrap.rmf.codegen.types.VrapEnumType
-import io.vrap.rmf.codegen.types.VrapObjectType
+import io.vrap.rmf.codegen.types.*
 import io.vrap.rmf.raml.model.elements.NamedElement
 import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.resources.UriParameter
@@ -151,7 +150,7 @@ fun AnyType.renderType(withDescription: Boolean = true): String {
     val builtinTypeName = BuiltinType.of(this.eClass()).map { it.getName() }.orElse("any")
     val typeName = if (this is NumberType && builtinTypeName == "number" && this.format.literal.findAnyOf(listOf("int", "long")) != null) "integer" else builtinTypeName
     val builtinType = "(builtinType): $typeName"
-    val description = if (withDescription && this.description?.value.isNullOrBlank().not()) {
+    val description = if (withDescription && (this.isInlineType || this.isScalar())  && this.description?.value.isNullOrBlank().not()) {
         """
         |description: |-
         |  <<${this.description.value.trim()}>>
@@ -164,6 +163,21 @@ fun AnyType.renderType(withDescription: Boolean = true): String {
         |$builtinType
         |$description
         """.trimMargin().trimEnd()
+}
+
+fun AnyType.isScalar(): Boolean {
+    return when(this) {
+        is StringType -> true
+        is IntegerType -> true
+        is NumberType -> true
+        is BooleanType -> true
+        is DateTimeType -> true
+        is DateOnlyType -> true
+        is DateTimeOnlyType -> true
+        is TimeOnlyType -> true
+        is ArrayType -> this.items == null || this.items.isScalar()
+        else -> false
+    }
 }
 
 fun AnyAnnotationType.renderScalarType(): String {
@@ -270,6 +284,14 @@ fun Annotation.renderAnnotation(): String {
     }
 }
 
+class StringInstanceSerializer : JsonSerializer<StringInstance>() {
+
+    @Throws(IOException::class)
+    override fun serialize(value: StringInstance, gen: JsonGenerator, provider: SerializerProvider) {
+        gen.writeObject(value.value.trim())
+    }
+}
+
 class InstanceSerializer : JsonSerializer<Instance>() {
 
     @Throws(IOException::class)
@@ -298,10 +320,10 @@ fun Instance.toYaml(): String {
 
     val module = SimpleModule()
     module.addSerializer(ObjectInstance::class.java, ObjectInstanceSerializer())
+    module.addSerializer(StringInstance::class.java, StringInstanceSerializer())
     module.addSerializer<Instance>(ArrayInstance::class.java, InstanceSerializer())
     module.addSerializer<Instance>(IntegerInstance::class.java, InstanceSerializer())
     module.addSerializer<Instance>(BooleanInstance::class.java, InstanceSerializer())
-    module.addSerializer<Instance>(StringInstance::class.java, InstanceSerializer())
     module.addSerializer<Instance>(NumberInstance::class.java, InstanceSerializer())
     mapper.registerModule(module)
 
@@ -323,10 +345,10 @@ fun Instance.toJson(pretty: Boolean = true): String {
 
     val module = SimpleModule()
     module.addSerializer(ObjectInstance::class.java, ObjectInstanceSerializer())
+    module.addSerializer(StringInstance::class.java, StringInstanceSerializer())
     module.addSerializer<Instance>(ArrayInstance::class.java, InstanceSerializer())
     module.addSerializer<Instance>(IntegerInstance::class.java, InstanceSerializer())
     module.addSerializer<Instance>(BooleanInstance::class.java, InstanceSerializer())
-    module.addSerializer<Instance>(StringInstance::class.java, InstanceSerializer())
     module.addSerializer<Instance>(NumberInstance::class.java, InstanceSerializer())
     mapper.registerModule(module)
 
