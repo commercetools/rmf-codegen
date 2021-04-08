@@ -76,7 +76,7 @@ class BuilderTestCodeGenerator {
         val generatorComponent = GeneratorComponent(generatorModule, JavaCompleteModule)
         generatorComponent.generateFiles()
 
-        val generatorConfigTests = CodeGeneratorConfig(basePackageName = "com.commercetools.api", outputFolder = Paths.get("${outputFolder}/test"))
+        val generatorConfigTests = CodeGeneratorConfig(basePackageName = "com.commercetools.api", outputFolder = outputFolder)
         val generatorModuleTests = GeneratorModule(apiProvider, generatorConfigTests, JavaBaseTypes)
         val generatorComponentTests = GeneratorComponent(generatorModuleTests, JavaTestModule)
         generatorComponentTests.generateFiles()
