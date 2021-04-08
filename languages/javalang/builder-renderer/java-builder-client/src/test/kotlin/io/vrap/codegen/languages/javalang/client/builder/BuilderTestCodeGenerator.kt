@@ -22,9 +22,7 @@ import javax.tools.ToolProvider
 class BuilderTestCodeGenerator {
 
     companion object {
-//        private val userProvidedPath = System.getenv("TEST_RAML_FILE")
-
-        private val userProvidedPath = "/Users/bpalumbo/workspace/commercetools-api-reference/api-specs/api/api.raml"
+        private val userProvidedPath = System.getenv("TEST_RAML_FILE")
 
         private val importApiProvidedPath = System.getenv("IMPORT_API_RAML_FILE")
         /**
