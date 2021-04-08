@@ -2,6 +2,7 @@ package io.vrap.codegen.languages.javalang.client.builder
 
 import io.vrap.codegen.languages.java.base.JavaBaseTypes
 import io.vrap.codegen.languages.javalang.client.builder.module.JavaCompleteModule
+import io.vrap.codegen.languages.javalang.client.builder.test.JavaTestModule
 
 import io.vrap.rmf.codegen.CodeGeneratorConfig
 import io.vrap.rmf.codegen.di.ApiProvider
@@ -74,6 +75,16 @@ class BuilderTestCodeGenerator {
         val generatorModule = GeneratorModule(apiProvider, generatorConfig, JavaBaseTypes)
         val generatorComponent = GeneratorComponent(generatorModule, JavaCompleteModule)
         generatorComponent.generateFiles()
+//    }
+
+//    @Ignore
+//    @Test
+//    fun generateJavaUnitTest() {
+
+        val generatorConfigTests = CodeGeneratorConfig(basePackageName = "com.commercetools.api", outputFolder = Paths.get("${outputFolder}/test"))
+        val generatorModuleTests = GeneratorModule(apiProvider, generatorConfigTests, JavaBaseTypes)
+        val generatorComponentTests = GeneratorComponent(generatorModuleTests, JavaTestModule)
+        generatorComponentTests.generateFiles()
     }
 
     @Ignore

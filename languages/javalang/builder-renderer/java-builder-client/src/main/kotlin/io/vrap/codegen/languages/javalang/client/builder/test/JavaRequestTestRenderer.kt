@@ -9,6 +9,7 @@ import io.vrap.codegen.languages.javalang.client.builder.ClientConstants
 
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.ResourceRenderer
+import io.vrap.rmf.codegen.rendring.utils.escapeAll
 import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.modules.Api
@@ -18,13 +19,12 @@ import io.vrap.rmf.raml.model.types.ObjectInstance
 import io.vrap.rmf.raml.model.types.QueryParameter
 import io.vrap.rmf.raml.model.types.StringInstance
 
-class JavaRequestTestRenderer constructor(api: Api, clientConstants: ClientConstants, override val vrapTypeProvider: VrapTypeProvider): ResourceRenderer, JavaEObjectTypeExtensions {
+class JavaRequestTestRenderer constructor(override val vrapTypeProvider: VrapTypeProvider): ResourceRenderer, JavaEObjectTypeExtensions {
     private val resourcePackage = "Resource"
 
     override fun render(type: Resource): TemplateFile {
         val vrapType = vrapTypeProvider.doSwitch(type).toJavaVType() as VrapObjectType
 
-//        val clientTestPackageName = basePackagePrefix + "/test" + clientPackageName.replace(basePackagePrefix, "")
         val content = """
             |package ${vrapType.`package`.toJavaPackage()};
             |
@@ -45,8 +45,7 @@ class JavaRequestTestRenderer constructor(api: Api, clientConstants: ClientConst
             |
             |<${JavaSubTemplates.generatedAnnotation}>
             |@RunWith(JUnitParamsRunner.class)
-            |public class ${type.toResourceName()}Test
-            |{
+            |public class Resource${type.toResourceName()}Test {
             |    private final ApiHttpClient apiHttpClientMock = Mockito.mock(ApiHttpClient.class);
             |    private final String projectKey = "test_projectKey";
             |    private final ApiRoot apiRoot = createClient();
@@ -57,7 +56,8 @@ class JavaRequestTestRenderer constructor(api: Api, clientConstants: ClientConst
             |               ServiceRegion.GCP_EUROPE_WEST1.getOAuthTokenUrl(), ServiceRegion.GCP_EUROPE_WEST1.getApiUrl());
             |    }
             |
-            |    ${if  (type.methods.size > 0) """/**
+            |    ${if (type.methods.size > 0) """
+            |
             |    @Test
             |    @Parameters(method = "requestWithMethodParameters")
             |    public void withMethods(ApiHttpRequest request, String httpMethod, String uri) {
@@ -66,7 +66,7 @@ class JavaRequestTestRenderer constructor(api: Api, clientConstants: ClientConst
             |    }""".trimMargin() else ""}
             |
             |
-            |    ${if (type.resources.size > 0) """/**
+            |    ${if (type.resources.size > 0) """
             |    private Object[] requestWithMethodParameters() {
             |       return new Object [] {
             |           new Object [] {
@@ -82,7 +82,7 @@ class JavaRequestTestRenderer constructor(api: Api, clientConstants: ClientConst
 
 
 
-        val relativePath = "test/unit/" + {type.toResourceName()} + "Test.java"
+        val relativePath = "test/unit/" + "Resource" + type.toResourceName() + "Test.java"
         return TemplateFile(
                 relativePath = relativePath,
                 content = content
