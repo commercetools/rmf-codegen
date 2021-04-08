@@ -29,12 +29,9 @@ class JavaRequestTestRenderer constructor(override val vrapTypeProvider: VrapTyp
             |package ${vrapType.`package`.toJavaPackage()};
             |
             |import com.commercetools.api.client.ApiRoot;
-            |import com.commercetools.api.client.ByProjectKeyCategoriesGet;
-            |import com.commercetools.api.client.ByProjectKeyCategoriesPost;
+            |import com.commercetools.api.client.${type.toResourceName()};
             |import com.commercetools.api.defaultconfig.ApiFactory;
             |import com.commercetools.api.defaultconfig.ServiceRegion;
-            |import com.commercetools.api.models.category.CategoryDraft;
-            |import io.vrap.rmf.base.client.*;
             |import io.vrap.rmf.base.client.oauth2.ClientCredentials;
             |import junitparams.JUnitParamsRunner;
             |import junitparams.Parameters;

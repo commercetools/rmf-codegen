@@ -23,7 +23,6 @@ class BuilderTestCodeGenerator {
 
     companion object {
         private val userProvidedPath = System.getenv("TEST_RAML_FILE")
-
         private val importApiProvidedPath = System.getenv("IMPORT_API_RAML_FILE")
         /**
          * Specifies a path where the code generator should place generated code
