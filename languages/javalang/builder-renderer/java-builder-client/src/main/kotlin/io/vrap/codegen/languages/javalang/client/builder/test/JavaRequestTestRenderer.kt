@@ -56,60 +56,44 @@ class JavaRequestTestRenderer constructor(override val vrapTypeProvider: VrapTyp
             |               ServiceRegion.GCP_EUROPE_WEST1.getOAuthTokenUrl(), ServiceRegion.GCP_EUROPE_WEST1.getApiUrl());
             |    }
             |
-            |    ${if (type.methods.size > 0) """
-            |    @Test
+            |    ${if (type.methods.size > 0) """@Test
             |    @Parameters(method = "requestWithMethodParameters")
             |    public void withMethods(ApiHttpRequest request, String httpMethod, String uri) {
             |        Assert.assertEquals(httpMethod, request.getMethod().toString());
             |        Assert.assertEquals(uri, request.getUri().toString());
             |    }""".trimMargin() else ""}
-            |
-            |    ${if (type.resources.size > 0) """
-            |    private Object[] requestWithMethodParameters() {
-            |       return new Object [] {
-            |           new Object [] {
-            |               <<${type.methods.flatMap { method -> method.queryParameters.map { parameterTestProvider(type, method, it) } }.joinToString(",\n")}>>
-            |           }
-            |       };
-            |    }""".trimMargin() else ""}
             |    
-            |    ${if (type.methods.size > 0) """
-            |    @Test
+            |    ${if (type.methods.size > 0) """@Test
             |    @Parameters(method = "resourcesParameters")
-            |    public void resources(ApiHttpRequest request) {
-            |        Assert.assertEquals("/test_projectKey/categories/key=test-key", request.getUri().toString());
-            |        Assert.assertEquals("/test_projectKey/categories/test-id", request.getUri().toString());
+            |    public void resources(ApiHttpRequest request, String uri) {
+            |        Assert.assertEquals(uri, request.getUri().toString());
             |    }""".trimMargin() else ""}
             |    
-            |    ${if (type.resources.size > 0) """
-            |    private Object[] resourcesParameters() {
-            |       return new Object [] {
-            |           new Object [] {
-            |               <<${type.methods.flatMap { method -> method.queryParameters.map { parameterTestProvider(type, method, it) } }.joinToString(",\n")}>>
-            |           }
-            |       };
-            |    }""".trimMargin() else ""}
-            |    
-            |    ${if (type.methods.size > 0) """
-            |    @Test
+            |    ${if (type.methods.size > 0) """@Test
             |    @Parameters(method = "executeMethodParameters")
             |    public void executeWithNullPointerException(ApiHttpRequest httpRequest) throws Exception{
-            |        Mockito.when(apiHttpClientMock.execute(httpRequest)).thenThrow(NullPointerException.class);
-            |        
+            |        Mockito.when(apiHttpClientMock.execute(httpRequest)).thenThrow(NullPointerException.class);   
             |    }""".trimMargin() else ""}
             |    
-            |    ${if (type.resources.size > 0) """
-            |    private Object[] executeMethodParameters() {
-            |    return new Object [] {
-            |           new Object [] {
-            |               <<${type.methods.flatMap { method -> method.queryParameters.map { parameterTestProvider(type, method, it) } }.joinToString(",\n")}>>
-            |           }
+            |    private Object[] requestWithMethodParameters() {
+            |       return new Object [] {
+            |               ${type.methods.flatMap { method -> method.queryParameters.map { parameterTestProvider(type, method, it) } }.joinToString(",\n")}
             |       };
-            |    }""".trimMargin() else ""}
+            |    }
+            |    
+            |    private Object[] resourcesParameters() {
+            |       return new Object [] {
+            |               ${type.resources.map { resourceTestProvider(it) }.joinToString(",\n")}
+            |       };
+            |       
+            |    private Object[] executeMethodParameters() {
+            |       return new Object [] {
+            |               ${type.methods.flatMap { m -> m.responses.map { r -> requestTestProvider(type, m) }.plus(requestTestProvider(type, m)) }.joinToString(",\n")}
+            |       };
+            |    }
+            |    
             |}
         """.trimMargin()
-
-
 
         val relativePath = "test/unit/" + "Resource" + type.toResourceName() + "Test.java"
         return TemplateFile(
@@ -136,11 +120,35 @@ class JavaRequestTestRenderer constructor(override val vrapTypeProvider: VrapTyp
                 .plus("${parameter.methodName()}(${template})")
         return """
                 |new Object[] {           
-                |    <<${builderChain.joinToString("\n.", ".")}>>,
+                |    apiRoot
+                |    ${builderChain.joinToString("\n.", ".")}.createHttpRequest(),
                 |    '${method.method}',
                 |    '${resource.fullUri.expand(resource.fullUriParameters.map { it.name to "test_${it.name}" }.toMap()).trimStart('/')}?${paramName}=${paramName}',
                 |}
             """.trimMargin()
+    }
 
+    private fun resourceTestProvider(resource: Resource): String {
+        val builderChain = resource.resourcePathList().map { r -> "${r.getMethodName()}(${if (r.relativeUri.paramValues().isNotEmpty()) "\"${r.relativeUri.paramValues().joinToString("\", \"") { p -> "test_$p"} }\"" else ""})" }
+
+        return """
+            |new Object[] {           
+            |    apiRoot
+            |    ${builderChain.joinToString("\n.", ".")}.createHttpRequest(),
+            |    '${resource.fullUri.expand(resource.fullUriParameters.map { it.name to "test_${it.name}" }.toMap()).trimStart('/')}',
+            |}
+        """.trimMargin()
+    }
+
+    private fun requestTestProvider(resource: Resource, method: Method): String {
+        val builderChain = resource.resourcePathList().map { r -> "${r.getMethodName()}(${if (r.relativeUri.paramValues().isNotEmpty()) "\"${r.relativeUri.paramValues().joinToString("\", \"") }\"" else ""})" }
+                .plus("${method.method}(${if (method.firstBody() != null) "null" else ""})")
+
+        return """
+            |new Object[] {
+            |       new ApiHttpRequest(ApiHttpMethod.${method.method.name},
+            |       new ${resource.toResourceName().plus(method.method)}((apiHttpClientMock, projectKey).createHttpRequest().getUri(), null, null)
+            |    }
+        """.trimMargin()
     }
 }

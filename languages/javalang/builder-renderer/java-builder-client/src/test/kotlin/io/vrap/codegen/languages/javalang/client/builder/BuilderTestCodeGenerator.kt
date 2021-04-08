@@ -22,7 +22,10 @@ import javax.tools.ToolProvider
 class BuilderTestCodeGenerator {
 
     companion object {
-        private val userProvidedPath = System.getenv("TEST_RAML_FILE")
+//        private val userProvidedPath = System.getenv("TEST_RAML_FILE")
+
+        private val userProvidedPath = "/Users/bpalumbo/workspace/commercetools-api-reference/api-specs/api/api.raml"
+
         private val importApiProvidedPath = System.getenv("IMPORT_API_RAML_FILE")
         /**
          * Specifies a path where the code generator should place generated code
@@ -68,18 +71,13 @@ class BuilderTestCodeGenerator {
         }
     }
 
-//    @Ignore
+    @Ignore
     @Test
     fun generateJavaCompleteModule() {
         val generatorConfig = CodeGeneratorConfig(basePackageName = "com.commercetools.api", outputFolder = outputFolder)
         val generatorModule = GeneratorModule(apiProvider, generatorConfig, JavaBaseTypes)
-        val generatorComponent = GeneratorComponent(generatorModule, JavaCompleteModule)
+        val generatorComponent = GeneratorComponent(generatorModule, JavaCompleteModule, JavaTestModule)
         generatorComponent.generateFiles()
-
-        val generatorConfigTests = CodeGeneratorConfig(basePackageName = "com.commercetools.api", outputFolder = outputFolder)
-        val generatorModuleTests = GeneratorModule(apiProvider, generatorConfigTests, JavaBaseTypes)
-        val generatorComponentTests = GeneratorComponent(generatorModuleTests, JavaTestModule)
-        generatorComponentTests.generateFiles()
     }
 
     @Ignore
