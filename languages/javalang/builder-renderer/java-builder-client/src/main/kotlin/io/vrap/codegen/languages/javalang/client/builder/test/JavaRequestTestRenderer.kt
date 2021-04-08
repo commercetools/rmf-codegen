@@ -57,14 +57,12 @@ class JavaRequestTestRenderer constructor(override val vrapTypeProvider: VrapTyp
             |    }
             |
             |    ${if (type.methods.size > 0) """
-            |
             |    @Test
             |    @Parameters(method = "requestWithMethodParameters")
             |    public void withMethods(ApiHttpRequest request, String httpMethod, String uri) {
             |        Assert.assertEquals(httpMethod, request.getMethod().toString());
             |        Assert.assertEquals(uri, request.getUri().toString());
             |    }""".trimMargin() else ""}
-            |
             |
             |    ${if (type.resources.size > 0) """
             |    private Object[] requestWithMethodParameters() {
@@ -73,10 +71,41 @@ class JavaRequestTestRenderer constructor(override val vrapTypeProvider: VrapTyp
             |               <<${type.methods.flatMap { method -> method.queryParameters.map { parameterTestProvider(type, method, it) } }.joinToString(",\n")}>>
             |           }
             |       };
-            |
-            |
             |    }""".trimMargin() else ""}
-            |
+            |    
+            |    ${if (type.methods.size > 0) """
+            |    @Test
+            |    @Parameters(method = "resourcesParameters")
+            |    public void resources(ApiHttpRequest request) {
+            |        Assert.assertEquals("/test_projectKey/categories/key=test-key", request.getUri().toString());
+            |        Assert.assertEquals("/test_projectKey/categories/test-id", request.getUri().toString());
+            |    }""".trimMargin() else ""}
+            |    
+            |    ${if (type.resources.size > 0) """
+            |    private Object[] resourcesParameters() {
+            |       return new Object [] {
+            |           new Object [] {
+            |               <<${type.methods.flatMap { method -> method.queryParameters.map { parameterTestProvider(type, method, it) } }.joinToString(",\n")}>>
+            |           }
+            |       };
+            |    }""".trimMargin() else ""}
+            |    
+            |    ${if (type.methods.size > 0) """
+            |    @Test
+            |    @Parameters(method = "executeMethodParameters")
+            |    public void executeWithNullPointerException(ApiHttpRequest httpRequest) throws Exception{
+            |        Mockito.when(apiHttpClientMock.execute(httpRequest)).thenThrow(NullPointerException.class);
+            |        
+            |    }""".trimMargin() else ""}
+            |    
+            |    ${if (type.resources.size > 0) """
+            |    private Object[] executeMethodParameters() {
+            |    return new Object [] {
+            |           new Object [] {
+            |               <<${type.methods.flatMap { method -> method.queryParameters.map { parameterTestProvider(type, method, it) } }.joinToString(",\n")}>>
+            |           }
+            |       };
+            |    }""".trimMargin() else ""}
             |}
         """.trimMargin()
 
@@ -89,68 +118,6 @@ class JavaRequestTestRenderer constructor(override val vrapTypeProvider: VrapTyp
         )
     }
 
-    private fun parameterTestProvider(resource: Resource, method: Method): String {
-//        val builderChain = resource.resourcePathList().map { r -> "${r.getMethodName()}(${if (r.relativeUri.paramValues().isNotEmpty()) "\"${r.relativeUri.paramValues().joinToString("\", \"") { p -> "test_$p"} }\"" else ""})" }
-//                .plus("${method.method}(${if (method.firstBody() != null) "null" else ""})")
-//
-//        return """
-//            |'${method.toRequestName()}' => [
-//            |    function (${rootResource()} $!builder): RequestInterface {
-//            |        return $!builder
-//            |            <<${builderChain.joinToString("\n->", "->")}>>;
-//            |    },
-//            |    '${method.method}',
-//            |    '${resource.fullUri.expand(resource.fullUriParameters.map { it.name to "test_${it.name}" }.toMap()).trimStart('/')}',
-//            |]
-//        """.trimMargin()
-        return ""
-    }
-//
-//    private fun requestTestProvider(resource: Resource, method: Method): String {
-//        val builderChain = resource.resourcePathList().map { r -> "${r.getMethodName()}(${if (r.relativeUri.paramValues().isNotEmpty()) "\"${r.relativeUri.paramValues().joinToString("\", \"") }\"" else ""})" }
-//                .plus("${method.method}(${if (method.firstBody() != null) "null" else ""})")
-//
-//        return """
-//            |'${method.toRequestName()}' => [
-//            |    function (${rootResource()} $!builder): RequestInterface {
-//            |        return $!builder
-//            |            <<${builderChain.joinToString("\n->", "->")}>>;
-//            |    }
-//            |]
-//        """.trimMargin()
-//    }
-//
-//    private fun requestTestProvider(resource: Resource, method: Method, statusCode: String): String {
-//        val builderChain = resource.resourcePathList().map { r -> "${r.getMethodName()}(${if (r.relativeUri.paramValues().isNotEmpty()) "\"${r.relativeUri.paramValues().joinToString("\", \"") }\"" else ""})" }
-//                .plus("${method.method}(${if (method.firstBody() != null) "null" else ""})")
-//
-//        return """
-//            |'${method.toRequestName()}_$statusCode' => [
-//            |    function (${rootResource()} $!builder): RequestInterface {
-//            |        return $!builder
-//            |            <<${builderChain.joinToString("\n->", "->")}>>;
-//            |    },
-//            |    $statusCode
-//            |]
-//        """.trimMargin()
-//    }
-//
-//    private fun resourceTestProvider(resource: Resource): String {
-//        val builderChain = resource.resourcePathList().map { r -> "${r.getMethodName()}(${if (r.relativeUri.paramValues().isNotEmpty()) "\"${r.relativeUri.paramValues().joinToString("\", \"") { p -> "test_$p"} }\"" else ""})" }
-//
-//        return """
-//            |'${resource.resourceBuilderName()}' => [
-//            |    function (${rootResource()} $!builder): ${resource.resourceBuilderName()} {
-//            |        return $!builder
-//            |            <<${builderChain.joinToString("\n->", "->")}>>;
-//            |    },
-//            |    ${resource.resourceBuilderName()}::class,
-//            |    [${resource.fullUriParameters.joinToString(", ") { "'${it.name}' => 'test_${it.name}'" }}],
-//            |    '${resource.fullUri.template}'
-//            |]
-//        """.trimMargin()
-//    }
-//
     private fun parameterTestProvider(resource: Resource, method: Method, parameter: QueryParameter): String {
         val anno = parameter.getAnnotation("placeholderParam", true)
 
