@@ -34,13 +34,13 @@ class RequestBuilder constructor(
 
     override fun render(type: Resource): TemplateFile {
 
-        val pakage = (type.toVrapType() as VrapObjectType).`package`
+        val `package` = (type.toVrapType() as VrapObjectType).`package`
 
         return TemplateFile(
-                relativePath = type.tsRequestModuleName(pakage) + ".ts",
+                relativePath = type.tsRequestModuleName(`package`) + ".ts",
                 content = """|
                 |$tsGeneratedComment
-                |${type.imports(type.tsRequestModuleName(pakage))}
+                |${type.imports(type.tsRequestModuleName(`package`))}
                 |
                 |export class ${type.toRequestBuilderName()} {
                 |
@@ -223,7 +223,7 @@ class RequestBuilder constructor(
                                 }
                                 .filter { it.type != null }
                                 .map { it.type.toVrapType() }
-                                .filter { it is VrapEnumType || it is VrapObjectType || (it is VrapArrayType && it.itemType is VrapObjectType) }
+                                .filter { it is VrapEnumType || it is VrapObjectType || (it is VrapArrayType && (it.itemType is VrapObjectType || it.itemType is VrapEnumType ) ) }
                 )
                 .plus(
                         this.methods
