@@ -10,7 +10,7 @@ import io.vrap.codegen.languages.javalang.client.builder.ClientConstants
 
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.ResourceRenderer
-import io.vrap.rmf.codegen.rendring.utils.escapeAll
+import io.vrap.rmf.codegen.rendring.utils.*
 import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.modules.Api
@@ -81,24 +81,24 @@ class JavaRequestTestRenderer constructor(override val vrapTypeProvider: VrapTyp
             |    
             |    private Object[] requestWithMethodParameters() {
             |       return new Object [] {
-            |               ${type.methods.flatMap { method -> method.queryParameters.map { parameterTestProvider(type, method, it) }.plus(parameterTestProvider(type, method)) }.joinToString(",\n")}
+            |               <<${type.methods.flatMap { method -> method.queryParameters.map { parameterTestProvider(type, method, it) }.plus(parameterTestProvider(type, method)) }.joinToString(",\n")}>>
             |       };
             |    }
             |    
             |    private Object[] resourcesParameters() {
             |       return new Object [] {
-            |               ${type.resources.map { resourceTestProvider(it) }.joinToString(",\n")}
+            |               <<${type.resources.map { resourceTestProvider(it) }.joinToString(",\n")}>>
             |       };
             |    }
             |       
             |    private Object[] executeMethodParameters() {
             |       return new Object [] {
-            |               ${type.methods.flatMap { m -> m.responses.map { r -> requestTestProvider(type, m) }.plus(requestTestProvider(type, m)) }.joinToString(",\n")}
+            |               <<${type.methods.flatMap { m -> m.responses.map { r -> requestTestProvider(type, m) }.plus(requestTestProvider(type, m)) }.joinToString(",\n")}>>
             |       };
             |    }
             |    
             |}
-        """.trimMargin()
+        """.trimMargin().keepAngleIndent()
 
         val relativePath = "${vrapType.`package`}/unit/Resource" + type.toResourceName() + "Test.java"
         return TemplateFile(
@@ -114,11 +114,11 @@ class JavaRequestTestRenderer constructor(override val vrapTypeProvider: VrapTyp
         return """
             |new Object[] {           
             |    apiRoot
-            |    ${builderChain.joinToString("\n.", ".")},
+            |    <<${builderChain.joinToString("\n.", ".")}>>,
             |    "${method.method}",
             |    "${resource.fullUri.expand(resource.fullUriParameters.map { it.name to "test_${it.name}" }.toMap()).trimStart('/')}",
             |}
-        """.trimMargin()
+        """.trimMargin().keepAngleIndent()
     }
 
     private fun parameterTestProvider(resource: Resource, method: Method, parameter: QueryParameter): String {
@@ -141,11 +141,11 @@ class JavaRequestTestRenderer constructor(override val vrapTypeProvider: VrapTyp
         return """
                 |new Object[] {           
                 |    apiRoot
-                |    ${builderChain.joinToString("\n.", ".")},
+                |    <<${builderChain.joinToString("\n.", ".")}>>,
                 |    "${method.method}",
                 |    "${resource.fullUri.expand(resource.fullUriParameters.map { it.name to "test_${it.name}" }.toMap()).trimStart('/')}?${paramName}=${if (parameter.type.name != "boolean" && parameter.type.name != "number") "${paramName}" else "$methodValue" }",
                 |}
-            """.trimMargin()
+            """.trimMargin().keepAngleIndent()
     }
 
     private fun resourceTestProvider(resource: Resource): String {
@@ -154,10 +154,10 @@ class JavaRequestTestRenderer constructor(override val vrapTypeProvider: VrapTyp
         return """
             |new Object[] {           
             |    apiRoot
-            |    ${builderChain.joinToString("\n.", ".")},
+            |    <<${builderChain.joinToString("\n.", ".")}>>,
             |    "${resource.fullUri.expand(resource.fullUriParameters.map { it.name to "test_${it.name}" }.toMap()).trimStart('/')}",
             |}
-        """.trimMargin()
+        """.trimMargin().keepAngleIndent()
     }
 
     private fun requestTestProvider(resource: Resource, method: Method): String {
@@ -178,7 +178,7 @@ class JavaRequestTestRenderer constructor(override val vrapTypeProvider: VrapTyp
             |       new ApiHttpRequest(ApiHttpMethod.${method.method.name},
             |       new ${method.toRequestName()}(${constructorArguments.joinToString(separator = ", ")}).createHttpRequest().getUri(), null, null)
             |    }
-        """.trimMargin()
+        """.trimMargin().keepIndentation()
     }
 
     private fun QueryParameter.template(): Any {
@@ -210,5 +210,4 @@ class JavaRequestTestRenderer constructor(override val vrapTypeProvider: VrapTyp
             return "\"" + this.name + "\""
         }
     }
-
 }
