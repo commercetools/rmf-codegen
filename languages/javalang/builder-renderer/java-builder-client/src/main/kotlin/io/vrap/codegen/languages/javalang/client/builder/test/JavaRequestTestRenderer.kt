@@ -16,12 +16,14 @@ import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.modules.Api
 import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Resource
+import io.vrap.rmf.raml.model.types.ArrayType
 import io.vrap.rmf.raml.model.types.ObjectInstance
 import io.vrap.rmf.raml.model.types.QueryParameter
 import io.vrap.rmf.raml.model.types.StringInstance
+import io.vrap.rmf.raml.model.types.impl.NumberTypeImpl
 import kotlin.random.Random
 
-class JavaRequestTestRenderer constructor(override val vrapTypeProvider: VrapTypeProvider): ResourceRenderer, JavaEObjectTypeExtensions {
+class JavaRequestTestRenderer constructor(override val vrapTypeProvider: VrapTypeProvider): ResourceRenderer, JavaEObjectTypeExtensions, JavaObjectTypeExtensions {
 
     override fun render(type: Resource): TemplateFile {
         val vrapType = vrapTypeProvider.doSwitch(type).toJavaVType() as VrapObjectType
@@ -124,6 +126,7 @@ class JavaRequestTestRenderer constructor(override val vrapTypeProvider: VrapTyp
 
         var paramName: String = parameter.name
         var methodValue = parameter.template()
+
         if (anno != null) {
             val o = anno.value as ObjectInstance
             val placeholder = o.value.stream().filter { propertyValue -> propertyValue.name == "placeholder" }.findFirst().orElse(null).value as StringInstance
@@ -177,4 +180,35 @@ class JavaRequestTestRenderer constructor(override val vrapTypeProvider: VrapTyp
             |    }
         """.trimMargin()
     }
+
+    private fun QueryParameter.template(): Any {
+        val anno = this.getAnnotation("placeholderParam", true)
+
+        if (anno != null) {
+            val o = anno.value as ObjectInstance
+            val template = o.value.stream().filter { propertyValue -> propertyValue.name == "template" }.findFirst().orElse(null).value as StringInstance
+            val placeholder = o.value.stream().filter { propertyValue -> propertyValue.name == "placeholder" }.findFirst().orElse(null).value as StringInstance
+            return "sprintf('" + template.value.replace("<" + placeholder.value + ">", "%s") + "', $" + placeholder.value + ")"
+        }
+
+        val type = this.type
+        when (type) {
+            is ArrayType -> type.items.toVrapType().simpleName()
+            else -> type.toVrapType().simpleName()
+        }
+
+        if (type.name == "boolean") {
+            return true
+        } else if (type.name == "number") {
+            return if ((type as NumberTypeImpl).format.name == "INT64") {
+                val int = Random.nextInt(1, 10)
+                "" + int + "L"
+            } else {
+                Random.nextInt(1, 10)
+            }
+        } else {
+            return "\"" + this.name + "\""
+        }
+    }
+
 }

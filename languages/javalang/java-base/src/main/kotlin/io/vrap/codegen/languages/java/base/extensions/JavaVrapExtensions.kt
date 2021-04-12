@@ -9,6 +9,7 @@ import io.vrap.rmf.codegen.types.*
 import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.responses.Body
+import io.vrap.rmf.raml.model.types.ArrayType
 import io.vrap.rmf.raml.model.types.ObjectInstance
 import io.vrap.rmf.raml.model.types.QueryParameter
 import io.vrap.rmf.raml.model.types.StringInstance
@@ -61,29 +62,6 @@ fun String.toJavaPackage(): String {
                     StringCaseFormat.LOWER_UNDERSCORE_CASE::apply
             )
             .joinToString(separator = ".")
-}
-
-fun QueryParameter.template(): Any {
-    val anno = this.getAnnotation("placeholderParam", true)
-
-    if (anno != null) {
-        val o = anno.value as ObjectInstance
-        val template = o.value.stream().filter { propertyValue -> propertyValue.name == "template" }.findFirst().orElse(null).value as StringInstance
-        val placeholder = o.value.stream().filter { propertyValue -> propertyValue.name == "placeholder" }.findFirst().orElse(null).value as StringInstance
-        return "sprintf('" + template.value.replace("<" + placeholder.value + ">", "%s") + "', $" + placeholder.value + ")"
-    }
-
-    if (this.type.name == "boolean") {
-        return true
-    } else if (this.type.name == "number") {
-        return Random.nextInt(1, 10)
-    } else {
-        return "\"" + this.name + "\""
-    }
-}
-
-fun Method.toRequestName(): String {
-    return this.resource().fullUri.toParamName("By") + this.method.toString().capitalize()
 }
 
 fun Method.pathArguments() : List<String> {
