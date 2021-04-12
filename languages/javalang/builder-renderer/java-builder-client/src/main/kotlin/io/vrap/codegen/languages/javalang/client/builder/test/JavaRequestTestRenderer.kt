@@ -1,6 +1,7 @@
 package io.vrap.codegen.languages.javalang.client.builder.test
 
 import io.vrap.codegen.languages.extensions.getMethodName
+import io.vrap.codegen.languages.extensions.resource
 import io.vrap.codegen.languages.extensions.toRequestName
 import io.vrap.codegen.languages.extensions.toResourceName
 import io.vrap.codegen.languages.java.base.JavaSubTemplates
@@ -157,13 +158,22 @@ class JavaRequestTestRenderer constructor(override val vrapTypeProvider: VrapTyp
     }
 
     private fun requestTestProvider(resource: Resource, method: Method): String {
-        val builderChain = resource.resourcePathList().map { r -> "${r.getMethodName()}(${if (r.relativeUri.paramValues().isNotEmpty()) "\"${r.relativeUri.paramValues().joinToString("\", \"") }\"" else ""})" }
-                .plus("${method.method}(${if (method.firstBody() != null) "null" else ""})")
+        val constructorArguments = mutableListOf("apiHttpClientMock")
+        method.pathArguments().map { it }.forEach {
+            if (it != "projectKey"){
+                constructorArguments.add("null")
+            } else {
+                constructorArguments.add(it)
+            }
+        }
+        if (method.bodies != null && method.bodies.isNotEmpty()){
+            constructorArguments.add("null")
+        }
 
         return """
             |new Object[] {
             |       new ApiHttpRequest(ApiHttpMethod.${method.method.name},
-            |       new ${method.toRequestName()}(apiHttpClientMock, projectKey).createHttpRequest().getUri(), null, null)
+            |       new ${method.toRequestName()}(${constructorArguments.joinToString(separator = ", ")}).createHttpRequest().getUri(), null, null)
             |    }
         """.trimMargin()
     }

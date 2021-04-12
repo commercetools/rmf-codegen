@@ -86,6 +86,10 @@ fun Method.toRequestName(): String {
     return this.resource().fullUri.toParamName("By") + this.method.toString().capitalize()
 }
 
+fun Method.pathArguments() : List<String> {
+    return this.resource().fullUri.variables.toList()
+}
+
 fun Resource.resourcePathList(): List<Resource> {
     val path = Lists.newArrayList<Resource>()
     if (this.fullUri.template == "/") {
