@@ -3,6 +3,8 @@ package io.vrap.codegen.languages.java.base.extensions
 import com.damnhandy.uri.template.Expression
 import com.damnhandy.uri.template.UriTemplate
 import com.google.common.collect.Lists
+import io.vrap.codegen.languages.extensions.resource
+import io.vrap.codegen.languages.extensions.toParamName
 import io.vrap.rmf.codegen.types.*
 import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Resource
@@ -11,6 +13,7 @@ import io.vrap.rmf.raml.model.types.ObjectInstance
 import io.vrap.rmf.raml.model.types.QueryParameter
 import io.vrap.rmf.raml.model.types.StringInstance
 import io.vrap.rmf.raml.model.util.StringCaseFormat
+import kotlin.random.Random
 
 fun VrapType.simpleName(): String {
     return when (this) {
@@ -52,7 +55,6 @@ fun VrapType.toJavaVType(): VrapType {
     }
 }
 
-
 fun String.toJavaPackage(): String {
     return this.split('.', '/')
             .map(
@@ -61,7 +63,7 @@ fun String.toJavaPackage(): String {
             .joinToString(separator = ".")
 }
 
-fun QueryParameter.template(): String {
+fun QueryParameter.template(): Any {
     val anno = this.getAnnotation("placeholderParam", true)
 
     if (anno != null) {
@@ -70,7 +72,18 @@ fun QueryParameter.template(): String {
         val placeholder = o.value.stream().filter { propertyValue -> propertyValue.name == "placeholder" }.findFirst().orElse(null).value as StringInstance
         return "sprintf('" + template.value.replace("<" + placeholder.value + ">", "%s") + "', $" + placeholder.value + ")"
     }
-    return "'" + this.name + "'"
+
+    if (this.type.name == "boolean") {
+        return true
+    } else if (this.type.name == "number") {
+        return Random.nextInt(1, 10)
+    } else {
+        return "\"" + this.name + "\""
+    }
+}
+
+fun Method.toRequestName(): String {
+    return this.resource().fullUri.toParamName("By") + this.method.toString().capitalize()
 }
 
 fun Resource.resourcePathList(): List<Resource> {
