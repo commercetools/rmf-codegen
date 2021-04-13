@@ -60,13 +60,7 @@ class JavaRequestTestRenderer constructor(override val vrapTypeProvider: VrapTyp
             |    ${if (type.methods.size > 0) """@Test
             |    @Parameters(method = "requestWithMethodParameters")
             |    public void withMethods(ApiHttpRequest request, String httpMethod, String uri) {
-            |        Assert.assertEquals(httpMethod, request.getMethod().toString());
-            |        Assert.assertEquals(uri, request.getUri().toString());
-            |    }""".trimMargin() else ""}
-            |    
-            |    ${if (type.methods.size > 0) """@Test
-            |    @Parameters(method = "resourcesParameters")
-            |    public void resources(ApiHttpRequest request, String uri) {
+            |        Assert.assertEquals(httpMethod, request.getMethod().name().toLowerCase());
             |        Assert.assertEquals(uri, request.getUri().toString());
             |    }""".trimMargin() else ""}
             |    
@@ -82,12 +76,6 @@ class JavaRequestTestRenderer constructor(override val vrapTypeProvider: VrapTyp
             |       };
             |    }
             |    
-            |    private Object[] resourcesParameters() {
-            |       return new Object [] {
-            |               <<${type.resources.map { resourceTestProvider(it) }.joinToString(",\n")}>>
-            |       };
-            |    }
-            |       
             |    private Object[] executeMethodParameters() {
             |       return new Object [] {
             |               <<${type.methods.flatMap { m -> m.responses.map { r -> requestTestProvider(type, m) }.plus(requestTestProvider(type, m)) }.joinToString(",\n")}>>
@@ -106,13 +94,14 @@ class JavaRequestTestRenderer constructor(override val vrapTypeProvider: VrapTyp
     private fun parameterTestProvider(resource: Resource, method: Method): String {
         val builderChain = resource.resourcePathList().map { r -> "${r.getMethodName()}(${if (r.relativeUri.paramValues().isNotEmpty()) "\"${r.relativeUri.paramValues().joinToString("\", \"") { p -> "test_$p"} }\"" else ""})" }
                 .plus("${method.method}(${if (method.firstBody() != null) "null" else ""})")
+                .plus("createHttpRequest()")
 
         return """
             |new Object[] {           
             |    apiRoot
             |    <<${builderChain.joinToString("\n.", ".")}>>,
             |    "${method.method}",
-            |    "${resource.fullUri.expand(resource.fullUriParameters.map { it.name to "test_${it.name}" }.toMap()).trimStart('/')}",
+            |    "/${resource.fullUri.expand(resource.fullUriParameters.map { it.name to "test_${it.name}" }.toMap()).trimStart('/')}",
             |}
         """.trimMargin().keepAngleIndent()
     }
@@ -134,26 +123,15 @@ class JavaRequestTestRenderer constructor(override val vrapTypeProvider: VrapTyp
         val builderChain = resource.resourcePathList().map { r -> "${r.getMethodName()}(${if (r.relativeUri.paramValues().isNotEmpty()) "\"${r.relativeUri.paramValues().joinToString("\", \"") { p -> "test_$p"} }\"" else ""})" }
                 .plus("${method.method}(${if (method.firstBody() != null) "null" else ""})")
                 .plus("${parameter.methodName()}(${methodValue})")
+                .plus("createHttpRequest()")
         return """
                 |new Object[] {           
                 |    apiRoot
                 |    <<${builderChain.joinToString("\n.", ".")}>>,
                 |    "${method.method}",
-                |    "${resource.fullUri.expand(resource.fullUriParameters.map { it.name to "test_${it.name}" }.toMap()).trimStart('/')}?${paramName}=${if (parameter.type.name != "boolean" && parameter.type.name != "number") "${paramName}" else "$methodValue" }",
+                |    "/${resource.fullUri.expand(resource.fullUriParameters.map { it.name to "test_${it.name}" }.toMap()).trimStart('/')}?${paramName}=${if (parameter.type.name != "boolean" && parameter.type.name != "number") "${paramName}" else "$methodValue" }",
                 |}
             """.trimMargin().keepAngleIndent()
-    }
-
-    private fun resourceTestProvider(resource: Resource): String {
-        val builderChain = resource.resourcePathList().map { r -> "${r.getMethodName()}(${if (r.relativeUri.paramValues().isNotEmpty()) "\"${r.relativeUri.paramValues().joinToString("\", \"") { p -> "test_$p"} }\"" else ""})" }
-
-        return """
-            |new Object[] {           
-            |    apiRoot
-            |    <<${builderChain.joinToString("\n.", ".")}>>,
-            |    "${resource.fullUri.expand(resource.fullUriParameters.map { it.name to "test_${it.name}" }.toMap()).trimStart('/')}",
-            |}
-        """.trimMargin().keepAngleIndent()
     }
 
     private fun requestTestProvider(resource: Resource, method: Method): String {
@@ -198,8 +176,7 @@ class JavaRequestTestRenderer constructor(override val vrapTypeProvider: VrapTyp
             return true
         } else if (type.name == "number") {
             return if ((type as NumberTypeImpl).format.name == "INT64") {
-                val int = Random.nextInt(1, 10)
-                "" + int + "L"
+                Random.nextInt(1, 10)
             } else if ((type as NumberTypeImpl).format.name == "FLOAT") {
                 Random.nextFloat()
             } else if ((type as NumberTypeImpl).format.name == "DOUBLE") {

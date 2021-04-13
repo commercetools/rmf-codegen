@@ -17,8 +17,8 @@ object JavaBaseTypes : LanguageBaseTypes(
 
     anyType = fromJavaType(Object::class),
     objectType = fromJavaType(Object::class),
-    integerType = fromDefaultJavaType(Integer::class),
-    longType = fromDefaultJavaType(Long::class),
+    integerType = VrapScalarType("integer"),
+    longType = VrapScalarType("long"),
     doubleType = fromDefaultJavaType(Double::class),
     stringType = fromDefaultJavaType(String::class),
     booleanType = fromDefaultJavaType(Boolean::class),
