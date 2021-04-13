@@ -92,8 +92,7 @@ class JavaRequestTestRenderer constructor(override val vrapTypeProvider: VrapTyp
             |       return new Object [] {
             |               <<${type.methods.flatMap { m -> m.responses.map { r -> requestTestProvider(type, m) }.plus(requestTestProvider(type, m)) }.joinToString(",\n")}>>
             |       };
-            |    }
-            |    
+            |    }  
             |}
         """.trimMargin().keepAngleIndent()
 
@@ -166,6 +165,7 @@ class JavaRequestTestRenderer constructor(override val vrapTypeProvider: VrapTyp
                 constructorArguments.add(it)
             }
         }
+
         if (method.bodies != null && method.bodies.isNotEmpty()){
             constructorArguments.add("null")
         }
