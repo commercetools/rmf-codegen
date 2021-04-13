@@ -26,7 +26,7 @@ class JavaRequestTestRenderer constructor(override val vrapTypeProvider: VrapTyp
         val vrapType = vrapTypeProvider.doSwitch(type).toJavaVType() as VrapObjectType
 
         val content = """
-            |package ${vrapType.`package`}.unit;
+            |package ${vrapType.`package`}.resource;
             |
             |import com.commercetools.api.client.ApiRoot;
             |import com.commercetools.api.defaultconfig.ApiFactory;
@@ -46,7 +46,7 @@ class JavaRequestTestRenderer constructor(override val vrapTypeProvider: VrapTyp
             |
             |${JavaSubTemplates.generatedAnnotation}
             |@RunWith(JUnitParamsRunner.class)
-            |public class Resource${type.toResourceName()}Test {
+            |public class ${type.toResourceName()}Test {
             |    private final ApiHttpClient apiHttpClientMock = Mockito.mock(ApiHttpClient.class);
             |    private final String projectKey = "test_projectKey";
             |    private final ApiRoot apiRoot = createClient();
@@ -96,7 +96,7 @@ class JavaRequestTestRenderer constructor(override val vrapTypeProvider: VrapTyp
             |}
         """.trimMargin().keepAngleIndent()
 
-        val relativePath = "${vrapType.`package`}/unit/Resource" + type.toResourceName() + "Test.java"
+        val relativePath = "${vrapType.`package`}.resource.${type.toResourceName()}Test".replace(".", "/") + ".java"
         return TemplateFile(
                 relativePath = relativePath,
                 content = content

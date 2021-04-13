@@ -28,10 +28,12 @@ class BuilderTestCodeGenerator {
          * Specifies a path where the code generator should place generated code
          * */
         private val generatedCodePath = System.getenv("GENERATED_CODE_PATH")
+        private val generatedTestCodePath = System.getenv("GENERATED_TEST_CODE_PATH")
         private val generatedImporterCodePath = System.getenv("GENERATED_IMPORT_API_CODE_PATH")
         private val apiPath : Path = Paths.get(if (userProvidedPath == null) "../../../../api-spec/api.raml" else userProvidedPath)
         private val importApiPath : Path = Paths.get(if (importApiProvidedPath == null) "../../../../api-spec/api.raml" else importApiProvidedPath)
-        private val outputFolder : Path = Paths.get(if (generatedCodePath == null) "build/gensrc" else generatedCodePath)
+        private val outputFolder : Path = Paths.get(if (generatedCodePath == null) "build/gensrc/main/java-generated" else generatedCodePath)
+        private val testOutputFolder : Path = Paths.get(if (generatedCodePath == null) "build/gensrc/test/java-generated" else generatedTestCodePath)
 
         val apiProvider: ApiProvider = ApiProvider(apiPath)
         val importApiProvider: ApiProvider = ApiProvider(importApiPath)
@@ -68,13 +70,18 @@ class BuilderTestCodeGenerator {
         }
     }
 
-    @Ignore
+//    @Ignore
     @Test
     fun generateJavaCompleteModule() {
         val generatorConfig = CodeGeneratorConfig(basePackageName = "com.commercetools.api", outputFolder = outputFolder)
         val generatorModule = GeneratorModule(apiProvider, generatorConfig, JavaBaseTypes)
-        val generatorComponent = GeneratorComponent(generatorModule, JavaCompleteModule, JavaTestModule)
+        val generatorComponent = GeneratorComponent(generatorModule, JavaCompleteModule)
         generatorComponent.generateFiles()
+
+        val generatorTestConfig = CodeGeneratorConfig(basePackageName = "com.commercetools.api", outputFolder = testOutputFolder)
+        val generatorTestModule = GeneratorModule(apiProvider, generatorTestConfig, JavaBaseTypes)
+        val generatorTestComponent = GeneratorComponent(generatorTestModule, JavaTestModule)
+        generatorTestComponent.generateFiles()
     }
 
     @Ignore
