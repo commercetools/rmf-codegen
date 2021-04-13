@@ -68,7 +68,7 @@ class BuilderTestCodeGenerator {
         }
     }
 
-//    @Ignore
+    @Ignore
     @Test
     fun generateJavaCompleteModule() {
         val generatorConfig = CodeGeneratorConfig(basePackageName = "com.commercetools.api", outputFolder = outputFolder)
