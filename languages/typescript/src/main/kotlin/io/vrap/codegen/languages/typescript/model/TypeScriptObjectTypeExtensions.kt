@@ -79,10 +79,10 @@ interface TsObjectTypeExtensions : ExtensionsBase {
     fun VrapType.normalizeModuleName(): VrapType {
         return when (this) {
             is VrapObjectType -> {
-                VrapObjectType(`package` = this.`package`.lowerCasePackage(), simpleClassName = this.simpleClassName)
+                VrapObjectType(`package` = this.`package`.modelNormalizer().lowerCasePackage(), simpleClassName = this.simpleClassName)
             }
             is VrapEnumType -> {
-                VrapEnumType(`package` = this.`package`.lowerCasePackage(), simpleClassName = this.simpleClassName)
+                VrapEnumType(`package` = this.`package`.modelNormalizer().lowerCasePackage(), simpleClassName = this.simpleClassName)
             }
             is VrapArrayType -> {
                 VrapArrayType(itemType = this.itemType.normalizeModuleName())
@@ -91,6 +91,12 @@ interface TsObjectTypeExtensions : ExtensionsBase {
         }
     }
 
+    private fun String.modelNormalizer(): String {
+        return when(this) {
+            "models" -> "models/common"
+            else -> this;
+        }
+    }
 
     private fun String.lowerCasePackage(): String {
         return this.split("/").map { StringCaseFormat.LOWER_HYPHEN_CASE.apply(it) }.joinToString(separator = "/")

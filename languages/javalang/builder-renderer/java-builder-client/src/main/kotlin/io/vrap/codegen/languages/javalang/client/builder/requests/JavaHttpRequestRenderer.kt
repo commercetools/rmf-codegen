@@ -283,8 +283,8 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
     private fun Method.executeBlockingMethod() : String {
         return """
             |@Override
-            |public ApiHttpResponse\<${this.javaReturnType(vrapTypeProvider)}\> executeBlocking(Duration timeout){
-            |    return blockingWait(execute(), timeout);
+            |public ApiHttpResponse\<${this.javaReturnType(vrapTypeProvider)}\> executeBlocking(final ApiHttpClient client, Duration timeout){
+            |    return blockingWait(execute(client), timeout);
             |}
         """.trimMargin()
     }
@@ -292,8 +292,8 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
     private fun Method.executeMethod() : String {
         return """
             |@Override
-            |public CompletableFuture\<ApiHttpResponse\<${this.javaReturnType(vrapTypeProvider)}\>\> execute(){
-            |    return apiHttpClient().execute(this.createHttpRequest(), ${this.javaReturnType(vrapTypeProvider)}.class);
+            |public CompletableFuture\<ApiHttpResponse\<${this.javaReturnType(vrapTypeProvider)}\>\> execute(final ApiHttpClient client){
+            |    return client.execute(this.createHttpRequest(), ${this.javaReturnType(vrapTypeProvider)}.class);
             |}
         """.trimMargin()
     }
