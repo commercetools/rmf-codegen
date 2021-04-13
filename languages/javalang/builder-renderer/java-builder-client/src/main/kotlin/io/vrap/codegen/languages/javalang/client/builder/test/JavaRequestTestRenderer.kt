@@ -203,7 +203,13 @@ class JavaRequestTestRenderer constructor(override val vrapTypeProvider: VrapTyp
             return if ((type as NumberTypeImpl).format.name == "INT64") {
                 val int = Random.nextInt(1, 10)
                 "" + int + "L"
-            } else {
+            } else if ((type as NumberTypeImpl).format.name == "FLOAT") {
+                Random.nextFloat()
+            } else if ((type as NumberTypeImpl).format.name == "DOUBLE") {
+                Random.nextDouble()
+            } else if ((type as NumberTypeImpl).format.name == "INT32") {
+                    Random.nextInt(1, 10)
+            }  else {
                 Random.nextInt(1, 10)
             }
         } else {
