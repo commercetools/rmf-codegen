@@ -60,8 +60,8 @@ class JavaTraitRenderer constructor(override val vrapTypeProvider: VrapTypeProvi
     private fun QueryParameter.witherType() : String {
         val type = this.type;
         return when (type) {
-            is ArrayType -> type.items.toVrapType().simpleName()
-            else -> type.toVrapType().simpleName()
+            is ArrayType -> type.items.toVrapType().simpleName().toScalarType()
+            else -> type.toVrapType().simpleName().toScalarType()
         }
     }
 

@@ -27,6 +27,18 @@ fun VrapType.simpleName(): String {
     }
 }
 
+fun String.toScalarType(): String {
+    val t = when(this) {
+        Long::class.javaObjectType.simpleName -> Long::class.javaPrimitiveType?.simpleName ?: this
+        Integer::class.javaObjectType.simpleName -> Integer::class.javaPrimitiveType?.simpleName ?: this
+        Float::class.javaObjectType.simpleName -> Float::class.javaPrimitiveType?.simpleName ?: this
+        Double::class.javaObjectType.simpleName -> Double::class.javaPrimitiveType?.simpleName ?: this
+        Boolean::class.javaObjectType.simpleName -> Boolean::class.javaPrimitiveType?.simpleName ?: this
+        else -> this
+    }
+    return t
+}
+
 fun VrapType.fullClassName(): String {
     return when (this) {
         is VrapAnyType -> this.baseType
