@@ -166,6 +166,7 @@ class JavaRequestTestRenderer constructor(override val vrapTypeProvider: VrapTyp
             return "sprintf('" + template.value.replace("<" + placeholder.value + ">", "%s") + "', $" + placeholder.value + ")"
         }
 
+        val r = Random(this.name.hashCode())
         val type = this.type
         when (type) {
             is ArrayType -> type.items.toVrapType().simpleName()
@@ -176,15 +177,15 @@ class JavaRequestTestRenderer constructor(override val vrapTypeProvider: VrapTyp
             return true
         } else if (type.name == "number") {
             return if ((type as NumberTypeImpl).format.name == "INT64") {
-                Random.nextInt(1, 10)
+                r.nextInt(1, 10)
             } else if ((type as NumberTypeImpl).format.name == "FLOAT") {
-                Random.nextFloat()
+                r.nextFloat()
             } else if ((type as NumberTypeImpl).format.name == "DOUBLE") {
-                Random.nextDouble()
+                r.nextDouble()
             } else if ((type as NumberTypeImpl).format.name == "INT32") {
-                    Random.nextInt(1, 10)
+                r.nextInt(1, 10)
             }  else {
-                Random.nextInt(1, 10)
+                r.nextInt(1, 10)
             }
         } else {
             return "\"" + this.name + "\""
