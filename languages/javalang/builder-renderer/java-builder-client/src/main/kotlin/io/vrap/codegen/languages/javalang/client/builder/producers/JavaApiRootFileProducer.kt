@@ -24,6 +24,7 @@ class JavaApiRootFileProducer constructor(@ClientPackageName val clientPackage: 
             |package ${clientPackage.toJavaPackage()};
             |
             |import io.vrap.rmf.base.client.ApiHttpClient;
+            |import io.vrap.rmf.base.client.SerializerOnlyApiHttpClient;
             |
             |import java.io.Closeable;
             |import java.io.IOException;
@@ -41,8 +42,9 @@ class JavaApiRootFileProducer constructor(@ClientPackageName val clientPackage: 
             |    }
             |
             |    public static ApiRoot of() {
-            |        return new ApiRoot(null);
+            |        return new ApiRoot(SerializerOnlyApiHttpClient.of());
             |    }
+            |
             |    public static ApiRoot fromClient(final ApiHttpClient apiHttpClient) {
             |        return new ApiRoot(apiHttpClient);
             |    }
