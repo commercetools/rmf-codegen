@@ -28,10 +28,11 @@ class JavaRequestTestRenderer constructor(override val vrapTypeProvider: VrapTyp
         val content = """
             |package ${vrapType.`package`}.resource;
             |
+            |import io.vrap.rmf.base.client.*;
+            |import io.vrap.rmf.base.client.error.ApiServerException;
+            |import io.vrap.rmf.base.client.error.ApiClientException;
+            |import io.vrap.rmf.base.client.VrapHttpClient;
             |import com.commercetools.api.client.ApiRoot;
-            |import com.commercetools.api.defaultconfig.ApiFactory;
-            |import com.commercetools.api.defaultconfig.ServiceRegion;
-            |import io.vrap.rmf.base.client.oauth2.ClientCredentials;
             |import junitparams.JUnitParamsRunner;
             |import junitparams.Parameters;
             |import org.junit.Assert;
@@ -41,21 +42,18 @@ class JavaRequestTestRenderer constructor(override val vrapTypeProvider: VrapTyp
             |import io.vrap.rmf.base.client.utils.Generated;
             |import io.vrap.rmf.base.client.ApiHttpClient;
             |import io.vrap.rmf.base.client.ApiHttpRequest;
-            |import io.vrap.rmf.base.client.ApiHttpMethod;
-            |import com.commercetools.api.client.*;
+            |import org.assertj.core.api.Assertions;
+            |
+            |import java.nio.charset.StandardCharsets;
+            |import java.util.concurrent.CompletableFuture;
             |
             |${JavaSubTemplates.generatedAnnotation}
             |@RunWith(JUnitParamsRunner.class)
             |public class ${type.toResourceName()}Test {
-            |    private final ApiHttpClient apiHttpClientMock = Mockito.mock(ApiHttpClient.class);
+            |    private final VrapHttpClient httpClientMock = Mockito.mock(VrapHttpClient.class);
             |    private final String projectKey = "test_projectKey";
-            |    private final ApiRoot apiRoot = createClient();
-            |
-            |    private ApiRoot createClient() {  
-            |        return ApiFactory.create(
-            |           ClientCredentials.of().withClientId("your-client-id").withClientSecret("your-client-secret").withScopes("your-scopes").build(),
-            |               ServiceRegion.GCP_EUROPE_WEST1.getOAuthTokenUrl(), ServiceRegion.GCP_EUROPE_WEST1.getApiUrl());
-            |    }
+            |    private final ApiRoot apiRoot = ApiRoot.of();
+            |    private final ApiHttpClient client = ClientBuilder.of(httpClientMock).defaultClient("").build();
             |
             |    ${if (type.methods.size > 0) """@Test
             |    @Parameters(method = "requestWithMethodParameters")
@@ -66,8 +64,22 @@ class JavaRequestTestRenderer constructor(override val vrapTypeProvider: VrapTyp
             |    
             |    ${if (type.methods.size > 0) """@Test
             |    @Parameters(method = "executeMethodParameters")
-            |    public void executeWithNullPointerException(ApiHttpRequest httpRequest) throws Exception{
-            |        Mockito.when(apiHttpClientMock.execute(httpRequest)).thenThrow(NullPointerException.class);   
+            |    public void executeServerException(ClientRequestCommand<?> httpRequest) throws Exception{
+            |        Mockito.when(httpClientMock.execute(Mockito.any())).thenReturn(CompletableFuture.completedFuture(
+            |                       new ApiHttpResponse<>(500, null, "".getBytes(StandardCharsets.UTF_8), "Oops!")));
+            |                   
+            |        Assertions.assertThatThrownBy(
+            |               () -> client.execute(httpRequest).get()).hasCauseInstanceOf(ApiServerException.class); 
+            |    }""".trimMargin() else ""}
+            |    
+            |    ${if (type.methods.size > 0) """@Test
+            |    @Parameters(method = "executeMethodParameters")
+            |    public void executeClientException(ClientRequestCommand<?> httpRequest) throws Exception{
+            |        Mockito.when(httpClientMock.execute(Mockito.any())).thenReturn(CompletableFuture.completedFuture(
+            |                       new ApiHttpResponse<>(400, null, "".getBytes(StandardCharsets.UTF_8), "Oops!")));
+            |                       
+            |        Assertions.assertThatThrownBy(
+            |           () -> client.execute(httpRequest).get()).hasCauseInstanceOf(ApiClientException.class);
             |    }""".trimMargin() else ""}
             |    
             |    private Object[] requestWithMethodParameters() {
@@ -78,9 +90,9 @@ class JavaRequestTestRenderer constructor(override val vrapTypeProvider: VrapTyp
             |    
             |    private Object[] executeMethodParameters() {
             |       return new Object [] {
-            |               <<${type.methods.flatMap { m -> m.responses.map { r -> requestTestProvider(type, m) }.plus(requestTestProvider(type, m)) }.joinToString(",\n")}>>
+            |               <<${type.methods.flatMap { method -> method.queryParameters.map { requestTestProvider(type, method, it) }.plus(requestTestProvider(type, method)) }.joinToString(",\n")}>>
             |       };
-            |    }  
+            |    }
             |}
         """.trimMargin().keepAngleIndent()
 
@@ -135,26 +147,42 @@ class JavaRequestTestRenderer constructor(override val vrapTypeProvider: VrapTyp
     }
 
     private fun requestTestProvider(resource: Resource, method: Method): String {
-        val constructorArguments = mutableListOf("apiHttpClientMock")
-        method.pathArguments().map { it }.forEach {
-            if (it != "projectKey"){
-                constructorArguments.add("null")
-            } else {
-                constructorArguments.add(it)
-            }
-        }
-
-        if (method.bodies != null && method.bodies.isNotEmpty()){
-            constructorArguments.add("null")
-        }
+        val builderChain = resource.resourcePathList().map { r -> "${r.getMethodName()}(${if (r.relativeUri.paramValues().isNotEmpty()) "\"${r.relativeUri.paramValues().joinToString("\", \"") { p -> "test_$p"} }\"" else ""})" }
+                .plus("${method.method}(${if (method.firstBody() != null) "null" else ""})")
 
         return """
-            |new Object[] {
-            |       new ApiHttpRequest(ApiHttpMethod.${method.method.name},
-            |       new ${method.toRequestName()}(${constructorArguments.joinToString(separator = ", ")}).createHttpRequest().getUri(), null, null)
-            |    }
+                |new Object[] {           
+                |    apiRoot
+                |    <<${builderChain.joinToString("\n.", ".")}>>,
+                |}
         """.trimMargin().keepIndentation()
     }
+
+    private fun requestTestProvider(resource: Resource, method: Method, parameter: QueryParameter): String {
+        val anno = parameter.getAnnotation("placeholderParam", true)
+
+        var paramName: String = parameter.name
+        var methodValue = parameter.template()
+
+        if (anno != null) {
+            val o = anno.value as ObjectInstance
+            val placeholder = o.value.stream().filter { propertyValue -> propertyValue.name == "placeholder" }.findFirst().orElse(null).value as StringInstance
+            val placeholderTemplate = o.value.stream().filter { propertyValue -> propertyValue.name == "template" }.findFirst().orElse(null).value as StringInstance
+            paramName = placeholderTemplate.value.replace("<${placeholder.value}>", placeholder.value)
+            methodValue = "\"${placeholder.value}\", \"${paramName}\""
+        }
+
+        val builderChain = resource.resourcePathList().map { r -> "${r.getMethodName()}(${if (r.relativeUri.paramValues().isNotEmpty()) "\"${r.relativeUri.paramValues().joinToString("\", \"") { p -> "test_$p"} }\"" else ""})" }
+                .plus("${method.method}(${if (method.firstBody() != null) "null" else ""})")
+                .plus("${parameter.methodName()}(${methodValue})")
+        return """
+                |new Object[] {           
+                |    apiRoot
+                |    <<${builderChain.joinToString("\n.", ".")}>>,
+                |}
+            """.trimMargin().keepAngleIndent()
+    }
+
 
     private fun QueryParameter.template(): Any {
         val anno = this.getAnnotation("placeholderParam", true)
