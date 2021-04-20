@@ -9,14 +9,12 @@ import io.vrap.codegen.languages.java.base.extensions.*
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.ResourceRenderer
 import io.vrap.rmf.codegen.rendring.utils.*
+import io.vrap.rmf.codegen.types.VrapEnumType
 import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Resource
-import io.vrap.rmf.raml.model.types.ArrayType
-import io.vrap.rmf.raml.model.types.ObjectInstance
-import io.vrap.rmf.raml.model.types.QueryParameter
-import io.vrap.rmf.raml.model.types.StringInstance
+import io.vrap.rmf.raml.model.types.*
 import io.vrap.rmf.raml.model.types.impl.NumberTypeImpl
 import kotlin.random.Random
 
@@ -195,28 +193,25 @@ class JavaRequestTestRenderer constructor(override val vrapTypeProvider: VrapTyp
         }
 
         val r = Random(this.name.hashCode())
-        val type = this.type
-        when (type) {
-            is ArrayType -> type.items.toVrapType().simpleName()
-            else -> type.toVrapType().simpleName()
-        }
+        return queryParamValue(this.name, this.type, r)
+    }
 
-        if (type.name == "boolean") {
-            return true
-        } else if (type.name == "number") {
-            return if ((type as NumberTypeImpl).format.name == "INT64") {
-                r.nextInt(1, 10)
-            } else if ((type as NumberTypeImpl).format.name == "FLOAT") {
-                r.nextFloat()
-            } else if ((type as NumberTypeImpl).format.name == "DOUBLE") {
-                r.nextDouble()
-            } else if ((type as NumberTypeImpl).format.name == "INT32") {
-                r.nextInt(1, 10)
-            }  else {
-                r.nextInt(1, 10)
+    private fun queryParamValue(name: String, type: AnyType, r: Random) : Any {
+        val vrapType = type.toVrapType();
+        return when (type) {
+            is ArrayType -> queryParamValue(name, type.items, r)
+            is BooleanType -> true
+            is IntegerType -> r.nextInt(1, 10)
+            is NumberType -> when (type.format) {
+                NumberFormat.DOUBLE -> r.nextDouble()
+                NumberFormat.FLOAT -> r.nextFloat()
+                else -> r.nextInt(1, 10)
             }
-        } else {
-            return "\"" + this.name + "\""
+            is StringType -> when (vrapType) {
+                is VrapEnumType -> "${vrapType.fullClassName()}.findEnum(\"${name}\")"
+                else -> "\"${name}\""
+            }
+            else -> "\"${name}\""
         }
     }
 }
