@@ -96,6 +96,7 @@ class CsharpModelInterfaceRenderer constructor(override val vrapTypeProvider: Vr
             |[TypeDiscriminator(nameof(${this.discriminator.capitalize()}))]
             |<${this.subTypes
                     .filter { (it as ObjectType).discriminatorValue != null }
+                    .sortedBy { (it as ObjectType).discriminatorValue }
                     .map {
                         val vrapType = vrapTypeProvider.doSwitch(it) as VrapObjectType
                         "[SubTypeDiscriminator(\"${(it as ObjectType).discriminatorValue}\", typeof(${vrapType.`package`.toCsharpPackage()}.${vrapType.simpleClassName}))]"
