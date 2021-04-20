@@ -32,7 +32,7 @@ class JavaRequestTestRenderer constructor(override val vrapTypeProvider: VrapTyp
             |import io.vrap.rmf.base.client.error.ApiServerException;
             |import io.vrap.rmf.base.client.error.ApiClientException;
             |import io.vrap.rmf.base.client.VrapHttpClient;
-            |import com.commercetools.api.client.ApiRoot;
+            |import ${vrapType.`package`}.ApiRoot;
             |import junitparams.JUnitParamsRunner;
             |import junitparams.Parameters;
             |import org.junit.Assert;
