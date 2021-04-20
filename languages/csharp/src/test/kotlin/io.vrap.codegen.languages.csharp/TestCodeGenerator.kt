@@ -16,15 +16,17 @@ import java.nio.file.Paths
 class TestCodeGenerator {
 
     companion object {
+        private val generatedCodePath = System.getenv("GENERATED_CODE_PATH")
         private val userProvidedPath = System.getenv("TEST_RAML_FILE")
         private val apiPath : Path = Paths.get(if (userProvidedPath == null) "../../api-spec/api.raml" else userProvidedPath)
+        private val outputFolder : Path = Paths.get(if (generatedCodePath == null) "build/gensrc/dotnet-generated" else generatedCodePath)
         val apiProvider: ApiProvider = ApiProvider(apiPath)
     }
 
 
     @Test
     fun generateCSharpModels() {
-        val generatorConfig = CodeGeneratorConfig(basePackageName = "commercetools.Api")
+        val generatorConfig = CodeGeneratorConfig(basePackageName = "commercetools.Api", outputFolder = outputFolder)
         val generatorModule = GeneratorModule(apiProvider, generatorConfig, CsharpBaseTypes)
         val generatorComponent = GeneratorComponent(generatorModule, CsharpModule, CsharpClientBuilderModule)
         generatorComponent.generateFiles()

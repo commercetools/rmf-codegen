@@ -101,7 +101,7 @@ class CsharpModelInterfaceRenderer constructor(override val vrapTypeProvider: Vr
                     .sortedBy { anyType -> anyType.discriminatorValue.toLowerCase() }
                     .map {
                         val vrapObjectType = vrapTypeProvider.doSwitch(it) as VrapObjectType
-                        "[SubTypeDiscriminator(\"${it.discriminatorValue}\", typeof(${vrapObjectType.`package`.toCsharpPackage()}.${vrapType.simpleClassName}))]"
+                        "[SubTypeDiscriminator(\"${it.discriminatorValue}\", typeof(${vrapObjectType.`package`.toCsharpPackage()}.${vrapObjectType.simpleClassName}))]"
                     }
                     .joinToString(separator = "\n")}>
             """.trimMargin()
