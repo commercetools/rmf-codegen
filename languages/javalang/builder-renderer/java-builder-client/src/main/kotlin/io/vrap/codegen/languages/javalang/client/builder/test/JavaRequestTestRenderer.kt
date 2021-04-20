@@ -139,7 +139,7 @@ class JavaRequestTestRenderer constructor(override val vrapTypeProvider: VrapTyp
                 |    apiRoot
                 |    <<${builderChain.joinToString("\n.", ".")}>>,
                 |    "${method.method}",
-                |    "/${resource.fullUri.expand(resource.fullUriParameters.map { it.name to "test_${it.name}" }.toMap()).trimStart('/')}?${paramName}=${if (parameter.type.name != "boolean" && parameter.type.name != "number") "${paramName}" else "$methodValue" }",
+                |    "/${resource.fullUri.expand(resource.fullUriParameters.map { it.name to "test_${it.name}" }.toMap()).trimStart('/')}?${paramName}=${queryParamValueString(paramName, parameter.type, Random(paramName.hashCode()))}",
                 |}
             """.trimMargin().keepAngleIndent()
     }
@@ -194,6 +194,20 @@ class JavaRequestTestRenderer constructor(override val vrapTypeProvider: VrapTyp
 
         val r = Random(this.name.hashCode())
         return queryParamValue(this.name, this.type, r)
+    }
+
+    private fun queryParamValueString(name: String, type: AnyType, r: Random) : Any {
+        return when (type) {
+            is ArrayType -> queryParamValueString(name, type.items, r)
+            is BooleanType -> true
+            is IntegerType -> r.nextInt(1, 10)
+            is NumberType -> when (type.format) {
+                NumberFormat.DOUBLE -> r.nextDouble()
+                NumberFormat.FLOAT -> r.nextFloat()
+                else -> r.nextInt(1, 10)
+            }
+            else -> name
+        }
     }
 
     private fun queryParamValue(name: String, type: AnyType, r: Random) : Any {
