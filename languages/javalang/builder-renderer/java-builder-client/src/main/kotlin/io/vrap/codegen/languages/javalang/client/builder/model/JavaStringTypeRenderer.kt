@@ -40,14 +40,22 @@ class JavaStringTypeRenderer constructor(override val vrapTypeProvider: VrapType
                 |        private ${vrapType.simpleClassName}Enum(final String jsonName) {
                 |            this.jsonName = jsonName;
                 |        }
+                |
                 |        public String getJsonName() {
+                |            return jsonName;
+                |        }
+                |
+                |        public String toString() {
                 |            return jsonName;
                 |        }
                 |    }
                 |
                 |    @JsonValue
                 |    String getJsonName();
+                |
                 |    String name();
+                |
+                |    String toString();
                 |
                 |    @JsonCreator
                 |    public static ${vrapType.simpleClassName} findEnum(String value) {
