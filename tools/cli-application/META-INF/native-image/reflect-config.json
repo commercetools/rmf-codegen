@@ -130,6 +130,9 @@
   "methods":[{"name":"get","parameterTypes":["java.lang.String","java.lang.String[]"] }]
 },
 {
+  "name":"java.security.MessageDigestSpi"
+},
+{
   "name":"java.sql.Connection"
 },
 {
@@ -317,5 +320,9 @@
   "name":"org.eclipse.emf.ecore.util.NotifyingInternalEListImpl",
   "allDeclaredFields":true,
   "allDeclaredMethods":true
+},
+{
+  "name":"sun.security.provider.SHA",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
 }
 ]

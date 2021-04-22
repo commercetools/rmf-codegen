@@ -2,8 +2,5 @@
 {
   "name":"java.lang.ClassLoader",
   "methods":[{"name":"getPlatformClassLoader","parameterTypes":[] }]
-},
-{
-  "name":"java.lang.NoSuchMethodError"
 }
 ]

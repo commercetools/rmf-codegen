@@ -19,9 +19,9 @@ apply plugin: 'kotlin-kapt'
 graal {
     mainClass 'io.vrap.rmf.codegen.cli.MainKt'
     outputName 'rmf-codegen'
-    graalVersion '21.0.0'
+    graalVersion '21.1.0'
     javaVersion '11'
-    // force building a native image and rather let if fail at runtime instead of building a fallback image
+    // force building a native image and rather let if fail at build time instead of building a fallback image
     // see https://www.graalvm.org/reference-manual/native-image/Options/ for all options. 
     options.add("--no-fallback")
     // not a safe idea, but if a class can really not be added as a dependency missing code can be allowed:
