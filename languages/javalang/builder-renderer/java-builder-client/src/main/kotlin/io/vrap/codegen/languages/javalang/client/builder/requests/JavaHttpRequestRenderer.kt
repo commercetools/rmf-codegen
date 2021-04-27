@@ -284,7 +284,8 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
         return """
             |@Override
             |public ApiHttpResponse\<${this.javaReturnType(vrapTypeProvider)}\> executeBlocking(final ApiHttpClient client, Duration timeout){
-            |    return blockingWait(execute(client), timeout);
+            |    ApiHttpRequest request = this.createHttpRequest();
+            |    return blockingWait(client.execute(request, ${this.javaReturnType(vrapTypeProvider)}.class), request, timeout);
             |}
         """.trimMargin()
     }
