@@ -1,5 +1,6 @@
 package io.vrap.codegen.languages.php.model
 
+import com.google.common.collect.Lists
 import io.vrap.codegen.languages.extensions.discriminatorProperty
 import io.vrap.codegen.languages.extensions.isPatternProperty
 import io.vrap.codegen.languages.php.ClientConstants
@@ -59,6 +60,15 @@ class PhpInterfaceObjectTypeRenderer constructor(override val vrapTypeProvider: 
 
     fun content(type: ObjectType): String {
         val vrapType = vrapTypeProvider.doSwitch(type) as VrapObjectType
+        val extends = Lists.newArrayList(type.type?.toVrapType()?.simpleName() ?: "JsonObject")
+                .plus(
+                        when (val ex = type.getAnnotation("php-use-trait") ) {
+                            is Annotation -> {
+                                (ex.value as StringInstance).value + "Interface".escapeAll()
+                            }
+                            else -> null
+                        }
+                ).filterNotNull()
 
         return """
             |<?php
@@ -69,7 +79,7 @@ class PhpInterfaceObjectTypeRenderer constructor(override val vrapTypeProvider: 
             |use ${sharedPackageName.toNamespaceName().escapeAll()}\\Base\\DateTimeImmutableCollection;
             |<<${type.imports()}>>
             |
-            |interface ${vrapType.simpleClassName} ${type.type?.toVrapType()?.simpleName()?.let { "extends $it" } ?: "extends JsonObject"}
+            |interface ${vrapType.simpleClassName} extends ${extends.joinToString(separator = ", ")}
             |{
             |    ${if (type.discriminator != null) {"public const DISCRIMINATOR_FIELD = '${type.discriminator}';"} else ""}
             |    <<${type.toBeanConstant()}>>
