@@ -1858,6 +1858,13 @@ class PhpBaseFileProducer constructor(val api: Api, @BasePackageName val package
                     |            $!this->iterator = $!this->getIterator();
                     |        }
                     |    }
+                    |
+                    |    /**
+                    |     * @return static
+                    |     */
+                    |    final public static function of() {
+                    |        return new static();
+                    |    }
                     |}
                 """.trimMargin().forcedLiteralEscape())
     }
@@ -2093,6 +2100,13 @@ class PhpBaseFileProducer constructor(val api: Api, @BasePackageName val package
                     |            unset($!this->data[$!offset]);
                     |            $!this->iterator = $!this->getIterator();
                     |        }
+                    |    }
+                    |
+                    |    /**
+                    |     * @return static
+                    |     */
+                    |    final public static function of() {
+                    |        return new static();
                     |    }
                     |}
                 """.trimMargin().forcedLiteralEscape())
@@ -2490,6 +2504,13 @@ class PhpBaseFileProducer constructor(val api: Api, @BasePackageName val package
                     |            unset($!this->data[$!offset]);
                     |            $!this->iterator = $!this->getIterator();
                     |        }
+                    |    }
+                    |
+                    |    /**
+                    |     * @return static
+                    |     */
+                    |    final public static function of() {
+                    |        return new static();
                     |    }
                     |}
                 """.trimMargin().forcedLiteralEscape())
