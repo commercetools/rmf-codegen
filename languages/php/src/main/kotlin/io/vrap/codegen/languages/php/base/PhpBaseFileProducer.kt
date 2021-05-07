@@ -2505,13 +2505,6 @@ class PhpBaseFileProducer constructor(val api: Api, @BasePackageName val package
                     |            $!this->iterator = $!this->getIterator();
                     |        }
                     |    }
-                    |
-                    |    /**
-                    |     * @return static
-                    |     */
-                    |    final public static function of() {
-                    |        return new static();
-                    |    }
                     |}
                 """.trimMargin().forcedLiteralEscape())
     }
