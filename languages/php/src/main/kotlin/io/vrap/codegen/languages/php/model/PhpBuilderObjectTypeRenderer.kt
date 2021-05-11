@@ -251,6 +251,7 @@ class PhpBuilderObjectTypeRenderer constructor(override val vrapTypeProvider: Vr
     fun Property.withBuilder(): String {
         return """
             |/**
+            | * @deprecated use with${this.name.capitalize()}() instead
             | * @return $!this
             | */
             |public function with${this.name.capitalize()}Builder(?${this.type.toVrapType().simpleBuilderName()} $${this.name})
