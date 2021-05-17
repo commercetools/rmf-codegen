@@ -48,7 +48,11 @@ class CsharpObjectTypeRenderer constructor(override val vrapTypeProvider: VrapTy
         val typeName = this.type.toVrapType().simpleName()
 
         var nullableChar = if(!this.required && this.type.toVrapType().isValueType()) "?" else ""
-        return "public ${typeName}$nullableChar $propName { get; set;}"
+        var deprecationAttr = if(this.deprecationAnnotation() == "") "" else this.deprecationAnnotation()+"\n";
+
+        return """
+            |${deprecationAttr}public ${typeName}$nullableChar $propName { get; set;}
+            """.trimMargin()
     }
 
     fun ObjectType.renderConstructor(className: String) : String {
