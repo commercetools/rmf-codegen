@@ -5,7 +5,9 @@ import io.vrap.rmf.codegen.types.VrapArrayType
 import io.vrap.rmf.codegen.types.VrapEnumType
 import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapType
+import io.vrap.rmf.raml.model.types.BooleanInstance
 import io.vrap.rmf.raml.model.types.ObjectType
+import io.vrap.rmf.raml.model.types.Property
 
 const val ANNOTATION_ABSTRACT = "abstract"
 
@@ -72,4 +74,12 @@ fun getUsingsForType(vrapType: VrapType): String? {
         else -> null
 
     }
+}
+fun Property.deprecationAnnotation(): String {
+    val anno = this.getAnnotation("markDeprecated", true)
+    if (anno != null && (anno.value as BooleanInstance).value == true) {
+        return """
+                |[ObsoleteAttribute("This property is obsolete", false)]""".trimMargin()
+    }
+    return "";
 }
