@@ -21,10 +21,8 @@ class TypescriptRequestTestRenderer constructor(override val vrapTypeProvider: V
 
     override fun render(type: Resource): TemplateFile {
         val `package` = (type.toVrapType() as VrapObjectType).`package`
-        val testFolder = "test/"
-
         return TemplateFile(
-                relativePath = testFolder+ type.tsRequestModuleName(`package`) + ".test.ts",
+                relativePath = type.tsRequestModuleName(`package`) + ".test.ts",
                 content = """|
                 |$tsGeneratedComment
                 |<${getImports(type)}>
