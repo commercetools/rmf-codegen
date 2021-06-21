@@ -45,7 +45,7 @@ enum class GenerationTarget {
     JAVA_CLIENT,
     JAVA_TEST,
     TYPESCRIPT_CLIENT,
-    TYPESCRIPT_Test,
+    TYPESCRIPT_TEST,
     PHP_CLIENT,
     PHP_BASE,
     PHP_TEST,
@@ -165,7 +165,7 @@ class GenerateSubcommand : Callable<Int> {
                     val generatorModule = GeneratorModule(apiProvider, generatorConfig, TypeScriptBaseTypes)
                     GeneratorComponent(generatorModule, TypescriptModelModule, TypescriptClientModule)
                 }
-                GenerationTarget.TYPESCRIPT_Test -> {
+                GenerationTarget.TYPESCRIPT_TEST -> {
                     val generatorModule = GeneratorModule(apiProvider, generatorConfig, TypeScriptBaseTypes)
                     GeneratorComponent(generatorModule, TypescriptTestModule)
                 }
