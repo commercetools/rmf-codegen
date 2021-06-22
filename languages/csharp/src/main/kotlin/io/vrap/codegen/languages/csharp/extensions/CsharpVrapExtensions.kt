@@ -3,6 +3,7 @@ package io.vrap.codegen.languages.csharp.extensions
 import io.vrap.rmf.codegen.types.*
 import io.vrap.rmf.raml.model.util.StringCaseFormat
 import com.hypertino.inflector.English
+import io.vrap.rmf.raml.model.types.*
 
 fun VrapType.simpleName(): String {
     return when (this) {
@@ -118,6 +119,17 @@ fun String.singularize(): String {
     return English.singular(this)
 }
 
-fun VrapType.isValueType(): Boolean {
-    return (this is VrapScalarType) && this.scalarType!="string"
+fun AnyType.isNullableScalar(): Boolean {
+    return when (this) {
+        is IntegerType -> true
+        is NumberType -> true
+        is BooleanType -> true
+        is DateTimeType -> true
+        is DateOnlyType -> true
+        is DateTimeOnlyType -> true
+        is TimeOnlyType -> true
+        is StringType -> false
+        is ArrayType -> false
+        else -> false
+    }
 }
