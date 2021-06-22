@@ -119,13 +119,6 @@ fun String.singularize(): String {
     return English.singular(this)
 }
 
-fun VrapType.isValueType(): Boolean {
-    return (this is VrapScalarType) && this.scalarType!="string"
-}
-fun VrapType.isDateTime(): Boolean {
-    return (this is VrapObjectType) && this.simpleClassName.toLowerCase() == "datetime"
-}
-
 fun AnyType.isNullableScalar(): Boolean {
     return when (this) {
         is IntegerType -> true
