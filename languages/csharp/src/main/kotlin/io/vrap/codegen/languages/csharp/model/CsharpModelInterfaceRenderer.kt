@@ -52,8 +52,8 @@ class CsharpModelInterfaceRenderer constructor(override val vrapTypeProvider: Vr
         val propName = this.name.capitalize()
         val typeName = this.type.toVrapType().simpleName()
         var overrideProp = this.shouldOverrideThisProperty(objectType)
-
-        var nullableChar = if(!this.required && this.type.toVrapType().isValueType()) "?" else ""
+        
+        var nullableChar = if(!this.required && (this.type.toVrapType().isValueType() || this.type.toVrapType().isDateTime())) "?" else ""
         var newKeyword = if(overrideProp) "new " else ""
         var deprecationAttr = if(this.deprecationAnnotation() == "") "" else this.deprecationAnnotation()+"\n";
 
