@@ -15,6 +15,7 @@ import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.types.*
+import java.util.regex.Pattern
 import kotlin.random.Random
 
 class TypescriptRequestTestRenderer constructor(override val vrapTypeProvider: VrapTypeProvider): ResourceRenderer, TsObjectTypeExtensions{
@@ -174,9 +175,13 @@ class TypescriptRequestTestRenderer constructor(override val vrapTypeProvider: V
                 NumberFormat.FLOAT -> r.nextFloat()
                 else -> r.nextInt(1, 10)
             }
-            is StringType -> when (vrapType) {
-                is VrapEnumType -> "${vrapType.simpleClassName}.findEnum(\"${name}\")"
-                else -> "\"${name}\""
+            is StringType -> {
+                if(type.enum.isNotEmpty())
+                    return "\'${type.enum.first().value}\'"
+                else if(type.type?.enum?.isNotEmpty() == true)
+                    return "\'${type.type.enum.first().value}\'"
+                else
+                    return "\"${name}\""
             }
             else -> "\"${name}\""
         }
@@ -184,11 +189,24 @@ class TypescriptRequestTestRenderer constructor(override val vrapTypeProvider: V
 
     private fun getImports(type:Resource):String
     {
-        var isRoot = type.parent == null
+        val `package` = (type.toVrapType() as VrapObjectType).`package`
+        val r = type.tsRequestModuleName(`package`)
+        val pathContainsOneSlash = countMatches(r, "/") == 1
+        var isRoot = type.parent == null || pathContainsOneSlash
         var imports = """|
                 |import { RequestWithMethod } from '${if(isRoot)"../../" else "../../../"}request-with-method'
                 |import { ApiRoot } from '${if(isRoot)"../../../" else "../../../../"}src'
             """.trimMargin().keepIndentation()
         return imports
     }
+    fun countMatches(string: String, pattern: String): Int {
+        val matcher = Pattern.compile(pattern).matcher(string)
+
+        var count = 0
+        while (matcher.find()) {
+            count++
+        }
+        return count
+    }
+
 }
