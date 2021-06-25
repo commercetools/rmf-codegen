@@ -9,7 +9,6 @@ import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.ResourceRenderer
 import io.vrap.rmf.codegen.rendring.utils.keepAngleIndent
 import io.vrap.rmf.codegen.rendring.utils.keepIndentation
-import io.vrap.rmf.codegen.types.VrapEnumType
 import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.resources.Method
@@ -137,20 +136,6 @@ class TypescriptRequestTestRenderer constructor(override val vrapTypeProvider: V
         """.trimMargin().keepAngleIndent()
     }
 
-    private fun queryParamValueString(name: String, type: AnyType, r: Random) : Any {
-        return when (type) {
-            is ArrayType -> queryParamValueString(name, type.items, r)
-            is BooleanType -> true
-            is IntegerType -> r.nextInt(1, 10)
-            is NumberType -> when (type.format) {
-                NumberFormat.DOUBLE -> r.nextDouble()
-                NumberFormat.FLOAT -> r.nextFloat()
-                else -> r.nextInt(1, 10)
-            }
-            else -> "\"${name}\""
-        }
-    }
-
     private fun QueryParameter.template(): Any {
         val anno = this.getAnnotation("placeholderParam", true)
 
@@ -165,7 +150,6 @@ class TypescriptRequestTestRenderer constructor(override val vrapTypeProvider: V
         return queryParamValue(this.name, this.type, r)
     }
     private fun queryParamValue(name: String, type: AnyType, r: Random) : Any {
-        val vrapType = type.toVrapType();
         return when (type) {
             is ArrayType -> queryParamValue(name, type.items, r)
             is BooleanType -> true
@@ -180,6 +164,27 @@ class TypescriptRequestTestRenderer constructor(override val vrapTypeProvider: V
                     return "\'${type.enum.first().value}\'"
                 else if(type.type?.enum?.isNotEmpty() == true)
                     return "\'${type.type.enum.first().value}\'"
+                else
+                    return "\"${name}\""
+            }
+            else -> "\"${name}\""
+        }
+    }
+    private fun queryParamValueString(name: String, type: AnyType, r: Random) : Any {
+        return when (type) {
+            is ArrayType -> queryParamValueString(name, type.items, r)
+            is BooleanType -> true
+            is IntegerType -> r.nextInt(1, 10)
+            is NumberType -> when (type.format) {
+                NumberFormat.DOUBLE -> r.nextDouble()
+                NumberFormat.FLOAT -> r.nextFloat()
+                else -> r.nextInt(1, 10)
+            }
+            is StringType -> {
+                if(type.enum.isNotEmpty())
+                    return "\"${type.enum.first().value}\""
+                else if(type.type?.enum?.isNotEmpty() == true)
+                    return "\"${type.type.enum.first().value}\""
                 else
                     return "\"${name}\""
             }
