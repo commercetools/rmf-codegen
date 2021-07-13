@@ -11,6 +11,7 @@ import io.vrap.rmf.codegen.rendring.utils.keepAngleIndent
 import io.vrap.rmf.raml.model.modules.Api
 import io.vrap.rmf.raml.model.resources.UriParameter
 import io.vrap.rmf.raml.model.types.ObjectInstance
+import io.vrap.rmf.raml.model.types.StringInstance
 import io.vrap.rmf.raml.model.util.StringCaseFormat
 
 class PhpFileProducer constructor(val api: Api, clientConstants: ClientConstants) : FileProducer {
@@ -107,6 +108,11 @@ class PhpFileProducer constructor(val api: Api, clientConstants: ClientConstants
     }
 
     private fun config(api: Api): TemplateFile {
+        val baseUri = when (val sdkBaseUri = api.getAnnotation("sdkBaseUri")?.value) {
+            is StringInstance -> UriTemplate.fromTemplate(sdkBaseUri.value)
+            else -> api.baseUri.value
+        }
+
         return TemplateFile(relativePath = "src/${clientPackageName.replace(basePackagePrefix, "").toNamespaceDir()}/Config.php",
                 content = """
                     |<?php
@@ -118,9 +124,9 @@ class PhpFileProducer constructor(val api: Api, clientConstants: ClientConstants
                     |
                     |class Config implements BaseConfig
                     |{
-                    |    public const API_URI = '${api.baseUri.template}';
+                    |    public const API_URI = '${baseUri.template}';
                     |
-                    |    <<${if (api.baseUri.value.variables.isNotEmpty()) { api.baseUri.value.constVariables()} else ""}>>
+                    |    <<${if (baseUri.variables.isNotEmpty()) { baseUri.constVariables()} else ""}>>
                     |
                     |    /** @psalm-var string */
                     |    private $!apiUri;
@@ -128,11 +134,11 @@ class PhpFileProducer constructor(val api: Api, clientConstants: ClientConstants
                     |    /** @psalm-var array */
                     |    private $!options;
                     |
-                    |    public function __construct(${if (api.baseUri.value.variables.isNotEmpty()) { api.baseUri.value.paramDefinitions() } else ""}array $!clientOptions = [], string $!baseUri = null)
+                    |    public function __construct(${if (baseUri.variables.isNotEmpty()) { baseUri.paramDefinitions() } else ""}array $!clientOptions = [], string $!baseUri = null)
                     |    {
                     |        /** @psalm-var string $!apiUri */
                     |        $!apiUri = $!baseUri ?? static::API_URI;
-                    |        <<${if (api.baseUri.value.variables.isNotEmpty()) { api.baseUri.value.replaceValues(api.baseUriParameters.defaultValues())} else ""}>>
+                    |        <<${if (baseUri.variables.isNotEmpty()) { baseUri.replaceValues(api.baseUriParameters.defaultValues())} else ""}>>
                     |        $!this->apiUri = $!apiUri;
                     |        $!this->options = array_replace(
                     |            [self::OPT_BASE_URI => $!this->apiUri],
