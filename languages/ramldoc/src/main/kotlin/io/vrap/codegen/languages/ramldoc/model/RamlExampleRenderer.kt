@@ -34,7 +34,7 @@ class RamlExampleRenderer constructor(val allMethods: List<Method>, @AllAnyTypes
             val example = TypesFactory.eINSTANCE.createExample()
             val boolInstance = TypesFactory.eINSTANCE.createBooleanInstance()
             boolInstance.value = true
-            example.name = "postman"
+            example.name = if (type.examples.firstOrNull { e -> e.name.isNullOrEmpty() } != null) "postman" else ""
             example.strict = boolInstance
             example.value = EcoreUtil.copy(postmanExampleAnno.value)
             example
