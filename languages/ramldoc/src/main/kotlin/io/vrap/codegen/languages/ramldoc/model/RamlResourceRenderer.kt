@@ -1,7 +1,9 @@
 package io.vrap.codegen.languages.ramldoc.model
 
-import io.vrap.codegen.languages.extensions.*
-import io.vrap.codegen.languages.extensions.toResourceName
+import io.vrap.codegen.languages.extensions.hasBody
+import io.vrap.codegen.languages.extensions.isSuccessfull
+import io.vrap.codegen.languages.extensions.resource
+import io.vrap.codegen.languages.extensions.toRequestName
 import io.vrap.codegen.languages.ramldoc.extensions.*
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.ResourceRenderer
@@ -27,7 +29,7 @@ class RamlResourceRenderer constructor(val api: Api, val vrapTypeProvider: VrapT
         val content = """
             |# Resource
             |(resourceName): ${type.toResourceName()}
-            |(resourcePathUri): ${type.fullUri.template}${if (type.displayName != null) """
+            |(resourcePathUri): ${type.fullUri.normalize().template}${if (type.displayName != null) """
             |displayName: ${type.displayName.value.trim()}""" else ""}${if (type.description != null) """
             |description: |-
             |  <<${type.description.value.trim()}>>""" else ""}
@@ -75,7 +77,7 @@ class RamlResourceRenderer constructor(val api: Api, val vrapTypeProvider: VrapT
             HttpMethod.PUT,
             HttpMethod.POST ->
                 """
-                    |curl -X ${method.methodName.toUpperCase()} ${baseUri}${r.fullUri.template}$queryParameters -i \\
+                    |curl -X ${method.methodName.toUpperCase()} ${baseUri}${r.fullUri.normalize().template}$queryParameters -i \\
                     |--header 'Authorization: Bearer ${'$'}{BEARER_TOKEN}' \\
                     |--header 'Content-Type: application/json' \\
                     |--data-binary @- \<< DATA 
@@ -84,7 +86,7 @@ class RamlResourceRenderer constructor(val api: Api, val vrapTypeProvider: VrapT
                 """
             else ->
                 """
-                    |curl -X ${method.methodName.toUpperCase()} ${baseUri}${r.fullUri.template}$queryParameters -i \\
+                    |curl -X ${method.methodName.toUpperCase()} ${baseUri}${r.fullUri.normalize().template}$queryParameters -i \\
                     |--header 'Authorization: Bearer ${'$'}{BEARER_TOKEN}'
                 """
         }.trimMargin().escapeAll()
