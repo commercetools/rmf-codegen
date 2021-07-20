@@ -7,24 +7,33 @@ import io.vrap.codegen.languages.ramldoc.extensions.renderEAttributes
 import io.vrap.rmf.codegen.di.ModelPackageName
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.NamedScalarTypeRenderer
+import io.vrap.rmf.codegen.rendring.NamedStringTypeRenderer
 import io.vrap.rmf.codegen.rendring.PatternStringTypeRenderer
 import io.vrap.rmf.codegen.rendring.StringTypeRenderer
 import io.vrap.rmf.codegen.rendring.utils.keepAngleIndent
 import io.vrap.rmf.codegen.types.*
 import io.vrap.rmf.raml.model.types.*
+import org.eclipse.emf.ecore.EObject
 import java.lang.Exception
 
-class RamlScalarTypeRenderer constructor(override val vrapTypeProvider: VrapTypeProvider, @ModelPackageName val modelPackageName: String) : ExtensionsBase, StringTypeRenderer, PatternStringTypeRenderer, NamedScalarTypeRenderer {
+class RamlStringTypeRenderer constructor(override val vrapTypeProvider: VrapTypeProvider, @ModelPackageName override val modelPackageName: String) : RamlScalarTypeRenderer<StringType>(vrapTypeProvider, modelPackageName), StringTypeRenderer, PatternStringTypeRenderer, NamedStringTypeRenderer
+class RamlAnyTypeRenderer constructor(override val vrapTypeProvider: VrapTypeProvider, @ModelPackageName override val modelPackageName: String) : RamlScalarTypeRenderer<AnyType>(vrapTypeProvider, modelPackageName)
 
-    override fun render(type: StringType): TemplateFile {
+sealed class RamlScalarTypeRenderer<T: AnyType> constructor(override val vrapTypeProvider: VrapTypeProvider, @ModelPackageName open val modelPackageName: String) : ExtensionsBase, NamedScalarTypeRenderer<T> {
+
+
+    override fun render(type: T): TemplateFile {
         return when (val vrapType = vrapTypeProvider.doSwitch(type)) {
-            is VrapEnumType -> render(vrapType, type)
+            is VrapEnumType -> when (type) {
+                is StringType -> render(vrapType, type)
+                else -> throw Exception()
+            }
             is VrapScalarType -> render(vrapType, type)
             else -> throw Exception()
         }
     }
 
-    private fun render(vrapType: VrapEnumType, type: StringType): TemplateFile {
+    private fun render(vrapType: VrapEnumType, type: AnyType): TemplateFile {
         val postmanExampleAnno = type.getAnnotation("postman-example")
         val postmanExample = if (postmanExampleAnno != null) {
             val example = TypesFactory.eINSTANCE.createExample()
@@ -56,7 +65,7 @@ class RamlScalarTypeRenderer constructor(override val vrapTypeProvider: VrapType
         )
     }
 
-    private fun render(vrapType: VrapScalarType, type: StringType): TemplateFile {
+    private fun render(vrapType: VrapScalarType, type: AnyType): TemplateFile {
         val postmanExampleAnno = type.getAnnotation("postman-example")
         val postmanExample = if (postmanExampleAnno != null) {
             val example = TypesFactory.eINSTANCE.createExample()
