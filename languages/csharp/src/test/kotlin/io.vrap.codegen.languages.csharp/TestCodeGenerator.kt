@@ -39,4 +39,12 @@ class TestCodeGenerator {
         val generatorComponent = GeneratorComponent(generatorModule, CsharpModule, CsharpClientBuilderModule)
         generatorComponent.generateFiles()
     }
+
+    @Test
+    fun generateCSharpModelsForHistoryApi() {
+        val generatorConfig = CodeGeneratorConfig(basePackageName = "commercetools.HistoryApi")
+        val generatorModule = GeneratorModule(apiProvider, generatorConfig, CsharpBaseTypes)
+        val generatorComponent = GeneratorComponent(generatorModule, CsharpModule, CsharpClientBuilderModule)
+        generatorComponent.generateFiles()
+    }
 }

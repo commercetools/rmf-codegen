@@ -26,13 +26,8 @@ class CsharpHttpRequestRenderer constructor(override val vrapTypeProvider: VrapT
 
 
         val vrapType = vrapTypeProvider.doSwitch(type as EObject) as VrapObjectType
-
-        val entityFolder = (type.resource() as ResourceImpl).GetNameAsPlurar()
-
-        if(type.toRequestName() == "ByProjectKeyProductsByIDImagesPost")
-        {
-            var x =1
-        }
+        val isHistoryApi = basePackagePrefix.toLowerCase().contains("historyapi")
+        var entityFolder = if(isHistoryApi) "" else (type.resource() as ResourceImpl).GetNameAsPlurar()//fix to save all request builders in the root of RequestBuilders folder
 
         val content = """
             |using System;
@@ -64,7 +59,9 @@ class CsharpHttpRequestRenderer constructor(override val vrapTypeProvider: VrapT
         """.trimMargin()
                 .keepIndentation()
 
-        val relativePath = vrapType.requestBuildersPackage(entityFolder).replace(basePackagePrefix, "").replace(".", "/").trimStart('/')
+        val relativePath = vrapType.requestBuildersPackage(entityFolder)
+                .replace(basePackagePrefix, "").replace(".", "/")
+                .trimStart('/').trimEnd('/')
 
         return TemplateFile(
                 relativePath = "${relativePath}/${type.toRequestName()}.cs",

@@ -98,6 +98,7 @@ class CsharpModelInterfaceRenderer constructor(override val vrapTypeProvider: Vr
         return if (hasSubtypes())
             """
             |[TypeDiscriminator(nameof(${this.discriminator.capitalize()}))]
+            |[DefaultTypeDiscriminator(typeof(${vrapType.csharpPackage()}.${vrapType.simpleClassName}Impl))]
             |<${this.subTypes
                     .asSequence()
                     .filterIsInstance<ObjectType>()

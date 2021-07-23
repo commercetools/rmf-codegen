@@ -2,8 +2,10 @@ package io.vrap.codegen.languages.csharp.model
 
 import io.vrap.codegen.languages.csharp.extensions.*
 import io.vrap.codegen.languages.extensions.EObjectExtensions
+import io.vrap.rmf.codegen.di.AllObjectTypes
 import io.vrap.rmf.codegen.di.BasePackageName
 import io.vrap.rmf.codegen.io.TemplateFile
+import io.vrap.rmf.codegen.rendring.FileProducer
 import io.vrap.rmf.codegen.rendring.ObjectTypeRenderer
 import io.vrap.rmf.codegen.rendring.utils.keepIndentation
 import io.vrap.rmf.codegen.types.VrapObjectType
@@ -23,7 +25,7 @@ class CsharpObjectTypeRenderer constructor(override val vrapTypeProvider: VrapTy
             |
             |namespace ${vrapType.csharpPackage()}
             |{
-            |    public${if(type.isAbstract())" abstract " else " "}partial class ${vrapType.simpleClassName} : I${vrapType.simpleClassName}
+            |    public partial class ${vrapType.simpleClassName}Impl : I${vrapType.simpleClassName}
             |    {
             |        <${if(type.isADictionaryType()) "" else type.toProperties()}>
             |        <${type.renderConstructor(vrapType.simpleClassName)}>

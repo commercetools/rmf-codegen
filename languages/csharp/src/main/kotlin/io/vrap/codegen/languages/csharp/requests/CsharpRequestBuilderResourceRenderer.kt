@@ -18,7 +18,8 @@ class CsharpRequestBuilderResourceRenderer constructor(override val vrapTypeProv
         val vrapType = vrapTypeProvider.doSwitch(type).toCsharpVType() as VrapObjectType
         val resourceName: String = type.toResourceName()
         val className: String = "${resourceName}RequestBuilder"
-        val entityFolder = type.GetNameAsPlurar()
+        val isHistoryApi = basePackagePrefix.toLowerCase().contains("historyapi")
+        val entityFolder = if(isHistoryApi) "" else type.GetNameAsPlurar()//fix to save all request builders in the root of RequestBuilders folder
         val cPackage = vrapType.requestBuildersPackage(entityFolder)
 
         val content: String = """
@@ -26,8 +27,7 @@ class CsharpRequestBuilderResourceRenderer constructor(override val vrapTypeProv
             |using System.Text.Json;
             |using commercetools.Base.Client;
             |using commercetools.Base.Serialization;
-            |<${type.subResourcesUsings()}>
-            |
+            |<${if(isHistoryApi) "" else type.subResourcesUsings()}>
             |namespace $cPackage
             |{
             |   public class $className {

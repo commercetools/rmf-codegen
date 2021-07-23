@@ -9,9 +9,9 @@ fun Method.csharpReturnType(vrapTypeProvider: VrapTypeProvider) : String {
     val returnType = vrapTypeProvider.doSwitch(this.returnType())
     if(returnType is VrapObjectType) {
         if((returnType as VrapObjectType).`package`=="")
-            return "${returnType.simpleClassName}"
+            return "I${returnType.simpleClassName}"
         else
-            return "${returnType.`package`.toCsharpPackage()}.${returnType.simpleClassName}"
+            return "${returnType.`package`.toCsharpPackage()}.I${returnType.simpleClassName}"
     }
     return "JsonElement"
 }
