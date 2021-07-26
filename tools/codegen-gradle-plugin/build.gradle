@@ -6,6 +6,7 @@ apply plugin: 'com.github.johnrengelman.shadow'
 dependencies {
     implementation project(':languages:javalang:java-renderer')
     implementation project(':languages:javalang:builder-renderer:java-builder-client')
+    implementation project(':languages:jsonschema')
     implementation project(':languages:typescript')
     implementation project(':languages:postman')
     implementation project(':languages:python')
