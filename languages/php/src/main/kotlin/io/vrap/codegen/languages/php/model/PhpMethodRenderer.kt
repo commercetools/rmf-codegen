@@ -1,6 +1,8 @@
 package io.vrap.codegen.languages.php.model
 
+import com.google.common.collect.Lists
 import com.google.common.net.MediaType
+import io.vrap.codegen.languages.extensions.toRequestName
 import io.vrap.codegen.languages.php.ClientConstants
 import io.vrap.codegen.languages.php.PhpSubTemplates
 import io.vrap.codegen.languages.php.extensions.*
@@ -14,6 +16,7 @@ import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.responses.Body
 import io.vrap.rmf.raml.model.responses.Response
 import io.vrap.rmf.raml.model.types.*
+import io.vrap.rmf.raml.model.types.Annotation
 import io.vrap.rmf.raml.model.types.impl.TypesFactoryImpl
 import org.eclipse.emf.ecore.EObject
 
@@ -40,6 +43,20 @@ class PhpMethodRenderer constructor(override val vrapTypeProvider: VrapTypeProvi
                 .plus("JsonObject")
                 .distinct().sorted()
 
+        val implements = Lists.newArrayList<String>()
+                .plus(
+                        when (val ex = type.getAnnotation("php-implements") ) {
+                            is Annotation -> {
+                                (ex.value as StringInstance).value.escapeAll()
+                            }
+                            else -> null
+                        }
+                )
+                .plus(
+                        type.`is`.map { it.trait.toTraitName().escapeAll() }
+                )
+                .filterNotNull()
+
         val content = """
             |<?php
             |${PhpSubTemplates.generatorInfo}
@@ -59,8 +76,12 @@ class PhpMethodRenderer constructor(override val vrapTypeProvider: VrapTypeProvi
             |${if (type.firstBody()?.type is FileType) "use Psr\\Http\\Message\\UploadedFileInterface;".escapeAll() else ""}
             |use Psr\\Http\\Message\\ResponseInterface;
             |
-            |/** @psalm-suppress PropertyNotSetInConstructor */
-            |class ${type.toRequestName()} extends ApiRequest
+            |/**
+            | * @psalm-suppress PropertyNotSetInConstructor
+            | <<${if (type.`is`.isNotEmpty()) """
+            |${type.`is`.joinToString("\n") { "* @template-implements ${it.trait.toTraitName().escapeAll()}<${type.toRequestName()}>".escapeAll() }}""".trimMargin() else "*"}>>
+            | */
+            |class ${type.toRequestName()} extends ApiRequest${if (implements.isNotEmpty()) " implements ${implements.joinToString(", ")}" else ""}
             |{
             |    /**
             |     * @param ${if (type.firstBody()?.type is FileType) "?UploadedFileInterface " else "?object|array|string"} $!body

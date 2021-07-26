@@ -7,6 +7,7 @@ import io.vrap.rmf.codegen.types.*
 import io.vrap.rmf.raml.model.modules.Api
 import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Resource
+import io.vrap.rmf.raml.model.resources.Trait
 import io.vrap.rmf.raml.model.responses.Body
 import io.vrap.rmf.raml.model.security.OAuth20Settings
 import io.vrap.rmf.raml.model.types.*
@@ -123,6 +124,10 @@ private fun OAuth20Settings.accessTokenUriParams(): ObjectInstance? {
 }
 
 fun Method.apiResource(): Resource = this.eContainer() as Resource
+
+fun Trait.toTraitName(): String {
+    return StringCaseFormat.UPPER_CAMEL_CASE.apply(this.name)
+}
 
 fun Method.toRequestName(): String {
     if (this.apiResource().fullUri.template == "/") {

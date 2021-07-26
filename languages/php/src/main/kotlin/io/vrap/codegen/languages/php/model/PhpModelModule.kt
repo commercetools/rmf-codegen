@@ -44,7 +44,10 @@ object PhpModelModule: Module {
                         PhpMethodBuilderRenderer(generatorModule.provideRamlModel(), generatorModule.vrapTypeProvider(), generatorModule.clientConstants())
                 ),
                 generatorModule.allResources()
-        )
+        ),
+        TraitGenerator(setOf(
+                PhpTraitRenderer(generatorModule.vrapTypeProvider(), generatorModule.clientConstants())
+        ), generatorModule.allTraits())
     )
 
     private fun GeneratorModule.clientConstants() =
