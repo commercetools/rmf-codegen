@@ -14,6 +14,7 @@ class PhpBaseFileProducer constructor(val api: Api, @BasePackageName val package
     override fun produceFiles(): List<TemplateFile> = listOf(
             apiClientException(),
             apiRequest(),
+            apiRequestInterface(),
             apiResource(),
             apiServerException(),
             authConfig(),
@@ -1239,6 +1240,55 @@ class PhpBaseFileProducer constructor(val api: Api, @BasePackageName val package
                 """.trimMargin().forcedLiteralEscape())
     }
 
+    private fun apiRequestInterface(): TemplateFile {
+        return TemplateFile(relativePath = "src/Client/ApiRequestInterface.php",
+                content = """
+                    |<?php
+                    |${PhpSubTemplates.generatorInfo}
+                    |
+                    |namespace ${packagePrefix.toNamespaceName()}\Client;
+                    |
+                    |use ${packagePrefix.toNamespaceName()}\Exception\InvalidArgumentException;
+                    |use GuzzleHttp\ClientInterface;
+                    |use GuzzleHttp\Exception\GuzzleException;
+                    |use GuzzleHttp\Promise\PromiseInterface;
+                    |use Psr\Http\Message\ResponseInterface;
+                    |use Psr\Http\Message\RequestInterface;
+                    |
+                    |/**
+                    | * @template T of ApiRequestInterface
+                    | */
+                    |interface ApiRequestInterface extends RequestInterface
+                    |{
+                    |    /**
+                    |     * @param string $!parameterName
+                    |     * @psalm-param scalar|scalar[] $!value
+                    |     * @param mixed $!value
+                    |     * @psalm-return T
+                    |     */
+                    |    public function withQueryParam(string $!parameterName, $!value): ApiRequestInterface;
+                    |
+                    |    /**
+                    |     * @param array $!options
+                    |     * @throws InvalidArgumentException
+                    |     * @throws GuzzleException
+                    |     * @psalm-suppress InvalidThrow
+                    |     */
+                    |    public function send(array $!options = []): ResponseInterface;
+                    |
+                    |    /**
+                    |     * @param array $!options
+                    |     * @throws InvalidArgumentException
+                    |     * @throws GuzzleException
+                    |     * @psalm-suppress InvalidThrow
+                    |     */
+                    |    public function sendAsync(array $!options = []): PromiseInterface;
+                    |
+                    |    public function getClient(): ?ClientInterface;
+                    |}
+                """.trimMargin().forcedLiteralEscape())
+    }
+
     private fun apiRequest(): TemplateFile {
         return TemplateFile(relativePath = "src/Client/ApiRequest.php",
                 content = """
@@ -1257,7 +1307,7 @@ class PhpBaseFileProducer constructor(val api: Api, @BasePackageName val package
                     |use stdClass;
                     |
                     |/** @psalm-suppress PropertyNotSetInConstructor */
-                    |class ApiRequest extends Request
+                    |class ApiRequest extends Request implements ApiRequestInterface
                     |{
                     |    /** @psalm-var array<string, scalar[]> */
                     |    private $!queryParts;
@@ -1312,7 +1362,7 @@ class PhpBaseFileProducer constructor(val api: Api, @BasePackageName val package
                     |     * @param mixed $!value
                     |     * @psalm-return static
                     |     */
-                    |    public function withQueryParam(string $!parameterName, $!value): ApiRequest
+                    |    public function withQueryParam(string $!parameterName, $!value): ApiRequestInterface
                     |    {
                     |        $!query = $!this->getUri()->getQuery();
                     |        if ($!this->query !== $!query) {
@@ -1858,6 +1908,13 @@ class PhpBaseFileProducer constructor(val api: Api, @BasePackageName val package
                     |            $!this->iterator = $!this->getIterator();
                     |        }
                     |    }
+                    |
+                    |    /**
+                    |     * @return static
+                    |     */
+                    |    final public static function of() {
+                    |        return new static();
+                    |    }
                     |}
                 """.trimMargin().forcedLiteralEscape())
     }
@@ -2093,6 +2150,13 @@ class PhpBaseFileProducer constructor(val api: Api, @BasePackageName val package
                     |            unset($!this->data[$!offset]);
                     |            $!this->iterator = $!this->getIterator();
                     |        }
+                    |    }
+                    |
+                    |    /**
+                    |     * @return static
+                    |     */
+                    |    final public static function of() {
+                    |        return new static();
                     |    }
                     |}
                 """.trimMargin().forcedLiteralEscape())

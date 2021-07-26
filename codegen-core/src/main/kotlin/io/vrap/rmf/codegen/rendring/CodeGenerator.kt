@@ -6,12 +6,12 @@ import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.resources.Trait
+import io.vrap.rmf.raml.model.types.AnyType
 import io.vrap.rmf.raml.model.types.ObjectType
 import io.vrap.rmf.raml.model.types.StringType
 import io.vrap.rmf.raml.model.types.UnionType
 import org.reactivestreams.Publisher
 import org.slf4j.LoggerFactory
-import kotlin.concurrent.fixedRateTimer
 
 interface CodeGenerator {
     fun generate(): MutableList<Publisher<TemplateFile>>
@@ -47,7 +47,8 @@ class ObjectTypeGenerator constructor(generators: Set<ObjectTypeRenderer>, @AllO
 class StringTypeGenerator constructor(generators: Set<StringTypeRenderer>, @EnumStringTypes allTypes: List<StringType>) : CodeGeneratorImpl<StringTypeRenderer, StringType>(generators, allTypes)
 class UnionTypeGenerator constructor(generators: Set<UnionTypeRenderer>, @AllUnionTypes allTypes: List<UnionType>) : CodeGeneratorImpl<UnionTypeRenderer, UnionType>(generators, allTypes)
 class PatternStringTypeGenerator constructor(generators: Set<PatternStringTypeRenderer>, @PatternStringTypes allTypes: List<StringType>) : CodeGeneratorImpl<PatternStringTypeRenderer, StringType>(generators, allTypes)
-class NamedScalarTypeGenerator constructor(generators: Set<NamedScalarTypeRenderer>, @NamedScalarTypes allTypes: List<StringType>) : CodeGeneratorImpl<NamedScalarTypeRenderer, StringType>(generators, allTypes)
+class NamedStringTypeGenerator constructor(generators: Set<NamedStringTypeRenderer>, @NamedScalarTypes allTypes: List<StringType>) : CodeGeneratorImpl<NamedStringTypeRenderer, StringType>(generators, allTypes)
+class NamedScalarTypeGenerator<T: AnyType> constructor(generators: Set<NamedScalarTypeRenderer<T>>, @NamedScalarTypes allTypes: List<T>) : CodeGeneratorImpl<NamedScalarTypeRenderer<T>, T>(generators, allTypes)
 class ResourceGenerator constructor(generators: Set<ResourceRenderer>, @AllResources allTypes: List<Resource>) : CodeGeneratorImpl<ResourceRenderer, Resource>(generators, allTypes)
 class MethodGenerator constructor(generators: Set<MethodRenderer>, @AllResourceMethods allTypes: List<Method>) : CodeGeneratorImpl<MethodRenderer, Method>(generators, allTypes)
 class TraitGenerator constructor(generators: Set<TraitRenderer>, @AllTraits allTypes: List<Trait>) : CodeGeneratorImpl<TraitRenderer, Trait>(generators, allTypes)

@@ -14,6 +14,8 @@ import io.vrap.rmf.raml.model.modules.Api
 import io.vrap.rmf.raml.model.resources.Resource
 import org.eclipse.emf.ecore.EObject
 
+const val PLACEHOLDER_PARAM_ANNOTATION = "placeholderParam"
+
 class PhpMethodBuilderRenderer constructor(api: Api, vrapTypeProvider: VrapTypeProvider, clientConstants: ClientConstants) : ResourceRenderer, AbstractRequestBuilder(api, vrapTypeProvider, clientConstants) {
 
     private val resourcePackage = "Resource"

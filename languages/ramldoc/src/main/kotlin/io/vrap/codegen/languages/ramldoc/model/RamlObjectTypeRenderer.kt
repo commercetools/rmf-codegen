@@ -22,7 +22,7 @@ class RamlObjectTypeRenderer constructor(override val vrapTypeProvider: VrapType
             val example = TypesFactory.eINSTANCE.createExample()
             val boolInstance = TypesFactory.eINSTANCE.createBooleanInstance()
             boolInstance.value = true
-            example.name = "postman"
+            example.name = if (type.examples.firstOrNull { e -> e.name.isNullOrEmpty() } != null) "postman" else ""
             example.strict = boolInstance
             example
         } else {

@@ -54,6 +54,7 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
             |import java.io.IOException;
             |
             |import java.net.URI;
+            |import java.net.URLConnection;
             |import java.nio.charset.StandardCharsets;
             |import java.nio.file.Files;
             |
@@ -62,6 +63,7 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
             |import java.util.List;
             |import java.util.Map;
             |import java.util.HashMap;
+            |import java.util.Optional;
             |import java.util.stream.Collectors;
             |import java.util.concurrent.CompletableFuture;
             |import io.vrap.rmf.base.client.utils.Generated;
@@ -245,7 +247,12 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
             if(this.bodies[0].type.isFile())
                 """
                 |try {
-                |    return new ApiHttpRequest(ApiHttpMethod.${this.method.name}, URI.create(httpRequestPath), getHeaders(), Files.readAllBytes(file.toPath()));
+                |    ApiHttpHeaders headers = getHeaders();
+                |    if (headers.getFirst(ApiHttpHeaders.CONTENT_TYPE) == null) {
+                |        final String mimeType = Optional.ofNullable(URLConnection.guessContentTypeFromName(file.getName())).orElse("application/octet-stream");
+                |        headers = headers.withHeader(ApiHttpHeaders.CONTENT_TYPE, mimeType);
+                |    }
+                |    return new ApiHttpRequest(ApiHttpMethod.${this.method.name}, URI.create(httpRequestPath), headers, Files.readAllBytes(file.toPath()));
                 |} catch (Exception e) {
                 |    e.printStackTrace();
                 |}
@@ -375,8 +382,8 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
                  * @param <V> value type
                  * @return T
                  */
-                public <V> ByProjectKeyProductProjectionsSearchPost addFormParam(final String key, final V value) {
-                    ByProjectKeyProductProjectionsSearchPost c = copy();
+                public <V> ${this.toRequestName()} addFormParam(final String key, final V value) {
+                    ${this.toRequestName()} c = copy();
                     c.formParams.add(new ParamEntry<>(key, value.toString()));
                     return c;
                 }
@@ -388,7 +395,7 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
                  * @param <V> value type
                  * @return T
                  */
-                public <V> ByProjectKeyProductProjectionsSearchPost withFormParam(final String key, final V value) {
+                public <V> ${this.toRequestName()} withFormParam(final String key, final V value) {
                     return withoutFormParam(key).addFormParam(key, value);
                 }
             
@@ -397,8 +404,8 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
                  * @param key form parameter name
                  * @return T
                  */
-                public ByProjectKeyProductProjectionsSearchPost withoutFormParam(final String key) {
-                    ByProjectKeyProductProjectionsSearchPost c = copy();
+                public ${this.toRequestName()} withoutFormParam(final String key) {
+                    ${this.toRequestName()} c = copy();
                     c.formParams = c.formParams.stream()
                             .filter(e -> !e.getKey().equalsIgnoreCase(key))
                             .collect(Collectors.toList());
@@ -410,7 +417,7 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
                  * @param formParams list of form parameters
                  * @return T
                  */
-                public ByProjectKeyProductProjectionsSearchPost withFormParams(final List<ParamEntry<String, String>> formParams) {
+                public ${this.toRequestName()} withFormParams(final List<ParamEntry<String, String>> formParams) {
                     ByProjectKeyProductProjectionsSearchPost c = copy();
                     c.formParams = formParams;
                     return c;

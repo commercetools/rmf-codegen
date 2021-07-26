@@ -6,8 +6,6 @@ import io.vrap.codegen.languages.php.ClientConstants
 import io.vrap.codegen.languages.php.PhpBaseTypes
 import io.vrap.codegen.languages.php.PhpSubTemplates
 import io.vrap.codegen.languages.php.extensions.*
-import io.vrap.rmf.codegen.di.BasePackageName
-import io.vrap.rmf.codegen.di.SharedPackageName
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.ObjectTypeRenderer
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
@@ -74,6 +72,8 @@ class PhpObjectTypeRenderer constructor(override val vrapTypeProvider: VrapTypeP
 
     fun content(type: ObjectType): String {
         val vrapType = vrapTypeProvider.doSwitch(type) as VrapObjectType
+        val traitAnno = type.getAnnotation("php-use-trait")
+        val traits = if (traitAnno != null) (traitAnno.value.value as String).split(",").map(String::trim) else emptyList()
 
         return """
             |<?php
@@ -92,6 +92,8 @@ class PhpObjectTypeRenderer constructor(override val vrapTypeProvider: VrapTypeP
             | */
             |final class ${vrapType.simpleClassName}Model extends JsonObjectModel implements ${vrapType.simpleClassName}
             |{
+            |    <<${traits.joinToString("\n") { "use ${it};" }}>>
+            |
             |    ${if (type.discriminator != null || type.discriminatorValue != null) {"public const DISCRIMINATOR_VALUE = '${type.discriminatorValue ?: ""}';"} else ""}
             |    <<${type.toBeanFields()}>>
             |

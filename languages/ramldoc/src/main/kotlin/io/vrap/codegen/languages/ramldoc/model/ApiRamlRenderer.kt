@@ -1,7 +1,6 @@
 package io.vrap.codegen.languages.ramldoc.model
 
 import io.vrap.codegen.languages.extensions.EObjectExtensions
-import io.vrap.codegen.languages.extensions.toResourceName
 import io.vrap.codegen.languages.ramldoc.extensions.*
 import io.vrap.rmf.codegen.di.AllAnyTypes
 import io.vrap.rmf.codegen.di.ModelPackageName
@@ -67,7 +66,7 @@ class ApiRamlRenderer constructor(val api: Api, override val vrapTypeProvider: V
             |types:
             |  <<${anyTypeList.filterNot { it is UnionType }.sortedWith(compareBy { it.name }).joinToString("\n") { "${it.name}: !include ${ramlFileName(it)}" }}>>
             |  
-            |${api.allContainedResources.sortedWith(compareBy { it.resourcePath }).joinToString("\n") { "${it.fullUri.template}: !include resources/${it.toResourceName()}.raml" }}
+            |${api.allContainedResources.sortedWith(compareBy { it.resourcePath }).joinToString("\n") { "${it.fullUri.normalize().template }: !include resources/${it.toResourceName()}.raml" }}
         """.trimMargin().keepAngleIndent()
 
         return TemplateFile(relativePath = "api.raml",

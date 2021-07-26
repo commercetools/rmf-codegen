@@ -32,7 +32,7 @@ abstract class AbstractRequestBuilder constructor(
                 | * @psalm-param ${it.bodyType() ?: "?object|array|string"} $!body
                 | * @psalm-param array<string, scalar|scalar[]> $!headers
                 | */
-                |public function ${it.methodName}(${it.bodyType() ?: ""}$!body = null, array $!headers = []): ${it.toRequestName()}
+                |public function ${it.methodName}(${it.bodyType()?.plus(" ") ?: ""}$!body = null, array $!headers = []): ${it.toRequestName()}
                 |{
                 |    $!args = $!this->getArgs();
                 |

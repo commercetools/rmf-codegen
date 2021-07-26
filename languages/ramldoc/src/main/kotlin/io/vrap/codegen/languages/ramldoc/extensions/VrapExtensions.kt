@@ -10,6 +10,7 @@ import com.fasterxml.jackson.databind.SerializerProvider
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
+import io.vrap.codegen.languages.extensions.toParamName
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
 import io.vrap.rmf.codegen.rendring.utils.keepAngleIndent
 import io.vrap.rmf.codegen.types.*
@@ -25,7 +26,7 @@ import java.io.IOException
 import java.util.stream.Collectors
 
 fun Resource.toResourceName(): String {
-    return this.fullUri.toParamName("By")
+    return this.fullUri.normalize().toParamName("By")
 }
 
 fun UriTemplate.toParamName(delimiter: String): String {
@@ -40,6 +41,10 @@ fun UriTemplate.toParamName(delimiter: String, suffix: String): String {
         }
         StringCaseFormat.UPPER_CAMEL_CASE.apply(uriTemplatePart.toString().replace("/", "-"))
     }.collect(Collectors.joining()).replace("[^\\p{L}\\p{Nd}]+".toRegex(), "").capitalize()
+}
+
+fun UriTemplate.normalize(): UriTemplate {
+    return UriTemplate.fromTemplate(this.template.replace("{ID}", "{id}", ignoreCase = true))
 }
 
 fun AnyType.renderScalarType(): String {
@@ -110,7 +115,7 @@ fun AnyType.renderTypeFacet(): String {
 fun UriParameter.renderUriParameter(): String {
     val parameterExamples = this.inlineTypes.flatMap { inlineType -> inlineType.examples }
     return """
-            |${this.name}:${if (this.type.enum.size > 0) """
+            |${this.name.replace("ID", "id", ignoreCase = true)}:${if (this.type.enum.size > 0) """
             |  enum:
             |  <<${this.type.enum.joinToString("\n") { "- ${it.value}"}}>>""" else ""}
             |  <<${this.type.renderType()}>>
