@@ -26,8 +26,8 @@ class CsharpHttpRequestRenderer constructor(override val vrapTypeProvider: VrapT
 
 
         val vrapType = vrapTypeProvider.doSwitch(type as EObject) as VrapObjectType
-        val isHistoryApi = basePackagePrefix.toLowerCase().contains("historyapi")
-        var entityFolder = if(isHistoryApi) "" else (type.resource() as ResourceImpl).GetNameAsPlurar()//fix to save all request builders in the root of RequestBuilders folder
+        var entityFolder = (type.resource() as ResourceImpl).GetNameAsPlural()
+        val cPackage = vrapType.requestBuildersPackage(entityFolder)
 
         val content = """
             |using System;
@@ -41,7 +41,7 @@ class CsharpHttpRequestRenderer constructor(override val vrapTypeProvider: VrapT
             |using commercetools.Base.Serialization;
             |${type.usings()}
             |
-            |namespace ${vrapType.requestBuildersPackage(entityFolder)}
+            |namespace ${cPackage}
             |{
             |   public partial class ${type.toRequestName()} : ApiMethod\<${type.toRequestName()}\> {
             |
@@ -59,7 +59,7 @@ class CsharpHttpRequestRenderer constructor(override val vrapTypeProvider: VrapT
         """.trimMargin()
                 .keepIndentation()
 
-        val relativePath = vrapType.requestBuildersPackage(entityFolder)
+        val relativePath = cPackage
                 .replace(basePackagePrefix, "").replace(".", "/")
                 .trimStart('/').trimEnd('/')
 

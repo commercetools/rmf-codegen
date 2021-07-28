@@ -18,8 +18,7 @@ class CsharpRequestBuilderResourceRenderer constructor(override val vrapTypeProv
         val vrapType = vrapTypeProvider.doSwitch(type).toCsharpVType() as VrapObjectType
         val resourceName: String = type.toResourceName()
         val className: String = "${resourceName}RequestBuilder"
-        val isHistoryApi = basePackagePrefix.toLowerCase().contains("historyapi")
-        val entityFolder = if(isHistoryApi) "" else type.GetNameAsPlurar()//fix to save all request builders in the root of RequestBuilders folder
+        val entityFolder = type.GetNameAsPlural()
         val cPackage = vrapType.requestBuildersPackage(entityFolder)
 
         val content: String = """
@@ -27,7 +26,8 @@ class CsharpRequestBuilderResourceRenderer constructor(override val vrapTypeProv
             |using System.Text.Json;
             |using commercetools.Base.Client;
             |using commercetools.Base.Serialization;
-            |<${if(isHistoryApi) "" else type.subResourcesUsings()}>
+            |<${type.subResourcesUsings()}>
+            |
             |namespace $cPackage
             |{
             |   public class $className {
@@ -43,7 +43,7 @@ class CsharpRequestBuilderResourceRenderer constructor(override val vrapTypeProv
             |}
         """.trimMargin().keepIndentation()
 
-        val relativePath = vrapType.requestBuildersPackage(entityFolder).replace(basePackagePrefix, "").replace(".", "/").trimStart('/')
+        val relativePath = cPackage.replace(basePackagePrefix, "").replace(".", "/").trimStart('/')
 
         return TemplateFile(
                 relativePath = "${relativePath}/${className}.cs",
@@ -167,7 +167,7 @@ class CsharpRequestBuilderResourceRenderer constructor(override val vrapTypeProv
         var listOfUsings = mutableListOf<String>()
         this.resources.map {
             var r = it as ResourceImpl
-            var using = "using ${r.toVrapType().requestBuildersPackage(r.GetNameAsPlurar())};"
+            var using = "using ${r.toVrapType().requestBuildersPackage(r.GetNameAsPlural())};"
             if(!listOfUsings.contains(using))
                 listOfUsings.add(using)
         }

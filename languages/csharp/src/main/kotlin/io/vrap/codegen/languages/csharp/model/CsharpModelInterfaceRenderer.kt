@@ -39,6 +39,7 @@ class CsharpModelInterfaceRenderer constructor(override val vrapTypeProvider: Vr
         }
 
         val relativePath = vrapType.csharpClassRelativePath(true).replace(basePackagePrefix.replace(".", "/"), "").trimStart('/')
+
         return TemplateFile(
                 relativePath = relativePath,
                 content = content
@@ -98,7 +99,7 @@ class CsharpModelInterfaceRenderer constructor(override val vrapTypeProvider: Vr
         return if (hasSubtypes())
             """
             |[TypeDiscriminator(nameof(${this.discriminator.capitalize()}))]
-            |[DefaultTypeDiscriminator(typeof(${vrapType.csharpPackage()}.${vrapType.simpleClassName}Impl))]
+            |[DefaultTypeDiscriminator(typeof(${vrapType.csharpPackage()}.${this.objectClassName()}))]
             |<${this.subTypes
                     .asSequence()
                     .filterIsInstance<ObjectType>()
@@ -106,13 +107,13 @@ class CsharpModelInterfaceRenderer constructor(override val vrapTypeProvider: Vr
                     .sortedBy { anyType -> anyType.discriminatorValue.toLowerCase() }
                     .map {
                         val vrapObjectType = vrapTypeProvider.doSwitch(it) as VrapObjectType
-                        "[SubTypeDiscriminator(\"${it.discriminatorValue}\", typeof(${vrapObjectType.`package`.toCsharpPackage()}.${vrapObjectType.simpleClassName}))]"
+                        "[SubTypeDiscriminator(\"${it.discriminatorValue}\", typeof(${vrapObjectType.`package`.toCsharpPackage()}.${it.objectClassName()}))]"
                     }
                     .joinToString(separator = "\n")}>
             """.trimMargin()
         else
             """
-            |[DeserializeAs(typeof(${vrapType.`package`.toCsharpPackage()}.${vrapType.simpleClassName}))]
+            |[DeserializeAs(typeof(${vrapType.`package`.toCsharpPackage()}.${this.objectClassName()}))]
             """.trimMargin()
     }
 

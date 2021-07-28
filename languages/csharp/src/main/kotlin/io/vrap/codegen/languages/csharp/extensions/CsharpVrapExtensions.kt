@@ -87,7 +87,7 @@ fun VrapType.csharpClassRelativePath(isInterface: Boolean = false): String {
     }
 
     var namespaceDir = packageName.toNamespaceDir()
-    var fileName = if(isInterface) "I${simpleClassName}" else simpleClassName
+    var fileName = if(isInterface) "I${simpleClassName}" else "${simpleClassName}"
 
     relativePath = "${namespaceDir}.${fileName}".replace(".", "/") + ".cs"
 
