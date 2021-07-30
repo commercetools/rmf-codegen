@@ -26,13 +26,8 @@ class CsharpHttpRequestRenderer constructor(override val vrapTypeProvider: VrapT
 
 
         val vrapType = vrapTypeProvider.doSwitch(type as EObject) as VrapObjectType
-
-        val entityFolder = (type.resource() as ResourceImpl).GetNameAsPlurar()
-
-        if(type.toRequestName() == "ByProjectKeyProductsByIDImagesPost")
-        {
-            var x =1
-        }
+        var entityFolder = (type.resource() as ResourceImpl).GetNameAsPlural()
+        val cPackage = vrapType.requestBuildersPackage(entityFolder)
 
         val content = """
             |using System;
@@ -46,7 +41,7 @@ class CsharpHttpRequestRenderer constructor(override val vrapTypeProvider: VrapT
             |using commercetools.Base.Serialization;
             |${type.usings()}
             |
-            |namespace ${vrapType.requestBuildersPackage(entityFolder)}
+            |namespace ${cPackage}
             |{
             |   public partial class ${type.toRequestName()} : ApiMethod\<${type.toRequestName()}\> {
             |
@@ -64,7 +59,9 @@ class CsharpHttpRequestRenderer constructor(override val vrapTypeProvider: VrapT
         """.trimMargin()
                 .keepIndentation()
 
-        val relativePath = vrapType.requestBuildersPackage(entityFolder).replace(basePackagePrefix, "").replace(".", "/").trimStart('/')
+        val relativePath = cPackage
+                .replace(basePackagePrefix, "").replace(".", "/")
+                .trimStart('/').trimEnd('/')
 
         return TemplateFile(
                 relativePath = "${relativePath}/${type.toRequestName()}.cs",

@@ -53,6 +53,15 @@ interface CsharpObjectTypeExtensions : ExtensionsBase {
                     |"""
     }
 
+    public fun ObjectType.objectClassName(): String {
+        val simpleClassName = (vrapTypeProvider.doSwitch(this) as VrapObjectType).simpleClassName
+
+        if (this.allProperties.firstOrNull { property -> property.name.capitalize() == simpleClassName } != null) {
+            return simpleClassName + "Model"
+        }
+        return simpleClassName
+    }
+
     fun ObjectType.isAbstract() : Boolean = this.annotations.find { it.type.name == ANNOTATION_ABSTRACT } != null || !this.discriminator.isNullOrEmpty()
 
     //Check if the type has one property and it's a dictionary property
