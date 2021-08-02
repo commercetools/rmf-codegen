@@ -12,7 +12,9 @@ import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.resources.Trait
 import io.vrap.rmf.raml.model.types.ArrayType
+import io.vrap.rmf.raml.model.types.ObjectInstance
 import io.vrap.rmf.raml.model.types.QueryParameter
+import io.vrap.rmf.raml.model.types.StringInstance
 import io.vrap.rmf.raml.model.util.StringCaseFormat
 import org.eclipse.emf.ecore.EObject
 
@@ -34,6 +36,8 @@ class JavaTraitRenderer constructor(override val vrapTypeProvider: VrapTypeProvi
             |    <${type.queryParamsGetters()}>
             |
             |    <${type.queryParamsSetters()}>
+            |
+            |    <${type.queryParamsTemplateSetters()}>
             |}
         """.trimMargin().keepIndentation()
 
@@ -54,7 +58,29 @@ class JavaTraitRenderer constructor(override val vrapTypeProvider: VrapTypeProvi
             .filter { it.getAnnotation(PLACEHOLDER_PARAM_ANNOTATION, true) == null }
             .map { """
                 |T with${it.fieldName().capitalize()}(final ${it.witherType()} ${it.fieldName()});
+                |
+                |T add${it.fieldName().capitalize()}(final ${it.witherType()} ${it.fieldName()});
             """.trimMargin().escapeAll() }
+            .joinToString(separator = "\n\n")
+
+    private fun Trait.queryParamsTemplateSetters() : String = this.queryParameters
+            .filter { it.getAnnotation(PLACEHOLDER_PARAM_ANNOTATION, true) != null }
+            .map {
+                val anno = it.getAnnotation("placeholderParam", true)
+                val o = anno.value as ObjectInstance
+                val paramName = o.value.stream().filter { propertyValue -> propertyValue.name == "paramName" }.findFirst().orElse(null).value as StringInstance
+                val placeholder = o.value.stream().filter { propertyValue -> propertyValue.name == "placeholder" }.findFirst().orElse(null).value as StringInstance
+
+                val methodName = StringCaseFormat.UPPER_CAMEL_CASE.apply(paramName.value)
+                val parameters =  "final String " + StringCaseFormat.LOWER_CAMEL_CASE.apply(placeholder.value) + ", final ${it.witherType()} " + paramName.value
+
+                return """
+                |T with$methodName($parameters);
+                |
+                |T add$methodName($parameters);
+            """.trimMargin().escapeAll()
+
+            }
             .joinToString(separator = "\n\n")
 
     private fun QueryParameter.witherType() : String {
