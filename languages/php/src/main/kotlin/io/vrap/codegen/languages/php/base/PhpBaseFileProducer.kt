@@ -1739,7 +1739,7 @@ class PhpBaseFileProducer constructor(val api: Api, @BasePackageName val package
                     |    /**
                     |     * @psalm-return TObject|stdClass|null
                     |     */
-                    |    final protected function get(int $!index)
+                    |    final protected function get(?int $!index)
                     |    {
                     |        if (isset($!this->data[$!index])) {
                     |            return $!this->data[$!index];
@@ -1985,7 +1985,7 @@ class PhpBaseFileProducer constructor(val api: Api, @BasePackageName val package
                     |    /**
                     |     * @psalm-return TScalar|scalar|null
                     |     */
-                    |    final protected function get(int $!index)
+                    |    final protected function get(?int $!index)
                     |    {
                     |        if (isset($!this->data[$!index])) {
                     |            return $!this->data[$!index];

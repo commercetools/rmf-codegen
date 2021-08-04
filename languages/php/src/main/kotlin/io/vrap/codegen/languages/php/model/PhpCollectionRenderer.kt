@@ -77,7 +77,7 @@ class PhpCollectionRenderer constructor(override val vrapTypeProvider: VrapTypeP
             |     */
             |    protected function mapper()
             |    {
-            |        return function (int $!index): ?${vrapType.simpleClassName} {
+            |        return function (?int $!index): ?${vrapType.simpleClassName} {
             |            $!data = $!this->get($!index);
             |            if ($!data instanceof stdClass) {
             |                /** @var $genType $!data */
