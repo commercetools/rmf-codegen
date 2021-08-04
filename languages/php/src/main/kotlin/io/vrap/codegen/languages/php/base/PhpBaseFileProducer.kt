@@ -1624,6 +1624,11 @@ class PhpBaseFileProducer constructor(val api: Api, @BasePackageName val package
                     |    public function current();
                     |
                     |    /**
+                    |     * @return ?TObject
+                    |     */
+                    |    public function end();
+                    |
+                    |    /**
                     |     * @return void
                     |     */
                     |    public function next();
@@ -1831,6 +1836,20 @@ class PhpBaseFileProducer constructor(val api: Api, @BasePackageName val package
                     |    {
                     |        /** @psalm-var ?TObject */
                     |        return $!this->iterator->current();
+                    |    }
+                    |
+                    |    /**
+                    |     * @return ?TObject
+                    |     */
+                    |    public function end()
+                    |    {
+                    |        if ($!this->data == null) {
+                    |            return null;
+                    |        }
+                    |        $!arrayKeys = array_keys($!this->data);
+                    |        $!lastKey = array_pop($!arrayKeys);
+                    |
+                    |        return $!this->at($!lastKey);
                     |    }
                     |
                     |    /**
@@ -2074,6 +2093,20 @@ class PhpBaseFileProducer constructor(val api: Api, @BasePackageName val package
                     |    {
                     |        /** @psalm-var ?TScalar */
                     |        return $!this->iterator->current();
+                    |    }
+                    |
+                    |    /**
+                    |     * @return ?TScalar
+                    |     */
+                    |    public function end()
+                    |    {
+                    |        if ($!this->data == null) {
+                    |            return null;
+                    |        }
+                    |        $!arrayKeys = array_keys($!this->data);
+                    |        $!lastKey = array_pop($!arrayKeys);
+                    |
+                    |        return $!this->at($!lastKey);
                     |    }
                     |
                     |    /**

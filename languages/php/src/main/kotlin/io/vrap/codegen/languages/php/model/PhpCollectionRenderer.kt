@@ -51,6 +51,7 @@ class PhpCollectionRenderer constructor(override val vrapTypeProvider: VrapTypeP
             |/**
             | * $template
             | * @method ${vrapType.simpleClassName} current()
+            | * @method ${vrapType.simpleClassName} end()
             | * @method ${vrapType.simpleClassName} at($!offset)
             | */
             |class ${vrapType.simpleClassName}Collection extends $sequenceType
