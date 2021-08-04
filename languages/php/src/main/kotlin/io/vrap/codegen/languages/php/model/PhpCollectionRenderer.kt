@@ -30,6 +30,7 @@ class PhpCollectionRenderer constructor(override val vrapTypeProvider: VrapTypeP
             true -> """@template T of ${vrapType.simpleClassName}
                 | * @extends $sequenceType<T>
                 | * @psalm-method T current()
+                | * @psalm-method T end()
                 | * @psalm-method T at($!offset)"""
             else -> "@extends $sequenceType<${vrapType.simpleClassName}>"
         }
