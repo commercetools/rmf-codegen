@@ -37,8 +37,8 @@ class JavaRequestBuilderResourceRenderer constructor(override val vrapTypeProvid
             |import io.vrap.rmf.base.client.ApiMethod;
             |import io.vrap.rmf.base.client.utils.Generated;
             |
-            |<${JavaSubTemplates.generatedAnnotation}>
-            |${if (type.markDeprecated()) "@Deprecated" else ""}
+            |<${JavaSubTemplates.generatedAnnotation}>${if (type.markDeprecated()) """
+            |@Deprecated""" else ""}
             |public class $className {
             |
             |    <${type.fields()}>
