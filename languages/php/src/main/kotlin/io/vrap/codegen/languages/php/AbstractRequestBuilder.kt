@@ -11,6 +11,7 @@ import io.vrap.rmf.raml.model.modules.Api
 import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.resources.ResourceContainer
+import io.vrap.rmf.raml.model.types.BooleanInstance
 import io.vrap.rmf.raml.model.types.FileType
 
 abstract class AbstractRequestBuilder constructor(
@@ -44,8 +45,11 @@ abstract class AbstractRequestBuilder constructor(
     }
 
     protected fun ResourceContainer.subResources(): String {
-        return this.resources.joinToString(separator = "") {
+        return this.resources.filterNot { it.deprecated() }.joinToString(separator = "") {
             """
+                |/**${if (it.markDeprecated()) """
+                | * @deprecated""" else ""}
+                | */
                 |public function ${it.getMethodName()}(${it.relativeUri.paramValues().joinToString(", ") { "string $$it = null" }}): ${it.resourceBuilderName()}
                 |{
                 |    $!args = $!this->getArgs();${it.relativeUri.paramValues().joinToString("\n") {"""
@@ -58,6 +62,16 @@ abstract class AbstractRequestBuilder constructor(
                 |
             """.trimMargin()
         }
+    }
+
+    protected fun Resource.deprecated() : Boolean {
+        val anno = this.getAnnotation("deprecated")
+        return (anno != null && (anno.value as BooleanInstance).value)
+    }
+
+    protected fun Resource.markDeprecated() : Boolean {
+        val anno = this.getAnnotation("markDeprecated")
+        return (anno != null && (anno.value as BooleanInstance).value)
     }
 
     protected fun rootResource() = basePackagePrefix.replace(sharedPackageName, "").trim('/').toNamespaceName() + "RequestBuilder"

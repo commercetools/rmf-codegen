@@ -17,6 +17,7 @@ import io.vrap.rmf.codegen.types.*
 import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.resources.ResourceContainer
+import io.vrap.rmf.raml.model.types.BooleanInstance
 
 class JavaRequestBuilderResourceRenderer constructor(override val vrapTypeProvider: VrapTypeProvider) : ResourceRenderer, JavaEObjectTypeExtensions {
 
@@ -37,6 +38,7 @@ class JavaRequestBuilderResourceRenderer constructor(override val vrapTypeProvid
             |import io.vrap.rmf.base.client.utils.Generated;
             |
             |<${JavaSubTemplates.generatedAnnotation}>
+            |${if (type.markDeprecated()) "@Deprecated" else ""}
             |public class $className {
             |
             |    <${type.fields()}>
@@ -159,7 +161,10 @@ class JavaRequestBuilderResourceRenderer constructor(override val vrapTypeProvid
 
 
     private fun ResourceContainer.subResources() : String {
-        return this.resources.map {
+
+        return this.resources
+            .filterNot { it.deprecated() }
+            .map {
             val args = if (it.relativeUri.variables.isNullOrEmpty()){
                 ""
             }else {
@@ -171,11 +176,22 @@ class JavaRequestBuilderResourceRenderer constructor(override val vrapTypeProvid
                     )
                     .joinToString(separator = ", ")
             """
+            |${if (it.markDeprecated()) "@Deprecated" else ""}
             |public ${it.toResourceName()}RequestBuilder ${it.getMethodName()}($args) {
             |    return new ${it.toResourceName()}RequestBuilder($subResourceArgs);
             |}
         """.trimMargin()
         }.joinToString(separator = "\n")
+    }
+
+    private fun Resource.deprecated() : Boolean {
+        val anno = this.getAnnotation("deprecated")
+        return (anno != null && (anno.value as BooleanInstance).value)
+    }
+
+    private fun Resource.markDeprecated() : Boolean {
+        val anno = this.getAnnotation("markDeprecated")
+        return (anno != null && (anno.value as BooleanInstance).value)
     }
 
     private fun Method.pathArguments() : List<String> = this.resource().pathArguments()

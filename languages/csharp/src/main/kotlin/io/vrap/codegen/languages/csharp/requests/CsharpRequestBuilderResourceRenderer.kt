@@ -11,6 +11,7 @@ import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.resources.ResourceContainer
 import io.vrap.rmf.raml.model.resources.impl.ResourceImpl
+import io.vrap.rmf.raml.model.types.BooleanInstance
 
 class CsharpRequestBuilderResourceRenderer constructor(override val vrapTypeProvider: VrapTypeProvider, private val basePackagePrefix: String) : ResourceRenderer, CsharpEObjectTypeExtensions {
 
@@ -30,6 +31,7 @@ class CsharpRequestBuilderResourceRenderer constructor(override val vrapTypeProv
             |
             |namespace $cPackage
             |{
+            |   ${if (type.markDeprecated()) "[Obsolete(\"usage of this endpoint has been deprecated.\", false)]" else ""}
             |   public class $className {
             |
             |       <${type.properties()}>
@@ -137,7 +139,7 @@ class CsharpRequestBuilderResourceRenderer constructor(override val vrapTypeProv
     }
 
     private fun ResourceContainer.subResources() : String {
-        return this.resources.map {
+        return this.resources.filterNot { it.deprecated() }.map {
             val args = if (it.relativeUri.variables.isNullOrEmpty()){
                 ""
             }else {
@@ -152,11 +154,22 @@ class CsharpRequestBuilderResourceRenderer constructor(override val vrapTypeProv
                     )
                     .joinToString(separator = ", ")
             """
+            |${if (it.markDeprecated()) "[Obsolete(\"usage of this endpoint has been deprecated.\", false)]" else ""}
             |public ${it.toResourceName()}RequestBuilder ${it.getMethodName().capitalize()}($args) {
             |    return new ${it.toResourceName()}RequestBuilder($subResourceArgs);
             |}
         """.trimMargin()
         }.joinToString(separator = "\n")
+    }
+
+    private fun Resource.deprecated() : Boolean {
+        val anno = this.getAnnotation("deprecated")
+        return (anno != null && (anno.value as BooleanInstance).value)
+    }
+
+    private fun Resource.markDeprecated() : Boolean {
+        val anno = this.getAnnotation("markDeprecated")
+        return (anno != null && (anno.value as BooleanInstance).value)
     }
 
     private fun Method.pathArguments() : List<String> = this.resource().pathArguments()
