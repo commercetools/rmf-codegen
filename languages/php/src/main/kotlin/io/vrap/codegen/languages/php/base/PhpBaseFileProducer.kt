@@ -1074,16 +1074,21 @@ class PhpBaseFileProducer constructor(val api: Api, @BasePackageName val package
                     |     * @readonly
                     |     */
                     |    private $!userAgent;
+                    |    private const URL_GITHUB = "https://api.github.com/repos/commercetools/commercetools-sdk-php-v2/releases/latest";
+                    |    public const USER_AGENT = 'commercetools-sdk-php-v2/';
                     |    
                     |    public function __construct(string $!suffix = null)
                     |    {
+                    |        $!client = new Client();
+                    |        $!response = $!client->request('GET', self::URL_GITHUB);
+                    |        $!version = json_decode($!response->getBody()->getContents())->tag_name;
+                    |        $!userAgent = self::USER_AGENT . $!version;
+                    |        
                     |        if (defined('\GuzzleHttp\ClientInterface::MAJOR_VERSION')) {
                     |           $!clientVersion = (string) constant(ClientInterface::class . '::MAJOR_VERSION');
                     |        } else {
                     |           $!clientVersion = (string) constant(ClientInterface::class . '::VERSION');
                     |        }
-                    |        $!userAgent = 'commercetools-sdk';
-                    |
                     |        $!userAgent .= ' (GuzzleHttp/' . $!clientVersion;
                     |        if (extension_loaded('curl') && function_exists('curl_version')) {
                     |            $!userAgent .= '; curl/' . (string) \curl_version()['version'];
