@@ -19,7 +19,7 @@ class ActionRenderer {
 
         val updateMethod = resource.getUpdateMethod()
 
-        val actions = updateMethod?.getActions()?.map { renderAction(resource, updateMethod, it) } ?: return emptyList()
+        val actions = updateMethod?.getActions()?.filter { objType -> objType.deprecated() }?.map { renderAction(resource, updateMethod, it) } ?: return emptyList()
 
         return listOf("""
             |{
@@ -83,6 +83,17 @@ class ActionRenderer {
             |}
         """.trimMargin()
     }
+
+    private fun ObjectType.deprecated() : Boolean {
+        val anno = this.getAnnotation("deprecated")
+        return (anno != null && (anno.value as BooleanInstance).value)
+    }
+
+    private fun ObjectType.markDeprecated() : Boolean {
+        val anno = this.getAnnotation("markDeprecated")
+        return (anno != null && (anno.value as BooleanInstance).value)
+    }
+
 
     private fun Resource.actionExample(type: ObjectType): String {
         val example = getExample(type)
