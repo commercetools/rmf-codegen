@@ -9,6 +9,7 @@ import io.vrap.codegen.languages.csharp.modules.CsharpClientBuilderModule
 import io.vrap.codegen.languages.csharp.modules.CsharpModule
 import io.vrap.codegen.languages.java.base.JavaBaseTypes
 import io.vrap.codegen.languages.javalang.client.builder.module.JavaCompleteModule
+import io.vrap.codegen.languages.csharp.client.builder.test.CsharpTestModule
 import io.vrap.codegen.languages.javalang.client.builder.test.JavaTestModule
 import io.vrap.codegen.languages.oas.model.OasBaseTypes
 import io.vrap.codegen.languages.oas.model.OasModelModule
@@ -52,10 +53,11 @@ enum class GenerationTarget {
     POSTMAN,
     RAML_DOC,
     CSHARP_CLIENT,
+    CSHARP_TEST,
     OAS,
     PYTHON_CLIENT,
 }
-const val ValidTargets = "JAVA_CLIENT, JAVA_TEST, TYPESCRIPT_CLIENT, TYPESCRIPT_TEST, CSHARP_CLIENT, PHP_CLIENT, PHP_BASE, PHP_TEST, POSTMAN, RAML_DOC, OAS, PYTHON_CLIENT"
+const val ValidTargets = "JAVA_CLIENT, JAVA_TEST, TYPESCRIPT_CLIENT, TYPESCRIPT_TEST, CSHARP_CLIENT, CSHARP_TEST, PHP_CLIENT, PHP_BASE, PHP_TEST, POSTMAN, RAML_DOC, OAS, PYTHON_CLIENT"
 
 @CommandLine.Command(name = "generate",description = ["Generate source code from a RAML specification."])
 class GenerateSubcommand : Callable<Int> {
@@ -184,6 +186,10 @@ class GenerateSubcommand : Callable<Int> {
                 GenerationTarget.CSHARP_CLIENT -> {
                     val generatorModule = GeneratorModule(apiProvider, generatorConfig, CsharpBaseTypes)
                     GeneratorComponent(generatorModule, CsharpModule, CsharpClientBuilderModule)
+                }
+                GenerationTarget.CSHARP_TEST -> {
+                    val generatorModule = GeneratorModule(apiProvider, generatorConfig, CsharpBaseTypes)
+                    GeneratorComponent(generatorModule, CsharpTestModule)
                 }
                 GenerationTarget.POSTMAN -> {
                     val generatorModule = GeneratorModule(apiProvider, generatorConfig, PostmanBaseTypes)

@@ -1,8 +1,14 @@
 package io.vrap.codegen.languages.csharp.extensions
 
+import com.damnhandy.uri.template.Expression
+import com.damnhandy.uri.template.UriTemplate
+import com.google.common.collect.Lists
 import io.vrap.rmf.codegen.types.*
 import io.vrap.rmf.raml.model.util.StringCaseFormat
 import com.hypertino.inflector.English
+import io.vrap.rmf.raml.model.resources.Method
+import io.vrap.rmf.raml.model.resources.Resource
+import io.vrap.rmf.raml.model.responses.Body
 import io.vrap.rmf.raml.model.types.*
 
 fun VrapType.simpleName(): String {
@@ -132,4 +138,37 @@ fun AnyType.isNullableScalar(): Boolean {
         is ArrayType -> false
         else -> false
     }
+}
+
+fun Resource.resourcePathList(): List<Resource> {
+    val path = Lists.newArrayList<Resource>()
+    if (this.fullUri.template == "/") {
+        return path
+    }
+    path.add(this)
+    var t = this.eContainer()
+    while (t is Resource) {
+        val template = t.fullUri.template
+        if (template != "/") {
+            path.add(t)
+        }
+        t = t.eContainer()
+    }
+    return Lists.reverse(path)
+}
+fun UriTemplate.paramValues(): List<String> {
+    return this.components.filterIsInstance<Expression>().flatMap { expression -> expression.varSpecs.map { varSpec -> varSpec.variableName  } }
+}
+
+fun Method.firstBody(): Body? = this.bodies.stream().findFirst().orElse(null)
+
+fun QueryParameter.methodName(): String {
+    val anno = this.getAnnotation("placeholderParam", true)
+
+    if (anno != null) {
+        val o = anno.value as ObjectInstance
+        val paramName = o.value.stream().filter { propertyValue -> propertyValue.name == "paramName" }.findFirst().orElse(null).value as StringInstance
+        return "With" + StringCaseFormat.UPPER_CAMEL_CASE.apply(paramName.value)
+    }
+    return "With" + StringCaseFormat.UPPER_CAMEL_CASE.apply(this.name.replace(".", "-"))
 }

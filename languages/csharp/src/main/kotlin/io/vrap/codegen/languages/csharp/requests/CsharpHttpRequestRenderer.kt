@@ -14,7 +14,9 @@ import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.impl.ResourceImpl
 import io.vrap.rmf.raml.model.types.ArrayType
+import io.vrap.rmf.raml.model.types.ObjectInstance
 import io.vrap.rmf.raml.model.types.QueryParameter
+import io.vrap.rmf.raml.model.types.StringInstance
 import io.vrap.rmf.raml.model.util.StringCaseFormat
 import org.eclipse.emf.ecore.EObject
 
@@ -52,6 +54,8 @@ class CsharpHttpRequestRenderer constructor(override val vrapTypeProvider: VrapT
             |       <${type.queryParamsGetters()}>
             |   
             |       <${type.queryParamsSetters()}>
+            |       
+            |       <${type.queryParamsTemplateSetters()}>
             |
             |       <${type.executeAndBuild()}>
             |   }
@@ -87,7 +91,7 @@ class CsharpHttpRequestRenderer constructor(override val vrapTypeProvider: VrapT
                 else
                     "private ${methodBodyVrapType.`package`.toCsharpPackage()}.I${methodBodyVrapType.simpleClassName} ${methodBodyVrapType.simpleClassName.capitalize()};"
             }else {
-                "private JsonElement jsonNode;"
+                "private JsonElement? jsonNode;"
             }
         }else{
             ""
@@ -129,7 +133,7 @@ class CsharpHttpRequestRenderer constructor(override val vrapTypeProvider: VrapT
                 val methodBodyAssignment = "this.${methodBodyVrapType.simpleClassName.capitalize()} = ${methodBodyVrapType.simpleClassName.decapitalize()};"
                 constructorAssignments.add(methodBodyAssignment)
             }else {
-                constructorArguments.add("JsonElement jsonNode")
+                constructorArguments.add("JsonElement? jsonNode")
                 constructorAssignments.add("this.jsonNode = jsonNode;")
             }
         }
@@ -262,4 +266,27 @@ class CsharpHttpRequestRenderer constructor(override val vrapTypeProvider: VrapT
                 .joinToString(separator = "\n")
 
     }
+
+    private fun Method.queryParamsTemplateSetters() : String = this.queryParameters
+            .filter { it.getAnnotation(PLACEHOLDER_PARAM_ANNOTATION, true) != null }
+            .map {
+                val anno = it.getAnnotation("placeholderParam", true)
+                val o = anno.value as ObjectInstance
+                val paramName = o.value.stream().filter { propertyValue -> propertyValue.name == "paramName" }.findFirst().orElse(null).value as StringInstance
+                val placeholder = o.value.stream().filter { propertyValue -> propertyValue.name == "placeholder" }.findFirst().orElse(null).value as StringInstance
+
+                val template = o.value.stream().filter { propertyValue -> propertyValue.name == "template" }.findFirst().orElse(null).value as StringInstance
+                val value = "$\"" + template.value.replace("<" + placeholder.value + ">", "{"+ placeholder.value + "}") + "\""
+
+                val methodName = StringCaseFormat.UPPER_CAMEL_CASE.apply(paramName.value)
+                val parameters =  "string " + StringCaseFormat.LOWER_CAMEL_CASE.apply(placeholder.value) + ", ${it.witherType()} " + paramName.value
+
+                return """
+                |public ${this.toRequestName()} With$methodName($parameters){
+                |    return this.AddQueryParam($value, ${paramName.value});
+                |}
+            """.trimMargin().escapeAll()
+
+            }
+            .joinToString(separator = "\n\n")
 }

@@ -110,7 +110,7 @@ class CsharpRequestBuilderResourceRenderer constructor(override val vrapTypeProv
                     methodBodyArgument = "${methodBodyVrapType.`package`}.I${methodBodyVrapType.simpleClassName} ${methodBodyVrapType.simpleClassName.decapitalize()}"
                 methodBodyArgument
             } else {
-                "JsonElement jsonNode"
+                "JsonElement? jsonNode"
             }
         } else {
             ""
