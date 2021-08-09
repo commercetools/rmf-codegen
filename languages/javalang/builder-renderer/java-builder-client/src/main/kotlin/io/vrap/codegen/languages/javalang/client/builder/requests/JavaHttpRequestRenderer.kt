@@ -346,10 +346,16 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
                 val parameters =  "final String " + StringCaseFormat.LOWER_CAMEL_CASE.apply(placeholder.value) + ", final ${it.witherType()} " + paramName.value
 
                 return """
+                |/**
+                | * set ${paramName.value} with the specificied value
+                | */
                 |public ${this.toRequestName()} with$methodName($parameters){
                 |    return copy().withQueryParam($value, ${paramName.value});
                 |}
                 |
+                |/**
+                | * add additional ${paramName.value} query parameter
+                | */
                 |public ${this.toRequestName()} add$methodName($parameters){
                 |    return copy().addQueryParam($value, ${paramName.value});
                 |}
@@ -362,10 +368,16 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
     private fun Method.queryParamsSetters() : String = this.queryParameters
             .filter { it.getAnnotation(PLACEHOLDER_PARAM_ANNOTATION, true) == null }
             .map { """
+                |/**
+                | * set ${it.fieldName()} with the specificied value
+                | */
                 |public ${this.toRequestName()} with${it.fieldName().capitalize()}(final ${it.witherType()} ${it.fieldName()}){
                 |    return copy().withQueryParam("${it.name}", ${it.fieldName()});
                 |}
                 |
+                |/**
+                | * add additional ${it.fieldName()} query parameter
+                | */
                 |public ${this.toRequestName()} add${it.fieldName().capitalize()}(final ${it.witherType()} ${it.fieldName()}){
                 |    return copy().addQueryParam("${it.name}", ${it.fieldName()});
                 |}

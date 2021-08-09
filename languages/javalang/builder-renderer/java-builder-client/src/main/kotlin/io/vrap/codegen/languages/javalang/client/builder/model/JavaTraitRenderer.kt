@@ -32,12 +32,21 @@ class JavaTraitRenderer constructor(override val vrapTypeProvider: VrapTypeProvi
             |
             |<${type.toComment().escapeAll()}>
             |<${JavaSubTemplates.generatedAnnotation}>
-            |public interface ${vrapType.simpleClassName}\<T\> {
+            |public interface ${vrapType.simpleClassName}\<T extends ${vrapType.simpleClassName}\<T\>\> {
             |    <${type.queryParamsGetters()}>
             |
-            |    <${type.queryParamsSetters()}>
+            |    <${type.queryParamsSetters(vrapType.simpleClassName)}>
             |
-            |    <${type.queryParamsTemplateSetters()}>
+            |    <${type.queryParamsTemplateSetters(vrapType.simpleClassName)}>
+            |    
+            |    default ${vrapType.simpleClassName}\<T\> as${vrapType.simpleClassName.capitalize()}() {
+            |        return this;
+            |    }
+            |    
+            |    @SuppressWarnings("unchecked")
+            |    default T as${vrapType.simpleClassName}ToBaseType() {
+            |        return (T)this;
+            |    }
             |}
         """.trimMargin().keepIndentation()
 
@@ -54,16 +63,22 @@ class JavaTraitRenderer constructor(override val vrapTypeProvider: VrapTypeProvi
                 """.trimMargin().escapeAll() }
             .joinToString(separator = "\n\n")
 
-    private fun Trait.queryParamsSetters() : String = this.queryParameters
+    private fun Trait.queryParamsSetters(simpleClassName: String) : String = this.queryParameters
             .filter { it.getAnnotation(PLACEHOLDER_PARAM_ANNOTATION, true) == null }
             .map { """
-                |T with${it.fieldName().capitalize()}(final ${it.witherType()} ${it.fieldName()});
+                |/**
+                | * set ${it.fieldName()} with the specificied value
+                | */
+                |${simpleClassName}<T> with${it.fieldName().capitalize()}(final ${it.witherType()} ${it.fieldName()});
                 |
-                |T add${it.fieldName().capitalize()}(final ${it.witherType()} ${it.fieldName()});
+                |/**
+                | * add additional ${it.fieldName()} query parameter
+                | */
+                |${simpleClassName}<T> add${it.fieldName().capitalize()}(final ${it.witherType()} ${it.fieldName()});
             """.trimMargin().escapeAll() }
             .joinToString(separator = "\n\n")
 
-    private fun Trait.queryParamsTemplateSetters() : String = this.queryParameters
+    private fun Trait.queryParamsTemplateSetters(simpleClassName: String) : String = this.queryParameters
             .filter { it.getAnnotation(PLACEHOLDER_PARAM_ANNOTATION, true) != null }
             .map {
                 val anno = it.getAnnotation("placeholderParam", true)
@@ -75,9 +90,15 @@ class JavaTraitRenderer constructor(override val vrapTypeProvider: VrapTypeProvi
                 val parameters =  "final String " + StringCaseFormat.LOWER_CAMEL_CASE.apply(placeholder.value) + ", final ${it.witherType()} " + paramName.value
 
                 return """
-                |T with$methodName($parameters);
+                |/**
+                | * set ${paramName.value} with the specificied value
+                | */
+                |${simpleClassName}<T> with$methodName($parameters);
                 |
-                |T add$methodName($parameters);
+                |/**
+                | * add additional ${paramName.value} query parameter
+                | */
+                |${simpleClassName}<T> add$methodName($parameters);
             """.trimMargin().escapeAll()
 
             }
