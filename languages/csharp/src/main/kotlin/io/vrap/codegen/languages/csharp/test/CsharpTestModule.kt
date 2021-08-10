@@ -9,7 +9,7 @@ object CsharpTestModule: Module {
     override fun configure(generatorModule: GeneratorModule) = setOf<CodeGenerator> (
         ResourceGenerator(
                 setOf(
-                        CsharpRequestTestRenderer(generatorModule.vrapTypeProvider())
+                        CsharpRequestTestRenderer(generatorModule.vrapTypeProvider(), generatorModule.providePackageName())
                 ), generatorModule.allResources()
         )
     )

@@ -14,7 +14,7 @@ import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.types.*
 import kotlin.random.Random
 
-class CsharpRequestTestRenderer constructor(override val vrapTypeProvider: VrapTypeProvider): ResourceRenderer, CsharpEObjectTypeExtensions, CsharpObjectTypeExtensions {
+class CsharpRequestTestRenderer constructor(override val vrapTypeProvider: VrapTypeProvider, private val basePackagePrefix: String): ResourceRenderer, CsharpEObjectTypeExtensions, CsharpObjectTypeExtensions {
 
     override fun render(type: Resource): TemplateFile {
         val vrapType = vrapTypeProvider.doSwitch(type).toCsharpVType() as VrapObjectType
@@ -49,9 +49,11 @@ class CsharpRequestTestRenderer constructor(override val vrapTypeProvider: VrapT
             |}
         """.trimMargin().keepAngleIndent()
 
-        val relativePath = "${vrapType.`package`}.RequestBuilders.${entityFolder}.${type.toResourceName()}Test".replace(".", "/") + ".cs"
+        val relativePath = cPackage
+                .replace(basePackagePrefix, "").replace("Tests","").replace(".", "/")
+                .trimStart('/').trimEnd('/')
         return TemplateFile(
-                relativePath = relativePath,
+                relativePath = "${relativePath}/${type.toResourceName()}Test.cs",
                 content = content
         )
     }
