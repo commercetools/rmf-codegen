@@ -208,11 +208,11 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
             .filter { it.required }
             .map {
                 if(it.isPatternProperty()) {
-                    "Objects.requireNonNull(values);"
+                    "Objects.requireNonNull(values, ${vrapType.simpleClassName}.class + \": values are missing\");"
                 } else if(it.name.equals("interface")) {
-                    "Objects.requireNonNull(_interface);"
+                    "Objects.requireNonNull(_interface, ${vrapType.simpleClassName}.class + \": interface is missing\");"
                 } else {
-                    "Objects.requireNonNull(${it.name});"
+                    "Objects.requireNonNull(${it.name}, ${vrapType.simpleClassName}.class + \": ${it.name} is missing\");"
                 }
             }
             .joinToString(separator = "\n")
