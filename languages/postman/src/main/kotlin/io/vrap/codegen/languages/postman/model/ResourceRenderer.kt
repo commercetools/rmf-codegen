@@ -6,7 +6,7 @@ import io.vrap.rmf.raml.model.types.BooleanInstance
 class ResourceRenderer {
     fun render(resource: Resource): String {
 
-        val items = resource.resources.filter { res -> res.deprecated() }.map { ResourceRenderer().render(it) }
+        val items = resource.resources.filterNot { res -> res.deprecated() }.map { ResourceRenderer().render(it) }
                 .plus(resource.methods.map { MethodRenderer().render(it) })
                 .plus(ActionRenderer().render(resource))
 

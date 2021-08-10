@@ -19,7 +19,7 @@ class ActionRenderer {
 
         val updateMethod = resource.getUpdateMethod()
 
-        val actions = updateMethod?.getActions()?.filter { objType -> objType.deprecated() }?.map { renderAction(resource, updateMethod, it) } ?: return emptyList()
+        val actions = updateMethod?.getActions()?.filterNot { objType -> objType.deprecated() }?.map { renderAction(resource, updateMethod, it) } ?: return emptyList()
 
         return listOf("""
             |{
