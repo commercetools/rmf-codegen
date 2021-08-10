@@ -20,16 +20,18 @@ class CsharpRequestTestRenderer constructor(override val vrapTypeProvider: VrapT
         val vrapType = vrapTypeProvider.doSwitch(type).toCsharpVType() as VrapObjectType
         var entityFolder = type.GetNameAsPlural()
         val cPackage = vrapType.requestBuildersPackage(entityFolder)
+        val modelsUsing = basePackagePrefix.replace("Tests", "Models")
 
         val content = """
             |using System;
             |using System.Collections.Generic;
             |using System.Net.Http;
             |using System.Text.Json;
-            |using ${basePackagePrefix.replace("Tests", "Models")};
+            |using ${modelsUsing};
+            |using ${"$modelsUsing.Common"};
             |using Xunit;
             |
-            |namespace ${cPackage}
+            |namespace $cPackage
             |{
             |   public class ${type.toResourceName()}Test:RequestBuilderParentTests 
             |   { 
