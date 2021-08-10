@@ -34,10 +34,11 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
             |import javax.annotation.Nullable;
             |import java.util.*;
             |import java.time.ZonedDateTime;
+            |import io.vrap.rmf.base.client.Builder;
             |import io.vrap.rmf.base.client.utils.Generated;
             |
             |<${JavaSubTemplates.generatedAnnotation}>
-            |public final class ${vrapType.simpleClassName}Builder {
+            |public final class ${vrapType.simpleClassName}Builder implements Builder\<${vrapType.simpleClassName}\> {
             |
             |    <${type.fields().escapeAll()}>
             |
