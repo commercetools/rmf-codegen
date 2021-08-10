@@ -26,6 +26,7 @@ class CsharpRequestTestRenderer constructor(override val vrapTypeProvider: VrapT
             |using System.Collections.Generic;
             |using System.Net.Http;
             |using System.Text.Json;
+            |using ${basePackagePrefix.replace("Tests", "Models")};
             |using Xunit;
             |
             |namespace ${cPackage}
@@ -59,15 +60,15 @@ class CsharpRequestTestRenderer constructor(override val vrapTypeProvider: VrapT
     }
 
     private fun parameterTestProvider(resource: Resource, method: Method): String {
-        val builderChain = resource.resourcePathList().map { r -> "${r.getMethodName().upperCamelCase()}(${if (r.relativeUri.paramValues().isNotEmpty()) "\"${r.relativeUri.paramValues().joinToString("\", \"") { p -> "test_$p"} }\"" else ""})" }
-                .plus("${method.method.toString().upperCamelCase()}(${if (method.firstBody() != null) "null" else ""})")
+        val builderChain = resource.resourcePathList().map { r -> "${r.getMethodName().capitalize()}(${if (r.relativeUri.paramValues().isNotEmpty()) "\"${r.relativeUri.paramValues().joinToString("\", \"") { p -> "test_$p"} }\"" else ""})" }
+                .plus("${method.method.toString().capitalize()}(${if (method.firstBody() != null) "null" else ""})")
                 .plus("Build()")
 
         return """
             |new Object[] {           
             |    ApiRoot
             |    <<${builderChain.joinToString("\n.", ".")}>>,
-            |    "${method.method.toString().upperCamelCase()}",
+            |    "${method.method.toString().capitalize()}",
             |    "/${resource.fullUri.expand(resource.fullUriParameters.map { it.name to "test_${it.name}" }.toMap()).trimStart('/')}",
             |}
         """.trimMargin().keepAngleIndent()
@@ -87,15 +88,15 @@ class CsharpRequestTestRenderer constructor(override val vrapTypeProvider: VrapT
             methodValue = "\"${placeholder.value}\", \"${paramName}\""
         }
 
-        val builderChain = resource.resourcePathList().map { r -> "${r.getMethodName().upperCamelCase()}(${if (r.relativeUri.paramValues().isNotEmpty()) "\"${r.relativeUri.paramValues().joinToString("\", \"") { p -> "test_$p"} }\"" else ""})" }
-                .plus("${method.method.toString().upperCamelCase()}(${if (method.firstBody() != null) "null" else ""})")
-                .plus("${parameter.methodName().upperCamelCase()}(${methodValue})")
+        val builderChain = resource.resourcePathList().map { r -> "${r.getMethodName().capitalize()}(${if (r.relativeUri.paramValues().isNotEmpty()) "\"${r.relativeUri.paramValues().joinToString("\", \"") { p -> "test_$p"} }\"" else ""})" }
+                .plus("${method.method.toString().capitalize()}(${if (method.firstBody() != null) "null" else ""})")
+                .plus("${parameter.methodName().capitalize()}(${methodValue})")
                 .plus("Build()")
         return """
                 |new Object[] {           
                 |    ApiRoot
                 |    <<${builderChain.joinToString("\n.", ".")}>>,
-                |    "${method.method.toString().upperCamelCase()}",
+                |    "${method.method.toString().capitalize()}",
                 |    "/${resource.fullUri.expand(resource.fullUriParameters.map { it.name to "test_${it.name}" }.toMap()).trimStart('/')}?${paramName}=${queryParamValueString(paramName, parameter.type, Random(paramName.hashCode()))}",
                 |}
             """.trimMargin().keepAngleIndent()
