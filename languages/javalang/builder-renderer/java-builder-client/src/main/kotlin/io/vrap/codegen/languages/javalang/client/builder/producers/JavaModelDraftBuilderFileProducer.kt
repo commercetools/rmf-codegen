@@ -49,6 +49,13 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
             |        <${type.requiredChecks().escapeAll()}>
             |        <${type.buildMethodBody().escapeAll()}>
             |    }
+            |    
+            |    /**
+            |     * builds ${vrapType.simpleClassName} without checking for non null required values
+            |     */
+            |    public ${vrapType.simpleClassName} buildUnchecked() {
+            |        <${type.buildMethodBody().escapeAll()}>
+            |    }
             |
             |    <${type.staticOfMethod().escapeAll()}>
             |
