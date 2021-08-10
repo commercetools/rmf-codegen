@@ -46,6 +46,7 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
             |    <${type.getters().escapeAll()}>
             |
             |    public ${vrapType.simpleClassName} build() {
+            |        <${type.requiredChecks().escapeAll()}>
             |        <${type.buildMethodBody().escapeAll()}>
             |    }
             |
@@ -189,6 +190,24 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
                 |}
             """.escapeAll().trimMargin().keepIndentation()
         }
+    }
+
+    private fun ObjectType.requiredChecks() : String {
+        val vrapType = vrapTypeProvider.doSwitch(this).toJavaVType() as VrapObjectType
+        return this.allProperties
+            .filter { it.getAnnotation("deprecated") == null }
+            .filter { it.name != this.discriminator() }
+            .filter { it.required }
+            .map {
+                if(it.isPatternProperty()) {
+                    "Objects.requireNonNull(values);"
+                } else if(it.name.equals("interface")) {
+                    "Objects.requireNonNull(_interface);"
+                } else {
+                    "Objects.requireNonNull(${it.name});"
+                }
+            }
+            .joinToString(separator = "\n")
     }
 
     private fun ObjectType.buildMethodBody() : String {
