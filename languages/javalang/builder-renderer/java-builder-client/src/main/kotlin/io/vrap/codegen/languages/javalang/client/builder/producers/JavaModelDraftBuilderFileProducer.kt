@@ -83,7 +83,7 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
             """
                 |${this.deprecationAnnotation()}
                 |${if(!this.required) "@Nullable" else ""}
-                |private Map<String, ${vrapType.fullClassName()}> values;
+                |private Map<String, ${vrapType.fullClassName()}> values = new HashMap<>();
             """.escapeAll().trimMargin().keepIndentation()
         } else if(this.name.equals("interface")) {
             """
