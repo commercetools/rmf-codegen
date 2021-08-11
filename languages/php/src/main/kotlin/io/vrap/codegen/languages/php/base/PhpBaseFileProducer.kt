@@ -1075,21 +1075,17 @@ class PhpBaseFileProducer constructor(val api: Api, @BasePackageName val package
                     |     * @readonly
                     |     */
                     |    private $!userAgent;
-                    |    public const USER_AGENT = 'commercetools-sdk-php-v2/';
+                    |    public const USER_AGENT = 'commercetools-sdk-php-v2';
                     |    
                     |    public function __construct(string $!suffix = null)
                     |    {  
                     |        if (defined('\GuzzleHttp\ClientInterface::MAJOR_VERSION')) {
-                    |           $!clientVersion = (string) constant(ClientInterface::class . '::MAJOR_VERSION');
+                    |            $!clientVersion = (string) constant(ClientInterface::class . '::MAJOR_VERSION');
                     |        } else {
-                    |           $!clientVersion = (string) constant(ClientInterface::class . '::VERSION');
+                    |            $!clientVersion = (string) constant(ClientInterface::class . '::VERSION');
                     |        }
                     |        
-                    |        if ($!sdkVersion = InstalledVersions::getPrettyVersion('commercetools/commercetools-sdk')) {
-                    |           $!userAgent = self::USER_AGENT . $!sdkVersion;
-                    |        } else {
-                    |           $!userAgent = self::USER_AGENT;
-                    |        }   
+                    |        $!userAgent = self::USER_AGENT . $!this->getPackageVersion();
                     |        
                     |        $!userAgent .= ' (GuzzleHttp/' . $!clientVersion;
                     |        if (extension_loaded('curl') && function_exists('curl_version')) {
@@ -1097,9 +1093,20 @@ class PhpBaseFileProducer constructor(val api: Api, @BasePackageName val package
                     |        }
                     |        $!userAgent .= ') PHP/' . PHP_VERSION;
                     |        if (!is_null($!suffix)) {
-                    |           $!userAgent .= ' ' . $!suffix;
+                    |            $!userAgent .= ' ' . $!suffix;
                     |        }
                     |        $!this->userAgent = $!userAgent;
+                    |    }
+                    |    
+                    |    private function getPackageVersion(): string
+                    |    {
+                    |        if (class_exists("\${packagePrefix.toNamespaceName()}\Client\PackageVersion")) {
+                    |            $!version = PackageVersion::get();
+                    |            if ($!version != null) {
+                    |                return "/" . $!version;
+                    |            }
+                    |        }
+                    |        return "";
                     |    }
                     |
                     |    public function getUserAgent(): string
