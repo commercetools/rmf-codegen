@@ -1,6 +1,7 @@
 package io.vrap.codegen.languages.javalang.client.builder.producers
 
 import io.vrap.codegen.languages.extensions.isPatternProperty
+import io.vrap.codegen.languages.java.base.JavaBaseTypes
 import io.vrap.codegen.languages.java.base.JavaSubTemplates
 import io.vrap.codegen.languages.java.base.extensions.*
 import io.vrap.rmf.codegen.di.AllObjectTypes
@@ -8,9 +9,11 @@ import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.FileProducer
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
 import io.vrap.rmf.codegen.rendring.utils.keepIndentation
+import io.vrap.rmf.codegen.types.LanguageBaseTypes
 import io.vrap.rmf.codegen.types.VrapArrayType
 import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
+import io.vrap.rmf.raml.model.types.ArrayType
 import io.vrap.rmf.raml.model.types.ObjectType
 import io.vrap.rmf.raml.model.types.Property
 import javax.lang.model.SourceVersion
@@ -33,6 +36,7 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
             |import ${vrapType.`package`}.${vrapType.simpleClassName};
             |import javax.annotation.Nullable;
             |import java.util.*;
+            |import java.util.function.Function;
             |import java.time.ZonedDateTime;
             |import io.vrap.rmf.base.client.Builder;
             |import io.vrap.rmf.base.client.utils.Generated;
@@ -110,7 +114,8 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
     }
 
     private fun assignment(property: Property, type: VrapObjectType) : String {
-        val propType = property.type.toVrapType()
+        val propertyType = property.type;
+        val propType = propertyType.toVrapType()
         return if(property.isPatternProperty()) {
             """
                 |${property.deprecationAnnotation()}
@@ -131,6 +136,7 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
             """.escapeAll().trimMargin().keepIndentation()
         } else if (propType is VrapArrayType) {
             var propertyName = property.name
+            val propItemType = (property.type as ArrayType).items
             if(SourceVersion.isKeyword(propertyName)) {
                 propertyName = "_$propertyName"
             }
@@ -141,6 +147,24 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
                 |    return this;
                 |}
                 |
+                |${if (propItemType is ObjectType && !propItemType.isAbstract() && propType.simpleName() != JavaBaseTypes.objectType.simpleName()) """
+                |${property.deprecationAnnotation()}
+                |public ${type.simpleClassName}Builder with${property.name.capitalize()}(Function<${propType.itemType.fullClassName()}Builder, ${propType.itemType.fullClassName()}Builder> builder) {
+                |    this.$propertyName = new ArrayList<>();
+                |    this.$propertyName.add(builder.apply(${propType.itemType.fullClassName()}Builder.of()).build());
+                |    return this;
+                |}
+                |
+                |${property.deprecationAnnotation()}
+                |public ${type.simpleClassName}Builder plus${property.name.capitalize()}(Function<${propType.itemType.fullClassName()}Builder, ${propType.itemType.fullClassName()}Builder> builder) {
+                |    if (this.$propertyName == null) {
+                |        this.$propertyName = new ArrayList<>();
+                |    }
+                |    this.$propertyName.add(builder.apply(${propType.itemType.fullClassName()}Builder.of()).build());
+                |    return this;
+                |}
+                |
+                """ else ""}
                 |${property.deprecationAnnotation()}
                 |public ${type.simpleClassName}Builder $propertyName(${if (!property.required) "@Nullable" else ""} final ${propType.fullClassName()} $propertyName) {
                 |    this.$propertyName = $propertyName;
@@ -153,6 +177,14 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
                 propertyName = "_$propertyName"
             }
             """
+                |${if (propertyType is ObjectType && !propertyType.isAbstract() && propType.simpleName() != JavaBaseTypes.objectType.simpleName()) """
+                |${property.deprecationAnnotation()}
+                |public ${type.simpleClassName}Builder $propertyName(Function<${propType.fullClassName()}Builder, ${propType.fullClassName()}Builder> builder) {
+                |    this.$propertyName = builder.apply(${propType.fullClassName()}Builder.of()).build();
+                |    return this;
+                |}
+                |
+                """ else ""}
                 |${property.deprecationAnnotation()}
                 |public ${type.simpleClassName}Builder $propertyName(${if (!property.required) "@Nullable" else ""} final ${propType.fullClassName()} $propertyName) {
                 |    this.$propertyName = $propertyName;
