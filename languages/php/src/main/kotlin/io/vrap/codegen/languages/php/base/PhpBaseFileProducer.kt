@@ -1066,7 +1066,6 @@ class PhpBaseFileProducer constructor(val api: Api, @BasePackageName val package
                     |namespace ${packagePrefix.toNamespaceName()}\Client;
                     |
                     |use GuzzleHttp\ClientInterface;
-                    |use Composer\InstalledVersions as InstalledVersions;
                     |
                     |class UserAgentProvider
                     |{
