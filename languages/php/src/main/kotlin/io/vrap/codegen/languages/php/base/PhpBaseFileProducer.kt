@@ -1076,15 +1076,15 @@ class PhpBaseFileProducer constructor(val api: Api, @BasePackageName val package
                     |     */
                     |    private $!userAgent;
                     |    public const USER_AGENT = 'commercetools-sdk-php-v2';
-                    |    
+                    |
                     |    public function __construct(string $!suffix = null)
-                    |    {  
+                    |    {
                     |        if (defined('\GuzzleHttp\ClientInterface::MAJOR_VERSION')) {
                     |            $!clientVersion = (string) constant(ClientInterface::class . '::MAJOR_VERSION');
                     |        } else {
                     |            $!clientVersion = (string) constant(ClientInterface::class . '::VERSION');
                     |        }
-                    |        
+                    |
                     |        $!userAgent = self::USER_AGENT . $!this->getPackageVersion();
                     |        
                     |        $!userAgent .= ' (GuzzleHttp/' . $!clientVersion;
@@ -1097,7 +1097,7 @@ class PhpBaseFileProducer constructor(val api: Api, @BasePackageName val package
                     |        }
                     |        $!this->userAgent = $!userAgent;
                     |    }
-                    |    
+                    |
                     |    private function getPackageVersion(): string
                     |    {
                     |        if (class_exists("\${packagePrefix.toNamespaceName()}\Client\PackageVersion")) {
