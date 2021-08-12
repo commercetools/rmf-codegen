@@ -1,5 +1,6 @@
 package io.vrap.codegen.languages.typescript.client.files_producers
 
+import com.damnhandy.uri.template.UriTemplate
 import io.vrap.codegen.languages.extensions.getMethodName
 import io.vrap.codegen.languages.typescript.model.TsObjectTypeExtensions
 import io.vrap.codegen.languages.typescript.tsGeneratedComment
@@ -15,6 +16,7 @@ import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.modules.Api
 import io.vrap.rmf.raml.model.resources.ResourceContainer
+import io.vrap.rmf.raml.model.types.StringInstance
 
 class ApiRootFileProducer constructor(
         @ClientPackageName val client_package: String,
@@ -30,6 +32,10 @@ class ApiRootFileProducer constructor(
     }
 
     fun produceApiRoot(type: Api): TemplateFile {
+        val baseUri = when (val sdkBaseUri = api.getAnnotation("sdkBaseUri")?.value) {
+            is StringInstance -> UriTemplate.fromTemplate(sdkBaseUri.value)
+            else -> api.baseUri.value
+        }
         val moduleName = clientConstants.apiRoot
         return TemplateFile(
                 relativePath = "$moduleName.ts",
@@ -47,7 +53,7 @@ class ApiRootFileProducer constructor(
                 |    baseUri?: string;
                 |  }) {
                 |    this.executeRequest = args.executeRequest
-                |    this.baseUri = args.baseUri${if(api.baseUri?.template.isNullOrEmpty()) "" else " ?? '${api.baseUri?.template}'"}
+                |    this.baseUri = args.baseUri${if(baseUri?.template.isNullOrEmpty()) "" else " ?? '${baseUri?.template}'"}
                 |  }
                 |
                 |  <${type.subResources()}>
