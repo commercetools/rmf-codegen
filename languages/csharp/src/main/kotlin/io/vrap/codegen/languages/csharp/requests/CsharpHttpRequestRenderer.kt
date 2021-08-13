@@ -8,6 +8,7 @@ import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.MethodRenderer
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
 import io.vrap.rmf.codegen.rendring.utils.keepIndentation
+import io.vrap.rmf.codegen.types.VrapEnumType
 import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapScalarType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
@@ -158,6 +159,8 @@ class CsharpHttpRequestRenderer constructor(override val vrapTypeProvider: VrapT
 
     private fun QueryParameter.fieldNameAsString(type: String): String {
         var fieldName = this.fieldName()
+        if(this.type.toVrapType() is VrapEnumType)
+            return "$fieldName.JsonName"
         if(type == "string")
             return fieldName
         else
