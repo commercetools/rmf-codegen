@@ -1,9 +1,9 @@
 
 dependencies {
     implementation "com.commercetools.rmf:raml-model:${versions.rmf}"
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:${versions.kotlin}"
 
-    testImplementation group: 'junit', name: 'junit', version: '4.13'
+    testImplementation "junit:junit:${versions.junit}"
     testImplementation spockframework.spock_core
 
 }

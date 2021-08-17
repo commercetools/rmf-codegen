@@ -1,12 +1,12 @@
 
 dependencies {
-    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
-    compile 'com.atlassian.commonmark:commonmark:0.14.0'
-    compile "com.commercetools.rmf:raml-model:${versions.rmf}"
-    compile 'org.slf4j:slf4j-simple:1.7.25'
-    compile 'commons-io:commons-io:2.6'
-    implementation 'io.reactivex.rxjava3:rxjava:3.0.7'
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:${versions.kotlin}"
+    api "com.atlassian.commonmark:commonmark:${versions.commonmark}"
+    api "com.commercetools.rmf:raml-model:${versions.rmf}"
+    implementation "org.slf4j:slf4j-simple:${versions.slf4j}"
+    implementation commons.io
+    implementation "io.reactivex.rxjava3:rxjava:${versions.rxjava}"
 
-    testCompile "org.assertj:assertj-core:3.16.0"
-    testCompile 'junit:junit:4.13'
+    testImplementation "org.assertj:assertj-core:${versions.assertj}"
+    testImplementation "junit:junit:${versions.junit}"
 }

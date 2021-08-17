@@ -3,22 +3,22 @@ apply plugin: 'java-gradle-plugin'
 apply plugin: 'com.gradle.plugin-publish'
 
 dependencies {
-    compile project(':languages:javalang:java-renderer')
-    compile project(':languages:javalang:builder-renderer:java-builder-client')
-    compile project(':languages:typescript')
-    compile project(':languages:postman')
-    compile project(':languages:python')
-    compile project(':languages:php')
-    compile project(':languages:csharp')
-    compile project(':languages:ramldoc')
-    compile project(':languages:oas')
+    implementation project(':languages:javalang:java-renderer')
+    implementation project(':languages:javalang:builder-renderer:java-builder-client')
+    implementation project(':languages:typescript')
+    implementation project(':languages:postman')
+    implementation project(':languages:python')
+    implementation project(':languages:php')
+    implementation project(':languages:csharp')
+    implementation project(':languages:ramldoc')
+    implementation project(':languages:oas')
 
-    compile gradleApi()
-    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
-    testCompile 'junit:junit:4.13'
-    testCompile gradleTestKit()
-    testCompile spockframework.spock_core
-    testCompile "org.assertj:assertj-core:3.16.0"
+    implementation gradleApi()
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:${versions.kotlin}"
+    testImplementation "junit:junit:${versions.junit}"
+    testImplementation gradleTestKit()
+    testImplementation spockframework.spock_core
+    testImplementation "org.assertj:assertj-core:${versions.assertj}"
 }
 
 
