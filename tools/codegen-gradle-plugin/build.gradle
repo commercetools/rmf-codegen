@@ -56,7 +56,7 @@ task createClasspathManifest {
 
 // Add the classpath file to the test runtime classpath
 dependencies {
-    testRuntime files(createClasspathManifest)
+    testRuntimeOnly files(createClasspathManifest)
 }
 
 compileJava.finalizedBy(createClasspathManifest)

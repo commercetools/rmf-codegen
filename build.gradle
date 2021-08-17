@@ -42,7 +42,7 @@ ext {
             jackson: '2.11.0',
             javaxValidation: '2.0.1.Final',
             kotlin: kotlinVersion,
-            picocli: '4.2.0',
+            picocli: '4.6.1',
             rmf: '0.2.0-20210817071658',
             rxjava: '3.0.7',
             slf4j: '1.7.25',
