@@ -1,7 +1,6 @@
 buildscript {
     repositories {
         mavenCentral()
-        jcenter()
     }
 }
 
@@ -28,13 +27,20 @@ plugins {
     id 'com.palantir.graal' version '0.7.2'
 
     id 'io.github.gradle-nexus.publish-plugin' version '1.0.0'
+    id 'org.jetbrains.kotlin.jvm' version '1.5.21'
+    id 'org.jetbrains.kotlin.kapt'  version '1.5.21' apply false
 }
 
 ext {
+    spockVersion = "1.3-groovy-2.5"
     versions = [
             spock: "1.1-groovy-2.4",
-            rmf: "0.2.0-20201204211458",
+            rmf: "0.2.0-20210817071658",
             kotlin: "1.3.10"
+    ]
+
+    spockframework = [
+            spock_core: "org.spockframework:spock-core:${spockVersion}"
     ]
 
     commons = [
@@ -130,13 +136,13 @@ group='com.commercetools.rmf'
 
 allprojects {
     description = "RAML API client code generators based on the REST Modeling Framework. https://github.com/vrapio/rest-modeling-framework"
+
+    repositories {
+        mavenCentral()
+    }
 }
 
 subprojects { project ->
-    repositories {
-        mavenCentral()
-        jcenter()
-    }
 
     apply plugin: 'idea'
     apply plugin: 'eclipse'
@@ -148,9 +154,17 @@ subprojects { project ->
     apply plugin: 'java'
     apply plugin: 'java-library' // needed to make sure that transitive deps have 'compile' scope
     apply plugin: 'groovy'
+    apply plugin: 'kotlin'
 
     group 'com.commercetools.rmf'
     version=globalVersion
+
+    compileKotlin {
+        kotlinOptions.jvmTarget = "1.8"
+    }
+    compileTestKotlin {
+        kotlinOptions.jvmTarget = "1.8"
+    }
 
     task sourcesJar(type: Jar) {
         from sourceSets.main.allSource

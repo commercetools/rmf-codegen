@@ -1,19 +1,8 @@
 import java.nio.file.Paths
 
-plugins {
-    id 'org.jetbrains.kotlin.jvm' version '1.3.72'
-    id "org.jetbrains.kotlin.kapt" version "1.3.72"
-}
-
-compileKotlin {
-    kotlinOptions.jvmTarget = "1.8"
-}
-compileTestKotlin {
-    kotlinOptions.jvmTarget = "1.8"
-}
-
 apply plugin: 'com.github.johnrengelman.shadow'
 apply plugin: 'com.palantir.graal'
+apply plugin: 'kotlin-kapt'
 
 graal {
     mainClass 'io.vrap.rmf.codegen.cli.MainKt'
@@ -97,6 +86,7 @@ dependencies {
     compile project(':languages:csharp')
     compile project(':languages:ramldoc')
     compile project(':languages:oas')
+    compile project(':ctp-validators')
 
     compile 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
     compile 'com.google.guava:guava:29.0-jre'
