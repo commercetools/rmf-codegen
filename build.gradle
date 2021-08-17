@@ -9,7 +9,6 @@ plugins {
     id 'idea'
     id 'eclipse'
     id "com.github.ben-manes.versions" version "0.28.0"
-    id 'maven'
     id 'maven-publish'
     id 'signing'
 
@@ -159,7 +158,6 @@ subprojects { project ->
     apply plugin: 'idea'
     apply plugin: 'eclipse'
 
-    apply plugin: 'maven'
     apply plugin: 'maven-publish'
     apply plugin: 'signing'
 
