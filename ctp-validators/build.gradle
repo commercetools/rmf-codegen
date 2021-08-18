@@ -1,0 +1,10 @@
+
+dependencies {
+    api "com.commercetools.rmf:raml-model:${versions.rmf}"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:${versions.kotlin}"
+    implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-xml:${versions.jackson}"
+    implementation "com.fasterxml.jackson.module:jackson-module-kotlin:${versions.jackson}"
+
+    testImplementation "junit:junit:${versions.junit}"
+    testImplementation spockframework.spock_core
+}

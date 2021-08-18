@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ruleset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="ruleset.xsd">
+    <name>default</name>
+    <rules>
+        <rule>
+            <name>com.commercetools.rmf.validators.PluralRule</name>
+            <options>
+                <option type="exclude">in-store</option>
+                <option type="exclude">me</option>
+                <option type="exclude">inventory</option>
+                <option type="exclude">login</option>
+                <option type="exclude">import</option>
+                <option type="exclude">password</option>
+                <option type="exclude">reset</option>
+                <option type="exclude">confirm</option>
+            </options>
+        </rule>
+        <rule>
+            <name>com.commercetools.rmf.validators.CamelCaseRule</name>
+        </rule>
+    </rules>
+</ruleset>

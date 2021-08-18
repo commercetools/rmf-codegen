@@ -1,19 +1,8 @@
 import java.nio.file.Paths
 
-plugins {
-    id 'org.jetbrains.kotlin.jvm' version '1.3.72'
-    id "org.jetbrains.kotlin.kapt" version "1.3.72"
-}
-
-compileKotlin {
-    kotlinOptions.jvmTarget = "1.8"
-}
-compileTestKotlin {
-    kotlinOptions.jvmTarget = "1.8"
-}
-
 apply plugin: 'com.github.johnrengelman.shadow'
 apply plugin: 'com.palantir.graal'
+apply plugin: 'kotlin-kapt'
 
 graal {
     mainClass 'io.vrap.rmf.codegen.cli.MainKt'
@@ -89,21 +78,22 @@ publishing {
 String dir = "${buildDir.toString()}/gensrc/main/kotlin/io/vrap/rmf/codegen/cli/info"
 
 dependencies {
-    compile project(':languages:javalang:builder-renderer:java-builder-client')
-    compile project(':languages:typescript')
-    compile project(':languages:postman')
-    compile project(':languages:python')
-    compile project(':languages:php')
-    compile project(':languages:csharp')
-    compile project(':languages:ramldoc')
-    compile project(':languages:oas')
+    implementation project(':languages:javalang:builder-renderer:java-builder-client')
+    implementation project(':languages:typescript')
+    implementation project(':languages:postman')
+    implementation project(':languages:python')
+    implementation project(':languages:php')
+    implementation project(':languages:csharp')
+    implementation project(':languages:ramldoc')
+    implementation project(':languages:oas')
+    implementation project(':ctp-validators')
 
-    compile 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
-    compile 'com.google.guava:guava:29.0-jre'
-    compile 'info.picocli:picocli:4.2.0'
-    kapt 'info.picocli:picocli-codegen:4.2.0'
-    compile group: 'io.methvin', name: 'directory-watcher', version: '0.9.9'
-    implementation "io.reactivex.rxjava3:rxjava:3.0.7"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:${versions.kotlin}"
+    implementation "com.google.guava:guava:${versions.guava}"
+    implementation "info.picocli:picocli:${versions.picocli}"
+    kapt "info.picocli:picocli-codegen:${versions.picocli}"
+    implementation "io.methvin:directory-watcher:${versions.directoryWatcher}"
+    implementation "io.reactivex.rxjava3:rxjava:${versions.rxjava}"
 }
 
 

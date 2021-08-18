@@ -1,17 +1,14 @@
 buildscript {
     repositories {
         mavenCentral()
-        jcenter()
     }
 }
 
 plugins {
     // Here we define all plugins that are used by subprojects and specify the version for external ones
-
     id 'idea'
     id 'eclipse'
     id "com.github.ben-manes.versions" version "0.28.0"
-    id 'maven'
     id 'maven-publish'
     id 'signing'
 
@@ -28,19 +25,38 @@ plugins {
     id 'com.palantir.graal' version '0.7.2'
 
     id 'io.github.gradle-nexus.publish-plugin' version '1.0.0'
+    id 'org.jetbrains.kotlin.jvm' version "$kotlinVersion"
+    id 'org.jetbrains.kotlin.kapt'  version "$kotlinVersion" apply false
 }
 
 ext {
+    spockVersion = '1.3-groovy-2.5'
     versions = [
-            spock: "1.1-groovy-2.4",
-            rmf: "0.2.0-20201204211458",
-            kotlin: "1.3.10"
+            annotations: '1.3.2',
+            assertj: '3.16.0',
+            commonmark: '0.14.0',
+            directoryWatcher: '0.9.9',
+            emfjsonJackson: '1.3.0',
+            guava: '29.0-jre',
+            junit: '4.13.2',
+            jackson: '2.11.0',
+            javaxValidation: '2.0.1.Final',
+            kotlin: kotlinVersion,
+            picocli: '4.6.1',
+            rmf: '0.2.0-20210817071658',
+            rxjava: '3.0.7',
+            slf4j: '1.7.25',
+            spock: '1.1-groovy-2.4',
+    ]
+
+    spockframework = [
+            spock_core: "org.spockframework:spock-core:${spockVersion}"
     ]
 
     commons = [
-            lang3: 'org.apache.commons:commons-lang3:3.10',
             cli: 'commons-cli:commons-cli:1.4',
-            io: 'commons-io:commons-io:2.6'
+            io: 'commons-io:commons-io:2.6',
+            lang3: 'org.apache.commons:commons-lang3:3.10',
     ]
 
     scmProjectName = rootProject.name
@@ -52,6 +68,7 @@ ext {
     SNAPSHOT_SUFFIX = "-SNAPSHOT"
     versionWIP = "development$SNAPSHOT_SUFFIX"
 }
+
 
 // maven-specific publishing settings
 def pomConfig = {
@@ -130,27 +147,34 @@ group='com.commercetools.rmf'
 
 allprojects {
     description = "RAML API client code generators based on the REST Modeling Framework. https://github.com/vrapio/rest-modeling-framework"
+
+    repositories {
+        mavenCentral()
+    }
 }
 
 subprojects { project ->
-    repositories {
-        mavenCentral()
-        jcenter()
-    }
 
     apply plugin: 'idea'
     apply plugin: 'eclipse'
 
-    apply plugin: 'maven'
     apply plugin: 'maven-publish'
     apply plugin: 'signing'
 
     apply plugin: 'java'
     apply plugin: 'java-library' // needed to make sure that transitive deps have 'compile' scope
     apply plugin: 'groovy'
+    apply plugin: 'kotlin'
 
     group 'com.commercetools.rmf'
     version=globalVersion
+
+    compileKotlin {
+        kotlinOptions.jvmTarget = "1.8"
+    }
+    compileTestKotlin {
+        kotlinOptions.jvmTarget = "1.8"
+    }
 
     task sourcesJar(type: Jar) {
         from sourceSets.main.allSource
