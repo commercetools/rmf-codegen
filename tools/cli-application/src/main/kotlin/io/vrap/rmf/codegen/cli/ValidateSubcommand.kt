@@ -1,5 +1,6 @@
 package io.vrap.rmf.codegen.cli
 
+import com.commercetools.rmf.validators.ValidatorSetup
 import com.google.common.collect.Lists
 import io.methvin.watcher.DirectoryChangeEvent
 import io.methvin.watcher.DirectoryWatcher
@@ -7,8 +8,10 @@ import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.schedulers.Schedulers
 import io.vrap.rmf.raml.model.RamlModelBuilder
 import io.vrap.rmf.raml.validation.RamlValidationSetup
+import io.vrap.rmf.raml.validation.RamlValidator
 import org.eclipse.emf.common.util.URI
 import picocli.CommandLine
+import java.io.File
 import java.nio.file.Path
 import java.util.concurrent.Callable
 import java.util.concurrent.TimeUnit
@@ -24,12 +27,17 @@ class ValidateSubcommand : Callable<Int> {
     @CommandLine.Parameters(index = "0", description = ["Api file location"])
     lateinit var ramlFileLocation: Path
 
+    @CommandLine.Option(names = ["-r", "--ruleset"], description = ["Ruleset configuration"], required = false)
+    var rulesetFile: Path? = null
+
     @CommandLine.Option(names = ["-w", "--watch"], description = ["Watches the files for changes"], required = false)
     var watch: Boolean = false
 
+    private lateinit var validators: List<RamlValidator>
+
     override fun call(): Int {
         setupValidators()
-        val res = safeRun { verify()}
+        val res = safeRun { validate()}
         if (watch) {
             val watchDir = ramlFileLocation.toAbsolutePath().parent
 
@@ -62,7 +70,7 @@ class ValidateSubcommand : Callable<Int> {
                     .blockingSubscribe(
                             {
                                 InternalLogger.debug("Consume ${it.eventType().name.toLowerCase()}: ${it.path()}")
-                                safeRun { verify() }
+                                safeRun { validate() }
                             },
                             {
                                 InternalLogger.error(it)
@@ -72,13 +80,13 @@ class ValidateSubcommand : Callable<Int> {
         return res
     }
 
-    fun verify(): Int {
+    fun validate(): Int {
         val fileURI = URI.createURI(ramlFileLocation.toUri().toString())
-        val modelResult = RamlModelBuilder().buildApi(fileURI)
+        val modelResult = RamlModelBuilder().buildApi(fileURI, validators)
         val validationResults = modelResult.validationResults
         if (validationResults.isNotEmpty()) {
             val res = validationResults.stream().map { "$it" }.collect( Collectors.joining( "\n" ) );
-            InternalLogger.error("Error(s) found validating ${fileURI.toFileString()}:\n$res")
+            InternalLogger.error("${validationResults.size} Error(s) found validating ${fileURI.toFileString()}:\n$res")
             return 1
         }
         InternalLogger.info("Specification at ${fileURI.toFileString()} is valid.")
@@ -86,7 +94,8 @@ class ValidateSubcommand : Callable<Int> {
     }
 
     private fun setupValidators() {
-        RamlValidationSetup.setup(Lists.newArrayList())
+        val ruleset = rulesetFile?.toFile() ?: File(ValidateSubcommand::class.java.getResource("/ruleset.xml").toURI())
+        validators = ValidatorSetup.setup(ruleset)
     }
 
 }

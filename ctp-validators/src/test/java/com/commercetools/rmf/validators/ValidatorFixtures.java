@@ -1,10 +1,9 @@
 package com.commercetools.rmf.validators;
 
-import io.vrap.rmf.raml.persistence.RamlResourceSet;
 import org.eclipse.emf.common.util.URI;
-import org.eclipse.emf.ecore.resource.Resource;
 
-import java.io.IOException;
+import java.io.File;
+import java.net.URISyntaxException;
 import java.net.URL;
 
 
@@ -18,4 +17,14 @@ public interface ValidatorFixtures {
         return URI.createURI(url.toString());
     }
 
+    default File fileFromClasspath(final String name) {
+        final URL url = ValidatorFixtures.class.getResource(name);
+        try {
+            assert url != null;
+            return new File(url.toURI());
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 }
