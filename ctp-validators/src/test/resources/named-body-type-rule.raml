@@ -1,0 +1,67 @@
+#%RAML 1.0
+title: named body types
+
+types:
+  Foo: object
+/categories:
+  get:
+    responses:
+      201:
+        body:
+          application/json:
+            type: Foo
+  post:
+    body:
+      application/json:
+        type: Foo
+/categories-desc:
+  get:
+    responses:
+      201:
+        body:
+          application/json:
+            type: Foo
+            description: Foo
+  post:
+    body:
+      application/json:
+        description: Foo
+        type: Foo
+/invalid:
+  post:
+    body:
+      application/json:
+        type: object
+    responses:
+      201:
+        body:
+          application/json:
+            type: object
+/invalid-extend:
+  post:
+    body:
+      application/json:
+        type: Foo
+        properties:
+          bar: string
+    responses:
+      201:
+        body:
+          application/json:
+            type: Foo
+            properties:
+              bar: string
+/invalid-all:
+  post:
+    body:
+      application/json:
+        type: Foo
+      application/xml:
+        type: object
+    responses:
+      201:
+        body:
+          application/json:
+            type: Foo
+          application/xml:
+            type: object

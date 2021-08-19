@@ -74,5 +74,14 @@
         <rule>
             <name>com.commercetools.rmf.validators.PackageDefinedRule</name>
         </rule>
+        <rule>
+            <name>com.commercetools.rmf.validators.PostBodyRule</name>
+        </rule>
+        <rule>
+            <name>com.commercetools.rmf.validators.SuccessBodyRule</name>
+        </rule>
+<!--        <rule>-->
+<!--            <name>com.commercetools.rmf.validators.NamedBodyTypeRule</name>-->
+<!--        </rule>-->
     </rules>
 </ruleset>

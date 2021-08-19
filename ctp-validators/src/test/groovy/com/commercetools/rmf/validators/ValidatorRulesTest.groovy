@@ -48,6 +48,32 @@ class ValidatorRulesTest extends Specification implements ValidatorFixtures {
         result.validationResults[1].message == "Named string type \"InvalidStringDesc\" must define enum values"
     }
 
+    def "method post body rule"() {
+        when:
+        def validators = Arrays.asList(new ResourcesValidator(Arrays.asList(new PostBodyRule())))
+        def uri = uriFromClasspath("/method-post-body-rule.raml")
+        def result = new RamlModelBuilder().buildApi(uri, validators as List<RamlValidator>)
+        then:
+        result.validationResults.size == 2
+        result.validationResults[0].message == "Method \"POST /invalid\" must have body type defined"
+        result.validationResults[1].message == "Method \"POST /invalid-all\" must have body type defined"
+    }
+
+//    def "named body type rule"() {
+//        when:
+//        def validators = Arrays.asList(new ResourcesValidator(Arrays.asList(new NamedBodyTypeRule())))
+//        def uri = uriFromClasspath("/named-body-type-rule.raml")
+//        def result = new RamlModelBuilder().buildApi(uri, validators as List<RamlValidator>)
+//        then:
+//        result.validationResults.size == 6
+//        result.validationResults[0].message == "Method \"POST /invalid\" must have body type defined"
+//        result.validationResults[1].message == "Method \"POST /invalid-all\" must have body type defined"
+//        result.validationResults[2].message == "Method \"POST /invalid-all\" must have body type defined"
+//        result.validationResults[3].message == "Method \"POST /invalid-all\" must have body type defined"
+//        result.validationResults[4].message == "Method \"POST /invalid-all\" must have body type defined"
+//        result.validationResults[5].message == "Method \"POST /invalid-all\" must have body type defined"
+//    }
+
     def "package defined rule"() {
         when:
         def validators = Arrays.asList(new TypesValidator(Arrays.asList(new PackageDefinedRule())))
@@ -98,6 +124,17 @@ class ValidatorRulesTest extends Specification implements ValidatorFixtures {
         result.validationResults[0].message == "Resource \"invalid\" should be plural"
     }
 
+    def "success body rule"() {
+        when:
+        def validators = Arrays.asList(new ResourcesValidator(Arrays.asList(new SuccessBodyRule())))
+        def uri = uriFromClasspath("/success-body-rule.raml")
+        def result = new RamlModelBuilder().buildApi(uri, validators as List<RamlValidator>)
+        then:
+        result.validationResults.size == 3
+        result.validationResults[0].message == "Method \"POST /invalid\" must have body type for success response(s) defined"
+        result.validationResults[1].message == "Method \"POST /invalid-mixed\" must have body type for success response(s) defined"
+        result.validationResults[2].message == "Method \"POST /invalid-all\" must have body type for success response(s) defined"
+    }
 
     def "update action name rule"() {
         when:
