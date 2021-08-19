@@ -37,6 +37,17 @@ class ValidatorRulesTest extends Specification implements ValidatorFixtures {
         result.validationResults[0].message == "Type \"FileNameInvalid\" must have the same file name as type itself"
     }
 
+    def "name string enum rule"() {
+        when:
+        def validators = Arrays.asList(new TypesValidator(Arrays.asList(new NamedStringEnumRule())))
+        def uri = uriFromClasspath("/namedstringenum-rule.raml")
+        def result = new RamlModelBuilder().buildApi(uri, validators as List<RamlValidator>)
+        then:
+        result.validationResults.size == 2
+        result.validationResults[0].message == "Named string type \"InvalidString\" must define enum values"
+        result.validationResults[1].message == "Named string type \"InvalidStringDesc\" must define enum values"
+    }
+
     def "property plural rule"() {
         when:
         def validators = Arrays.asList(new TypesValidator(Arrays.asList(new PropertyPluralRule())))
@@ -49,7 +60,7 @@ class ValidatorRulesTest extends Specification implements ValidatorFixtures {
 
     def "property singular rule"() {
         when:
-        def validators = Arrays.asList(new TypesValidator(Arrays.asList(new PropertySingularRule())))
+        def validators = Arrays.asList(new TypesValidator(Arrays.asList(new StringPropertySingularRule())))
         def uri = uriFromClasspath("/propertysingular-rule.raml")
         def result = new RamlModelBuilder().buildApi(uri, validators as List<RamlValidator>)
         then:

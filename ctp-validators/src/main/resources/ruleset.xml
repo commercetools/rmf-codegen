@@ -57,10 +57,18 @@
             </options>
         </rule>
         <rule>
-            <name>com.commercetools.rmf.validators.PropertySingularRule</name>
+            <name>com.commercetools.rmf.validators.StringPropertySingularRule</name>
             <options>
                 <option type="exclude">status</option>
                 <option type="exclude">taxCalculationMode</option>
+            </options>
+        </rule>
+        <rule>
+            <name>com.commercetools.rmf.validators.NamedStringEnumRule</name>
+            <options>
+                <option type="exclude">Expansion</option>
+                <option type="exclude">QueryPredicate</option>
+                <option type="exclude">Sort</option>
             </options>
         </rule>
     </rules>

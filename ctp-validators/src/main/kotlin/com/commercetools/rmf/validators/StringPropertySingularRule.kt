@@ -1,14 +1,12 @@
 package com.commercetools.rmf.validators
 
 import com.hypertino.inflector.English
-import io.vrap.rmf.raml.model.types.ArrayType
-import io.vrap.rmf.raml.model.types.ObjectType
 import io.vrap.rmf.raml.model.types.Property
 import io.vrap.rmf.raml.model.types.StringType
 import org.eclipse.emf.common.util.Diagnostic
 import java.util.*
 
-class PropertySingularRule(options: List<RuleOption>? = null) : TypesRule(options) {
+class StringPropertySingularRule(options: List<RuleOption>? = null) : TypesRule(options) {
 
     private val exclude: List<String> =
         (options?.filter { ruleOption -> ruleOption.type.toLowerCase() == RuleOptionType.EXCLUDE.toString() }?.map { ruleOption -> ruleOption.value }?.plus("") ?: defaultExcludes)
@@ -26,11 +24,11 @@ class PropertySingularRule(options: List<RuleOption>? = null) : TypesRule(option
     }
 
 
-    companion object : ValidatorFactory<PropertySingularRule> {
+    companion object : ValidatorFactory<StringPropertySingularRule> {
         private val defaultExcludes by lazy { listOf("error_description") }
 
-        override fun create(options: List<RuleOption>): PropertySingularRule {
-            return PropertySingularRule(options)
+        override fun create(options: List<RuleOption>): StringPropertySingularRule {
+            return StringPropertySingularRule(options)
         }
     }
 }
