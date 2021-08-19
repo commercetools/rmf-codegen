@@ -8,7 +8,7 @@ import java.util.*
 class PluralRule(options: List<RuleOption>? = null) : ResourcesRule(options) {
 
     private val exclude: List<String> =
-        (options?.filter { ruleOption -> ruleOption.type.toLowerCase() == EXCLUDE }?.map { ruleOption -> ruleOption.value }?.plus("") ?: defaultExcludes)
+        (options?.filter { ruleOption -> ruleOption.type.toLowerCase() == RuleOptionType.EXCLUDE.toString() }?.map { ruleOption -> ruleOption.value }?.plus("") ?: defaultExcludes)
 
     override fun caseResource(resource: Resource): List<Diagnostic> {
         val validationResults: MutableList<Diagnostic> = ArrayList()
@@ -21,7 +21,6 @@ class PluralRule(options: List<RuleOption>? = null) : ResourcesRule(options) {
     }
 
     companion object : ValidatorFactory<PluralRule> {
-        const val EXCLUDE = "exclude"
         private val defaultExcludes by lazy { listOf("", "inventory", "login", "me", "import", "in-store") }
 
         override fun create(options: List<RuleOption>): PluralRule {

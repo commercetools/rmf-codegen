@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.MapperFeature
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.dataformat.xml.XmlMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
+import io.vrap.rmf.raml.model.modules.util.ModulesSwitch
 import io.vrap.rmf.raml.model.resources.util.ResourcesSwitch
 import io.vrap.rmf.raml.model.types.util.TypesSwitch
 import io.vrap.rmf.raml.validation.RamlValidator
@@ -30,7 +31,8 @@ class ValidatorSetup {
 
             return listOf(
                 ResourcesValidator(validators.filter { it is ResourcesSwitch<*> } as List<ResourcesSwitch<List<Diagnostic>>>),
-                TypesValidator(validators.filter { it is TypesSwitch<*> } as List<TypesSwitch<List<Diagnostic>>>)
+                TypesValidator(validators.filter { it is TypesSwitch<*> } as List<TypesSwitch<List<Diagnostic>>>),
+                ModulesValidator(validators.filter { it is ModulesSwitch<*> } as List<ModulesSwitch<List<Diagnostic>>>)
             )
         }
     }

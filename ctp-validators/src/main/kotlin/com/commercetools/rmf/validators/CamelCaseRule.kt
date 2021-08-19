@@ -8,7 +8,7 @@ import java.util.*
 class CamelCaseRule(options: List<RuleOption>? = null) : TypesRule(options) {
 
     private val exclude: List<String> =
-        (options?.filter { ruleOption -> ruleOption.type.toLowerCase() == EXCLUDE }?.map { ruleOption -> ruleOption.value }?.plus("") ?: defaultExcludes)
+        (options?.filter { ruleOption -> ruleOption.type.toLowerCase() == RuleOptionType.EXCLUDE.toString() }?.map { ruleOption -> ruleOption.value }?.plus("") ?: defaultExcludes)
 
     override fun caseProperty(property: Property?): List<Diagnostic> {
         val validationResults: MutableList<Diagnostic> = ArrayList()
@@ -22,7 +22,6 @@ class CamelCaseRule(options: List<RuleOption>? = null) : TypesRule(options) {
 
 
     companion object : ValidatorFactory<CamelCaseRule> {
-        const val EXCLUDE = "exclude"
         private val defaultExcludes by lazy { listOf("error_description") }
 
         override fun create(options: List<RuleOption>): CamelCaseRule {

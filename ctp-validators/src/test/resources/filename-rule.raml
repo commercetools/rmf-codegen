@@ -1,0 +1,9 @@
+#%RAML 1.0
+title: filename rule
+
+types:
+  FileNameTest: !include FileNameTest.raml
+  FileNameInvalid: !include filename-invalid.raml
+  InlineType:
+    type: object
+/:
