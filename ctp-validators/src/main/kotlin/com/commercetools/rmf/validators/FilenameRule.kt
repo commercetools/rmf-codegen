@@ -1,11 +1,9 @@
 package com.commercetools.rmf.validators
 
 import io.vrap.rmf.nodes.antlr.NodeToken
-import io.vrap.rmf.nodes.antlr.NodeTokenProvider
-import io.vrap.rmf.raml.model.modules.Api
+import io.vrap.rmf.raml.model.modules.TypeContainer
 import io.vrap.rmf.raml.model.types.AnyType
 import io.vrap.rmf.raml.persistence.antlr.RAMLParser
-import io.vrap.rmf.raml.persistence.antlr.RamlNodeTokenSource
 import io.vrap.rmf.raml.persistence.constructor.RamlParserAdapter
 import org.antlr.v4.runtime.ParserRuleContext
 import org.antlr.v4.runtime.tree.TerminalNode
@@ -15,11 +13,12 @@ class FilenameRule(options: List<RuleOption>? = null) : ModulesRule(options) {
     private val exclude: List<String> =
         (options?.filter { ruleOption -> ruleOption.type.toLowerCase() == RuleOptionType.EXCLUDE.toString() }?.map { ruleOption -> ruleOption.value }?.plus("") ?: defaultExcludes)
 
-    override fun caseApi(api: Api?): List<Diagnostic> {
+    override fun caseTypeContainer(container: TypeContainer?): List<Diagnostic> {
         val validationResults: MutableList<Diagnostic> = ArrayList()
 
-        if (api?.types != null) {
-            api.types
+        if (container?.types != null) {
+            container.types
+                .filterNot { exclude.contains(it.name) }
                 .forEach {
                     val r = it?.eAdapters()?.filterIsInstance(RamlParserAdapter::class.java)?.map {
                             adapter -> checkIncludedTypeFileName(it, adapter.parserRuleContext)
@@ -29,6 +28,7 @@ class FilenameRule(options: List<RuleOption>? = null) : ModulesRule(options) {
                     }
                 }
         }
+
         return validationResults
     }
 
