@@ -3,6 +3,13 @@ title: name string enum rule
 
 annotationTypes:
   package: string
+resourceTypes:
+  base:
+    get:
+      body:
+        application/json:
+          type: <<resourceType>>
+
 types:
   Foo:
     (package): Common

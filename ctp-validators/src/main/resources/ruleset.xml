@@ -71,5 +71,8 @@
                 <option type="exclude">Sort</option>
             </options>
         </rule>
+        <rule>
+            <name>com.commercetools.rmf.validators.PackageDefinedRule</name>
+        </rule>
     </rules>
 </ruleset>
