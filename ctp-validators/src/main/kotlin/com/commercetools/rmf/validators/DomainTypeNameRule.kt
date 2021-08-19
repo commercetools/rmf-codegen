@@ -10,7 +10,7 @@ class DomainTypeNameRule(options: List<RuleOption>? = null) : TypesRule(options)
     private val exclude: List<String> =
         (options?.filter { ruleOption -> ruleOption.type.toLowerCase() == RuleOptionType.EXCLUDE.toString() }?.map { ruleOption -> ruleOption.value }?.plus("") ?: defaultExcludes)
 
-    override fun caseAnyType(type: AnyType?): List<Diagnostic> {
+    override fun caseAnyType(type: AnyType): List<Diagnostic> {
         val validationResults: MutableList<Diagnostic> = ArrayList()
 //        if (type != null && exclude.contains(type.name).not()) {
 //            val packageAnnotation = type.getAnnotation("package")

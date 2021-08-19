@@ -11,12 +11,12 @@ class StringPropertySingularRule(options: List<RuleOption>? = null) : TypesRule(
     private val exclude: List<String> =
         (options?.filter { ruleOption -> ruleOption.type.toLowerCase() == RuleOptionType.EXCLUDE.toString() }?.map { ruleOption -> ruleOption.value }?.plus("") ?: defaultExcludes)
 
-    override fun caseProperty(property: Property?): List<Diagnostic> {
+    override fun caseProperty(property: Property): List<Diagnostic> {
         val validationResults: MutableList<Diagnostic> = ArrayList()
-        val propertyName = property?.name ?: ""
+        val propertyName = property.name ?: ""
         val propertySingular = English.singular(propertyName)
 
-        if (property != null && property.type is StringType && property.pattern == null && propertyName != propertySingular && exclude.contains(propertyName).not()) {
+        if (property.type is StringType && property.pattern == null && propertyName != propertySingular && exclude.contains(propertyName).not()) {
 
             validationResults.add(error(property, "Non array property \"{0}\" must be singular", propertyName))
         }
@@ -25,7 +25,7 @@ class StringPropertySingularRule(options: List<RuleOption>? = null) : TypesRule(
 
 
     companion object : ValidatorFactory<StringPropertySingularRule> {
-        private val defaultExcludes by lazy { listOf("error_description") }
+        private val defaultExcludes by lazy { listOf("") }
 
         override fun create(options: List<RuleOption>): StringPropertySingularRule {
             return StringPropertySingularRule(options)

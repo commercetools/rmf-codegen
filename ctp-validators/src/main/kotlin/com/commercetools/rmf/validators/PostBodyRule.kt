@@ -11,9 +11,9 @@ class PostBodyRule(options: List<RuleOption>? = null) : ResourcesRule(options) {
     private val exclude: List<String> =
         (options?.filter { ruleOption -> ruleOption.type.toLowerCase() == RuleOptionType.EXCLUDE.toString() }?.map { ruleOption -> ruleOption.value }?.plus("") ?: defaultExcludes)
 
-    override fun caseMethod(method: Method?): List<Diagnostic> {
+    override fun caseMethod(method: Method): List<Diagnostic> {
         val validationResults: MutableList<Diagnostic> = ArrayList()
-        val httpMethod = method?.method
+        val httpMethod = method.method
 
         if (httpMethod == HttpMethod.POST && !method.bodies.all { body -> body.type != null } && exclude.contains("${method.method.name} ${(method.eContainer() as Resource).fullUri.template}").not()) {
             validationResults.add(error(method, "Method \"{0} {1}\" must have body type defined", method.method.name, (method.eContainer() as Resource).fullUri.template))

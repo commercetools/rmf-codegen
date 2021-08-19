@@ -10,10 +10,10 @@ class NamedStringEnumRule(options: List<RuleOption>? = null) : TypesRule(options
     private val exclude: List<String> =
         (options?.filter { ruleOption -> ruleOption.type.toLowerCase() == RuleOptionType.EXCLUDE.toString() }?.map { ruleOption -> ruleOption.value }?.plus("") ?: defaultExcludes)
 
-    override fun caseStringType(type: StringType?): List<Diagnostic> {
+    override fun caseStringType(type: StringType): List<Diagnostic> {
         val validationResults: MutableList<Diagnostic> = ArrayList()
 
-        if (type != null && exclude.contains(type.name).not() && type.name != "string") {
+        if (exclude.contains(type.name).not() && type.name != "string") {
             if (!type.isInlineType() && type.enum.isNullOrEmpty() && type.pattern == null) {
                 validationResults.add(error(type, "Named string type \"{0}\" must define enum values", type.name))
             }

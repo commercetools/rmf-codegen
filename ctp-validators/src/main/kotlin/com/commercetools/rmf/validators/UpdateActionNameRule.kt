@@ -9,10 +9,10 @@ class UpdateActionNameRule(options: List<RuleOption>? = null) : TypesRule(option
     private val exclude: List<String> =
         (options?.filter { ruleOption -> ruleOption.type.toLowerCase() == RuleOptionType.EXCLUDE.toString() }?.map { ruleOption -> ruleOption.value }?.plus("") ?: defaultExcludes)
 
-    override fun caseAnyType(type: AnyType?): List<Diagnostic> {
+    override fun caseAnyType(type: AnyType): List<Diagnostic> {
         val validationResults: MutableList<Diagnostic> = ArrayList()
 
-        if (type != null && exclude.contains(type.name).not()) {
+        if (exclude.contains(type.name).not()) {
             if (type.type != null && type.type.name.endsWith("UpdateAction") && !type.name.endsWith("Action")) {
                 validationResults.add(error(type, "Update action type \"{0}\" name must end with \"Action\"", type.name))
             }

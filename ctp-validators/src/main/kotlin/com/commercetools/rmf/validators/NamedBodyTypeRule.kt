@@ -24,34 +24,33 @@ class NamedBodyTypeRule(options: List<RuleOption>? = null) : ResourcesRule(optio
 //        return validationResults
 //    }
 
-    override fun caseBodyContainer(bodyContainer: BodyContainer?): List<Diagnostic> {
+    override fun caseBodyContainer(bodyContainer: BodyContainer): List<Diagnostic> {
         val validationResults: MutableList<Diagnostic> = ArrayList()
 
-        if (bodyContainer != null) {
-            if (!bodyContainer.bodies.all { body -> body.type != null && body.type.name != null && !BuiltinType.of(body.type.name).isPresent }) {
-                if (bodyContainer is Method) {
-                    validationResults.add(
-                        error(
-                            bodyContainer,
-                            "Method \"{0} {1}\" must have body type defined",
-                            bodyContainer.method.name,
-                            (bodyContainer.eContainer() as Resource).fullUri.template
-                        )
+        if (!bodyContainer.bodies.all { body -> body.type != null && body.type.name != null && !BuiltinType.of(body.type.name).isPresent }) {
+            if (bodyContainer is Method) {
+                validationResults.add(
+                    error(
+                        bodyContainer,
+                        "Method \"{0} {1}\" must have body type defined",
+                        bodyContainer.method.name,
+                        (bodyContainer.eContainer() as Resource).fullUri.template
                     )
-                } else {
-                    val method = bodyContainer.getParent(Method::class.java)
-                    validationResults.add(
-                        error(
-                            bodyContainer,
-                            "Method \"{0} {1}\" must have success body type defined",
-                            method?.method?.name,
-                            (method?.eContainer() as Resource).fullUri.template
-                        )
+                )
+            } else {
+                val method = bodyContainer.getParent(Method::class.java)
+                validationResults.add(
+                    error(
+                        bodyContainer,
+                        "Method \"{0} {1}\" must have success body type defined",
+                        method?.method?.name,
+                        (method?.eContainer() as Resource).fullUri.template
                     )
-                }
-
+                )
             }
+
         }
+
         return validationResults
     }
 

@@ -15,7 +15,7 @@ class ResourcePluralRule(options: List<RuleOption>? = null) : ResourcesRule(opti
         val resourcePathName = resource.resourcePathName
         val pluralName = English.plural(English.singular(resourcePathName))
         if (exclude.contains(resourcePathName).not() && pluralName != resourcePathName) {
-            validationResults.add(error(resource, "Resource \"{0}\" should be plural", resourcePathName))
+            validationResults.add(error(resource, "Resource \"{0}\" must be plural", resourcePathName))
         }
         return validationResults
     }

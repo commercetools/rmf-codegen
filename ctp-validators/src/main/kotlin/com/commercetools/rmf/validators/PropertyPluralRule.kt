@@ -11,12 +11,12 @@ class PropertyPluralRule(options: List<RuleOption>? = null) : TypesRule(options)
     private val exclude: List<String> =
         (options?.filter { ruleOption -> ruleOption.type.toLowerCase() == RuleOptionType.EXCLUDE.toString() }?.map { ruleOption -> ruleOption.value }?.plus("") ?: defaultExcludes)
 
-    override fun caseProperty(property: Property?): List<Diagnostic> {
+    override fun caseProperty(property: Property): List<Diagnostic> {
         val validationResults: MutableList<Diagnostic> = ArrayList()
-        val propertyName = property?.name ?: ""
+        val propertyName = property.name ?: ""
         val pluralName = English.plural(English.singular(propertyName))
 
-        if (property != null && property.type is ArrayType && property.pattern == null && propertyName != pluralName && exclude.contains(propertyName).not()) {
+        if (property.type is ArrayType && property.pattern == null && propertyName != pluralName && exclude.contains(propertyName).not()) {
 
             validationResults.add(error(property, "Array property \"{0}\" must be plural", propertyName))
         }

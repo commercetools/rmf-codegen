@@ -10,10 +10,10 @@ class DiscriminatorNameRule(options: List<RuleOption>? = null) : TypesRule(optio
     private val exclude: List<String> =
         (options?.filter { ruleOption -> ruleOption.type.toLowerCase() == RuleOptionType.EXCLUDE.toString() }?.map { ruleOption -> ruleOption.value }?.plus("") ?: defaultExcludes)
 
-    override fun caseAnyType(type: AnyType?): List<Diagnostic> {
+    override fun caseAnyType(type: AnyType): List<Diagnostic> {
         val validationResults: MutableList<Diagnostic> = ArrayList()
 
-        if (type != null && exclude.contains(type.name).not()) {
+        if (exclude.contains(type.name).not()) {
             val parentType = type.type
             if (type is ObjectType && parentType != null && parentType.name.endsWith("UpdateAction")) {
                 if (type.discriminatorValue.isNullOrEmpty()) {

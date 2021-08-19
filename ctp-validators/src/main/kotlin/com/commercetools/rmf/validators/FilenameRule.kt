@@ -13,10 +13,10 @@ class FilenameRule(options: List<RuleOption>? = null) : ModulesRule(options) {
     private val exclude: List<String> =
         (options?.filter { ruleOption -> ruleOption.type.toLowerCase() == RuleOptionType.EXCLUDE.toString() }?.map { ruleOption -> ruleOption.value }?.plus("") ?: defaultExcludes)
 
-    override fun caseTypeContainer(container: TypeContainer?): List<Diagnostic> {
+    override fun caseTypeContainer(container: TypeContainer): List<Diagnostic> {
         val validationResults: MutableList<Diagnostic> = ArrayList()
 
-        if (container?.types != null) {
+        if (container.types != null) {
             container.types
                 .filterNot { exclude.contains(it.name) }
                 .forEach {

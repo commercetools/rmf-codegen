@@ -12,12 +12,12 @@ class PackageDefinedRule(options: List<RuleOption>? = null) : TypesRule(options)
     private val exclude: List<String> =
         (options?.filter { ruleOption -> ruleOption.type.toLowerCase() == RuleOptionType.EXCLUDE.toString() }?.map { ruleOption -> ruleOption.value }?.plus("") ?: defaultExcludes)
 
-    override fun caseAnyType(type: AnyType?): List<Diagnostic> {
+    override fun caseAnyType(type: AnyType): List<Diagnostic> {
         val validationResults: MutableList<Diagnostic> = ArrayList()
-        if (type != null && type.name != null && type !is TypeTemplate && exclude.contains(type.name).not() && !BuiltinType.of(type.name).isPresent()) {
+        if (type.name != null && type !is TypeTemplate && exclude.contains(type.name).not() && !BuiltinType.of(type.name).isPresent()) {
             val packageAnno = type.getAnnotation("package", true)
             if (packageAnno == null) {
-                validationResults.add(error(type, "Type \"{0}\" should have package annotation defined", type.name))
+                validationResults.add(error(type, "Type \"{0}\" must have package annotation defined", type.name))
             }
         }
 

@@ -80,6 +80,9 @@
         <rule>
             <name>com.commercetools.rmf.validators.SuccessBodyRule</name>
         </rule>
+        <rule>
+            <name>com.commercetools.rmf.validators.QueryParameterCamelCaseRule</name>
+        </rule>
 <!--        <rule>-->
 <!--            <name>com.commercetools.rmf.validators.NamedBodyTypeRule</name>-->
 <!--        </rule>-->

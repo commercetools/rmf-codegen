@@ -12,7 +12,7 @@ class ValidatorRulesTest extends Specification implements ValidatorFixtures {
         def result = new RamlModelBuilder().buildApi(uri, validators as List<RamlValidator>)
         then:
         result.validationResults.size == 1
-        result.validationResults[0].message == "Property \"invalid_case\" should be lower camel cased"
+        result.validationResults[0].message == "Property \"invalid_case\" must be lower camel cased"
     }
 
     def "discriminator name rule"() {
@@ -81,8 +81,8 @@ class ValidatorRulesTest extends Specification implements ValidatorFixtures {
         def result = new RamlModelBuilder().buildApi(uri, validators as List<RamlValidator>)
         then:
         result.validationResults.size == 2
-        result.validationResults[0].message == "Type \"InvalidString\" should have package annotation defined"
-        result.validationResults[1].message == "Type \"InvalidStringDesc\" should have package annotation defined"
+        result.validationResults[0].message == "Type \"InvalidString\" must have package annotation defined"
+        result.validationResults[1].message == "Type \"InvalidStringDesc\" must have package annotation defined"
     }
 
     def "property plural rule"() {
@@ -121,7 +121,7 @@ class ValidatorRulesTest extends Specification implements ValidatorFixtures {
         def result = new RamlModelBuilder().buildApi(uri, validators as List<RamlValidator>)
         then:
         result.validationResults.size == 1
-        result.validationResults[0].message == "Resource \"invalid\" should be plural"
+        result.validationResults[0].message == "Resource \"invalid\" must be plural"
     }
 
     def "success body rule"() {
