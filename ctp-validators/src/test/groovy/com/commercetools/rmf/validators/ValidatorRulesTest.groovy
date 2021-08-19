@@ -48,6 +48,17 @@ class ValidatorRulesTest extends Specification implements ValidatorFixtures {
         result.validationResults[1].message == "Named string type \"InvalidStringDesc\" must define enum values"
     }
 
+    def "package defined rule"() {
+        when:
+        def validators = Arrays.asList(new TypesValidator(Arrays.asList(new PackageDefinedRule())))
+        def uri = uriFromClasspath("/packagedefined-rule.raml")
+        def result = new RamlModelBuilder().buildApi(uri, validators as List<RamlValidator>)
+        then:
+        result.validationResults.size == 2
+        result.validationResults[0].message == "Type \"InvalidString\" should have package annotation defined"
+        result.validationResults[1].message == "Type \"InvalidStringDesc\" should have package annotation defined"
+    }
+
     def "property plural rule"() {
         when:
         def validators = Arrays.asList(new TypesValidator(Arrays.asList(new PropertyPluralRule())))

@@ -1,0 +1,18 @@
+#%RAML 1.0
+title: name string enum rule
+
+annotationTypes:
+  package: string
+types:
+  Foo:
+    (package): Common
+    type: string
+  FooDesc:
+    (package): Common
+    description: test
+    type: string
+  InvalidString:
+    type: string
+  InvalidStringDesc:
+    description: invalid
+    type: string
