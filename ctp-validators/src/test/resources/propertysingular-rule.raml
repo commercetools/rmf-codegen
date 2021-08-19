@@ -1,0 +1,12 @@
+#%RAML 1.0
+title: property plural rule
+
+types:
+  Foo:
+    type: object
+    properties:
+      invalidItems: string
+      validItem: string
+      /a-z/: string
+      maxApplications: number
+      hasChanges: boolean

@@ -24,7 +24,7 @@ class FilenameRule(options: List<RuleOption>? = null) : ModulesRule(options) {
                             adapter -> checkIncludedTypeFileName(it, adapter.parserRuleContext)
                     } ?: emptyList()
                     if (r.contains(true).not()) {
-                        validationResults.add(error(it, "Type {0} must have the same file name as type itself", it.name))
+                        validationResults.add(error(it, "Type \"{0}\" must have the same file name as type itself", it.name))
                     }
                 }
         }

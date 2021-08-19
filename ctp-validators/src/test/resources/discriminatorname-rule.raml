@@ -1,0 +1,17 @@
+#%RAML 1.0
+title: property camel case rule
+
+types:
+  FooUpdateAction:
+    type: object
+    discriminator: type
+    properties:
+      type: string
+  BarFoo:
+    type: FooUpdateAction
+    discriminatorValue: bar
+  BazFoo:
+    type: FooUpdateAction
+  InvalidFoo:
+    type: FooUpdateAction
+    discriminatorValue: boz

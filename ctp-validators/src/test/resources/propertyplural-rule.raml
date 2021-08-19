@@ -1,0 +1,10 @@
+#%RAML 1.0
+title: property plural rule
+
+types:
+  Foo:
+    type: object
+    properties:
+      validItems: string[]
+      invalidItem: string[]
+      /a-z/: string[]

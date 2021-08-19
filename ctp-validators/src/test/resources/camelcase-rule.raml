@@ -1,0 +1,10 @@
+#%RAML 1.0
+title: property camel case rule
+
+types:
+  Foo:
+    type: object
+    properties:
+      /a-z/: string
+      camelCase: string
+      invalid_case: string

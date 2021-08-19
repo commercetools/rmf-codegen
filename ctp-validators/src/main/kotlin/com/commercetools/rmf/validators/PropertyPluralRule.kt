@@ -1,11 +1,12 @@
 package com.commercetools.rmf.validators
 
+import com.hypertino.inflector.English
+import io.vrap.rmf.raml.model.types.ArrayType
 import io.vrap.rmf.raml.model.types.Property
-import io.vrap.rmf.raml.model.util.StringCaseFormat
 import org.eclipse.emf.common.util.Diagnostic
 import java.util.*
 
-class CamelCaseRule(options: List<RuleOption>? = null) : TypesRule(options) {
+class PropertyPluralRule(options: List<RuleOption>? = null) : TypesRule(options) {
 
     private val exclude: List<String> =
         (options?.filter { ruleOption -> ruleOption.type.toLowerCase() == RuleOptionType.EXCLUDE.toString() }?.map { ruleOption -> ruleOption.value }?.plus("") ?: defaultExcludes)
@@ -13,19 +14,21 @@ class CamelCaseRule(options: List<RuleOption>? = null) : TypesRule(options) {
     override fun caseProperty(property: Property?): List<Diagnostic> {
         val validationResults: MutableList<Diagnostic> = ArrayList()
         val propertyName = property?.name ?: ""
+        val pluralName = English.plural(English.singular(propertyName))
 
-        if (property?.pattern == null && StringCaseFormat.LOWER_CAMEL_CASE.apply(propertyName) != propertyName && exclude.contains(propertyName).not()) {
-            validationResults.add(error(property, "Property \"{0}\" should be lower camel cased", propertyName))
+        if (property != null && property.type is ArrayType && property.pattern == null && propertyName != pluralName && exclude.contains(propertyName).not()) {
+
+            validationResults.add(error(property, "Array property \"{0}\" must be plural", propertyName))
         }
         return validationResults
     }
 
 
-    companion object : ValidatorFactory<CamelCaseRule> {
+    companion object : ValidatorFactory<PropertyPluralRule> {
         private val defaultExcludes by lazy { listOf("error_description") }
 
-        override fun create(options: List<RuleOption>): CamelCaseRule {
-            return CamelCaseRule(options)
+        override fun create(options: List<RuleOption>): PropertyPluralRule {
+            return PropertyPluralRule(options)
         }
     }
 }
