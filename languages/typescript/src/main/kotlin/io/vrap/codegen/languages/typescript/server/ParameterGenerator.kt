@@ -12,6 +12,7 @@ import io.vrap.rmf.codegen.types.*
 import io.vrap.rmf.raml.model.modules.Api
 import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.ResourceContainer
+import io.vrap.rmf.raml.model.types.QueryParameter
 import java.lang.Error
 import java.nio.file.Paths
 
@@ -78,9 +79,17 @@ class ParameterGenerator constructor(
 
     private fun Method.queryParams() = """|
         |queryParams: {
-        |       <${this.queryParameters.map { "${it.name}: ${it.type.toVrapType().simpleTSName()}" }.joinToString("\n")}>
+        |       <${this.queryParameters.map { "${it.name}: ${it.parameterType()}" }.joinToString("\n")}>
         |}
     """.trimMargin()
+
+    private fun QueryParameter.parameterType(): String {
+        val vrapType = this.type.toVrapType()
+        return when(vrapType) {
+            is VrapArrayType -> "${vrapType.itemType.simpleTSName()} | ${vrapType.simpleTSName()}"
+            else -> vrapType.simpleTSName()
+        }
+    }
 
     private fun Method.pathParams() = """|
         |pathParams: {
