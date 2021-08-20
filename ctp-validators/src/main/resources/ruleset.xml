@@ -83,6 +83,9 @@
         <rule>
             <name>com.commercetools.rmf.validators.QueryParameterCamelCaseRule</name>
         </rule>
+        <rule>
+            <name>com.commercetools.rmf.validators.SdkBaseUriRule</name>
+        </rule>
 <!--        <rule>-->
 <!--            <name>com.commercetools.rmf.validators.NamedBodyTypeRule</name>-->
 <!--        </rule>-->

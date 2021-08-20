@@ -33,8 +33,6 @@ class ValidateSubcommand : Callable<Int> {
     @CommandLine.Option(names = ["-w", "--watch"], description = ["Watches the files for changes"], required = false)
     var watch: Boolean = false
 
-    private lateinit var validators: List<RamlValidator>
-
     override fun call(): Int {
         setupValidators()
         val res = safeRun { validate()}
@@ -82,7 +80,7 @@ class ValidateSubcommand : Callable<Int> {
 
     fun validate(): Int {
         val fileURI = URI.createURI(ramlFileLocation.toUri().toString())
-        val modelResult = RamlModelBuilder().buildApi(fileURI, validators)
+        val modelResult = RamlModelBuilder().buildApi(fileURI)
         val validationResults = modelResult.validationResults
         if (validationResults.isNotEmpty()) {
             val res = validationResults.stream().map { "$it" }.collect( Collectors.joining( "\n" ) );
@@ -95,9 +93,9 @@ class ValidateSubcommand : Callable<Int> {
 
     private fun setupValidators() {
         val ruleset = rulesetFile?.toFile() ?: File(ValidateSubcommand::class.java.getResource("/ruleset.xml").toURI())
-        validators = ValidatorSetup.setup(ruleset)
+        val validators = ValidatorSetup.setup(ruleset)
+        RamlModelBuilder.setup(validators)
     }
-
 }
 
 
