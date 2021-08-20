@@ -27,11 +27,11 @@ class QueryParameterCamelCaseRule(options: List<RuleOption>? = null) : Resources
         return validationResults
     }
 
-    companion object : ValidatorFactory<ResourcePluralRule> {
+    companion object : ValidatorFactory<QueryParameterCamelCaseRule> {
         private val defaultExcludes by lazy { listOf("") }
 
-        override fun create(options: List<RuleOption>): ResourcePluralRule {
-            return ResourcePluralRule(options)
+        override fun create(options: List<RuleOption>): QueryParameterCamelCaseRule {
+            return QueryParameterCamelCaseRule(options)
         }
     }
 }

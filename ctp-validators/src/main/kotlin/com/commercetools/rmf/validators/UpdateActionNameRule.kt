@@ -21,11 +21,11 @@ class UpdateActionNameRule(options: List<RuleOption>? = null) : TypesRule(option
         return validationResults
     }
 
-    companion object : ValidatorFactory<CamelCaseRule> {
+    companion object : ValidatorFactory<UpdateActionNameRule> {
         private val defaultExcludes by lazy { listOf("") }
 
-        override fun create(options: List<RuleOption>): CamelCaseRule {
-            return CamelCaseRule(options)
+        override fun create(options: List<RuleOption>): UpdateActionNameRule {
+            return UpdateActionNameRule(options)
         }
     }
 }

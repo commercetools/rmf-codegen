@@ -25,11 +25,11 @@ class DomainTypeNameRule(options: List<RuleOption>? = null) : TypesRule(options)
         return validationResults
     }
 
-    companion object : ValidatorFactory<CamelCaseRule> {
+    companion object : ValidatorFactory<DomainTypeNameRule> {
         private val defaultExcludes by lazy { listOf("") }
 
-        override fun create(options: List<RuleOption>): CamelCaseRule {
-            return CamelCaseRule(options)
+        override fun create(options: List<RuleOption>): DomainTypeNameRule {
+            return DomainTypeNameRule(options)
         }
     }
 }

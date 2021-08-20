@@ -105,6 +105,55 @@ class ValidatorRulesTest extends Specification implements ValidatorFixtures {
         result.validationResults[0].message == "Non array property \"invalidItems\" must be singular"
     }
 
+    def "valid baseUri"() {
+        when:
+        def validators = Arrays.asList(new ModulesValidator(Arrays.asList(new SdkBaseUriRule())))
+        def uri = uriFromClasspath("/sdkbaseuri-rule-valid-baseuri.raml")
+        def result = new RamlModelBuilder().buildApi(uri, validators as List<RamlValidator>)
+        then:
+        result.validationResults.size == 0
+    }
+
+    def "valid sdkBaseUri"() {
+        when:
+        def validators = Arrays.asList(new ModulesValidator(Arrays.asList(new SdkBaseUriRule())))
+        def uri = uriFromClasspath("/sdkbaseuri-rule-valid-sdkbaseuri.raml")
+        def result = new RamlModelBuilder().buildApi(uri, validators as List<RamlValidator>)
+        then:
+        result.validationResults.size == 0
+    }
+
+    def "missing baseUri"() {
+        when:
+        def validators = Arrays.asList(new ModulesValidator(Arrays.asList(new SdkBaseUriRule())))
+        def uri = uriFromClasspath("/sdkbaseuri-rule-missing-baseuri.raml")
+        def result = new RamlModelBuilder().buildApi(uri, validators as List<RamlValidator>)
+        then:
+        result.validationResults.size == 1
+        result.validationResults[0].message == "baseUri must not be empty"
+    }
+
+    def "missing sdkBaseUri"() {
+        when:
+        def validators = Arrays.asList(new ModulesValidator(Arrays.asList(new SdkBaseUriRule())))
+        def uri = uriFromClasspath("/sdkbaseuri-rule-missing-sdkbaseuri.raml")
+        def result = new RamlModelBuilder().buildApi(uri, validators as List<RamlValidator>)
+        then:
+        result.validationResults.size == 1
+        result.validationResults[0].message == "sdkBaseUri must be declared as baseUri \"https://api.{region}.commercetools.com\" contains baseUriParameters"
+    }
+
+    def "invalid sdkBaseUri"() {
+        when:
+        def validators = Arrays.asList(new ModulesValidator(Arrays.asList(new SdkBaseUriRule())))
+        def uri = uriFromClasspath("/sdkbaseuri-rule-invalid-sdkbaseuri.raml")
+        def result = new RamlModelBuilder().buildApi(uri, validators as List<RamlValidator>)
+        then:
+        result.validationResults.size == 1
+        result.validationResults[0].message == "sdkBaseUri \"https://api.{region}.commercetools.com\" must not contain uriParameters"
+    }
+
+
     def "resource plural rule"() {
         when:
         def validators = Arrays.asList(new ResourcesValidator(Arrays.asList(new ResourcePluralRule())))
