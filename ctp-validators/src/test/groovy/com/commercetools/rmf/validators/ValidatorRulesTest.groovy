@@ -102,8 +102,9 @@ class ValidatorRulesTest extends Specification implements ValidatorFixtures {
         def uri = uriFromClasspath("/propertyplural-rule.raml")
         def result = new RamlModelBuilder().buildApi(uri, validators as List<RamlValidator>)
         then:
-        result.validationResults.size == 1
+        result.validationResults.size == 2
         result.validationResults[0].message == "Array property \"invalidItem\" must be plural"
+        result.validationResults[1].message == "Array property \"invalidItemDesc\" must be plural"
     }
 
     def "property singular rule"() {
@@ -194,6 +195,18 @@ class ValidatorRulesTest extends Specification implements ValidatorFixtures {
         result.validationResults[0].message == "Method \"POST /invalid\" must have body type for success response(s) defined"
         result.validationResults[1].message == "Method \"POST /invalid-mixed\" must have body type for success response(s) defined"
         result.validationResults[2].message == "Method \"POST /invalid-all\" must have body type for success response(s) defined"
+    }
+
+    def "union type property rule"() {
+        when:
+        def validators = Arrays.asList(new TypesValidator(Arrays.asList(new UnionTypePropertyRule())))
+        def uri = uriFromClasspath("/uniontype-property-rule.raml")
+        def result = new RamlModelBuilder().buildApi(uri, validators as List<RamlValidator>)
+        then:
+        result.validationResults.size == 3
+        result.validationResults[0].message == "Usage of union type is not allowed for property \"invalidItem\""
+        result.validationResults[1].message == "Usage of union type is not allowed for property \"invalidItemDesc\""
+        result.validationResults[2].message == "Usage of union type is not allowed for property \"/invalid[a-z]/\""
     }
 
     def "update action name rule"() {

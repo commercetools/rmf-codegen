@@ -87,6 +87,13 @@
         <rule>
             <name>com.commercetools.rmf.validators.SdkBaseUriRule</name>
         </rule>
+        <rule>
+            <name>com.commercetools.rmf.validators.UnionTypePropertyRule</name>
+            <options>
+                <option type="exclude">reference</option>
+                <option type="exclude">target</option>
+            </options>
+        </rule>
 <!--        <rule>-->
 <!--            <name>com.commercetools.rmf.validators.NamedBodyTypeRule</name>-->
 <!--        </rule>-->

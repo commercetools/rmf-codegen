@@ -1,0 +1,13 @@
+#%RAML 1.0
+title: union type property rule
+
+types:
+  Foo:
+    type: object
+    properties:
+      validItems: string
+      invalidItem: string | number
+      invalidItemDesc:
+        description: test
+        type: string | number
+      /invalid[a-z]/: string | number
