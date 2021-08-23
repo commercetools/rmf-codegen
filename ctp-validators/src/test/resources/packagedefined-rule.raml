@@ -23,3 +23,10 @@ types:
   InvalidStringDesc:
     description: invalid
     type: string
+
+/:
+  get:
+    body:
+      application/json:
+        type: Foo
+        example: "test"

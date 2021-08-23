@@ -23,7 +23,6 @@ class PropertyPluralRule(options: List<RuleOption>? = null) : TypesRule(options)
         return validationResults
     }
 
-
     companion object : ValidatorFactory<PropertyPluralRule> {
         private val defaultExcludes by lazy { listOf("error_description") }
 

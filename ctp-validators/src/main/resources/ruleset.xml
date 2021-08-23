@@ -54,6 +54,7 @@
                 <option type="exclude">textLineItemOrder</option>
                 <option type="exclude">syncInfo</option>
                 <option type="exclude">returnInfo</option>
+                <option type="exclude">value</option>
             </options>
         </rule>
         <rule>

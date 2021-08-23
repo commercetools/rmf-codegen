@@ -85,6 +85,17 @@ class ValidatorRulesTest extends Specification implements ValidatorFixtures {
         result.validationResults[1].message == "Type \"InvalidStringDesc\" must have package annotation defined"
     }
 
+    def "library package defined rule"() {
+        when:
+        def validators = Arrays.asList(new TypesValidator(Arrays.asList(new PackageDefinedRule())))
+        def uri = uriFromClasspath("/librarypackagedefined-rule.raml")
+        def result = new RamlModelBuilder().buildApi(uri, validators as List<RamlValidator>)
+        then:
+        result.validationResults.size == 2
+        result.validationResults[0].message == "Library type \"InvalidString\" must have package annotation defined"
+        result.validationResults[1].message == "Library type \"InvalidStringDesc\" must have package annotation defined"
+    }
+
     def "property plural rule"() {
         when:
         def validators = Arrays.asList(new TypesValidator(Arrays.asList(new PropertyPluralRule())))
