@@ -24,7 +24,8 @@ class PostBodyRule(options: List<RuleOption>? = null) : ResourcesRule(options) {
     companion object : ValidatorFactory<PostBodyRule> {
         private val defaultExcludes by lazy { listOf("") }
 
-        override fun create(options: List<RuleOption>): PostBodyRule {
+        @JvmStatic
+        override fun create(options: List<RuleOption>?): PostBodyRule {
             return PostBodyRule(options)
         }
     }

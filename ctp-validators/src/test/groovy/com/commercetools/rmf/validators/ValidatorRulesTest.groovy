@@ -7,9 +7,9 @@ import spock.lang.Specification
 class ValidatorRulesTest extends Specification implements ValidatorFixtures {
     def "property camel case rule"() {
         when:
-        def validators = Arrays.asList(new TypesValidator(Arrays.asList(new CamelCaseRule())))
+        def validators = Arrays.asList(new TypesValidator(Arrays.asList(CamelCaseRule.create())))
         def uri = uriFromClasspath("/camelcase-rule.raml")
-        def result = new RamlModelBuilder().buildApi(uri, validators as List<RamlValidator>)
+        def result = new RamlModelBuilder(validators).buildApi(uri)
         then:
         result.validationResults.size == 1
         result.validationResults[0].message == "Property \"invalid_case\" must be lower camel cased"
@@ -17,21 +17,31 @@ class ValidatorRulesTest extends Specification implements ValidatorFixtures {
 
     def "discriminator name rule"() {
         when:
-        def validators = Arrays.asList(new TypesValidator(Arrays.asList(new DiscriminatorNameRule())))
+        def validators = Arrays.asList(new TypesValidator(Arrays.asList(DiscriminatorNameRule.create())))
         def uri = uriFromClasspath("/discriminatorname-rule.raml")
-        def result = new RamlModelBuilder().buildApi(uri, validators as List<RamlValidator>)
+        def result = new RamlModelBuilder(validators).buildApi(uri)
         then:
         result.validationResults.size == 2
         result.validationResults[0].message == "Update action type \"BazFoo\" must have a discriminator value set"
         result.validationResults[1].message == "Update action type \"InvalidFoo\" name must contain the discriminator value \"boz\""
     }
 
+    def "discriminator parent rule"() {
+        def validators = Arrays.asList(new TypesValidator(Arrays.asList(DiscriminatorParentRule.create())))
+        def uri = uriFromClasspath("/discriminatorparent-rule.raml")
+        when:
+        def result = new RamlModelBuilder(validators).buildApi(uri)
+        then:
+        result.validationResults.size == 1
+        result.validationResults[0].message == "Discriminator property \"type\" must defined in the type InvalidBar only"
+    }
+
 
     def "filename rule"() {
         when:
-        def validators = Arrays.asList(new ModulesValidator(Arrays.asList(new FilenameRule())))
+        def validators = Arrays.asList(new ModulesValidator(Arrays.asList(FilenameRule.create())))
         def uri = uriFromClasspath("/filename-rule.raml")
-        def result = new RamlModelBuilder().buildApi(uri, validators as List<RamlValidator>)
+        def result = new RamlModelBuilder(validators).buildApi(uri)
         then:
         result.validationResults.size == 1
         result.validationResults[0].message == "Type \"FileNameInvalid\" must have the same file name as type itself"
@@ -39,9 +49,9 @@ class ValidatorRulesTest extends Specification implements ValidatorFixtures {
 
     def "name string enum rule"() {
         when:
-        def validators = Arrays.asList(new TypesValidator(Arrays.asList(new NamedStringEnumRule())))
+        def validators = Arrays.asList(new TypesValidator(Arrays.asList(NamedStringEnumRule.create())))
         def uri = uriFromClasspath("/namedstringenum-rule.raml")
-        def result = new RamlModelBuilder().buildApi(uri, validators as List<RamlValidator>)
+        def result = new RamlModelBuilder(validators).buildApi(uri)
         then:
         result.validationResults.size == 2
         result.validationResults[0].message == "Named string type \"InvalidString\" must define enum values"
@@ -50,9 +60,9 @@ class ValidatorRulesTest extends Specification implements ValidatorFixtures {
 
     def "method post body rule"() {
         when:
-        def validators = Arrays.asList(new ResourcesValidator(Arrays.asList(new PostBodyRule())))
+        def validators = Arrays.asList(new ResourcesValidator(Arrays.asList(PostBodyRule.create())))
         def uri = uriFromClasspath("/method-post-body-rule.raml")
-        def result = new RamlModelBuilder().buildApi(uri, validators as List<RamlValidator>)
+        def result = new RamlModelBuilder(validators).buildApi(uri)
         then:
         result.validationResults.size == 2
         result.validationResults[0].message == "Method \"POST /invalid\" must have body type defined"
@@ -76,9 +86,9 @@ class ValidatorRulesTest extends Specification implements ValidatorFixtures {
 
     def "package defined rule"() {
         when:
-        def validators = Arrays.asList(new TypesValidator(Arrays.asList(new PackageDefinedRule())))
+        def validators = Arrays.asList(new TypesValidator(Arrays.asList(PackageDefinedRule.create())))
         def uri = uriFromClasspath("/packagedefined-rule.raml")
-        def result = new RamlModelBuilder().buildApi(uri, validators as List<RamlValidator>)
+        def result = new RamlModelBuilder(validators).buildApi(uri)
         then:
         result.validationResults.size == 2
         result.validationResults[0].message == "Type \"InvalidString\" must have package annotation defined"
@@ -87,9 +97,9 @@ class ValidatorRulesTest extends Specification implements ValidatorFixtures {
 
     def "library package defined rule"() {
         when:
-        def validators = Arrays.asList(new TypesValidator(Arrays.asList(new PackageDefinedRule())))
+        def validators = Arrays.asList(new TypesValidator(Arrays.asList(PackageDefinedRule.create())))
         def uri = uriFromClasspath("/librarypackagedefined-rule.raml")
-        def result = new RamlModelBuilder().buildApi(uri, validators as List<RamlValidator>)
+        def result = new RamlModelBuilder(validators).buildApi(uri)
         then:
         result.validationResults.size == 2
         result.validationResults[0].message == "Library type \"InvalidString\" must have package annotation defined"
@@ -98,9 +108,9 @@ class ValidatorRulesTest extends Specification implements ValidatorFixtures {
 
     def "property plural rule"() {
         when:
-        def validators = Arrays.asList(new TypesValidator(Arrays.asList(new PropertyPluralRule())))
+        def validators = Arrays.asList(new TypesValidator(Arrays.asList(PropertyPluralRule.create())))
         def uri = uriFromClasspath("/propertyplural-rule.raml")
-        def result = new RamlModelBuilder().buildApi(uri, validators as List<RamlValidator>)
+        def result = new RamlModelBuilder(validators).buildApi(uri)
         then:
         result.validationResults.size == 2
         result.validationResults[0].message == "Array property \"invalidItem\" must be plural"
@@ -109,37 +119,47 @@ class ValidatorRulesTest extends Specification implements ValidatorFixtures {
 
     def "property singular rule"() {
         when:
-        def validators = Arrays.asList(new TypesValidator(Arrays.asList(new StringPropertySingularRule())))
+        def validators = Arrays.asList(new TypesValidator(Arrays.asList(StringPropertySingularRule.create())))
         def uri = uriFromClasspath("/propertysingular-rule.raml")
-        def result = new RamlModelBuilder().buildApi(uri, validators as List<RamlValidator>)
+        def result = new RamlModelBuilder(validators).buildApi(uri)
         then:
         result.validationResults.size == 1
         result.validationResults[0].message == "Non array property \"invalidItems\" must be singular"
     }
 
+    def "resource catch all rule"() {
+        when:
+        def validators = Arrays.asList(new ResourcesValidator(Arrays.asList(ResourceCatchAllRule.create())))
+        def uri = uriFromClasspath("/resource-catchall-rule.raml")
+        def result = new RamlModelBuilder(validators).buildApi(uri)
+        then:
+        result.validationResults.size == 1
+        result.validationResults[0].message == "Resource \"invalid\" define only one catch all sub resource"
+    }
+
     def "valid baseUri"() {
         when:
-        def validators = Arrays.asList(new ModulesValidator(Arrays.asList(new SdkBaseUriRule())))
+        def validators = Arrays.asList(new ModulesValidator(Arrays.asList(SdkBaseUriRule.create())))
         def uri = uriFromClasspath("/sdkbaseuri-rule-valid-baseuri.raml")
-        def result = new RamlModelBuilder().buildApi(uri, validators as List<RamlValidator>)
+        def result = new RamlModelBuilder(validators).buildApi(uri)
         then:
         result.validationResults.size == 0
     }
 
     def "valid sdkBaseUri"() {
         when:
-        def validators = Arrays.asList(new ModulesValidator(Arrays.asList(new SdkBaseUriRule())))
+        def validators = Arrays.asList(new ModulesValidator(Arrays.asList(SdkBaseUriRule.create())))
         def uri = uriFromClasspath("/sdkbaseuri-rule-valid-sdkbaseuri.raml")
-        def result = new RamlModelBuilder().buildApi(uri, validators as List<RamlValidator>)
+        def result = new RamlModelBuilder(validators).buildApi(uri)
         then:
         result.validationResults.size == 0
     }
 
     def "missing baseUri"() {
         when:
-        def validators = Arrays.asList(new ModulesValidator(Arrays.asList(new SdkBaseUriRule())))
+        def validators = Arrays.asList(new ModulesValidator(Arrays.asList(SdkBaseUriRule.create())))
         def uri = uriFromClasspath("/sdkbaseuri-rule-missing-baseuri.raml")
-        def result = new RamlModelBuilder().buildApi(uri, validators as List<RamlValidator>)
+        def result = new RamlModelBuilder(validators).buildApi(uri)
         then:
         result.validationResults.size == 1
         result.validationResults[0].message == "baseUri must not be empty"
@@ -147,9 +167,9 @@ class ValidatorRulesTest extends Specification implements ValidatorFixtures {
 
     def "missing sdkBaseUri"() {
         when:
-        def validators = Arrays.asList(new ModulesValidator(Arrays.asList(new SdkBaseUriRule())))
+        def validators = Arrays.asList(new ModulesValidator(Arrays.asList(SdkBaseUriRule.create())))
         def uri = uriFromClasspath("/sdkbaseuri-rule-missing-sdkbaseuri.raml")
-        def result = new RamlModelBuilder().buildApi(uri, validators as List<RamlValidator>)
+        def result = new RamlModelBuilder(validators).buildApi(uri)
         then:
         result.validationResults.size == 1
         result.validationResults[0].message == "sdkBaseUri must be declared as baseUri \"https://api.{region}.commercetools.com\" contains baseUriParameters"
@@ -157,9 +177,9 @@ class ValidatorRulesTest extends Specification implements ValidatorFixtures {
 
     def "invalid sdkBaseUri"() {
         when:
-        def validators = Arrays.asList(new ModulesValidator(Arrays.asList(new SdkBaseUriRule())))
+        def validators = Arrays.asList(new ModulesValidator(Arrays.asList(SdkBaseUriRule.create())))
         def uri = uriFromClasspath("/sdkbaseuri-rule-invalid-sdkbaseuri.raml")
-        def result = new RamlModelBuilder().buildApi(uri, validators as List<RamlValidator>)
+        def result = new RamlModelBuilder(validators).buildApi(uri)
         then:
         result.validationResults.size == 1
         result.validationResults[0].message == "sdkBaseUri \"https://api.{region}.commercetools.com\" must not contain uriParameters"
@@ -168,18 +188,18 @@ class ValidatorRulesTest extends Specification implements ValidatorFixtures {
 
     def "resource plural rule"() {
         when:
-        def validators = Arrays.asList(new ResourcesValidator(Arrays.asList(new ResourcePluralRule())))
+        def validators = Arrays.asList(new ResourcesValidator(Arrays.asList(ResourcePluralRule.create())))
         def uri = uriFromClasspath("/plural-resource.raml")
-        def result = new RamlModelBuilder().buildApi(uri, validators as List<RamlValidator>)
+        def result = new RamlModelBuilder(validators).buildApi(uri)
         then:
         result.validationResults.size == 0
     }
 
     def "resource plural rule invalid"() {
         when:
-        def validators = Arrays.asList(new ResourcesValidator(Arrays.asList(new ResourcePluralRule())))
+        def validators = Arrays.asList(new ResourcesValidator(Arrays.asList(ResourcePluralRule.create())))
         def uri = uriFromClasspath("/plural-resource-invalid.raml")
-        def result = new RamlModelBuilder().buildApi(uri, validators as List<RamlValidator>)
+        def result = new RamlModelBuilder(validators).buildApi(uri)
         then:
         result.validationResults.size == 1
         result.validationResults[0].message == "Resource \"invalid\" must be plural"
@@ -187,9 +207,9 @@ class ValidatorRulesTest extends Specification implements ValidatorFixtures {
 
     def "success body rule"() {
         when:
-        def validators = Arrays.asList(new ResourcesValidator(Arrays.asList(new SuccessBodyRule())))
+        def validators = Arrays.asList(new ResourcesValidator(Arrays.asList(SuccessBodyRule.create())))
         def uri = uriFromClasspath("/success-body-rule.raml")
-        def result = new RamlModelBuilder().buildApi(uri, validators as List<RamlValidator>)
+        def result = new RamlModelBuilder(validators).buildApi(uri)
         then:
         result.validationResults.size == 3
         result.validationResults[0].message == "Method \"POST /invalid\" must have body type for success response(s) defined"
@@ -199,9 +219,9 @@ class ValidatorRulesTest extends Specification implements ValidatorFixtures {
 
     def "union type property rule"() {
         when:
-        def validators = Arrays.asList(new TypesValidator(Arrays.asList(new UnionTypePropertyRule())))
+        def validators = Arrays.asList(new TypesValidator(Arrays.asList(UnionTypePropertyRule.create())))
         def uri = uriFromClasspath("/uniontype-property-rule.raml")
-        def result = new RamlModelBuilder().buildApi(uri, validators as List<RamlValidator>)
+        def result = new RamlModelBuilder(validators).buildApi(uri)
         then:
         result.validationResults.size == 3
         result.validationResults[0].message == "Usage of union type is not allowed for property \"invalidItem\""
@@ -211,12 +231,22 @@ class ValidatorRulesTest extends Specification implements ValidatorFixtures {
 
     def "update action name rule"() {
         when:
-        def validators = Arrays.asList(new TypesValidator(Arrays.asList(new UpdateActionNameRule())))
+        def validators = Arrays.asList(new TypesValidator(Arrays.asList(UpdateActionNameRule.create())))
         def uri = uriFromClasspath("/updateaction-rule.raml")
-        def result = new RamlModelBuilder().buildApi(uri, validators as List<RamlValidator>)
+        def result = new RamlModelBuilder(validators).buildApi(uri)
         then:
         result.validationResults.size == 1
         result.validationResults[0].message == "Update action type \"InvalidUpdate\" name must end with \"Action\""
     }
 
+    def "uriparameters declared"() {
+        when:
+        def validators = Arrays.asList(new ResolvedResourcesValidator(Arrays.asList(UriParameterDeclaredRule.create())))
+        def uri = uriFromClasspath("/uriparametersdeclared-rule.raml")
+        def result = new RamlModelBuilder(validators).buildApi(uri)
+        then:
+        result.validationResults.size == 1
+        result.validationResults[0].message == "Resource \"/{test}\" must define all uri parameters"
+        result.rootObject.resources[0].resources[0].resources[0].uriParameters[0].name == "id"
+    }
 }

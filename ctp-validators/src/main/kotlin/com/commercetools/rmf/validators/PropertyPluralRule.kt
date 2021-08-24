@@ -26,7 +26,8 @@ class PropertyPluralRule(options: List<RuleOption>? = null) : TypesRule(options)
     companion object : ValidatorFactory<PropertyPluralRule> {
         private val defaultExcludes by lazy { listOf("error_description") }
 
-        override fun create(options: List<RuleOption>): PropertyPluralRule {
+        @JvmStatic
+        override fun create(options: List<RuleOption>?): PropertyPluralRule {
             return PropertyPluralRule(options)
         }
     }

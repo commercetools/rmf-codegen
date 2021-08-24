@@ -24,7 +24,8 @@ class CamelCaseRule(options: List<RuleOption>? = null) : TypesRule(options) {
     companion object : ValidatorFactory<CamelCaseRule> {
         private val defaultExcludes by lazy { listOf("error_description") }
 
-        override fun create(options: List<RuleOption>): CamelCaseRule {
+        @JvmStatic
+        override fun create(options: List<RuleOption>?): CamelCaseRule {
             return CamelCaseRule(options)
         }
     }

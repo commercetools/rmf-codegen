@@ -94,6 +94,15 @@
                 <option type="exclude">target</option>
             </options>
         </rule>
+        <rule>
+            <name>com.commercetools.rmf.validators.DiscriminatorParentRule</name>
+        </rule>
+        <rule>
+            <name>com.commercetools.rmf.validators.ResourceCatchAllRule</name>
+        </rule>
+<!--        <rule>-->
+<!--            <name>com.commercetools.rmf.validators.UriParameterDeclaredRule</name>-->
+<!--        </rule>-->
 <!--        <rule>-->
 <!--            <name>com.commercetools.rmf.validators.NamedBodyTypeRule</name>-->
 <!--        </rule>-->

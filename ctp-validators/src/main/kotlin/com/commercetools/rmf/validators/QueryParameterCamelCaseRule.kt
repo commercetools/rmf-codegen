@@ -30,7 +30,8 @@ class QueryParameterCamelCaseRule(options: List<RuleOption>? = null) : Resources
     companion object : ValidatorFactory<QueryParameterCamelCaseRule> {
         private val defaultExcludes by lazy { listOf("") }
 
-        override fun create(options: List<RuleOption>): QueryParameterCamelCaseRule {
+        @JvmStatic
+        override fun create(options: List<RuleOption>?): QueryParameterCamelCaseRule {
             return QueryParameterCamelCaseRule(options)
         }
     }

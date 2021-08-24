@@ -23,7 +23,8 @@ class ResourcePluralRule(options: List<RuleOption>? = null) : ResourcesRule(opti
     companion object : ValidatorFactory<ResourcePluralRule> {
         private val defaultExcludes by lazy { listOf("", "inventory", "login", "me", "import", "in-store") }
 
-        override fun create(options: List<RuleOption>): ResourcePluralRule {
+        @JvmStatic
+        override fun create(options: List<RuleOption>?): ResourcePluralRule {
             return ResourcePluralRule(options)
         }
     }

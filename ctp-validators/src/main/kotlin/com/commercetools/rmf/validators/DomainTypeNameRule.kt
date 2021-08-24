@@ -28,7 +28,8 @@ class DomainTypeNameRule(options: List<RuleOption>? = null) : TypesRule(options)
     companion object : ValidatorFactory<DomainTypeNameRule> {
         private val defaultExcludes by lazy { listOf("") }
 
-        override fun create(options: List<RuleOption>): DomainTypeNameRule {
+        @JvmStatic
+        override fun create(options: List<RuleOption>?): DomainTypeNameRule {
             return DomainTypeNameRule(options)
         }
     }

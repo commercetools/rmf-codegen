@@ -33,7 +33,8 @@ class SdkBaseUriRule (options: List<RuleOption>? = null) : ModulesRule(options) 
     companion object : ValidatorFactory<SdkBaseUriRule> {
         private val defaultExcludes by lazy { listOf("") }
 
-        override fun create(options: List<RuleOption>): SdkBaseUriRule {
+        @JvmStatic
+        override fun create(options: List<RuleOption>?): SdkBaseUriRule {
             return SdkBaseUriRule(options)
         }
     }

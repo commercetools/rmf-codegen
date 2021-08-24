@@ -28,7 +28,8 @@ class NamedStringEnumRule(options: List<RuleOption>? = null) : TypesRule(options
     companion object : ValidatorFactory<NamedStringEnumRule> {
         private val defaultExcludes by lazy { listOf("") }
 
-        override fun create(options: List<RuleOption>): NamedStringEnumRule {
+        @JvmStatic
+        override fun create(options: List<RuleOption>?): NamedStringEnumRule {
             return NamedStringEnumRule(options)
         }
     }

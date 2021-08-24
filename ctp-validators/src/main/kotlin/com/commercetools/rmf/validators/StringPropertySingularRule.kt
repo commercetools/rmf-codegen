@@ -27,7 +27,8 @@ class StringPropertySingularRule(options: List<RuleOption>? = null) : TypesRule(
     companion object : ValidatorFactory<StringPropertySingularRule> {
         private val defaultExcludes by lazy { listOf("") }
 
-        override fun create(options: List<RuleOption>): StringPropertySingularRule {
+        @JvmStatic
+        override fun create(options: List<RuleOption>?): StringPropertySingularRule {
             return StringPropertySingularRule(options)
         }
     }

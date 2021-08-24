@@ -21,11 +21,12 @@ class UnionTypePropertyRule(options: List<RuleOption>? = null) : TypesRule(optio
         return validationResults
     }
 
-    companion object : ValidatorFactory<StringPropertySingularRule> {
+    companion object : ValidatorFactory<UnionTypePropertyRule> {
         private val defaultExcludes by lazy { listOf("") }
 
-        override fun create(options: List<RuleOption>): StringPropertySingularRule {
-            return StringPropertySingularRule(options)
+        @JvmStatic
+        override fun create(options: List<RuleOption>?): UnionTypePropertyRule {
+            return UnionTypePropertyRule(options)
         }
     }
 }

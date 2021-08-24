@@ -57,7 +57,8 @@ class NamedBodyTypeRule(options: List<RuleOption>? = null) : ResourcesRule(optio
     companion object : ValidatorFactory<NamedBodyTypeRule> {
         private val defaultExcludes by lazy { listOf("") }
 
-        override fun create(options: List<RuleOption>): NamedBodyTypeRule {
+        @JvmStatic
+        override fun create(options: List<RuleOption>?): NamedBodyTypeRule {
             return NamedBodyTypeRule(options)
         }
     }

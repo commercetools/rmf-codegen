@@ -39,7 +39,8 @@ class PackageDefinedRule(options: List<RuleOption>? = null) : TypesRule(options)
     companion object : ValidatorFactory<PackageDefinedRule> {
         private val defaultExcludes by lazy { listOf("") }
 
-        override fun create(options: List<RuleOption>): PackageDefinedRule {
+        @JvmStatic
+        override fun create(options: List<RuleOption>?): PackageDefinedRule {
             return PackageDefinedRule(options)
         }
     }

@@ -6,5 +6,5 @@ interface Validator<T> {
 }
 
 interface ValidatorFactory<out T> {
-    fun create(options: List<RuleOption>): T
+    fun create(options: List<RuleOption>? = null): T
 }

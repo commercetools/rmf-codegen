@@ -27,11 +27,12 @@ class DiscriminatorNameRule(options: List<RuleOption>? = null) : TypesRule(optio
         return validationResults
     }
 
-    companion object : ValidatorFactory<CamelCaseRule> {
+    companion object : ValidatorFactory<DiscriminatorNameRule> {
         private val defaultExcludes by lazy { listOf("") }
 
-        override fun create(options: List<RuleOption>): CamelCaseRule {
-            return CamelCaseRule(options)
+        @JvmStatic
+        override fun create(options: List<RuleOption>?): DiscriminatorNameRule {
+            return DiscriminatorNameRule(options)
         }
     }
 }

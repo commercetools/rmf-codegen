@@ -23,7 +23,8 @@ class SuccessBodyRule(options: List<RuleOption>? = null) : ResourcesRule(options
     companion object : ValidatorFactory<SuccessBodyRule> {
         private val defaultExcludes by lazy { listOf("") }
 
-        override fun create(options: List<RuleOption>): SuccessBodyRule {
+        @JvmStatic
+        override fun create(options: List<RuleOption>?): SuccessBodyRule {
             return SuccessBodyRule(options)
         }
     }

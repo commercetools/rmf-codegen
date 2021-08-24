@@ -48,7 +48,8 @@ class FilenameRule(options: List<RuleOption>? = null) : ModulesRule(options) {
     companion object : ValidatorFactory<FilenameRule> {
         private val defaultExcludes by lazy { listOf("") }
 
-        override fun create(options: List<RuleOption>): FilenameRule {
+        @JvmStatic
+        override fun create(options: List<RuleOption>?): FilenameRule {
             return FilenameRule(options)
         }
     }

@@ -1,0 +1,16 @@
+#%RAML 1.0
+title: Test
+resourceTypes:
+    base:
+        uriParameters:
+            <<uriParameterName>>:
+                type: string
+        get:
+/{test}:
+    get:
+    /categories:
+        /{id}:
+            type:
+                base:
+                    uriParameterName: id
+            get:

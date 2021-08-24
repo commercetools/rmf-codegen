@@ -24,7 +24,8 @@ class UpdateActionNameRule(options: List<RuleOption>? = null) : TypesRule(option
     companion object : ValidatorFactory<UpdateActionNameRule> {
         private val defaultExcludes by lazy { listOf("") }
 
-        override fun create(options: List<RuleOption>): UpdateActionNameRule {
+        @JvmStatic
+        override fun create(options: List<RuleOption>?): UpdateActionNameRule {
             return UpdateActionNameRule(options)
         }
     }
