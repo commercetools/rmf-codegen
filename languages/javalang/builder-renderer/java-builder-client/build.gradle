@@ -1,10 +1,5 @@
 
 dependencies {
     api project(':languages:javalang:java-base')
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:${versions.kotlin}"
-
-    testImplementation "junit:junit:${versions.junit}"
-    testImplementation "com.fasterxml.jackson.core:jackson-databind:${versions.jackson}"
-    testImplementation "javax.annotation:javax.annotation-api:${versions.annotations}"
-    testImplementation "javax.validation:validation-api:${versions.javaxValidation}"
+    implementation orgkotlin.stdlib
 }

@@ -14,11 +14,8 @@ dependencies {
     implementation project(':languages:oas')
 
     implementation gradleApi()
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:${versions.kotlin}"
-    testImplementation "junit:junit:${versions.junit}"
+    implementation orgkotlin.stdlib
     testImplementation gradleTestKit()
-    testImplementation spockframework.spock_core
-    testImplementation "org.assertj:assertj-core:${versions.assertj}"
 }
 
 

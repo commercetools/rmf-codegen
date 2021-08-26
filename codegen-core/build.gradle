@@ -1,12 +1,9 @@
 
 dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:${versions.kotlin}"
-    api "com.atlassian.commonmark:commonmark:${versions.commonmark}"
-    api "com.commercetools.rmf:raml-model:${versions.rmf}"
-    implementation "org.slf4j:slf4j-simple:${versions.slf4j}"
+    implementation orgkotlin.stdlib
+    api commonmark.commonmark
+    api rmf.raml_model
+    implementation slf4j.slf4j
     implementation commons.io
-    implementation "io.reactivex.rxjava3:rxjava:${versions.rxjava}"
-
-    testImplementation "org.assertj:assertj-core:${versions.assertj}"
-    testImplementation "junit:junit:${versions.junit}"
+    implementation rxjava.rxjava
 }

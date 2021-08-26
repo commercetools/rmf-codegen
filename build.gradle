@@ -29,36 +29,9 @@ plugins {
     id 'org.jetbrains.kotlin.kapt'  version "$kotlinVersion" apply false
 }
 
+apply from: 'dependencies.gradle'
+
 ext {
-    spockVersion = '1.3-groovy-2.5'
-    versions = [
-            annotations: '1.3.2',
-            assertj: '3.16.0',
-            commonmark: '0.14.0',
-            directoryWatcher: '0.9.9',
-            emfjsonJackson: '1.3.0',
-            guava: '29.0-jre',
-            junit: '4.13.2',
-            jackson: '2.11.0',
-            javaxValidation: '2.0.1.Final',
-            kotlin: kotlinVersion,
-            picocli: '4.6.1',
-            rmf: '0.2.0-20210824195253',
-            rxjava: '3.0.7',
-            slf4j: '1.7.25',
-            spock: '1.1-groovy-2.4',
-    ]
-
-    spockframework = [
-            spock_core: "org.spockframework:spock-core:${spockVersion}"
-    ]
-
-    commons = [
-            cli: 'commons-cli:commons-cli:1.4',
-            io: 'commons-io:commons-io:2.6',
-            lang3: 'org.apache.commons:commons-lang3:3.10',
-    ]
-
     scmProjectName = rootProject.name
     scmRepo = 'github.com'
     scmProjectPath = "commercetools/rmf-codegen.git"  // github relative path with .git extension
@@ -189,6 +162,15 @@ subprojects { project ->
 
     artifacts {
         archives javadocJar, sourcesJar
+    }
+
+    dependencies {
+        testImplementation junit.junit
+        testImplementation assertj.core
+        testImplementation javax.annotations
+        testImplementation javax.validation
+        testImplementation spockframework.spock_core
+        testImplementation jackson_core.databind
     }
 
     if (project.file("build.gradle").exists() && !excludeProject.contains(project.name)) {

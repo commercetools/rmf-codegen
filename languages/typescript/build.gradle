@@ -1,7 +1,5 @@
 
 dependencies {
     implementation project(':codegen-renderers')
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:${versions.kotlin}"
-
-    testImplementation "junit:junit:${versions.junit}"
+    implementation orgkotlin.stdlib
 }

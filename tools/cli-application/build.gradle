@@ -88,12 +88,12 @@ dependencies {
     implementation project(':languages:oas')
     implementation project(':ctp-validators')
 
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:${versions.kotlin}"
-    implementation "com.google.guava:guava:${versions.guava}"
-    implementation "info.picocli:picocli:${versions.picocli}"
-    kapt "info.picocli:picocli-codegen:${versions.picocli}"
-    implementation "io.methvin:directory-watcher:${versions.directoryWatcher}"
-    implementation "io.reactivex.rxjava3:rxjava:${versions.rxjava}"
+    implementation orgkotlin.stdlib
+    implementation google.guava
+    implementation picocli.cli
+    kapt picocli.codegen
+    implementation directory_watcher.watcher
+    implementation rxjava.rxjava
 }
 
 

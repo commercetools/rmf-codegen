@@ -2,8 +2,6 @@
 dependencies {
     implementation project(':codegen-renderers')
     implementation commons.lang3
-    implementation "org.jetbrains.kotlin:kotlin-reflect:${versions.kotlin}"
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:${versions.kotlin}"
-
-    testImplementation "junit:junit:${versions.junit}"
+    implementation orgkotlin.reflect
+    implementation orgkotlin.stdlib
 }
