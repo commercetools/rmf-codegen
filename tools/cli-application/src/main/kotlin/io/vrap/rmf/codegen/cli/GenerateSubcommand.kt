@@ -89,6 +89,9 @@ class GenerateSubcommand : Callable<Int> {
     @CommandLine.Option(names = ["-v", "--verbose"], description = ["If set, this would move the verbosity level to debug."], required = false)
     var verbose: Boolean = false
 
+    @CommandLine.Option(names = ["--hash"], description = ["If set a gen.properties file with the git hash of the RAML specification will be written"], required = false)
+    var writeGitHash: Boolean = false
+
     @CommandLine.Parameters(index = "0",description = ["Api file location"])
     lateinit var ramlFileLocation: Path
 
@@ -105,7 +108,8 @@ class GenerateSubcommand : Callable<Int> {
                 basePackageName = basePackageName,
                 modelPackage = modelPackageName,
                 clientPackage = clientPackageName,
-                outputFolder = outputFolder
+                outputFolder = outputFolder,
+                writeGitHash = writeGitHash
         )
 
         val res = safeRun { generate(ramlFileLocation, target, generatorConfig) }
@@ -201,7 +205,8 @@ class GenerateSubcommand : Callable<Int> {
                             basePackageName = generatorConfig.basePackageName,
                             modelPackage = generatorConfig.modelPackage,
                             clientPackage = generatorConfig.clientPackage,
-                            outputFolder = generatorConfig.outputFolder
+                            outputFolder = generatorConfig.outputFolder,
+                            writeGitHash = generatorConfig.writeGitHash
                     )
                     val generatorModule = GeneratorModule(apiProvider, ramlConfig, RamldocBaseTypes)
                     GeneratorComponent(generatorModule, RamldocModelModule)
@@ -212,7 +217,8 @@ class GenerateSubcommand : Callable<Int> {
                             basePackageName = generatorConfig.basePackageName,
                             modelPackage = generatorConfig.modelPackage,
                             clientPackage = generatorConfig.clientPackage,
-                            outputFolder = generatorConfig.outputFolder
+                            outputFolder = generatorConfig.outputFolder,
+                            writeGitHash = generatorConfig.writeGitHash
                     )
                     val generatorModule = GeneratorModule(apiProvider, ramlConfig, OasBaseTypes)
                     GeneratorComponent(generatorModule, OasModelModule)

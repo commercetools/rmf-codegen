@@ -97,7 +97,7 @@ class GeneratorModule constructor(
     fun provideRamlModel(): Api = apiProvider.api
 
     @ApiGitHash
-    fun provideGitHash(): String = apiProvider.gitHash
+    fun provideGitHash(): String = if (generatorConfig.writeGitHash) apiProvider.gitHash else ""
 
     @AllAnyTypes
     fun allAnyTypes(): List<AnyType> {
