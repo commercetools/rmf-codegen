@@ -12,7 +12,7 @@ class ValidatorRulesTest extends Specification implements ValidatorFixtures {
         def result = new RamlModelBuilder(validators).buildApi(uri)
         then:
         result.validationResults.size == 1
-        result.validationResults[0].message == "Property \"invalid_case\" must be lower camel cased"
+        result.validationResults[0].message == "CamelCaseRule: Property \"invalid_case\" must be lower camel cased"
     }
 
     def "discriminator name rule"() {
@@ -22,8 +22,8 @@ class ValidatorRulesTest extends Specification implements ValidatorFixtures {
         def result = new RamlModelBuilder(validators).buildApi(uri)
         then:
         result.validationResults.size == 2
-        result.validationResults[0].message == "Update action type \"BazFoo\" must have a discriminator value set"
-        result.validationResults[1].message == "Update action type \"InvalidFoo\" name must contain the discriminator value \"boz\""
+        result.validationResults[0].message == "DiscriminatorNameRule: Update action type \"BazFoo\" must have a discriminator value set"
+        result.validationResults[1].message == "DiscriminatorNameRule: Update action type \"InvalidFoo\" name must contain the discriminator value \"boz\""
     }
 
     def "discriminator parent rule"() {
@@ -33,7 +33,7 @@ class ValidatorRulesTest extends Specification implements ValidatorFixtures {
         def result = new RamlModelBuilder(validators).buildApi(uri)
         then:
         result.validationResults.size == 1
-        result.validationResults[0].message == "Discriminator property \"type\" must defined in the type InvalidBar only"
+        result.validationResults[0].message == "DiscriminatorParentRule: Discriminator property \"type\" must defined in the type InvalidBar only"
     }
 
 
@@ -44,7 +44,7 @@ class ValidatorRulesTest extends Specification implements ValidatorFixtures {
         def result = new RamlModelBuilder(validators).buildApi(uri)
         then:
         result.validationResults.size == 1
-        result.validationResults[0].message == "Type \"FileNameInvalid\" must have the same file name as type itself"
+        result.validationResults[0].message == "FilenameRule: Type \"FileNameInvalid\" must have the same file name as type itself"
     }
 
     def "name string enum rule"() {
@@ -54,8 +54,8 @@ class ValidatorRulesTest extends Specification implements ValidatorFixtures {
         def result = new RamlModelBuilder(validators).buildApi(uri)
         then:
         result.validationResults.size == 2
-        result.validationResults[0].message == "Named string type \"InvalidString\" must define enum values"
-        result.validationResults[1].message == "Named string type \"InvalidStringDesc\" must define enum values"
+        result.validationResults[0].message == "NamedStringEnumRule: Named string type \"InvalidString\" must define enum values"
+        result.validationResults[1].message == "NamedStringEnumRule: Named string type \"InvalidStringDesc\" must define enum values"
     }
 
     def "method post body rule"() {
@@ -65,8 +65,8 @@ class ValidatorRulesTest extends Specification implements ValidatorFixtures {
         def result = new RamlModelBuilder(validators).buildApi(uri)
         then:
         result.validationResults.size == 2
-        result.validationResults[0].message == "Method \"POST /invalid\" must have body type defined"
-        result.validationResults[1].message == "Method \"POST /invalid-all\" must have body type defined"
+        result.validationResults[0].message == "PostBodyRule: Method \"POST /invalid\" must have body type defined"
+        result.validationResults[1].message == "PostBodyRule: Method \"POST /invalid-all\" must have body type defined"
     }
 
 //    def "named body type rule"() {
@@ -91,8 +91,8 @@ class ValidatorRulesTest extends Specification implements ValidatorFixtures {
         def result = new RamlModelBuilder(validators).buildApi(uri)
         then:
         result.validationResults.size == 2
-        result.validationResults[0].message == "Type \"InvalidString\" must have package annotation defined"
-        result.validationResults[1].message == "Type \"InvalidStringDesc\" must have package annotation defined"
+        result.validationResults[0].message == "PackageDefinedRule: Type \"InvalidString\" must have package annotation defined"
+        result.validationResults[1].message == "PackageDefinedRule: Type \"InvalidStringDesc\" must have package annotation defined"
     }
 
     def "library package defined rule"() {
@@ -102,8 +102,8 @@ class ValidatorRulesTest extends Specification implements ValidatorFixtures {
         def result = new RamlModelBuilder(validators).buildApi(uri)
         then:
         result.validationResults.size == 2
-        result.validationResults[0].message == "Library type \"InvalidString\" must have package annotation defined"
-        result.validationResults[1].message == "Library type \"InvalidStringDesc\" must have package annotation defined"
+        result.validationResults[0].message == "PackageDefinedRule: Library type \"InvalidString\" must have package annotation defined"
+        result.validationResults[1].message == "PackageDefinedRule: Library type \"InvalidStringDesc\" must have package annotation defined"
     }
 
     def "property plural rule"() {
@@ -113,8 +113,8 @@ class ValidatorRulesTest extends Specification implements ValidatorFixtures {
         def result = new RamlModelBuilder(validators).buildApi(uri)
         then:
         result.validationResults.size == 2
-        result.validationResults[0].message == "Array property \"invalidItem\" must be plural"
-        result.validationResults[1].message == "Array property \"invalidItemDesc\" must be plural"
+        result.validationResults[0].message == "PropertyPluralRule: Array property \"invalidItem\" must be plural"
+        result.validationResults[1].message == "PropertyPluralRule: Array property \"invalidItemDesc\" must be plural"
     }
 
     def "property singular rule"() {
@@ -124,7 +124,7 @@ class ValidatorRulesTest extends Specification implements ValidatorFixtures {
         def result = new RamlModelBuilder(validators).buildApi(uri)
         then:
         result.validationResults.size == 1
-        result.validationResults[0].message == "Non array property \"invalidItems\" must be singular"
+        result.validationResults[0].message == "StringPropertySingularRule: Non array property \"invalidItems\" must be singular"
     }
 
     def "resource catch all rule"() {
@@ -134,7 +134,7 @@ class ValidatorRulesTest extends Specification implements ValidatorFixtures {
         def result = new RamlModelBuilder(validators).buildApi(uri)
         then:
         result.validationResults.size == 1
-        result.validationResults[0].message == "Resource \"invalid\" define only one catch all sub resource"
+        result.validationResults[0].message == "ResourceCatchAllRule: Resource \"invalid\" define only one catch all sub resource"
     }
 
     def "resource lower case hyphen rule"() {
@@ -173,7 +173,7 @@ class ValidatorRulesTest extends Specification implements ValidatorFixtures {
         def result = new RamlModelBuilder(validators).buildApi(uri)
         then:
         result.validationResults.size == 1
-        result.validationResults[0].message == "baseUri must not be empty"
+        result.validationResults[0].message == "SdkBaseUriRule: baseUri must not be empty"
     }
 
     def "missing sdkBaseUri"() {
@@ -183,7 +183,7 @@ class ValidatorRulesTest extends Specification implements ValidatorFixtures {
         def result = new RamlModelBuilder(validators).buildApi(uri)
         then:
         result.validationResults.size == 1
-        result.validationResults[0].message == "sdkBaseUri must be declared as baseUri \"https://api.{region}.commercetools.com\" contains baseUriParameters"
+        result.validationResults[0].message == "SdkBaseUriRule: sdkBaseUri must be declared as baseUri \"https://api.{region}.commercetools.com\" contains baseUriParameters"
     }
 
     def "invalid sdkBaseUri"() {
@@ -193,7 +193,7 @@ class ValidatorRulesTest extends Specification implements ValidatorFixtures {
         def result = new RamlModelBuilder(validators).buildApi(uri)
         then:
         result.validationResults.size == 1
-        result.validationResults[0].message == "sdkBaseUri \"https://api.{region}.commercetools.com\" must not contain uriParameters"
+        result.validationResults[0].message == "SdkBaseUriRule: sdkBaseUri \"https://api.{region}.commercetools.com\" must not contain uriParameters"
     }
 
 
@@ -213,7 +213,7 @@ class ValidatorRulesTest extends Specification implements ValidatorFixtures {
         def result = new RamlModelBuilder(validators).buildApi(uri)
         then:
         result.validationResults.size == 1
-        result.validationResults[0].message == "Resource \"invalid\" must be plural"
+        result.validationResults[0].message == "ResourcePluralRule: Resource \"invalid\" must be plural"
     }
 
     def "success body rule"() {
@@ -223,9 +223,9 @@ class ValidatorRulesTest extends Specification implements ValidatorFixtures {
         def result = new RamlModelBuilder(validators).buildApi(uri)
         then:
         result.validationResults.size == 3
-        result.validationResults[0].message == "Method \"POST /invalid\" must have body type for success response(s) defined"
-        result.validationResults[1].message == "Method \"POST /invalid-mixed\" must have body type for success response(s) defined"
-        result.validationResults[2].message == "Method \"POST /invalid-all\" must have body type for success response(s) defined"
+        result.validationResults[0].message == "SuccessBodyRule: Method \"POST /invalid\" must have body type for success response(s) defined"
+        result.validationResults[1].message == "SuccessBodyRule: Method \"POST /invalid-mixed\" must have body type for success response(s) defined"
+        result.validationResults[2].message == "SuccessBodyRule: Method \"POST /invalid-all\" must have body type for success response(s) defined"
     }
 
     def "union type property rule"() {
@@ -235,9 +235,9 @@ class ValidatorRulesTest extends Specification implements ValidatorFixtures {
         def result = new RamlModelBuilder(validators).buildApi(uri)
         then:
         result.validationResults.size == 3
-        result.validationResults[0].message == "Usage of union type is not allowed for property \"invalidItem\""
-        result.validationResults[1].message == "Usage of union type is not allowed for property \"invalidItemDesc\""
-        result.validationResults[2].message == "Usage of union type is not allowed for property \"/invalid[a-z]/\""
+        result.validationResults[0].message == "UnionTypePropertyRule: Usage of union type is not allowed for property \"invalidItem\""
+        result.validationResults[1].message == "UnionTypePropertyRule: Usage of union type is not allowed for property \"invalidItemDesc\""
+        result.validationResults[2].message == "UnionTypePropertyRule: Usage of union type is not allowed for property \"/invalid[a-z]/\""
     }
 
     def "update action name rule"() {
@@ -247,7 +247,7 @@ class ValidatorRulesTest extends Specification implements ValidatorFixtures {
         def result = new RamlModelBuilder(validators).buildApi(uri)
         then:
         result.validationResults.size == 1
-        result.validationResults[0].message == "Update action type \"InvalidUpdate\" name must end with \"Action\""
+        result.validationResults[0].message == "UpdateActionNameRule: Update action type \"InvalidUpdate\" name must end with \"Action\""
     }
 
     def "uriparameters declared"() {
@@ -257,7 +257,7 @@ class ValidatorRulesTest extends Specification implements ValidatorFixtures {
         def result = new RamlModelBuilder(validators).buildApi(uri)
         then:
         result.validationResults.size == 1
-        result.validationResults[0].message == "Resource \"/{test}\" must define all uri parameters"
+        result.validationResults[0].message == "UriParameterDeclaredRule: Resource \"/{test}\" must define all uri parameters"
         result.rootObject.resources[0].resources[0].resources[0].uriParameters[0].name == "id"
     }
 }

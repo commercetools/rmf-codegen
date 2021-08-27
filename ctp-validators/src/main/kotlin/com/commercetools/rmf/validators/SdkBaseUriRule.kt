@@ -15,7 +15,7 @@ class SdkBaseUriRule (options: List<RuleOption>? = null) : ModulesRule(options) 
         val validationResults: MutableList<Diagnostic> = ArrayList()
 
         if (api.baseUri == null) {
-            validationResults.add(error(api.baseUri,"baseUri must not be empty"))
+            validationResults.add(error(api,"baseUri must not be empty"))
         } else if (api.baseUri.value.variables.isNotEmpty()) {
             val sdkBaseUri = api.getAnnotation("sdkBaseUri")
             if (sdkBaseUri == null) {

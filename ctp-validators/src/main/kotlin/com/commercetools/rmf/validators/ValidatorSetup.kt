@@ -5,11 +5,7 @@ import com.fasterxml.jackson.databind.MapperFeature
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.dataformat.xml.XmlMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
-import io.vrap.rmf.raml.model.modules.util.ModulesSwitch
-import io.vrap.rmf.raml.model.resources.util.ResourcesSwitch
-import io.vrap.rmf.raml.model.types.util.TypesSwitch
 import io.vrap.rmf.raml.validation.RamlValidator
-import org.eclipse.emf.common.util.Diagnostic
 import java.io.File
 
 
