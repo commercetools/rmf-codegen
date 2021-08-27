@@ -36,6 +36,7 @@ jobs:
         with:
           arguments: nativeImage
           build-root-directory: tools/cli-application
+          gradle-executable: ./gradlew
 
       - name: Upload ${{ matrix.name }} native image
         uses: actions/upload-artifact@v1
