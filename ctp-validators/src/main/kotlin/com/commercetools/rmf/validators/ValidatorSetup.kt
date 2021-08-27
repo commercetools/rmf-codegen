@@ -30,10 +30,10 @@ class ValidatorSetup {
             val validators = ruleSet.rules.map { rule -> Class.forName(rule.name).getConstructor(List::class.java).newInstance(rule.options) }
 
             return listOf(
-                ResolvedResourcesValidator(validators.filter { it is ResourcesSwitch<*> } as List<ResourcesSwitch<List<Diagnostic>>>),
-                ResourcesValidator(validators.filter { it is ResourcesSwitch<*> } as List<ResourcesSwitch<List<Diagnostic>>>),
-                TypesValidator(validators.filter { it is TypesSwitch<*> } as List<TypesSwitch<List<Diagnostic>>>),
-                ModulesValidator(validators.filter { it is ModulesSwitch<*> } as List<ModulesSwitch<List<Diagnostic>>>)
+                ResolvedResourcesValidator(validators.filterIsInstance( ResolvedResourcesRule::class.java )),
+                ResourcesValidator(validators.filterIsInstance( ResourcesRule::class.java )),
+                TypesValidator(validators.filterIsInstance( TypesRule::class.java )),
+                ModulesValidator(validators.filterIsInstance( ModulesRule::class.java ))
             )
         }
     }

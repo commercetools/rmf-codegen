@@ -13,9 +13,7 @@ class UriParameterDeclaredRule(options: List<RuleOption>? = null) : ResolvedReso
 
     override fun caseResource(resource: Resource): List<Diagnostic> {
         val validationResults: MutableList<Diagnostic> = ArrayList()
-        val resourcePathName = resource.resourcePathName
-        if (exclude.contains(resourcePathName).not() && resource.relativeUri.variables.filter { v -> resource.uriParameters.firstOrNull { p -> p.name == v } == null }.size > 0 ) {
-//            val t = resource.resourcePathName
+        if (exclude.contains(resource.fullUri.template).not() && resource.relativeUri.variables.filter { v -> resource.uriParameters.firstOrNull { p -> p.name == v } == null }.size > 0 ) {
             validationResults.add(error(resource, "Resource \"{0}\" must define all uri parameters", resource.fullUri.template))
         }
         return validationResults

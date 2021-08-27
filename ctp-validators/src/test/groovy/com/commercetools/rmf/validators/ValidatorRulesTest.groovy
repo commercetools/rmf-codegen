@@ -137,6 +137,17 @@ class ValidatorRulesTest extends Specification implements ValidatorFixtures {
         result.validationResults[0].message == "Resource \"invalid\" define only one catch all sub resource"
     }
 
+    def "resource lower case hyphen rule"() {
+        when:
+        def validators = Arrays.asList(new ResourcesValidator(Arrays.asList(ResourceLowerCaseHyphenRule.create())))
+        def uri = uriFromClasspath("/resource-lowercasehyphen-rule.raml")
+        def result = new RamlModelBuilder(validators).buildApi(uri)
+        then:
+        result.validationResults.size == 2
+        result.validationResults[0].message == "ResourceLowerCaseHyphenRule: Resource \"/{projectKey}/invalidResource\" must be lower case hyphen separated"
+        result.validationResults[1].message == "ResourceLowerCaseHyphenRule: Resource \"/{projectKey}/another_invalid_resource\" must be lower case hyphen separated"
+    }
+
     def "valid baseUri"() {
         when:
         def validators = Arrays.asList(new ModulesValidator(Arrays.asList(SdkBaseUriRule.create())))

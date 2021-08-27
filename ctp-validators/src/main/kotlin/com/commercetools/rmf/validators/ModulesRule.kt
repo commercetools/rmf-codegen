@@ -1,8 +1,6 @@
 package com.commercetools.rmf.validators
 
 import io.vrap.rmf.raml.model.modules.util.ModulesSwitch
-import io.vrap.rmf.raml.model.types.util.TypesSwitch
-import io.vrap.rmf.raml.validation.DiagnosticsCreator
 import org.eclipse.emf.common.util.Diagnostic
 import org.eclipse.emf.ecore.EObject
 
