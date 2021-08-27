@@ -32,7 +32,7 @@ jobs:
           java-version: "11"
 
       - name: Build ${{ matrix.name }} native image
-        uses: eskatos/gradle-command-action@v1
+        uses: gradle/gradle-command-action@v1
         with:
           arguments: nativeImage
           build-root-directory: tools/cli-application
@@ -57,7 +57,7 @@ jobs:
           java-version: "11"
 
       - name: Build JAR
-        uses: eskatos/gradle-command-action@v1
+        uses: gradle/gradle-command-action@v1
         with:
           arguments: build
           build-root-directory: tools/cli-application
