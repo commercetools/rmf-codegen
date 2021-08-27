@@ -62,6 +62,7 @@ jobs:
         with:
           arguments: build
           build-root-directory: tools/cli-application
+          gradle-executable: ./gradlew
 
       - name: Get current date
         id: date
