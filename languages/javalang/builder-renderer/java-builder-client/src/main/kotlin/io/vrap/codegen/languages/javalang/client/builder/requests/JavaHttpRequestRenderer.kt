@@ -74,6 +74,8 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
             |import java.net.URLEncoder;
             |import io.vrap.rmf.base.client.*;
             |${type.imports()}
+            |import org.apache.commons.lang3.builder.EqualsBuilder;
+            |import org.apache.commons.lang3.builder.HashCodeBuilder;
             |
             |import static io.vrap.rmf.base.client.utils.ClientUtils.blockingWait;
             |
@@ -104,6 +106,8 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
             |    <${type.queryParamsTemplateSetters()}>
             |    
             |    <${type.formParamMethods()}>
+            |    
+            |    <${type.equalsMethod()}>
             |
             |    @Override
             |    protected ${type.toRequestName()} copy()
@@ -118,6 +122,48 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
                 relativePath = "${vrapType.`package`}.${type.toRequestName()}".replace(".", "/") + ".java",
                 content = content
         )
+    }
+
+    private fun Method.equalsMethod() : String {
+        val body: String = if (this.bodies != null && this.bodies.isNotEmpty()) {
+            when {
+                this.bodies[0].type.toVrapType() is VrapObjectType -> {
+                    val methodBodyVrapType = this.bodies[0].type.toVrapType() as VrapObjectType
+                    methodBodyVrapType.simpleClassName.decapitalize()
+                }
+                this.bodies[0].contentMediaType.`is`(MediaType.FORM_DATA) -> {
+                    "formParams"
+                }
+                else -> {
+                    "obj"
+                }
+            }
+        } else {
+            ""
+        }
+        val fields = this.pathArguments().plus(body).filterNot { s -> s.isEmpty() }
+
+        return """
+            |@Override
+            |public boolean equals(Object o) {
+            |    if (this == o) return true;
+            |
+            |    if (o == null || getClass() != o.getClass()) return false;
+            |
+            |    ${this.toRequestName()} that = (${this.toRequestName()}) o;
+            |
+            |    return new EqualsBuilder()
+            |            <${fields.joinToString("\n") { ".append(${it}, that.${it})" }}>
+            |            .isEquals();
+            |}
+            |
+            |@Override
+            |public int hashCode() {
+            |    return new HashCodeBuilder(17, 37)
+            |        <${fields.joinToString("\n") { ".append(${it})" }}>
+            |        .toHashCode();
+            |}
+        """.trimMargin().keepIndentation()
     }
 
     private fun Trait.className(): String {
