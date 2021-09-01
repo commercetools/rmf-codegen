@@ -23,6 +23,7 @@ class CsharpRequestBuilderResourceRenderer constructor(override val vrapTypeProv
         val cPackage = vrapType.requestBuildersPackage(entityFolder)
 
         val content: String = """
+            |using System;
             |using System.IO;
             |using System.Text.Json;
             |using commercetools.Base.Client;
