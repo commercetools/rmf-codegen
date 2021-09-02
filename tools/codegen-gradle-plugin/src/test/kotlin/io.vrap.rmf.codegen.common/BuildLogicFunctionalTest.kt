@@ -37,7 +37,7 @@ class BuildLogicFunctionalTest {
 
         val buildFileContent = """
         |plugins {
-        |    id 'io.vrap.rmf.codegen-plugin'
+        |    id 'com.commercetools.rmf.codegen-plugin'
         |}
         |
         |RamlGenerator {

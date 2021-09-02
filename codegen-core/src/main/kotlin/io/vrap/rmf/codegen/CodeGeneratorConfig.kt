@@ -19,6 +19,5 @@ data class CodeGeneratorConfig (
         val clientPackage: String? = null,
         val writeGitHash: Boolean = false,
         val outputFolder: Path = Paths.get("build/gensrc"),
-        val customTypeMapping: Map<String, VrapType> = mapOf(),
-        val docTransformer: (DescriptionFacet) -> String? = DescriptionFacet::toHtml
+        val customTypeMapping: Map<String, VrapType> = mapOf()
 )
