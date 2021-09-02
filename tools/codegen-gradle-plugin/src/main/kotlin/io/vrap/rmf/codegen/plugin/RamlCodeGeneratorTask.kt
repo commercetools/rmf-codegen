@@ -54,7 +54,8 @@ open class RamlCodeGeneratorTask : DefaultTask() {
             clientPackage = target.client_package,
             outputFolder = target.path?.toPath() ?: Paths.get("gensrc/${target.name}"),
             customTypeMapping = target.customTypeMapping.
-                    entries.associate { kotlin.Pair(it.key, VrapObjectType(it.value.substringBeforeLast("."), it.value.substringAfterLast("."))) }
+                    entries.associate { kotlin.Pair(it.key, VrapObjectType(it.value.substringBeforeLast("."), it.value.substringAfterLast("."))) },
+            writeGitHash = target.writeGitHash
         )
 
         val generatorComponent: GeneratorComponent = when (target.target) {
