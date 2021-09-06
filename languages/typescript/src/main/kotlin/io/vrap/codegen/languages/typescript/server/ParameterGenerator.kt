@@ -79,17 +79,17 @@ class ParameterGenerator constructor(
 
     private fun Method.queryParams() = """|
         |queryParams: {
-        |       <${this.queryParameters.map { "${it.name}: ${it.parameterType()}" }.joinToString("\n")}>
+        |       <${this.queryParameters.map { "${it.name}: ${it.type.toVrapType().simpleTSName()}" }.joinToString("\n")}>
         |}
     """.trimMargin()
 
-    private fun QueryParameter.parameterType(): String {
-        val vrapType = this.type.toVrapType()
-        return when(vrapType) {
-            is VrapArrayType -> "${vrapType.itemType.simpleTSName()} | ${vrapType.simpleTSName()}"
-            else -> vrapType.simpleTSName()
-        }
-    }
+//    private fun QueryParameter.parameterType(): String {
+//        val vrapType = this.type.toVrapType()
+//        return when(vrapType) {
+//            is VrapArrayType -> "${vrapType.itemType.simpleTSName()} | ${vrapType.simpleTSName()}"
+//            else -> vrapType.simpleTSName()
+//        }
+//    }
 
     private fun Method.pathParams() = """|
         |pathParams: {
