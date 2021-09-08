@@ -370,7 +370,7 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
             .joinToString(separator = "\n\n")
 
     private fun QueryParameter.witherType() : String {
-        val type = this.type;
+        val type = this.type
         return when (type) {
             is ArrayType -> type.items.toVrapType().simpleName().toScalarType()
             else -> type.toVrapType().simpleName().toScalarType()
@@ -390,6 +390,7 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
 
                 val methodName = StringCaseFormat.UPPER_CAMEL_CASE.apply(paramName.value)
                 val parameters =  "final String " + StringCaseFormat.LOWER_CAMEL_CASE.apply(placeholder.value) + ", final ${it.witherType()} " + paramName.value
+                val listParameters =  "final String " + StringCaseFormat.LOWER_CAMEL_CASE.apply(placeholder.value) + ", final List<${it.witherType()}> " + paramName.value
 
                 return """
                 |/**
@@ -405,7 +406,22 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
                 |public ${this.toRequestName()} add$methodName($parameters){
                 |    return copy().addQueryParam($value, ${paramName.value});
                 |}
-
+                |
+                |/**
+                | * set ${paramName.value} with the specificied values
+                | */
+                |public ${this.toRequestName()} with$methodName($listParameters) {
+                |    final String templateVarName = String.format("var.%s", varName);
+                |    return copy().withoutQueryParam(templateVarName).addQueryParams(predicateVar.stream().map(s -> new ParamEntry<>(templateVarName, s)).collect(Collectors.toList()));
+                |}
+                |
+                |/**
+                | * add additional ${paramName.value} query parameters
+                | */
+                |public ${this.toRequestName()} add$methodName($listParameters) {
+                |    final String templateVarName = String.format("var.%s", varName);
+                |    return copy().addQueryParams(predicateVar.stream().map(s -> new ParamEntry<>(templateVarName, s)).collect(Collectors.toList()));
+                |}
             """.trimMargin().escapeAll()
 
             }
@@ -426,6 +442,20 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
                 | */
                 |public ${this.toRequestName()} add${it.fieldName().capitalize()}(final ${it.witherType()} ${it.fieldName()}){
                 |    return copy().addQueryParam("${it.name}", ${it.fieldName()});
+                |}
+                |
+                |/**
+                | * set ${it.fieldName()} with the specificied values
+                | */
+                |public ${this.toRequestName()} with${it.fieldName().capitalize()}(final List<${it.witherType()}> ${it.fieldName()}){
+                |    return copy().withoutQueryParam("${it.name}").addQueryParams(${it.fieldName()}.stream().map(s -> new ParamEntry<>("${it.name}", s)).collect(Collectors.toList())); 
+                |}
+                |
+                |/**
+                | * add additional ${it.fieldName()} query parameters
+                | */
+                |public ${this.toRequestName()} add${it.fieldName().capitalize()}(final List<${it.witherType()}> ${it.fieldName()}){
+                |    return copy().addQueryParams(${it.fieldName()}.stream().map(s -> new ParamEntry<>("${it.name}", s)).collect(Collectors.toList())); 
                 |}
             """.trimMargin().escapeAll() }
             .joinToString(separator = "\n\n")
