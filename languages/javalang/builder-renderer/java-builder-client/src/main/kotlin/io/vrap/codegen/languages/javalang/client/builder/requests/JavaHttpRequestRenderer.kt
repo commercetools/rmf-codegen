@@ -377,6 +377,14 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
         }
     }
 
+    private fun QueryParameter.witherBoxedType() : String {
+        val type = this.type
+        return when (type) {
+            is ArrayType -> type.items.toVrapType().simpleName()
+            else -> type.toVrapType().simpleName()
+        }
+    }
+
     private fun Method.queryParamsTemplateSetters() : String = this.queryParameters
             .filter { it.getAnnotation(PLACEHOLDER_PARAM_ANNOTATION, true) != null }
             .map {
@@ -447,15 +455,15 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
                 |/**
                 | * set ${it.fieldName()} with the specificied values
                 | */
-                |public ${this.toRequestName()} with${it.fieldName().capitalize()}(final List<${it.witherType()}> ${it.fieldName()}){
-                |    return copy().withoutQueryParam("${it.name}").addQueryParams(${it.fieldName()}.stream().map(s -> new ParamEntry<>("${it.name}", s)).collect(Collectors.toList())); 
+                |public ${this.toRequestName()} with${it.fieldName().capitalize()}(final List<${it.witherBoxedType()}> ${it.fieldName()}){
+                |    return copy().withoutQueryParam("${it.name}").addQueryParams(${it.fieldName()}.stream().map(s -> new ParamEntry<>("${it.name}", s.toString())).collect(Collectors.toList())); 
                 |}
                 |
                 |/**
                 | * add additional ${it.fieldName()} query parameters
                 | */
-                |public ${this.toRequestName()} add${it.fieldName().capitalize()}(final List<${it.witherType()}> ${it.fieldName()}){
-                |    return copy().addQueryParams(${it.fieldName()}.stream().map(s -> new ParamEntry<>("${it.name}", s)).collect(Collectors.toList())); 
+                |public ${this.toRequestName()} add${it.fieldName().capitalize()}(final List<${it.witherBoxedType()}> ${it.fieldName()}){
+                |    return copy().addQueryParams(${it.fieldName()}.stream().map(s -> new ParamEntry<>("${it.name}", s.toString())).collect(Collectors.toList())); 
                 |}
             """.trimMargin().escapeAll() }
             .joinToString(separator = "\n\n")
