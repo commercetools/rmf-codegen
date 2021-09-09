@@ -420,7 +420,7 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
                 | */
                 |public ${this.toRequestName()} with$methodName($listParameters) {
                 |    final String placeholderName = String.format("var.%s", ${StringCaseFormat.LOWER_CAMEL_CASE.apply(placeholder.value)});
-                |    return copy().withoutQueryParam(placeholderName).addQueryParams(predicateVar.stream().map(s -> new ParamEntry<>(placeholderName, s)).collect(Collectors.toList()));
+                |    return copy().withoutQueryParam(placeholderName).addQueryParams(${paramName.value}.stream().map(s -> new ParamEntry<>(placeholderName, s)).collect(Collectors.toList()));
                 |}
                 |
                 |/**
@@ -428,7 +428,7 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
                 | */
                 |public ${this.toRequestName()} add$methodName($listParameters) {
                 |    final String placeholderName = String.format("var.%s", ${StringCaseFormat.LOWER_CAMEL_CASE.apply(placeholder.value)});
-                |    return copy().addQueryParams(predicateVar.stream().map(s -> new ParamEntry<>(placeholderName, s)).collect(Collectors.toList()));
+                |    return copy().addQueryParams(${paramName.value}.stream().map(s -> new ParamEntry<>(placeholderName, s)).collect(Collectors.toList()));
                 |}
             """.trimMargin().escapeAll()
 
