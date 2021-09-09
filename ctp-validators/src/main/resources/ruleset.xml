@@ -114,6 +114,9 @@
         <rule>
             <name>com.commercetools.rmf.validators.ResourceLowerCaseHyphenRule</name>
         </rule>
+        <rule>
+            <name>com.commercetools.rmf.validators.NestedTypeRule</name>
+        </rule>
 <!--        <rule>-->
 <!--            <name>com.commercetools.rmf.validators.NamedBodyTypeRule</name>-->
 <!--        </rule>-->

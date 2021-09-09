@@ -260,4 +260,15 @@ class ValidatorRulesTest extends Specification implements ValidatorFixtures {
         result.validationResults[0].message == "UriParameterDeclaredRule: Resource \"/{test}\" must define all uri parameters"
         result.rootObject.resources[0].resources[0].resources[0].uriParameters[0].name == "id"
     }
+
+    def "nested type rule"() {
+        when:
+        def validators = Arrays.asList(new TypesValidator(Arrays.asList(NestedTypeRule.create())))
+        def uri = uriFromClasspath("/nestedtype-rule.raml")
+        def result = new RamlModelBuilder(validators).buildApi(uri)
+        then:
+        result.validationResults.size == 2
+        result.validationResults[0].message == "NestedTypeRule: Property \"invalid\" must not use inline array type"
+        result.validationResults[1].message == "NestedTypeRule: Property \"invalid\" must not use inline types"
+    }
 }
