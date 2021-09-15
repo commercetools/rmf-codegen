@@ -83,13 +83,6 @@ class ParameterGenerator constructor(
         |}
     """.trimMargin()
 
-//    private fun QueryParameter.parameterType(): String {
-//        val vrapType = this.type.toVrapType()
-//        return when(vrapType) {
-//            is VrapArrayType -> "${vrapType.itemType.simpleTSName()} | ${vrapType.simpleTSName()}"
-//            else -> vrapType.simpleTSName()
-//        }
-//    }
 
     private fun Method.pathParams() = """|
         |pathParams: {
@@ -152,23 +145,20 @@ class ParameterGenerator constructor(
 
                     method.bodies
                             .map {
-                                it.type
+                                it.type.toVrapType()
                             }
                             .plus(
                                     method.responses
                                             .flatMap {
                                                 it.bodies.map {
-                                                    body -> body.type
+                                                    body -> body.type.toVrapType()
                                                 }
                                             }
                             ).plus(
 
-                                    method.queryParameters.map { it.type }
+                                    method.queryParameters.map { it.parameterType() }
                             )
 
-                }
-                .map{
-                    it.toVrapType()
                 }
                 .filter { it is VrapObjectType || it is VrapEnumType}
                 .distinct()
@@ -177,6 +167,13 @@ class ParameterGenerator constructor(
                 }
                 .joinToString(separator = "\n")
 
+    }
+
+        private fun QueryParameter.parameterType(): VrapType {
+        val vrapType = this.type.toVrapType()
+            if(vrapType is VrapArrayType)
+                return vrapType.itemType
+            return vrapType
     }
 
     private fun VrapType.importModelsStatements():String {
