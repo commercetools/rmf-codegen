@@ -271,4 +271,14 @@ class ValidatorRulesTest extends Specification implements ValidatorFixtures {
         result.validationResults[0].message == "NestedTypeRule: Property \"invalid\" must not use inline array type"
         result.validationResults[1].message == "NestedTypeRule: Property \"invalid\" must not use inline types"
     }
+
+    def "datetime rule"() {
+        when:
+        def validators = Arrays.asList(new ModulesValidator(Arrays.asList(DatetimeRule.create())))
+        def uri = uriFromClasspath("/datetime-rule.raml")
+        def result = new RamlModelBuilder(validators).buildApi(uri)
+        then:
+        result.validationResults.size == 1
+        result.validationResults[0].message == "DatetimeRule: Type \"DatetimeInvalid\" must have the name ending with 'At' or 'From' or 'To"
+    }
 }
