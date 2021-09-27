@@ -14,8 +14,8 @@ class DatetimeRule(options: List<RuleOption>? = null) : TypesRule(options) {
         val validationResults: MutableList<Diagnostic> = ArrayList()
         val propertyName = property.name ?: ""
         if (exclude.contains(propertyName).not()) {
-            if (propertyName.endsWith("At").not() || propertyName.endsWith("From").not() || !propertyName.endsWith("To").not()) {
-                validationResults.add(error(property, "Property \"{0}\" must finish with 'At' or 'From' or 'To'", propertyName))
+            if (propertyName.endsWith("At").not() && propertyName.endsWith("From").not() && propertyName.endsWith("To").not()) {
+                validationResults.add(error(property, "Property \"{0}\" must finish with 'At' or 'From' or \'To\'", propertyName))
             }
         }
 

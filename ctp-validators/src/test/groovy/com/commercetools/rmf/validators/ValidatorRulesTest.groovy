@@ -15,6 +15,16 @@ class ValidatorRulesTest extends Specification implements ValidatorFixtures {
         result.validationResults[0].message == "CamelCaseRule: Property \"invalid_case\" must be lower camel cased"
     }
 
+    def "datetime rule"() {
+        when:
+        def validators = Arrays.asList(new TypesValidator(Arrays.asList(DatetimeRule.create())))
+        def uri = uriFromClasspath("/datetime-rule.raml")
+        def result = new RamlModelBuilder(validators).buildApi(uri)
+        then:
+        result.validationResults.size == 1
+        result.validationResults[0].message == "DatetimeRule: Property \"BarFoo\" must finish with At or From or To"
+    }
+
     def "discriminator name rule"() {
         when:
         def validators = Arrays.asList(new TypesValidator(Arrays.asList(DiscriminatorNameRule.create())))
@@ -272,13 +282,4 @@ class ValidatorRulesTest extends Specification implements ValidatorFixtures {
         result.validationResults[1].message == "NestedTypeRule: Property \"invalid\" must not use inline types"
     }
 
-    def "datetime rule"() {
-        when:
-        def validators = Arrays.asList(new ModulesValidator(Arrays.asList(DatetimeRule.create())))
-        def uri = uriFromClasspath("/datetime-rule.raml")
-        def result = new RamlModelBuilder(validators).buildApi(uri)
-        then:
-        result.validationResults.size == 1
-        result.validationResults[0].message == "DatetimeRule: Type \"DatetimeInvalid\" must have the name ending with 'At' or 'From' or 'To"
-    }
 }
