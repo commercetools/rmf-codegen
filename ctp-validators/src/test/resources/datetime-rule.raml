@@ -2,10 +2,66 @@
 title: datetime rule
 
 types:
-  Foo:
+  InvalidDateTime:
     type: object
     properties:
-      BarFoo: datetime
-      BarAt: datetime
-      BarFrom: datetime
-      BarTo: datetime
+      foo: datetime
+  InvalidDate:
+    type: object
+    properties:
+      foo: date-only
+  InvalidTime:
+    type: object
+    properties:
+      foo: time-only
+  InvalidDateTimeRangeFrom:
+    type: object
+    properties:
+      fooFrom: datetime
+  InvalidDateTimeRangeTo:
+    type: object
+    properties:
+      fooTo: datetime
+  InvalidDateRangeFrom:
+    type: object
+    properties:
+      fooFrom: date-only
+  InvalidDateRangeTo:
+    type: object
+    properties:
+      fooTo: date-only
+  InvalidTimeRangeFrom:
+    type: object
+    properties:
+      fooFrom: time-only
+  InvalidTimeRangeTo:
+    type: object
+    properties:
+      fooTo: time-only
+  FooAtDateTime:
+    type: object
+    properties:
+      fooAt: datetime
+  FooRangeDateTime:
+    type: object
+    properties:
+      fooFrom: datetime
+      fooTo: datetime
+  FooAtDate:
+    type: object
+    properties:
+      fooAt: date-only
+  FooRangeDate:
+    type: object
+    properties:
+      fooFrom: date-only
+      fooTo: date-only
+  FooAtTime:
+    type: object
+    properties:
+      fooAt: time-only
+  FooRangeTime:
+    type: object
+    properties:
+      fooFrom: time-only
+      fooTo: time-only
