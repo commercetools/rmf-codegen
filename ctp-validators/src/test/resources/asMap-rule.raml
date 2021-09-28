@@ -1,0 +1,11 @@
+#%RAML 1.0
+title:  asMap validation rule
+
+type: object
+(asMap):
+  key: string
+  value: string
+properties:
+  /^[a-z]{2}(-[A-Z]{2})?$/:
+    type: string
+    

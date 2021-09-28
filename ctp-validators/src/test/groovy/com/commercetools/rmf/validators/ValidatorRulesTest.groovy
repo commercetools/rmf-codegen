@@ -261,6 +261,17 @@ class ValidatorRulesTest extends Specification implements ValidatorFixtures {
         result.rootObject.resources[0].resources[0].resources[0].uriParameters[0].name == "id"
     }
 
+    // new test
+    def "asMap annotation rule"() {
+        when:
+        def validators = Arrays.asList(new ResolvedResourcesValidator(Arrays.asList(AsMapRule.create())))
+        def uri = uriFromClasspath("/asMap-rule.raml")
+        def result = new RamlModelBuilder(validators).buildApi(uri)
+        then:
+        result.validationResults.size == 1
+        result.validationResults[0].message == "AsMapRule: Invalid map format"
+    }
+
     def "nested type rule"() {
         when:
         def validators = Arrays.asList(new TypesValidator(Arrays.asList(NestedTypeRule.create())))
