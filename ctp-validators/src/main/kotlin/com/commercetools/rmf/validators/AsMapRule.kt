@@ -1,5 +1,6 @@
 package com.commercetools.rmf.validators
 
+import io.vrap.rmf.raml.model.types.ObjectType
 import io.vrap.rmf.raml.model.types.Property
 import io.vrap.rmf.raml.model.util.StringCaseFormat
 import org.eclipse.emf.common.util.Diagnostic
@@ -10,22 +11,25 @@ class AsMapRule(options: List<RuleOption>? = null) : TypesRule(options) {
     private val exclude: List<String> =
         (options?.filter { ruleOption -> ruleOption.type.toLowerCase() == RuleOptionType.EXCLUDE.toString() }?.map { ruleOption -> ruleOption.value }?.plus("") ?: defaultExcludes)
 
-    override fun caseProperty(property: Property): List<Diagnostic> {
-         val validationResults: MutableList<Diagnostic> = ArrayList()
-         val propertyName = property.name ?: ""
+    override fun caseObjectType(type: ObjectType): List<Diagnostic> {
+        val validationResults: MutableList<Diagnostic> = ArrayList()
 
         // write the property rule validation here...
-        if (exclude.contains(propertyName).not()) {
-            if (propertyName.contains("-").not()) {
-                validationResults.add(error(property, "Property \"{0}\" must finish with be in the format 'country-REGION", propertyName))
+        if (exclude.contains(type.name).not()) {
+            if (type.properties.size == 1 && type.properties[0].isPatternProperty()) {
+                if (type.getAnnotation("asMap") == null) {
+                    validationResults.add(error(type, "Property \"{0}\" must finish with be in the format 'country-REGION", type.name))
+                }
+
             }
         }
         return validationResults
     }
 
+    private fun Property.isPatternProperty() = this.name.startsWith("/") && this.name.endsWith("/")
 
     companion object : ValidatorFactory<AsMapRule> {
-        private val defaultExcludes by lazy { listOf("error_description") }
+        private val defaultExcludes by lazy { listOf("") }
 
         @JvmStatic
         override fun create(options: List<RuleOption>?): AsMapRule {
