@@ -338,7 +338,7 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
             |@Override
             |public ApiHttpResponse\<${this.javaReturnType(vrapTypeProvider)}\> executeBlocking(final ApiHttpClient client, Duration timeout){
             |    ApiHttpRequest request = this.createHttpRequest();
-            |    return blockingWait(client.execute(request, ${this.javaReturnType(vrapTypeProvider)}.class), request, timeout);
+            |    return blockingWait(client.execute(request, ${this.javaReturnType(vrapTypeProvider)}.class).toCompletableFuture(), request, timeout);
             |}
         """.trimMargin()
     }
@@ -347,7 +347,7 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
         return """
             |@Override
             |public CompletableFuture\<ApiHttpResponse\<${this.javaReturnType(vrapTypeProvider)}\>\> execute(final ApiHttpClient client){
-            |    return client.execute(this.createHttpRequest(), ${this.javaReturnType(vrapTypeProvider)}.class);
+            |    return client.execute(this.createHttpRequest(), ${this.javaReturnType(vrapTypeProvider)}.class).toCompletableFuture();
             |}
         """.trimMargin()
     }
