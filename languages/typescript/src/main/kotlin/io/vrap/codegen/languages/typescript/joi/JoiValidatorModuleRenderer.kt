@@ -141,7 +141,7 @@ class JoiValidatorModuleRenderer constructor(override val vrapTypeProvider: Vrap
 
     private fun Property.renderPropertyTypeSchema(current : ObjectType, discriminatorProperty: Boolean): String {
         val vrapType: VrapType = this.type.toVrapType()
-        val discriminatorConstraint = if (this == current.discriminatorProperty()) ".valid('${current.discriminatorValue}')" else ""
+        val discriminatorConstraint = if (this == current.discriminatorProperty()) ".valid(Joi.override, '${current.discriminatorValue}')" else ""
         val requiredConstraint = if (this.required) ".required()" else ".optional()"
         val maxConstraint = if (this.type is ArrayType && (this.type as ArrayType).maxItems != null) ".max(${(this.type as ArrayType).maxItems})" else ""
         val joiLink = joiAlternativesTypes.contains(vrapType.simpleJoiName()) && discriminatorProperty
