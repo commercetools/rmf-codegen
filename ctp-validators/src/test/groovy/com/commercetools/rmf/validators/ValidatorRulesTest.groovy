@@ -261,7 +261,6 @@ class ValidatorRulesTest extends Specification implements ValidatorFixtures {
         result.rootObject.resources[0].resources[0].resources[0].uriParameters[0].name == "id"
     }
 
-    // new test
     def "asMap annotation rule"() {
         when:
         def validators = Arrays.asList(new TypesValidator(Arrays.asList(AsMapRule.create())))
