@@ -18,7 +18,7 @@ class AsMapRule(options: List<RuleOption>? = null) : TypesRule(options) {
         if (exclude.contains(type.name).not()) {
             if (type.properties.size == 1 && type.properties[0].isPatternProperty()) {
                 if (type.getAnnotation("asMap") == null) {
-                    validationResults.add(error(type, "Property \"{0}\" be in the format 'country-REGION", type.name))
+                    validationResults.add(error(type, "Pattern property \"{0}\" must define an asMap annotation", type.name))
                 }
             }
         }
