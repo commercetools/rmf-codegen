@@ -1,0 +1,12 @@
+#%RAML 1.0
+title: property query parameter placeholder annotation rule
+
+/products:
+    get:
+        queryParameters:
+            /text.en?:
+                (placeholderParam):
+                    paramName: text
+                    template: text.en
+                    placeholder: en
+

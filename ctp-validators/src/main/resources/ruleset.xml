@@ -117,6 +117,9 @@
         <rule>
             <name>com.commercetools.rmf.validators.NestedTypeRule</name>
         </rule>
+        <rule>
+            <name>com.commercetools.rmf.validators.QueryParameterPlaceholderAnnotationRule</name>
+        </rule>
 <!--        <rule>-->
 <!--            <name>com.commercetools.rmf.validators.NamedBodyTypeRule</name>-->
 <!--        </rule>-->
