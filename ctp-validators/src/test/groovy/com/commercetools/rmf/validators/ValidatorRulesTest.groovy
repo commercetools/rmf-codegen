@@ -271,4 +271,15 @@ class ValidatorRulesTest extends Specification implements ValidatorFixtures {
         result.validationResults[0].message == "NestedTypeRule: Property \"invalid\" must not use inline array type"
         result.validationResults[1].message == "NestedTypeRule: Property \"invalid\" must not use inline types"
     }
+
+    def "placeholder annotation query parameter rule"() {
+        when:
+        def validators = Arrays.asList(new TypesValidator(Arrays.asList(QueryParameterPlaceholderAnnotationRule.create())))
+        def uri = uriFromClasspath("/placeholder-annotation-rule.raml")
+        def result = new RamlModelBuilder(validators).buildApi(uri)
+        then:
+        result.validationResults.size == 2
+        result.validationResults[0].message == "NestedTypeRule: Property \"invalid\" must not use inline array type"
+        result.validationResults[1].message == "NestedTypeRule: Property \"invalid\" must not use inline types"
+    }
 }
