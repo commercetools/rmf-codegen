@@ -67,7 +67,7 @@ class JavaRequestTestRenderer constructor(override val vrapTypeProvider: VrapTyp
             |                       new ApiHttpResponse<>(500, null, "".getBytes(StandardCharsets.UTF_8), "Oops!")));
             |                   
             |        Assertions.assertThatThrownBy(
-            |               () -> client.execute(httpRequest).get()).hasCauseInstanceOf(ApiServerException.class); 
+            |               () -> client.execute(httpRequest).toCompletableFuture().get()).hasCauseInstanceOf(ApiServerException.class); 
             |    }""".trimMargin() else ""}
             |    
             |    ${if (type.methods.size > 0) """@Test
@@ -77,7 +77,7 @@ class JavaRequestTestRenderer constructor(override val vrapTypeProvider: VrapTyp
             |                       new ApiHttpResponse<>(400, null, "".getBytes(StandardCharsets.UTF_8), "Oops!")));
             |                       
             |        Assertions.assertThatThrownBy(
-            |           () -> client.execute(httpRequest).get()).hasCauseInstanceOf(ApiClientException.class);
+            |           () -> client.execute(httpRequest).toCompletableFuture().get()).hasCauseInstanceOf(ApiClientException.class);
             |    }""".trimMargin() else ""}
             |    
             |    private Object[] requestWithMethodParameters() {

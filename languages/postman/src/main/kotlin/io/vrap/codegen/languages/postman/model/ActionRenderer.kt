@@ -39,7 +39,7 @@ class ActionRenderer {
         }}
         return """
             |{
-            |    "name": "${type.discriminatorValue.capitalize()}",
+            |    "name": "${type.discriminatorValue.capitalize()}${if (type.markDeprecated()) " (deprecated)" else ""}",
             |    "event": [
             |        {
             |            "listen": "test",
