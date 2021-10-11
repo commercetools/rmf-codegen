@@ -21,7 +21,7 @@ class ValidatorRulesTest extends Specification implements ValidatorFixtures {
         def uri = uriFromClasspath("/datetime-rule.raml")
         def result = new RamlModelBuilder(validators).buildApi(uri)
         then:
-        result.validationResults.size == 1
+        result.validationResults.size == 16
 //        result.validationResults[0].message == "DatetimeRule: Property \"BarFoo\" must finish with At or From or To"
     }
 
