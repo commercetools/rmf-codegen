@@ -142,7 +142,6 @@ class CsharpHttpRequestRenderer constructor(override val vrapTypeProvider: VrapT
                 constructorAssignments.add(methodBodyAssignment)
             } else if (this.bodies[0].contentMediaType.`is`(MediaType.FORM_DATA)){
                 constructorArguments.add("List<KeyValuePair<string, string>> formParams = null".escapeAll())
-                constructorAssignments.add("AddHeader(ApiHttpHeaders.CONTENT_TYPE, \"application/x-www-form-urlencoded\");".escapeAll())
                 constructorAssignments.add("this._formParams = formParams ?? new List<KeyValuePair<string, string>>();".escapeAll())
             }else {
                 constructorArguments.add("JsonElement? jsonNode")
