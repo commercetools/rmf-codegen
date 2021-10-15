@@ -85,7 +85,8 @@ class CsharpModelInterfaceRenderer constructor(override val vrapTypeProvider: Vr
             |
             |namespace ${vrapType.csharpPackage()}
             |{
-            |    public class I${vrapType.simpleClassName} : Dictionary\<string, ${property.type.toVrapType().simpleName()}\>
+            |    <${this.DeserializationAttributes()}>
+            |    public interface I${vrapType.simpleClassName} : IDictionary\<string, ${property.type.toVrapType().simpleName()}\>
             |    {
             |    }
             |}

@@ -34,12 +34,35 @@ class CsharpObjectTypeRenderer constructor(override val vrapTypeProvider: VrapTy
             |
         """.trimMargin().keepIndentation()
 
+        if(type.isADictionaryType())
+        {
+            content = type.renderTypeAsADictionaryType().trimMargin().keepIndentation()
+        }
+
         val relativePath = vrapType.csharpClassRelativePath(false).replace(basePackagePrefix.replace(".", "/"), "").trimStart('/')
 
         return TemplateFile(
                 relativePath = relativePath,
                 content = content
         )
+    }
+
+    fun ObjectType.renderTypeAsADictionaryType() : String {
+        val vrapType = vrapTypeProvider.doSwitch(this) as VrapObjectType
+
+        var property = this.properties[0]
+
+        return  """
+            |${this.usings()}
+            |
+            |namespace ${vrapType.csharpPackage()}
+            |{
+            |    public class ${vrapType.simpleClassName} : Dictionary\<string, ${property.type.toVrapType().simpleName()}\>, I${vrapType.simpleClassName}
+            |    {
+            |    }
+            |}
+            |
+        """
     }
 
     private fun ObjectType.toProperties() : String = this.allProperties
