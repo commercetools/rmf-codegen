@@ -1,9 +1,11 @@
 package io.vrap.codegen.languages.csharp.requests
 
+import com.google.common.net.MediaType
 import io.vrap.codegen.languages.csharp.extensions.*
 import io.vrap.codegen.languages.extensions.*
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.ResourceRenderer
+import io.vrap.rmf.codegen.rendring.utils.escapeAll
 import io.vrap.rmf.codegen.rendring.utils.keepIndentation
 import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
@@ -24,6 +26,7 @@ class CsharpRequestBuilderResourceRenderer constructor(override val vrapTypeProv
 
         val content: String = """
             |using System;
+            |using System.Collections.Generic;
             |using System.IO;
             |using System.Text.Json;
             |using commercetools.Base.Client;
@@ -107,11 +110,15 @@ class CsharpRequestBuilderResourceRenderer constructor(override val vrapTypeProv
             val methodBodyVrapType = this.bodies[0].type.toVrapType()
             if (methodBodyVrapType is VrapObjectType) {
                 var methodBodyArgument = ""
-                if(methodBodyVrapType.`package`=="")
-                    methodBodyArgument = "${methodBodyVrapType.simpleClassName} ${methodBodyVrapType.simpleClassName.decapitalize()}"
+                if (methodBodyVrapType.`package` == "")
+                    methodBodyArgument =
+                        "${methodBodyVrapType.simpleClassName} ${methodBodyVrapType.simpleClassName.decapitalize()}"
                 else
-                    methodBodyArgument = "${methodBodyVrapType.`package`}.I${methodBodyVrapType.simpleClassName} ${methodBodyVrapType.simpleClassName.decapitalize()}"
+                    methodBodyArgument =
+                        "${methodBodyVrapType.`package`}.I${methodBodyVrapType.simpleClassName} ${methodBodyVrapType.simpleClassName.decapitalize()}"
                 methodBodyArgument
+            } else if (this.bodies[0].contentMediaType.`is`(MediaType.FORM_DATA)) {
+               "List<KeyValuePair<string, string>> formParams = null".escapeAll()
             } else {
                 "JsonElement? jsonNode"
             }
@@ -132,6 +139,8 @@ class CsharpRequestBuilderResourceRenderer constructor(override val vrapTypeProv
             val vrapType = this.bodies[0].type.toVrapType()
             if (vrapType is VrapObjectType) {
                 requestArguments.add(vrapType.simpleClassName.decapitalize())
+            } else if (this.bodies[0].contentMediaType.`is`(MediaType.FORM_DATA)) {
+                requestArguments.add("formParams")
             } else {
                 requestArguments.add("jsonNode")
             }

@@ -1,5 +1,6 @@
 package io.vrap.codegen.languages.csharp.requests
 
+import com.google.common.net.MediaType
 import io.vrap.codegen.languages.csharp.extensions.*
 import io.vrap.codegen.languages.extensions.EObjectExtensions
 import io.vrap.codegen.languages.extensions.resource
@@ -36,6 +37,8 @@ class CsharpHttpRequestRenderer constructor(override val vrapTypeProvider: VrapT
             |using System;
             |using System.IO;
             |using System.Collections.Generic;
+            |using System.Linq;
+            |using System.Net;
             |using System.Net.Http;
             |using System.Text;
             |using System.Threading.Tasks;
@@ -59,6 +62,8 @@ class CsharpHttpRequestRenderer constructor(override val vrapTypeProvider: VrapT
             |       <${type.queryParamsTemplateSetters()}>
             |
             |       <${type.executeAndBuild()}>
+            |
+            |       <${type.formParamMethods()}>
             |   }
             |}
         """.trimMargin()
@@ -91,6 +96,8 @@ class CsharpHttpRequestRenderer constructor(override val vrapTypeProvider: VrapT
                     "private ${methodBodyVrapType.simpleClassName} ${methodBodyVrapType.simpleClassName.capitalize()};"
                 else
                     "private ${methodBodyVrapType.`package`.toCsharpPackage()}.I${methodBodyVrapType.simpleClassName} ${methodBodyVrapType.simpleClassName.capitalize()};"
+            } else if (this.bodies[0].contentMediaType.`is`(MediaType.FORM_DATA)) {
+                "private List<KeyValuePair<string, string>> _formParams;".escapeAll()
             }else {
                 "private JsonElement? jsonNode;"
             }
@@ -133,6 +140,10 @@ class CsharpHttpRequestRenderer constructor(override val vrapTypeProvider: VrapT
                 constructorArguments.add(methodBodyArgument)
                 val methodBodyAssignment = "this.${methodBodyVrapType.simpleClassName.capitalize()} = ${methodBodyVrapType.simpleClassName.decapitalize()};"
                 constructorAssignments.add(methodBodyAssignment)
+            } else if (this.bodies[0].contentMediaType.`is`(MediaType.FORM_DATA)){
+                constructorArguments.add("List<KeyValuePair<string, string>> formParams = null".escapeAll())
+                constructorAssignments.add("AddHeader(ApiHttpHeaders.CONTENT_TYPE, \"application/x-www-form-urlencoded\");".escapeAll())
+                constructorAssignments.add("this._formParams = formParams ?? new List<KeyValuePair<string, string>>();".escapeAll())
             }else {
                 constructorArguments.add("JsonElement? jsonNode")
                 constructorAssignments.add("this.jsonNode = jsonNode;")
@@ -145,7 +156,7 @@ class CsharpHttpRequestRenderer constructor(override val vrapTypeProvider: VrapT
             |public ${this.toRequestName()}(${constructorArguments.joinToString(separator = ", ")}) {
             |    <${constructorAssignments.joinToString(separator = "\n")}>
             |}
-        """.trimMargin().keepIndentation()
+        """.trimMargin().keepIndentation().escapeAll()
 
     }
 
@@ -208,7 +219,7 @@ class CsharpHttpRequestRenderer constructor(override val vrapTypeProvider: VrapT
             if(this.bodies[0].type.toVrapType() is VrapObjectType) {
                 val methodBodyVrapType = this.bodies[0].type.toVrapType() as VrapObjectType
                 methodBodyVrapType.simpleClassName.capitalize()
-            }else {
+            } else {
                 "jsonNode"
             }
         }else {
@@ -219,8 +230,8 @@ class CsharpHttpRequestRenderer constructor(override val vrapTypeProvider: VrapT
         {
             if(this.bodies[0].type.isFile())
             {
-                bodyBlock = "\n\n" +
-                        """
+                bodyBlock = """
+                    |
                     |public override HttpRequestMessage Build()
                     |{
                     |   var request = base.Build();
@@ -232,10 +243,21 @@ class CsharpHttpRequestRenderer constructor(override val vrapTypeProvider: VrapT
                     |}
                 """.trimMargin()
             }
+            else if (this.bodies[0].contentMediaType.`is`(MediaType.FORM_DATA))
+                bodyBlock = """
+                    |
+                    |public override HttpRequestMessage Build()
+                    |{
+                    |   var request = base.Build();
+                    |
+                    |   request.Content = new FormUrlEncodedContent(_formParams);
+                    |   return request;
+                    |}
+                """.trimMargin()
             else
             {
-                bodyBlock = "\n\n" +
-                        """
+                bodyBlock = """
+                    |
                     |public override HttpRequestMessage Build()
                     |{
                     |   var request = base.Build();
@@ -254,6 +276,68 @@ class CsharpHttpRequestRenderer constructor(override val vrapTypeProvider: VrapT
         }
         return executeBlock + bodyBlock
     }
+
+    private fun Method.formParamMethods() : String =
+        if (this.bodies != null && !this.bodies.isEmpty() && this.bodies[0].contentMediaType.`is`(MediaType.FORM_DATA)) {
+            """
+                public ${this.toRequestName()} AddFormParam<TValue>(string key, TValue value) {
+                    this._formParams.Add(new KeyValuePair<string, string>(key, value.ToString()));
+                    return this;
+                }
+            
+                public ${this.toRequestName()} WithFormParam<TValue>(string key, TValue value) {
+                    return WithoutFormParam(key).AddFormParam(key, value);
+                }
+            
+                /**
+                 * removes the specified form parameter
+                 * @param key form parameter name
+                 * @return T
+                 */
+                public ${this.toRequestName()} WithoutFormParam(string key) {
+                    this._formParams = this._formParams.FindAll(pair => !pair.Key.Equals(key, StringComparison.InvariantCultureIgnoreCase));
+                    return this;
+                }
+            
+                /**
+                 * set the form parameters
+                 * @param formParams list of form parameters
+                 * @return T
+                 */
+                public ${this.toRequestName()} WithFormParams(List<KeyValuePair<string, string>> formParams) {
+                    this._formParams = formParams;
+                    return this;
+                }
+            
+                public List<KeyValuePair<string, string>> GetFormParams() {
+                    return this._formParams.ToList();
+                }
+            
+                public List<string> GetFormParam(string key) {
+                    return this._formParams.FindAll(pair => pair.Key.Equals(key, StringComparison.InvariantCultureIgnoreCase)).Select(pair => pair.Value).ToList();
+                }
+                
+                public List<string> GetFormParamUriStrings() {
+                    return this._formParams.Select(ToUriString).ToList();
+                }
+
+                public string GetFormParamUriString() {
+                    return string.Join('&', this._formParams.Select(ToUriString));
+                }
+                
+                private static string ToUriString(KeyValuePair<string, string> entry) {
+                    return entry.Key + "=" + WebUtility.UrlEncode(entry.Value);
+                }
+
+                #nullable enable
+                public string? GetFirstFormParam(string key)
+                {
+                    return this._formParams
+                        .FirstOrDefault(pair => pair.Key.Equals(key, StringComparison.InvariantCultureIgnoreCase)).Value;
+                }
+                #nullable disable
+            """.trimIndent().escapeAll()
+        } else ""
 
     private fun Method.usings(): String {
         return this.queryParameters

@@ -21,7 +21,7 @@ plugins {
 
     id 'com.gradle.plugin-publish' version '0.11.0'
     id 'org.inferred.processors' version '3.3.0'
-    id 'com.github.johnrengelman.shadow' version '5.2.0'
+    id 'com.github.johnrengelman.shadow' version '7.1.0'
     id 'com.palantir.graal' version '0.7.2'
 
     id 'io.github.gradle-nexus.publish-plugin' version '1.0.0'

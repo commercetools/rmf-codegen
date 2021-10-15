@@ -275,10 +275,10 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
             if(this.bodies[0].type.toVrapType() is VrapObjectType) {
                 val methodBodyVrapType = this.bodies[0].type.toVrapType() as VrapObjectType
                 methodBodyVrapType.simpleClassName.decapitalize()
-            }else {
+            } else {
                 "obj"
             }
-        }else {
+        } else {
             null
         }
 
