@@ -57,7 +57,7 @@ class CsharpObjectTypeRenderer constructor(override val vrapTypeProvider: VrapTy
             |
             |namespace ${vrapType.csharpPackage()}
             |{
-            |    public class ${vrapType.simpleClassName} : Dictionary\<string, ${property.type.toVrapType().simpleName()}\>, I${vrapType.simpleClassName}
+            |    public partial class ${vrapType.simpleClassName} : Dictionary\<string, ${property.type.toVrapType().simpleName()}\>, I${vrapType.simpleClassName}
             |    {
             |    }
             |}

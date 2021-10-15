@@ -42,7 +42,7 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
             |import io.vrap.rmf.base.client.utils.Generated;
             |
             |<${JavaSubTemplates.generatedAnnotation}>
-            |public final class ${vrapType.simpleClassName}Builder implements Builder\<${vrapType.simpleClassName}\> {
+            |public class ${vrapType.simpleClassName}Builder implements Builder\<${vrapType.simpleClassName}\> {
             |
             |    <${type.fields().escapeAll()}>
             |
