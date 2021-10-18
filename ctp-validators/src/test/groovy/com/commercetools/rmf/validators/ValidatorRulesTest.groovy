@@ -278,8 +278,9 @@ class ValidatorRulesTest extends Specification implements ValidatorFixtures {
         def uri = uriFromClasspath("/placeholder-annotation-rule.raml")
         def result = new RamlModelBuilder(validators).buildApi(uri)
         then:
-        result.validationResults.size == 2
+        result.validationResults.size == 3
         result.validationResults[0].message == "QueryParameterPlaceholderAnnotationRule: Property \"invalid\" must define placeholder annotation"
         result.validationResults[1].message == "QueryParameterPlaceholderAnnotationRule: Property \"incomplete\" placeholder annotation must define ..."
+        result.validationResults[2].message == "QueryParameterPlaceholderAnnotationRule: Property \"incomplete\" placeholder is missing in template ..."
     }
 }
