@@ -274,7 +274,7 @@ class ValidatorRulesTest extends Specification implements ValidatorFixtures {
 
     def "placeholder annotation query parameter rule"() {
         when:
-        def validators = Arrays.asList(new TypesValidator(Arrays.asList(QueryParameterPlaceholderAnnotationRule.create())))
+        def validators = Arrays.asList(new ResourcesValidator(Arrays.asList(QueryParameterPlaceholderAnnotationRule.create())))
         def uri = uriFromClasspath("/placeholder-annotation-rule.raml")
         def result = new RamlModelBuilder(validators).buildApi(uri)
         then:
