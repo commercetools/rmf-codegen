@@ -17,7 +17,7 @@ class QueryParameterCamelCaseRule(options: List<RuleOption>? = null) : Resources
             run {
                 if (exclude.contains(queryParameter.name).not() && queryParameter.pattern == null) {
                     if (!queryParameter.name.matches(Regex("^[.a-zA-Z0-9]+$"))) {
-                        validationResults.add(error(queryParameter, "Property \"{0}\" name must use alphanum and dot", queryParameter.name))
+                        validationResults.add(error(queryParameter, "Property \"{0}\" name must use alphanum and dot only", queryParameter.name))
                     } else if (StringCaseFormat.LOWER_CAMEL_CASE.apply(queryParameter.name) != queryParameter.name) {
                         validationResults.add(error(queryParameter, "Property \"{0}\" must be lower camel cased", queryParameter.name))
                     }

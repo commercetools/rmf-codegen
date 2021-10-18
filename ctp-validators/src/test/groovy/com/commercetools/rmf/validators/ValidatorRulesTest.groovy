@@ -117,6 +117,19 @@ class ValidatorRulesTest extends Specification implements ValidatorFixtures {
         result.validationResults[1].message == "PropertyPluralRule: Array property \"invalidItemDesc\" must be plural"
     }
 
+    def "query parameter camel case rule"() {
+        when:
+        def validators = Arrays.asList(new ResourcesValidator(Arrays.asList(QueryParameterCamelCaseRule.create())))
+        def uri = uriFromClasspath("/queryparametercamelcase-rule.raml")
+        def result = new RamlModelBuilder(validators).buildApi(uri)
+        then:
+        result.validationResults.size == 4
+        result.validationResults[0].message == "QueryParameterCamelCaseRule: Property \"inval_id\" name must use alphanum and dot only"
+        result.validationResults[1].message == "QueryParameterCamelCaseRule: Property \"inval-id\" name must use alphanum and dot only"
+        result.validationResults[2].message == "QueryParameterCamelCaseRule: Property \"inval[id]\" name must use alphanum and dot only"
+        result.validationResults[3].message == "QueryParameterCamelCaseRule: Property \"Invalid\" must be lower camel cased"
+    }
+
     def "property singular rule"() {
         when:
         def validators = Arrays.asList(new TypesValidator(Arrays.asList(StringPropertySingularRule.create())))
