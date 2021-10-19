@@ -4,12 +4,12 @@ import io.vrap.codegen.languages.extensions.isPatternProperty
 import io.vrap.codegen.languages.java.base.JavaBaseTypes
 import io.vrap.codegen.languages.java.base.JavaSubTemplates
 import io.vrap.codegen.languages.java.base.extensions.*
+import io.vrap.rmf.codegen.firstUpperCase
 import io.vrap.rmf.codegen.di.AllObjectTypes
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.FileProducer
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
 import io.vrap.rmf.codegen.rendring.utils.keepIndentation
-import io.vrap.rmf.codegen.types.LanguageBaseTypes
 import io.vrap.rmf.codegen.types.VrapArrayType
 import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
@@ -149,14 +149,14 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
                 |
                 |${if (propItemType is ObjectType && !propItemType.isAbstract() && propType.simpleName() != JavaBaseTypes.objectType.simpleName()) """
                 |${property.deprecationAnnotation()}
-                |public ${type.simpleClassName}Builder with${property.name.capitalize()}(Function<${propType.itemType.fullClassName()}Builder, ${propType.itemType.fullClassName()}Builder> builder) {
+                |public ${type.simpleClassName}Builder with${property.name.firstUpperCase()}(Function<${propType.itemType.fullClassName()}Builder, ${propType.itemType.fullClassName()}Builder> builder) {
                 |    this.$propertyName = new ArrayList<>();
                 |    this.$propertyName.add(builder.apply(${propType.itemType.fullClassName()}Builder.of()).build());
                 |    return this;
                 |}
                 |
                 |${property.deprecationAnnotation()}
-                |public ${type.simpleClassName}Builder plus${property.name.capitalize()}(Function<${propType.itemType.fullClassName()}Builder, ${propType.itemType.fullClassName()}Builder> builder) {
+                |public ${type.simpleClassName}Builder plus${property.name.firstUpperCase()}(Function<${propType.itemType.fullClassName()}Builder, ${propType.itemType.fullClassName()}Builder> builder) {
                 |    if (this.$propertyName == null) {
                 |        this.$propertyName = new ArrayList<>();
                 |    }
@@ -225,7 +225,7 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
             """
                 |${this.deprecationAnnotation()}
                 |${if(!this.required) "@Nullable" else ""}
-                |public ${vrapType.fullClassName()} get${this.name.capitalize()}(){
+                |public ${vrapType.fullClassName()} get${this.name.firstUpperCase()}(){
                 |    return this.${this.name};
                 |}
             """.escapeAll().trimMargin().keepIndentation()

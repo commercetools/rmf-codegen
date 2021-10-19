@@ -13,6 +13,7 @@ import io.vrap.rmf.raml.model.resources.UriParameter
 import io.vrap.rmf.raml.model.types.ObjectInstance
 import io.vrap.rmf.raml.model.types.StringInstance
 import io.vrap.rmf.raml.model.util.StringCaseFormat
+import java.util.*
 
 class PhpFileProducer constructor(val api: Api, clientConstants: ClientConstants) : FileProducer {
 
@@ -31,10 +32,12 @@ class PhpFileProducer constructor(val api: Api, clientConstants: ClientConstants
     )
 
     private fun composerJson(): TemplateFile {
-        val vendorName = sharedPackageName.toLowerCase()
-        val composerPackageName = basePackagePrefix.replace(sharedPackageName, "").trim('/').toLowerCase()
-        return TemplateFile(relativePath = "composer.json",
-                content = """
+        val vendorName = sharedPackageName.lowercase(Locale.getDefault())
+        val composerPackageName =
+            basePackagePrefix.replace(sharedPackageName, "").trim('/').lowercase(Locale.getDefault())
+        return TemplateFile(
+            relativePath = "composer.json",
+            content = """
                     |{
                     |  "name": "${vendorName}/${vendorName}-sdk-${composerPackageName}",
                     |  "license": "MIT",
@@ -81,7 +84,8 @@ class PhpFileProducer constructor(val api: Api, clientConstants: ClientConstants
                     |    }
                     |  ]
                     |}
-                """.trimMargin())
+                """.trimMargin()
+        )
     }
 
     private fun psalm(): TemplateFile {

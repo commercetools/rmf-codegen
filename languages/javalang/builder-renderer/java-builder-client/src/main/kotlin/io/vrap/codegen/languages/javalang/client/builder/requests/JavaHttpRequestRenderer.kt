@@ -7,6 +7,8 @@ import io.vrap.codegen.languages.extensions.toComment
 import io.vrap.codegen.languages.extensions.toRequestName
 import io.vrap.codegen.languages.java.base.JavaSubTemplates
 import io.vrap.codegen.languages.java.base.extensions.*
+import io.vrap.rmf.codegen.firstUpperCase
+import io.vrap.rmf.codegen.firstLowerCase
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.MethodRenderer
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
@@ -129,7 +131,7 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
             when {
                 this.bodies[0].type.toVrapType() is VrapObjectType -> {
                     val methodBodyVrapType = this.bodies[0].type.toVrapType() as VrapObjectType
-                    methodBodyVrapType.simpleClassName.decapitalize()
+                    methodBodyVrapType.simpleClassName.firstLowerCase()
                 }
                 this.bodies[0].contentMediaType.`is`(MediaType.FORM_DATA) -> {
                     "formParams"
@@ -183,10 +185,10 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
             if(this.bodies[0].type.toVrapType() is VrapObjectType) {
                 val methodBodyVrapType = this.bodies[0].type.toVrapType() as VrapObjectType
                 val methodBodyArgument =
-                    "${methodBodyVrapType.`package`.toJavaPackage()}.${methodBodyVrapType.simpleClassName} ${methodBodyVrapType.simpleClassName.decapitalize()}"
+                    "${methodBodyVrapType.`package`.toJavaPackage()}.${methodBodyVrapType.simpleClassName} ${methodBodyVrapType.simpleClassName.firstLowerCase()}"
                 constructorArguments.add(methodBodyArgument)
                 val methodBodyAssignment =
-                    "this.${methodBodyVrapType.simpleClassName.decapitalize()} = ${methodBodyVrapType.simpleClassName.decapitalize()};"
+                    "this.${methodBodyVrapType.simpleClassName.firstLowerCase()} = ${methodBodyVrapType.simpleClassName.firstLowerCase()};"
                 constructorAssignments.add(methodBodyAssignment)
             } else if (this.bodies[0].contentMediaType.`is`(MediaType.FORM_DATA)){
                 constructorArguments.add("List<ParamEntry<String, String>> formParams".escapeAll())
@@ -213,7 +215,7 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
         if(this.bodies != null && this.bodies.isNotEmpty()){
             if(this.bodies[0].type.toVrapType() is VrapObjectType) {
                 val methodBodyVrapType = this.bodies[0].type.toVrapType() as VrapObjectType
-                val methodBodyAssignment = "this.${methodBodyVrapType.simpleClassName.decapitalize()} = t.${methodBodyVrapType.simpleClassName.decapitalize()};"
+                val methodBodyAssignment = "this.${methodBodyVrapType.simpleClassName.firstLowerCase()} = t.${methodBodyVrapType.simpleClassName.firstLowerCase()};"
                 constructorAssignments.add(methodBodyAssignment)
             } else if (this.bodies[0].contentMediaType.`is`(MediaType.FORM_DATA)){
                 constructorAssignments.add("this.formParams = new ArrayList<>(t.formParams);".escapeAll())
@@ -236,7 +238,7 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
         val body: String = if(this.bodies != null && this.bodies.isNotEmpty()){
             if(this.bodies[0].type.toVrapType() is VrapObjectType) {
                 val methodBodyVrapType = this.bodies[0].type.toVrapType() as VrapObjectType
-                "private ${methodBodyVrapType.`package`.toJavaPackage()}.${methodBodyVrapType.simpleClassName} ${methodBodyVrapType.simpleClassName.decapitalize()};"
+                "private ${methodBodyVrapType.`package`.toJavaPackage()}.${methodBodyVrapType.simpleClassName} ${methodBodyVrapType.simpleClassName.firstLowerCase()};"
             } else if (this.bodies[0].contentMediaType.`is`(MediaType.FORM_DATA)) {
                 "private List<ParamEntry<String, String>> formParams;".escapeAll()
             } else {
@@ -274,7 +276,7 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
         val bodyName : String? = if(this.bodies != null && this.bodies.isNotEmpty()){
             if(this.bodies[0].type.toVrapType() is VrapObjectType) {
                 val methodBodyVrapType = this.bodies[0].type.toVrapType() as VrapObjectType
-                methodBodyVrapType.simpleClassName.decapitalize()
+                methodBodyVrapType.simpleClassName.firstLowerCase()
             } else {
                 "obj"
             }
@@ -353,17 +355,17 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
     }
 
     private fun Method.pathArgumentsGetters() : String = this.pathArguments()
-            .map { "public String get${it.capitalize()}() {return this.$it;}" }
+            .map { "public String get${it.firstUpperCase()}() {return this.$it;}" }
             .joinToString(separator = "\n")
 
     private fun Method.pathArgumentsSetters() : String = this.pathArguments()
-            .map { "public void set${it.capitalize()}(final String $it) { this.$it = $it; }" }
+            .map { "public void set${it.firstUpperCase()}(final String $it) { this.$it = $it; }" }
             .joinToString(separator = "\n\n")
 
     private fun Method.queryParamsGetters() : String = this.queryParameters
             .filter { it.getAnnotation(PLACEHOLDER_PARAM_ANNOTATION, true) == null }
             .map { """
-                |public List<String> get${it.fieldName().capitalize()}() {
+                |public List<String> get${it.fieldName().firstUpperCase()}() {
                 |    return this.getQueryParam("${it.name}");
                 |}
                 """.trimMargin().escapeAll() }
@@ -441,28 +443,28 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
                 |/**
                 | * set ${it.fieldName()} with the specificied value
                 | */
-                |public ${this.toRequestName()} with${it.fieldName().capitalize()}(final ${it.witherType()} ${it.fieldName()}){
+                |public ${this.toRequestName()} with${it.fieldName().firstUpperCase()}(final ${it.witherType()} ${it.fieldName()}){
                 |    return copy().withQueryParam("${it.name}", ${it.fieldName()});
                 |}
                 |
                 |/**
                 | * add additional ${it.fieldName()} query parameter
                 | */
-                |public ${this.toRequestName()} add${it.fieldName().capitalize()}(final ${it.witherType()} ${it.fieldName()}){
+                |public ${this.toRequestName()} add${it.fieldName().firstUpperCase()}(final ${it.witherType()} ${it.fieldName()}){
                 |    return copy().addQueryParam("${it.name}", ${it.fieldName()});
                 |}
                 |
                 |/**
                 | * set ${it.fieldName()} with the specificied values
                 | */
-                |public ${this.toRequestName()} with${it.fieldName().capitalize()}(final List<${it.witherBoxedType()}> ${it.fieldName()}){
+                |public ${this.toRequestName()} with${it.fieldName().firstUpperCase()}(final List<${it.witherBoxedType()}> ${it.fieldName()}){
                 |    return copy().withoutQueryParam("${it.name}").addQueryParams(${it.fieldName()}.stream().map(s -> new ParamEntry<>("${it.name}", s.toString())).collect(Collectors.toList())); 
                 |}
                 |
                 |/**
                 | * add additional ${it.fieldName()} query parameters
                 | */
-                |public ${this.toRequestName()} add${it.fieldName().capitalize()}(final List<${it.witherBoxedType()}> ${it.fieldName()}){
+                |public ${this.toRequestName()} add${it.fieldName().firstUpperCase()}(final List<${it.witherBoxedType()}> ${it.fieldName()}){
                 |    return copy().addQueryParams(${it.fieldName()}.stream().map(s -> new ParamEntry<>("${it.name}", s.toString())).collect(Collectors.toList())); 
                 |}
             """.trimMargin().escapeAll() }

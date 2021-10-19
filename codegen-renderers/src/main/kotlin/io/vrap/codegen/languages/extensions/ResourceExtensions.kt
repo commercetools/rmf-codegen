@@ -9,7 +9,7 @@ import io.vrap.rmf.raml.model.util.StringCaseFormat
 fun Resource.getMethodName(): String {
     val annotation = this.getAnnotation("methodName")
     if (annotation != null) {
-        return (annotation!!.getValue() as StringInstance).value
+        return (annotation.getValue() as StringInstance).value
     }
     val parts = this.relativeUri.components
             .filter { uriTemplatePart -> uriTemplatePart is Expression }

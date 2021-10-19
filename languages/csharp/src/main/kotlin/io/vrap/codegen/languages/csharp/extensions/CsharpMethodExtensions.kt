@@ -9,7 +9,7 @@ fun Method.csharpReturnType(vrapTypeProvider: VrapTypeProvider) : String {
     val returnType = vrapTypeProvider.doSwitch(this.returnType())
     if(returnType is VrapObjectType) {
         val simpleClassNameAsInterface = if(returnType.simpleClassName == "Object") "Object" else "I${returnType.simpleClassName}"
-        if((returnType as VrapObjectType).`package`=="")
+        if(returnType.`package`=="")
             return simpleClassNameAsInterface
         else
             return "${returnType.`package`.toCsharpPackage()}.${simpleClassNameAsInterface}"

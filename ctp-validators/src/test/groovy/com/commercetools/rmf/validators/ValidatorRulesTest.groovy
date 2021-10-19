@@ -1,7 +1,6 @@
 package com.commercetools.rmf.validators
 
 import io.vrap.rmf.raml.model.RamlModelBuilder
-import io.vrap.rmf.raml.validation.RamlValidator
 import spock.lang.Specification
 
 class ValidatorRulesTest extends Specification implements ValidatorFixtures {
@@ -290,8 +289,9 @@ class ValidatorRulesTest extends Specification implements ValidatorFixtures {
         def uri = uriFromClasspath("/nestedtype-rule.raml")
         def result = new RamlModelBuilder(validators).buildApi(uri)
         then:
-        result.validationResults.size == 2
-        result.validationResults[0].message == "NestedTypeRule: Property \"invalid\" must not use inline array type"
-        result.validationResults[1].message == "NestedTypeRule: Property \"invalid\" must not use inline types"
+        result.validationResults.size == 3
+        result.validationResults[0].message == "NestedTypeRule: Type \"FooArray\" must not use nested inline types for property \"invalid\""
+        result.validationResults[1].message == "NestedTypeRule: Type \"Foo\" must not use nested inline types for property \"invalid\""
+        result.validationResults[2].message == "NestedTypeRule: Type \"FooArrayArray\" must not use nested inline types for property \"invalid\""
     }
 }

@@ -159,7 +159,7 @@ class JavaRequestTestRenderer constructor(override val vrapTypeProvider: VrapTyp
     private fun requestTestProvider(resource: Resource, method: Method, parameter: QueryParameter): String {
         val anno = parameter.getAnnotation("placeholderParam", true)
 
-        var paramName: String = parameter.name
+        val paramName: String
         var methodValue = parameter.template()
 
         if (anno != null) {

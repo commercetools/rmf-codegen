@@ -3,6 +3,7 @@ package io.vrap.codegen.languages.postman.model
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.ObjectNode
 import io.vrap.codegen.languages.extensions.resource
+import io.vrap.rmf.codegen.firstUpperCase
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
 import io.vrap.rmf.codegen.rendring.utils.keepAngleIndent
 import io.vrap.rmf.raml.model.resources.HttpMethod
@@ -39,7 +40,7 @@ class ActionRenderer {
         }}
         return """
             |{
-            |    "name": "${type.discriminatorValue.capitalize()}${if (type.markDeprecated()) " (deprecated)" else ""}",
+            |    "name": "${type.discriminatorValue.firstUpperCase()}${if (type.markDeprecated()) " (deprecated)" else ""}",
             |    "event": [
             |        {
             |            "listen": "test",
@@ -168,8 +169,8 @@ class ActionRenderer {
     }
 
     fun Method.description(): String {
-        val name = StringCaseFormat.UPPER_CAMEL_CASE.apply(Optional.ofNullable(this.resource().displayName).map<String> { it.value }.orElse(this.resource().resourcePathName))
-        val description = Optional.ofNullable(this.description).map<String> { it.value }.orElse(this.method.getName() + " " + name)
-        return description.escapeJson().escapeAll() ?:""
+        val name = StringCaseFormat.UPPER_CAMEL_CASE.apply(Optional.ofNullable(this.resource().displayName).map { it.value }.orElse(this.resource().resourcePathName))
+        val description = Optional.ofNullable(this.description).map { it.value }.orElse(this.method.getName() + " " + name)
+        return description.escapeJson().escapeAll()
     }
 }

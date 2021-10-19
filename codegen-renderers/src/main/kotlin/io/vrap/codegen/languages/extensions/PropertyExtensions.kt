@@ -15,4 +15,4 @@ fun NamedElement.isPatternProperty() = this.name.startsWith("/") && this.name.en
  *
  * need to be implemented
  */
-fun NamedElement.isAttributeProperty() = this.name.toLowerCase().contains("attribute")
+fun NamedElement.isAttributeProperty() = this.name.lowercase().contains("attribute")

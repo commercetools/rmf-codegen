@@ -2,10 +2,9 @@ package io.vrap.codegen.languages.csharp.model
 
 import io.vrap.codegen.languages.csharp.extensions.*
 import io.vrap.codegen.languages.extensions.EObjectExtensions
-import io.vrap.rmf.codegen.di.AllObjectTypes
+import io.vrap.rmf.codegen.firstUpperCase
 import io.vrap.rmf.codegen.di.BasePackageName
 import io.vrap.rmf.codegen.io.TemplateFile
-import io.vrap.rmf.codegen.rendring.FileProducer
 import io.vrap.rmf.codegen.rendring.ObjectTypeRenderer
 import io.vrap.rmf.codegen.rendring.utils.keepIndentation
 import io.vrap.rmf.codegen.types.VrapObjectType
@@ -66,10 +65,10 @@ class CsharpObjectTypeRenderer constructor(override val vrapTypeProvider: VrapTy
     }
 
     private fun ObjectType.toProperties() : String = this.allProperties
-            .map { it.toCsharpProperty(this) }.joinToString(separator = "\n\n")
+            .map { it.toCsharpProperty() }.joinToString(separator = "\n\n")
 
-    private fun Property.toCsharpProperty(objectType: ObjectType): String {
-        val propName = this.name.capitalize()
+    private fun Property.toCsharpProperty(): String {
+        val propName = this.name.firstUpperCase()
         val typeName = this.type.toVrapType().simpleName()
 
         var nullableChar = if(!this.required && this.type.isNullableScalar()) "?" else ""
@@ -91,16 +90,16 @@ class CsharpObjectTypeRenderer constructor(override val vrapTypeProvider: VrapTy
             ""
         }
     fun ObjectType.getConstructorContentForDiscriminator(): String {
-        var content = ""
+        val content: String
         if (this.discriminator() != null && this.discriminatorValue != null)
         {
             val enumName : String = this.allProperties.filter { it.name == this.discriminator() }.get(0).type.toVrapType().simpleName()
             if(enumName == "string") {
-                content = "this.${(this.type as ObjectTypeImpl).discriminator.capitalize()} = \"${this.discriminatorValue}\";"
+                content = "this.${(this.type as ObjectTypeImpl).discriminator.firstUpperCase()} = \"${this.discriminatorValue}\";"
             }
             else
             {
-                content = "this.${(this.type as ObjectTypeImpl).discriminator.capitalize()} = $enumName.FindEnum(\"${this.discriminatorValue}\");"
+                content = "this.${(this.type as ObjectTypeImpl).discriminator.firstUpperCase()} = $enumName.FindEnum(\"${this.discriminatorValue}\");"
             }
 
         }

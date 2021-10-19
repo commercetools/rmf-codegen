@@ -86,7 +86,7 @@ dependencies {
     implementation project(':languages:csharp')
     implementation project(':languages:ramldoc')
     implementation project(':languages:oas')
-    implementation project(':ctp-validators')
+    api project(':ctp-validators')
 
     implementation orgkotlin.stdlib
     implementation google.guava

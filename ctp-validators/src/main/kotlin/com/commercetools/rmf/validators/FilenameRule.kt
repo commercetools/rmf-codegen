@@ -8,10 +8,12 @@ import io.vrap.rmf.raml.persistence.constructor.RamlParserAdapter
 import org.antlr.v4.runtime.ParserRuleContext
 import org.antlr.v4.runtime.tree.TerminalNode
 import org.eclipse.emf.common.util.Diagnostic
+import java.util.*
+import kotlin.collections.ArrayList
 
 class FilenameRule(options: List<RuleOption>? = null) : ModulesRule(options) {
     private val exclude: List<String> =
-        (options?.filter { ruleOption -> ruleOption.type.toLowerCase() == RuleOptionType.EXCLUDE.toString() }?.map { ruleOption -> ruleOption.value }?.plus("") ?: defaultExcludes)
+        (options?.filter { ruleOption -> ruleOption.type.lowercase(Locale.getDefault()) == RuleOptionType.EXCLUDE.toString() }?.map { ruleOption -> ruleOption.value }?.plus("") ?: defaultExcludes)
 
     override fun caseTypeContainer(container: TypeContainer): List<Diagnostic> {
         val validationResults: MutableList<Diagnostic> = ArrayList()

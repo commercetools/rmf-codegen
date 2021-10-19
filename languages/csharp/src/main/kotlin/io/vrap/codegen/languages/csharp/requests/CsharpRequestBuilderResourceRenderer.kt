@@ -3,6 +3,8 @@ package io.vrap.codegen.languages.csharp.requests
 import com.google.common.net.MediaType
 import io.vrap.codegen.languages.csharp.extensions.*
 import io.vrap.codegen.languages.extensions.*
+import io.vrap.rmf.codegen.firstUpperCase
+import io.vrap.rmf.codegen.firstLowerCase
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.ResourceRenderer
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
@@ -14,6 +16,7 @@ import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.resources.ResourceContainer
 import io.vrap.rmf.raml.model.resources.impl.ResourceImpl
 import io.vrap.rmf.raml.model.types.BooleanInstance
+import java.util.*
 
 class CsharpRequestBuilderResourceRenderer constructor(override val vrapTypeProvider: VrapTypeProvider, private val basePackagePrefix: String) : ResourceRenderer, CsharpEObjectTypeExtensions {
 
@@ -70,7 +73,7 @@ class CsharpRequestBuilderResourceRenderer constructor(override val vrapTypeProv
             |private ISerializerService SerializerService { get; }
         """.trimMargin().keepIndentation()
 
-        return props + "\n\n" + this.pathArguments().map { "private string ${it.capitalize()} { get; }" }.joinToString(separator = "\n\n")
+        return props + "\n\n" + this.pathArguments().map { "private string ${it.firstUpperCase()} { get; }" }.joinToString(separator = "\n\n")
 
 
     }
@@ -83,7 +86,7 @@ class CsharpRequestBuilderResourceRenderer constructor(override val vrapTypeProv
         val constructorAssignments = mutableListOf("this.ApiHttpClient = apiHttpClient;", "this.SerializerService = serializerService;")
 
         this.pathArguments().map { "string ${it.lowerCamelCase()}" }.forEach { constructorArguments.add(it) }
-        this.pathArguments().map { "this.${it.capitalize()} = ${it.lowerCamelCase()};" }.forEach { constructorAssignments.add(it) }
+        this.pathArguments().map { "this.${it.firstUpperCase()} = ${it.lowerCamelCase()};" }.forEach { constructorAssignments.add(it) }
 
         return """
             |public $className (${constructorArguments.joinToString(separator = ", ")}) {
@@ -109,13 +112,13 @@ class CsharpRequestBuilderResourceRenderer constructor(override val vrapTypeProv
         return if (this.bodies != null && this.bodies.isNotEmpty()) {
             val methodBodyVrapType = this.bodies[0].type.toVrapType()
             if (methodBodyVrapType is VrapObjectType) {
-                var methodBodyArgument = ""
+                val methodBodyArgument: String
                 if (methodBodyVrapType.`package` == "")
                     methodBodyArgument =
-                        "${methodBodyVrapType.simpleClassName} ${methodBodyVrapType.simpleClassName.decapitalize()}"
+                        "${methodBodyVrapType.simpleClassName} ${methodBodyVrapType.simpleClassName.firstLowerCase()}"
                 else
                     methodBodyArgument =
-                        "${methodBodyVrapType.`package`}.I${methodBodyVrapType.simpleClassName} ${methodBodyVrapType.simpleClassName.decapitalize()}"
+                        "${methodBodyVrapType.`package`}.I${methodBodyVrapType.simpleClassName} ${methodBodyVrapType.simpleClassName.firstLowerCase()}"
                 methodBodyArgument
             } else if (this.bodies[0].contentMediaType.`is`(MediaType.FORM_DATA)) {
                "List<KeyValuePair<string, string>> formParams = null".escapeAll()
@@ -129,16 +132,15 @@ class CsharpRequestBuilderResourceRenderer constructor(override val vrapTypeProv
 
     private fun Method.requestArguments(): String {
         val requestArguments = mutableListOf("ApiHttpClient")
-        if(this.methodName.toLowerCase() == "post")
-        {
+        if (this.methodName.lowercase(Locale.getDefault()) == "post") {
             requestArguments.add("SerializerService")
         }
-        this.pathArguments().forEach { requestArguments.add(it.capitalize()) }
+        this.pathArguments().forEach { requestArguments.add(it.firstUpperCase()) }
 
         if (this.bodies != null && this.bodies.isNotEmpty()) {
             val vrapType = this.bodies[0].type.toVrapType()
             if (vrapType is VrapObjectType) {
-                requestArguments.add(vrapType.simpleClassName.decapitalize())
+                requestArguments.add(vrapType.simpleClassName.firstLowerCase())
             } else if (this.bodies[0].contentMediaType.`is`(MediaType.FORM_DATA)) {
                 requestArguments.add("formParams")
             } else {
@@ -159,13 +161,13 @@ class CsharpRequestBuilderResourceRenderer constructor(override val vrapTypeProv
                     .plus(
                             it.pathArguments().map
                             {
-                                if(args.contains(it, true)) it else it.capitalize()
+                                if(args.contains(it, true)) it else it.firstUpperCase()
                             }
                     )
                     .joinToString(separator = ", ")
             """
             |${if (it.markDeprecated()) "[Obsolete(\"usage of this endpoint has been deprecated.\", false)]" else ""}
-            |public ${it.toResourceName()}RequestBuilder ${it.getMethodName().capitalize()}($args) {
+            |public ${it.toResourceName()}RequestBuilder ${it.getMethodName().firstUpperCase()}($args) {
             |    return new ${it.toResourceName()}RequestBuilder($subResourceArgs);
             |}
         """.trimMargin()

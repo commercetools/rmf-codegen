@@ -6,12 +6,12 @@ import io.vrap.rmf.raml.model.types.BuiltinType
 import io.vrap.rmf.raml.model.types.ObjectType
 import io.vrap.rmf.raml.model.types.TypeTemplate
 import org.eclipse.emf.common.util.Diagnostic
-import java.util.ArrayList
+import java.util.*
 
 class PackageDefinedRule(options: List<RuleOption>? = null) : TypesRule(options) {
 
     private val exclude: List<String> =
-        (options?.filter { ruleOption -> ruleOption.type.toLowerCase() == RuleOptionType.EXCLUDE.toString() }?.map { ruleOption -> ruleOption.value }?.plus("") ?: defaultExcludes)
+        (options?.filter { ruleOption -> ruleOption.type.lowercase(Locale.getDefault()) == RuleOptionType.EXCLUDE.toString() }?.map { ruleOption -> ruleOption.value }?.plus("") ?: defaultExcludes)
 
     override fun caseAnyType(type: AnyType): List<Diagnostic> {
         val validationResults: MutableList<Diagnostic> = ArrayList()

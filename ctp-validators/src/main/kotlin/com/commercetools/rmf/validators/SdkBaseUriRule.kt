@@ -4,11 +4,11 @@ import com.damnhandy.uri.template.UriTemplate
 import io.vrap.rmf.raml.model.modules.Api
 import io.vrap.rmf.raml.model.types.StringInstance
 import org.eclipse.emf.common.util.Diagnostic
-import java.util.ArrayList
+import java.util.*
 
 class SdkBaseUriRule (options: List<RuleOption>? = null) : ModulesRule(options) {
     private val exclude: List<String> =
-        (options?.filter { ruleOption -> ruleOption.type.toLowerCase() == RuleOptionType.EXCLUDE.toString() }
+        (options?.filter { ruleOption -> ruleOption.type.lowercase(Locale.getDefault()) == RuleOptionType.EXCLUDE.toString() }
             ?.map { ruleOption -> ruleOption.value }?.plus("") ?: defaultExcludes)
 
     override fun caseApi(api: Api): List<Diagnostic> {

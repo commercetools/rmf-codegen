@@ -3,6 +3,7 @@ package io.vrap.codegen.languages.csharp.client.builder.test
 import io.vrap.codegen.languages.csharp.extensions.*
 import io.vrap.codegen.languages.extensions.getMethodName
 import io.vrap.codegen.languages.extensions.toResourceName
+import io.vrap.rmf.codegen.firstUpperCase
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.ResourceRenderer
 import io.vrap.rmf.codegen.rendring.utils.keepAngleIndent
@@ -62,15 +63,15 @@ class CsharpRequestTestRenderer constructor(override val vrapTypeProvider: VrapT
     }
 
     private fun parameterTestProvider(resource: Resource, method: Method): String {
-        val builderChain = resource.resourcePathList().map { r -> "${r.getMethodName().capitalize()}(${if (r.relativeUri.paramValues().isNotEmpty()) "\"${r.relativeUri.paramValues().joinToString("\", \"") { p -> "test_$p"} }\"" else ""})" }
-                .plus("${method.method.toString().capitalize()}(${if (method.firstBody() != null) "null" else ""})")
+        val builderChain = resource.resourcePathList().map { r -> "${r.getMethodName().firstUpperCase()}(${if (r.relativeUri.paramValues().isNotEmpty()) "\"${r.relativeUri.paramValues().joinToString("\", \"") { p -> "test_$p"} }\"" else ""})" }
+                .plus("${method.method.toString().firstUpperCase()}(${if (method.firstBody() != null) "null" else ""})")
                 .plus("Build()")
 
         return """
             |new Object[] {           
             |    ApiRoot
             |    <<${builderChain.joinToString("\n.", ".")}>>,
-            |    "${method.method.toString().capitalize()}",
+            |    "${method.method.toString().firstUpperCase()}",
             |    "/${resource.fullUri.expand(resource.fullUriParameters.map { it.name to "test_${it.name}" }.toMap()).trimStart('/')}",
             |}
         """.trimMargin().keepAngleIndent()
@@ -90,15 +91,15 @@ class CsharpRequestTestRenderer constructor(override val vrapTypeProvider: VrapT
             methodValue = "\"${placeholder.value}\", \"${paramName}\""
         }
 
-        val builderChain = resource.resourcePathList().map { r -> "${r.getMethodName().capitalize()}(${if (r.relativeUri.paramValues().isNotEmpty()) "\"${r.relativeUri.paramValues().joinToString("\", \"") { p -> "test_$p"} }\"" else ""})" }
-                .plus("${method.method.toString().capitalize()}(${if (method.firstBody() != null) "null" else ""})")
-                .plus("${parameter.methodName().capitalize()}(${methodValue})")
+        val builderChain = resource.resourcePathList().map { r -> "${r.getMethodName().firstUpperCase()}(${if (r.relativeUri.paramValues().isNotEmpty()) "\"${r.relativeUri.paramValues().joinToString("\", \"") { p -> "test_$p"} }\"" else ""})" }
+                .plus("${method.method.toString().firstUpperCase()}(${if (method.firstBody() != null) "null" else ""})")
+                .plus("${parameter.methodName().firstUpperCase()}(${methodValue})")
                 .plus("Build()")
         return """
                 |new Object[] {           
                 |    ApiRoot
                 |    <<${builderChain.joinToString("\n.", ".")}>>,
-                |    "${method.method.toString().capitalize()}",
+                |    "${method.method.toString().firstUpperCase()}",
                 |    "/${resource.fullUri.expand(resource.fullUriParameters.map { it.name to "test_${it.name}" }.toMap()).trimStart('/')}?${paramName}=${queryParamValueString(paramName, parameter.type, Random(paramName.hashCode()))}",
                 |}
             """.trimMargin().keepAngleIndent()

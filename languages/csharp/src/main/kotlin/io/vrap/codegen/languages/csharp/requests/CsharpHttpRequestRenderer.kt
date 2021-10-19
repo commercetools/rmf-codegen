@@ -5,6 +5,8 @@ import io.vrap.codegen.languages.csharp.extensions.*
 import io.vrap.codegen.languages.extensions.EObjectExtensions
 import io.vrap.codegen.languages.extensions.resource
 import io.vrap.codegen.languages.extensions.toRequestName
+import io.vrap.rmf.codegen.firstUpperCase
+import io.vrap.rmf.codegen.firstLowerCase
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.MethodRenderer
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
@@ -21,6 +23,7 @@ import io.vrap.rmf.raml.model.types.QueryParameter
 import io.vrap.rmf.raml.model.types.StringInstance
 import io.vrap.rmf.raml.model.util.StringCaseFormat
 import org.eclipse.emf.ecore.EObject
+import java.util.*
 
 const val PLACEHOLDER_PARAM_ANNOTATION = "placeholderParam"
 
@@ -82,20 +85,20 @@ class CsharpHttpRequestRenderer constructor(override val vrapTypeProvider: VrapT
 
     private fun Method.properties(): String? {
 
-        var props = "private IClient ApiHttpClient { get; }"+ "\n\n" + """public override HttpMethod Method =\>\ HttpMethod.${methodName.capitalize()};"""
+        var props = "private IClient ApiHttpClient { get; }"+ "\n\n" + """public override HttpMethod Method =\>\ HttpMethod.${methodName.firstUpperCase()};"""
         //only for post methods
-        if(this.methodName.toLowerCase() == "post") {
-            props= "private ISerializerService SerializerService { get; }\n\n$props";
+        if (this.methodName.lowercase(Locale.getDefault()) == "post") {
+            props = "private ISerializerService SerializerService { get; }\n\n$props";
         }
-        val pathArgs = props + "\n\n" + this.pathArguments().map { "private string ${it.capitalize()} { get; }" }.joinToString(separator = "\n\n")
+        val pathArgs = props + "\n\n" + this.pathArguments().map { "private string ${it.firstUpperCase()} { get; }" }.joinToString(separator = "\n\n")
 
         val body: String = if(this.bodies != null && this.bodies.isNotEmpty()){
             if(this.bodies[0].type.toVrapType() is VrapObjectType){
                 val methodBodyVrapType = this.bodies[0].type.toVrapType() as VrapObjectType
                 if(methodBodyVrapType.`package`=="")
-                    "private ${methodBodyVrapType.simpleClassName} ${methodBodyVrapType.simpleClassName.capitalize()};"
+                    "private ${methodBodyVrapType.simpleClassName} ${methodBodyVrapType.simpleClassName.firstUpperCase()};"
                 else
-                    "private ${methodBodyVrapType.`package`.toCsharpPackage()}.I${methodBodyVrapType.simpleClassName} ${methodBodyVrapType.simpleClassName.capitalize()};"
+                    "private ${methodBodyVrapType.`package`.toCsharpPackage()}.I${methodBodyVrapType.simpleClassName} ${methodBodyVrapType.simpleClassName.firstUpperCase()};"
             } else if (this.bodies[0].contentMediaType.`is`(MediaType.FORM_DATA)) {
                 "private List<KeyValuePair<string, string>> _formParams;".escapeAll()
             }else {
@@ -115,30 +118,29 @@ class CsharpHttpRequestRenderer constructor(override val vrapTypeProvider: VrapT
     private fun Method.constructor(): String? {
         val pathArguments = this.pathArguments().map { "{$it}" }
         var requestUrl = this.resource().fullUri.template
-        pathArguments.forEach { requestUrl = requestUrl.replace(it, "{"+it.replace("{","").replace("}","").capitalize()+"}") }
+        pathArguments.forEach { requestUrl = requestUrl.replace(it, "{"+it.replace("{","").replace("}","").firstUpperCase()+"}") }
 
         val constructorArguments = mutableListOf("IClient apiHttpClient")
         val constructorAssignments = mutableListOf("this.ApiHttpClient = apiHttpClient;")
         //only for post methods
-        if(this.methodName.toLowerCase() == "post")
-        {
+        if (this.methodName.lowercase(Locale.getDefault()) == "post") {
             constructorArguments.add("ISerializerService serializerService")
             constructorAssignments.add("this.SerializerService = serializerService;")
         }
 
         this.pathArguments().map { "string ${it.lowerCamelCase()}" }.forEach { constructorArguments.add(it) }
-        this.pathArguments().map { "this.${it.capitalize()} = ${it.lowerCamelCase()};" }.forEach { constructorAssignments.add(it) }
+        this.pathArguments().map { "this.${it.firstUpperCase()} = ${it.lowerCamelCase()};" }.forEach { constructorAssignments.add(it) }
 
         if(this.bodies != null && this.bodies.isNotEmpty()){
             if(this.bodies[0].type.toVrapType() is VrapObjectType) {
                 val methodBodyVrapType = this.bodies[0].type.toVrapType() as VrapObjectType
-                var methodBodyArgument =""
+                val methodBodyArgument: String
                 if(methodBodyVrapType.`package`=="")
-                    methodBodyArgument = "${methodBodyVrapType.simpleClassName} ${methodBodyVrapType.simpleClassName.decapitalize()}"
+                    methodBodyArgument = "${methodBodyVrapType.simpleClassName} ${methodBodyVrapType.simpleClassName.firstLowerCase()}"
                 else
-                    methodBodyArgument = "${methodBodyVrapType.`package`.toCsharpPackage()}.I${methodBodyVrapType.simpleClassName} ${methodBodyVrapType.simpleClassName.decapitalize()}"
+                    methodBodyArgument = "${methodBodyVrapType.`package`.toCsharpPackage()}.I${methodBodyVrapType.simpleClassName} ${methodBodyVrapType.simpleClassName.firstLowerCase()}"
                 constructorArguments.add(methodBodyArgument)
-                val methodBodyAssignment = "this.${methodBodyVrapType.simpleClassName.capitalize()} = ${methodBodyVrapType.simpleClassName.decapitalize()};"
+                val methodBodyAssignment = "this.${methodBodyVrapType.simpleClassName.firstUpperCase()} = ${methodBodyVrapType.simpleClassName.firstLowerCase()};"
                 constructorAssignments.add(methodBodyAssignment)
             } else if (this.bodies[0].contentMediaType.`is`(MediaType.FORM_DATA)){
                 constructorArguments.add("List<KeyValuePair<string, string>> formParams = null".escapeAll())
@@ -180,7 +182,7 @@ class CsharpHttpRequestRenderer constructor(override val vrapTypeProvider: VrapT
     private fun Method.queryParamsGetters() : String = this.queryParameters
             .filter { it.getAnnotation(PLACEHOLDER_PARAM_ANNOTATION, true) == null }
             .map { """
-                |public List<string> Get${it.fieldName().capitalize()}() {
+                |public List<string> Get${it.fieldName().firstUpperCase()}() {
                 |    return this.GetQueryParam("${it.name}");
                 |}
                 """.trimMargin().escapeAll() }
@@ -189,7 +191,7 @@ class CsharpHttpRequestRenderer constructor(override val vrapTypeProvider: VrapT
     private fun Method.queryParamsSetters() : String = this.queryParameters
             .filter { it.getAnnotation(PLACEHOLDER_PARAM_ANNOTATION, true) == null }
             .map { """
-                |public ${this.toRequestName()} With${it.fieldName().capitalize()}(${it.witherType()} ${it.fieldName()}){
+                |public ${this.toRequestName()} With${it.fieldName().firstUpperCase()}(${it.witherType()} ${it.fieldName()}){
                 |    return this.AddQueryParam("${it.name}", ${it.fieldNameAsString(it.witherType())});
                 |}
             """.trimMargin().escapeAll() }
@@ -217,7 +219,7 @@ class CsharpHttpRequestRenderer constructor(override val vrapTypeProvider: VrapT
         val bodyName : String? = if(this.bodies != null && this.bodies.isNotEmpty()){
             if(this.bodies[0].type.toVrapType() is VrapObjectType) {
                 val methodBodyVrapType = this.bodies[0].type.toVrapType() as VrapObjectType
-                methodBodyVrapType.simpleClassName.capitalize()
+                methodBodyVrapType.simpleClassName.firstUpperCase()
             } else {
                 "jsonNode"
             }
@@ -225,7 +227,7 @@ class CsharpHttpRequestRenderer constructor(override val vrapTypeProvider: VrapT
             null
         }
         //only for post methods
-        if(this.methodName.toLowerCase() == "post" && bodyName != null)
+        if(this.methodName.lowercase(Locale.getDefault()) == "post" && bodyName != null)
         {
             if(this.bodies[0].type.isFile())
             {

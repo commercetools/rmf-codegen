@@ -3,6 +3,7 @@ package io.vrap.codegen.languages.csharp.model
 import io.vrap.codegen.languages.csharp.extensions.*
 import io.vrap.codegen.languages.extensions.EObjectExtensions
 import io.vrap.codegen.languages.extensions.hasSubtypes
+import io.vrap.rmf.codegen.firstUpperCase
 import io.vrap.rmf.codegen.di.BasePackageName
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.ObjectTypeRenderer
@@ -11,6 +12,7 @@ import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.types.ObjectType
 import io.vrap.rmf.raml.model.types.Property
+import java.util.*
 
 
 class CsharpModelInterfaceRenderer constructor(override val vrapTypeProvider: VrapTypeProvider, @BasePackageName private val basePackagePrefix: String) : CsharpObjectTypeExtensions, EObjectExtensions, ObjectTypeRenderer {
@@ -50,7 +52,7 @@ class CsharpModelInterfaceRenderer constructor(override val vrapTypeProvider: Vr
             .map { it.toCsharpProperty(this) }.joinToString(separator = "\n\n")
 
     private fun Property.toCsharpProperty(objectType: ObjectType): String {
-        val propName = this.name.capitalize()
+        val propName = this.name.firstUpperCase()
         val typeName = this.type.toVrapType().simpleName()
         var overrideProp = this.shouldOverrideThisProperty(objectType)
 
@@ -69,7 +71,7 @@ class CsharpModelInterfaceRenderer constructor(override val vrapTypeProvider: Vr
         if(hasParent)
         {
             var parent = objectType.type as ObjectType;
-            if(parent?.properties.any { it.name.equals(this.name) })
+            if(parent.properties.any { it.name.equals(this.name) })
                 return true
         }
         return false;
@@ -99,13 +101,13 @@ class CsharpModelInterfaceRenderer constructor(override val vrapTypeProvider: Vr
 
         return if (hasSubtypes())
             """
-            |[TypeDiscriminator(nameof(${this.discriminator.capitalize()}))]
+            |[TypeDiscriminator(nameof(${this.discriminator.firstUpperCase()}))]
             |[DefaultTypeDiscriminator(typeof(${vrapType.csharpPackage()}.${this.objectClassName()}))]
             |<${this.subTypes
                     .asSequence()
                     .filterIsInstance<ObjectType>()
                     .filter { it.discriminatorValue != null }
-                    .sortedBy { anyType -> anyType.discriminatorValue.toLowerCase() }
+                    .sortedBy { anyType -> anyType.discriminatorValue.lowercase(Locale.getDefault()) }
                     .map {
                         val vrapObjectType = vrapTypeProvider.doSwitch(it) as VrapObjectType
                         "[SubTypeDiscriminator(\"${it.discriminatorValue}\", typeof(${vrapObjectType.`package`.toCsharpPackage()}.${it.objectClassName()}))]"

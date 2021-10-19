@@ -1,19 +1,27 @@
 package com.commercetools.rmf.validators
 
+import com.ctc.wstx.stax.WstxInputFactory
+import com.ctc.wstx.stax.WstxOutputFactory
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.MapperFeature
 import com.fasterxml.jackson.databind.SerializationFeature
+import com.fasterxml.jackson.dataformat.xml.XmlFactory
 import com.fasterxml.jackson.dataformat.xml.XmlMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import io.vrap.rmf.raml.validation.RamlValidator
 import java.io.File
+import java.io.InputStream
 
 
 class ValidatorSetup {
     companion object {
         @JvmStatic
         fun setup(config: File): List<RamlValidator> {
-            val mapper = XmlMapper.builder().defaultUseWrapper(false)
+            return setup(config.inputStream())
+        }
+
+        fun setup(config: InputStream): List<RamlValidator> {
+            val mapper = XmlMapper.builder(XmlFactory(WstxInputFactory(), WstxOutputFactory())).defaultUseWrapper(false)
                 .addModule(KotlinModule())
                 .enable(SerializationFeature.INDENT_OUTPUT)
                 .enable(SerializationFeature.WRAP_ROOT_VALUE)
