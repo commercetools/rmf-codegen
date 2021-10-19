@@ -23,6 +23,7 @@ import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.resources.ResourceContainer
 import io.vrap.rmf.raml.model.types.QueryParameter
 import io.vrap.rmf.raml.model.types.StringType
+import java.util.*
 
 
 class RequestBuilder constructor(
@@ -153,7 +154,7 @@ class RequestBuilder constructor(
 
                     val bodyLiteral = """|{
                         |   baseUri: this.args.baseUri,
-                        |   method: '${it.methodName.toUpperCase()}',
+                        |   method: '${it.methodName.uppercase(Locale.getDefault())}',
                         |   uriTemplate: '${it.resource().fullUri.template}',
                         |   pathVariables: this.args.pathArgs,
                         |   headers: {

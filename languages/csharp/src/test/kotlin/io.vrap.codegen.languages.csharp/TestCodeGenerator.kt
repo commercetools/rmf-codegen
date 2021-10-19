@@ -35,7 +35,7 @@ class TestCodeGenerator {
 
     @Test
     fun generateCSharpTestModule() {
-        val generatorConfig = CodeGeneratorConfig(basePackageName = "commercetools.Api.Tests", outputFolder = outputFolder)
+        val generatorConfig = CodeGeneratorConfig(basePackageName = "commercetools.Sdk.Api.Tests", outputFolder = outputFolder)
         val generatorModule = GeneratorModule(apiProvider, generatorConfig, CsharpBaseTypes)
         val generatorComponent = GeneratorComponent(generatorModule, CsharpTestModule)
         generatorComponent.generateFiles()

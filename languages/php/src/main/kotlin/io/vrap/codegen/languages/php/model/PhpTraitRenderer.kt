@@ -3,6 +3,7 @@ package io.vrap.codegen.languages.php.model
 import io.vrap.codegen.languages.php.ClientConstants
 import io.vrap.codegen.languages.php.PhpSubTemplates
 import io.vrap.codegen.languages.php.extensions.*
+import io.vrap.rmf.codegen.firstUpperCase
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.TraitRenderer
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
@@ -60,7 +61,7 @@ class PhpTraitRenderer constructor(override val vrapTypeProvider: VrapTypeProvid
                 | * @return ApiRequestInterface
                 | * @psalm-return T
                 | */
-                |public function with${it.fieldName().capitalize()}(${it.witherType()} $${it.fieldName()});
+                |public function with${it.fieldName().firstUpperCase()}(${it.witherType()} $${it.fieldName()});
             """.trimMargin().escapeAll() }
             .joinToString(separator = "\n\n")
 

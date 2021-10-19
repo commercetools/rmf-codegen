@@ -1,7 +1,6 @@
 package com.commercetools.rmf.validators
 
 import io.vrap.rmf.raml.model.RamlModelBuilder
-import io.vrap.rmf.raml.validation.RamlValidator
 import spock.lang.Specification
 
 class ValidatorRulesTest extends Specification implements ValidatorFixtures {
@@ -115,6 +114,19 @@ class ValidatorRulesTest extends Specification implements ValidatorFixtures {
         result.validationResults.size == 2
         result.validationResults[0].message == "PropertyPluralRule: Array property \"invalidItem\" must be plural"
         result.validationResults[1].message == "PropertyPluralRule: Array property \"invalidItemDesc\" must be plural"
+    }
+
+    def "query parameter camel case rule"() {
+        when:
+        def validators = Arrays.asList(new ResourcesValidator(Arrays.asList(QueryParameterCamelCaseRule.create())))
+        def uri = uriFromClasspath("/queryparametercamelcase-rule.raml")
+        def result = new RamlModelBuilder(validators).buildApi(uri)
+        then:
+        result.validationResults.size == 4
+        result.validationResults[0].message == "QueryParameterCamelCaseRule: Property \"inval_id\" name must use alphanum and dot only"
+        result.validationResults[1].message == "QueryParameterCamelCaseRule: Property \"inval-id\" name must use alphanum and dot only"
+        result.validationResults[2].message == "QueryParameterCamelCaseRule: Property \"inval[id]\" name must use alphanum and dot only"
+        result.validationResults[3].message == "QueryParameterCamelCaseRule: Property \"Invalid\" must be lower camel cased"
     }
 
     def "property singular rule"() {
@@ -261,15 +273,26 @@ class ValidatorRulesTest extends Specification implements ValidatorFixtures {
         result.rootObject.resources[0].resources[0].resources[0].uriParameters[0].name == "id"
     }
 
+    def "asMap annotation rule"() {
+        when:
+        def validators = Arrays.asList(new TypesValidator(Arrays.asList(AsMapRule.create())))
+        def uri = uriFromClasspath("/asmap-rule.raml")
+        def result = new RamlModelBuilder(validators).buildApi(uri)
+        then:
+        result.validationResults.size == 1
+        result.validationResults[0].message == "AsMapRule: Pattern property \"InvalidLocalizedString\" must define an asMap annotation"
+    }
+
     def "nested type rule"() {
         when:
         def validators = Arrays.asList(new TypesValidator(Arrays.asList(NestedTypeRule.create())))
         def uri = uriFromClasspath("/nestedtype-rule.raml")
         def result = new RamlModelBuilder(validators).buildApi(uri)
         then:
-        result.validationResults.size == 2
-        result.validationResults[0].message == "NestedTypeRule: Property \"invalid\" must not use inline array type"
-        result.validationResults[1].message == "NestedTypeRule: Property \"invalid\" must not use inline types"
+        result.validationResults.size == 3
+        result.validationResults[0].message == "NestedTypeRule: Type \"FooArray\" must not use nested inline types for property \"invalid\""
+        result.validationResults[1].message == "NestedTypeRule: Type \"Foo\" must not use nested inline types for property \"invalid\""
+        result.validationResults[2].message == "NestedTypeRule: Type \"FooArrayArray\" must not use nested inline types for property \"invalid\""
     }
 
     def "placeholder annotation query parameter rule"() {

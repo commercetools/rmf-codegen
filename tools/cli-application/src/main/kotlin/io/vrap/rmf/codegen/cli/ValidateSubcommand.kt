@@ -13,6 +13,7 @@ import org.eclipse.emf.common.util.URI
 import picocli.CommandLine
 import java.io.File
 import java.nio.file.Path
+import java.util.*
 import java.util.concurrent.Callable
 import java.util.concurrent.TimeUnit
 import java.util.stream.Collectors
@@ -69,7 +70,7 @@ class ValidateSubcommand : Callable<Int> {
                     .throttleLast(1, TimeUnit.SECONDS)
                     .blockingSubscribe(
                             {
-                                InternalLogger.debug("Consume ${it.eventType().name.toLowerCase()}: ${it.path()}")
+                                InternalLogger.debug("Consume ${it.eventType().name.lowercase(Locale.getDefault())}: ${it.path()}")
                                 safeRun { validate() }
                             },
                             {
@@ -94,7 +95,7 @@ class ValidateSubcommand : Callable<Int> {
     }
 
     private fun setupValidators(): RamlModelBuilder {
-        val ruleset = rulesetFile?.toFile() ?: File(ValidateSubcommand::class.java.getResource("/ruleset.xml").toURI())
+        val ruleset = rulesetFile?.toFile()?.inputStream() ?: ValidateSubcommand::class.java.getResourceAsStream("/ruleset.xml")
         return RamlModelBuilder(ValidatorSetup.setup(ruleset))
     }
 }

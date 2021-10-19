@@ -21,7 +21,7 @@ fun DescriptionFacet.toComment(): String {
     return if(htmlString.isNullOrBlank()){
         ""
     }else{
-        htmlString.let {"/**\n${it.lines().map { "*  $it" }.joinToString(separator = "\n")}\n*/"}?:""
+        htmlString.let {"/**\n${it.lines().map { "*  $it" }.joinToString(separator = "\n")}\n*/"}
     }
 }
 
@@ -41,7 +41,7 @@ fun DescriptionFacet.toComment(): String {
 fun StringInstance.toComment(): String? {
     val enumValues = (eContainer() as AnnotationsFacet).getAnnotation("enumDescriptions")
     if (enumValues?.value is ObjectInstance) {
-        val description = (enumValues?.value as ObjectInstance).getValue(value)
+        val description = (enumValues.value as ObjectInstance).getValue(value)
         return if (description is StringInstance) {
             description.value?.let(PARSER::parse)?.let(HTML_RENDERER::render)?.let { "/**\n${it.lines().map { '\t' + it }.joinToString(separator = "\n")}\n*/" }
         } else {

@@ -6,7 +6,7 @@ import io.vrap.rmf.codegen.rendring.utils.escapeAll
 import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.util.StringCaseFormat
-import org.apache.commons.lang3.StringEscapeUtils
+import org.apache.commons.text.StringEscapeUtils
 
 class MethodRenderer {
     fun render(method: Method): String {

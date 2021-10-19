@@ -3,6 +3,7 @@ package io.vrap.codegen.languages.javalang.model;
 import io.vrap.codegen.languages.extensions.*
 import io.vrap.codegen.languages.java.base.JavaSubTemplates
 import io.vrap.codegen.languages.java.base.extensions.*
+import io.vrap.rmf.codegen.firstUpperCase
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.ObjectTypeRenderer
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
@@ -201,7 +202,7 @@ class JavaObjectTypeRenderer constructor(override val vrapTypeProvider: VrapType
             """.trimMargin()
         } else {
             """
-            |public void set${this.name.capitalize()}(final ${this.type.toVrapType().simpleName()} ${this.name}){
+            |public void set${this.name.firstUpperCase()}(final ${this.type.toVrapType().simpleName()} ${this.name}){
             |   this.${this.name} = ${this.name};
             |}
             """.trimMargin()
@@ -224,7 +225,7 @@ class JavaObjectTypeRenderer constructor(override val vrapTypeProvider: VrapType
             |${this.type.toComment()}
             |${this.validationAnnotations()}
             |@JsonProperty("${this.name}")
-            |public ${this.type.toVrapType().simpleName()} get${this.name.capitalize()}(){
+            |public ${this.type.toVrapType().simpleName()} get${this.name.firstUpperCase()}(){
             |   return this.${this.name};
             |}
         """.trimMargin()

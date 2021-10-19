@@ -1,5 +1,6 @@
 package io.vrap.codegen.languages.csharp.extensions
 
+import io.vrap.rmf.codegen.firstUpperCase
 import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.resources.impl.ResourceImpl
 
@@ -14,7 +15,7 @@ fun Resource.GetNameAsPlural(): String {
 }
 fun String.GetDomainNameAsPlural(): String
 {
-    var name = ""
+    var name: String
     var path = this.split("/")
     if(path.size > 2)
         name = path[2]
@@ -28,7 +29,7 @@ fun String.GetDomainNameAsPlural(): String
         name = "projects"
     if(name.contains("-"))
     {
-        name = name.split("-")[0]+name.split("-")[1].capitalize()
+        name = name.split("-")[0]+name.split("-")[1].firstUpperCase()
     }
-    return name.capitalize()
+    return name.firstUpperCase()
 }

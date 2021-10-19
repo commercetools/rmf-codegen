@@ -10,6 +10,7 @@ import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.responses.Body
 import io.vrap.rmf.raml.model.types.*
+import java.util.*
 
 fun VrapType.simpleName(): String {
     return when (this) {
@@ -19,7 +20,7 @@ fun VrapType.simpleName(): String {
         is VrapObjectType -> if(this.simpleClassName == "DateTime" || this.simpleClassName == "TimeSpan" || this.simpleClassName == "Object") this.simpleClassName else "I${this.simpleClassName}"
         is VrapAnyType -> this.baseType
         is VrapArrayType -> """List\<${this.itemType.simpleName()}\>"""
-        is VrapNilType -> throw IllegalStateException("$this has no simple class name.") as Throwable
+        is VrapNilType -> throw IllegalStateException("$this has no simple class name.")
     }
 }
 
@@ -80,7 +81,6 @@ fun String.toCsharpPackage():String{
  * Returns physical path of the file should be generated like "commercetools/API/models/Orders/OrderDraft.cs"
  */
 fun VrapType.csharpClassRelativePath(isInterface: Boolean = false): String {
-    var relativePath = "";
     var packageName = "";
     var simpleClassName = ""
 
@@ -93,11 +93,9 @@ fun VrapType.csharpClassRelativePath(isInterface: Boolean = false): String {
     }
 
     var namespaceDir = packageName.toNamespaceDir()
-    var fileName = if(isInterface) "I${simpleClassName}" else "${simpleClassName}"
+    var fileName = if (isInterface) "I${simpleClassName}" else "${simpleClassName}"
 
-    relativePath = "${namespaceDir}.${fileName}".replace(".", "/") + ".cs"
-
-    return relativePath
+    return "${namespaceDir}.${fileName}".replace(".", "/") + ".cs"
 }
 
 /**
@@ -115,10 +113,10 @@ fun String.toNamespaceDir():String{
 }
 
 fun String.pluralize(): String {
-    val typesToExcluded = arrayOf<String>("common", "me", "graphql")
-    if(typesToExcluded.contains(this.toLowerCase()))
+    val typesToExcluded = arrayOf("common", "me", "graphql")
+    if(typesToExcluded.contains(this.lowercase(Locale.getDefault())))
         return this
-   return return English.plural(this)
+   return English.plural(this)
 }
 
 fun String.singularize(): String {

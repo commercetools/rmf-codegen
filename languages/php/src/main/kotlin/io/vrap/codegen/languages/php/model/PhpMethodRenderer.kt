@@ -19,6 +19,7 @@ import io.vrap.rmf.raml.model.types.*
 import io.vrap.rmf.raml.model.types.Annotation
 import io.vrap.rmf.raml.model.types.impl.TypesFactoryImpl
 import org.eclipse.emf.ecore.EObject
+import java.util.*
 
 class PhpMethodRenderer constructor(override val vrapTypeProvider: VrapTypeProvider, clientConstants: ClientConstants) : MethodRenderer, EObjectTypeExtensions {
 
@@ -78,21 +79,46 @@ class PhpMethodRenderer constructor(override val vrapTypeProvider: VrapTypeProvi
             |
             |/**
             | * @psalm-suppress PropertyNotSetInConstructor
-            | <<${if (type.`is`.isNotEmpty()) """
-            |${type.`is`.joinToString("\n") { "* @template-implements ${it.trait.toTraitName().escapeAll()}<${type.toRequestName()}>".escapeAll() }}""".trimMargin() else "*"}>>
+            | <<${
+            if (type.`is`.isNotEmpty()) """
+            |${
+                type.`is`.joinToString("\n") {
+                    "* @template-implements ${
+                        it.trait.toTraitName().escapeAll()
+                    }<${type.toRequestName()}>".escapeAll()
+                }
+            }""".trimMargin() else "*"
+        }>>
             | */
-            |class ${type.toRequestName()} extends ApiRequest${if (implements.isNotEmpty()) " implements ${implements.joinToString(", ")}" else ""}
+            |class ${type.toRequestName()} extends ApiRequest${
+            if (implements.isNotEmpty()) " implements ${
+                implements.joinToString(
+                    ", "
+                )
+            }" else ""
+        }
             |{
             |    /**
             |     * @param ${if (type.firstBody()?.type is FileType) "?UploadedFileInterface " else "?object|array|string"} $!body
             |     * @psalm-param array<string, scalar|scalar[]> $!headers
             |     */
-            |    public function __construct(${type.allParams()?.joinToString(separator = "") { "string $$it, " } ?: ""}${if (type.firstBody()?.type is FileType) "UploadedFileInterface " else ""}$!body = null, array $!headers = [], ClientInterface $!client = null)
+            |    public function __construct(${
+            type.allParams()?.joinToString(separator = "") { "string $$it, " } ?: ""
+        }${if (type.firstBody()?.type is FileType) "UploadedFileInterface " else ""}$!body = null, array $!headers = [], ClientInterface $!client = null)
             |    {
-            |        $!uri = str_replace([${type.allParams()?.joinToString(separator = ", ") { "'{$it}'" } ?: ""}], [${type.allParams()?.joinToString(separator = ", ") { "$$it" } ?: ""}], '${type.apiResource().fullUri.template.trimStart('/')}');
+            |        $!uri = str_replace([${
+            type.allParams()?.joinToString(separator = ", ") { "'{$it}'" } ?: ""
+        }], [${
+            type.allParams()?.joinToString(separator = ", ") { "$$it" } ?: ""
+        }], '${type.apiResource().fullUri.template.trimStart('/')}');
             |        <<${type.firstBody()?.ensureContentType() ?: ""}>>
-            |        <<${type.headers.filter { it.type?.default != null }.joinToString("\n\n") { "\$headers = \$this->ensureHeader(\$headers, '${it.name}', '${it.type.default.value}');" }}>>
-            |        parent::__construct($!client, '${type.methodName.toUpperCase()}', $!uri, $!headers, ${type.firstBody()?.serialize()?: "is_object(\$body) || is_array(\$body) ? json_encode(\$body) : \$body"});
+            |        <<${
+            type.headers.filter { it.type?.default != null }
+                .joinToString("\n\n") { "\$headers = \$this->ensureHeader(\$headers, '${it.name}', '${it.type.default.value}');" }
+        }>>
+            |        parent::__construct($!client, '${type.methodName.uppercase(Locale.getDefault())}', $!uri, $!headers, ${
+            type.firstBody()?.serialize() ?: "is_object(\$body) || is_array(\$body) ? json_encode(\$body) : \$body"
+        });
             |    }
             |
             |    /**
@@ -106,11 +132,15 @@ class PhpMethodRenderer constructor(override val vrapTypeProvider: VrapTypeProvi
             |            return null;
             |        }
             |        if (is_null($!resultType)) {
-            |            switch ($!response->getStatusCode()) {${resultTypes.joinToString("") { response -> """
+            |            switch ($!response->getStatusCode()) {${
+            resultTypes.joinToString("") { response ->
+                """
             |                case '${response.statusCode}':
             |                    $!resultType = ${response.bodies[0].returnType().returnTypeModelClass()}::class;
             |
-            |                    break;""" }}
+            |                    break;"""
+            }
+        }
             |                default:
             |                    $!resultType = JsonObjectModel::class;
             |

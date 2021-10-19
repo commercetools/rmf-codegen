@@ -9,7 +9,7 @@ import java.util.*
 class PropertyPluralRule(options: List<RuleOption>? = null) : TypesRule(options) {
 
     private val exclude: List<String> =
-        (options?.filter { ruleOption -> ruleOption.type.toLowerCase() == RuleOptionType.EXCLUDE.toString() }?.map { ruleOption -> ruleOption.value }?.plus("") ?: defaultExcludes)
+        (options?.filter { ruleOption -> ruleOption.type.lowercase(Locale.getDefault()) == RuleOptionType.EXCLUDE.toString() }?.map { ruleOption -> ruleOption.value }?.plus("") ?: defaultExcludes)
 
     override fun caseProperty(property: Property): List<Diagnostic> {
         val validationResults: MutableList<Diagnostic> = ArrayList()

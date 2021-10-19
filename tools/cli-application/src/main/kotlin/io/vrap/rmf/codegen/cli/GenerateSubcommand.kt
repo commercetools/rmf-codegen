@@ -36,6 +36,7 @@ import io.vrap.rmf.codegen.toSeconds
 import picocli.CommandLine
 import java.nio.file.Files
 import java.nio.file.Path
+import java.util.*
 import java.util.concurrent.Callable
 import java.util.concurrent.TimeUnit
 import kotlin.system.measureTimeMillis
@@ -144,7 +145,7 @@ class GenerateSubcommand : Callable<Int> {
                     .throttleLast(1, TimeUnit.SECONDS)
                     .blockingSubscribe(
                             {
-                                InternalLogger.debug("Consume ${it.eventType().name.toLowerCase()}: ${it.path()}")
+                                InternalLogger.debug("Consume ${it.eventType().name.lowercase(Locale.getDefault())}: ${it.path()}")
                                 safeRun { generate(ramlFileLocation, target, generatorConfig) }
                             },
                             {
@@ -227,7 +228,6 @@ class GenerateSubcommand : Callable<Int> {
                     val generatorModule = GeneratorModule(apiProvider, generatorConfig, PythonBaseTypes)
                     GeneratorComponent(generatorModule, PythonModelModule, PythonClientModule)
                 }
-                else -> throw Exception()
             }
             generatorComponent.generateFiles()
         }

@@ -181,7 +181,7 @@ class PythonModelRenderer constructor(
         if (schemaType !is VrapObjectType) return ""
 
         val packageName = schemaType.`package`.toRelativePackageName(moduleName())
-        var switchStatement = ""
+        val switchStatement: String
 
         if (this.isDiscriminated()) {
             switchStatement = allAnyTypes.getTypeInheritance(this)
