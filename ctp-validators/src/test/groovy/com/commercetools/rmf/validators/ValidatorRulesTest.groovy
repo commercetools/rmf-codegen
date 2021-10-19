@@ -304,6 +304,6 @@ class ValidatorRulesTest extends Specification implements ValidatorFixtures {
         result.validationResults.size == 3
         result.validationResults[0].message == "QueryParameterPlaceholderAnnotationRule: Property \"/invalid/\" must define placeholder annotation"
         result.validationResults[1].message == "QueryParameterPlaceholderAnnotationRule: Placeholder object must have fields paramName, template and placeholder"
-        result.validationResults[2].message == "QueryParameterPlaceholderAnnotationRule: Property \"incomplete\" placeholder is missing in template ..."
+        result.validationResults[2].message == "QueryParameterPlaceholderAnnotationRule: Property \"placeholder\" should be contained in the \"template\""
     }
 }
