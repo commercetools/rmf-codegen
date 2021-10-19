@@ -1,7 +1,6 @@
 package com.commercetools.rmf.validators
 
-import io.vrap.rmf.raml.model.types.ObjectType
-import io.vrap.rmf.raml.model.types.Property
+import io.vrap.rmf.raml.model.types.*
 import org.eclipse.emf.common.util.Diagnostic
 import java.util.*
 
@@ -14,7 +13,7 @@ class AsMapRule(options: List<RuleOption>? = null) : TypesRule(options) {
         val validationResults: MutableList<Diagnostic> = ArrayList()
 
         if (exclude.contains(type.name).not()) {
-            if (type.properties.size == 1 && type.properties[0].isPatternProperty()) {
+            if (type.properties.size == 1 && type.properties[0].isPatternProperty() && type.properties[0].type.isScalar()) {
                 if (type.getAnnotation("asMap") == null) {
                     validationResults.add(error(type, "Pattern property \"{0}\" must define an asMap annotation", type.name))
                 }
@@ -31,6 +30,21 @@ class AsMapRule(options: List<RuleOption>? = null) : TypesRule(options) {
         @JvmStatic
         override fun create(options: List<RuleOption>?): AsMapRule {
             return AsMapRule(options)
+        }
+    }
+
+    private fun AnyType.isScalar(): Boolean {
+        return when(this) {
+            is StringType -> true
+            is IntegerType -> true
+            is NumberType -> true
+            is BooleanType -> true
+            is DateTimeType -> true
+            is DateOnlyType -> true
+            is DateTimeOnlyType -> true
+            is TimeOnlyType -> true
+            is ArrayType -> this.items == null || this.items.isScalar()
+            else -> false
         }
     }
 }
