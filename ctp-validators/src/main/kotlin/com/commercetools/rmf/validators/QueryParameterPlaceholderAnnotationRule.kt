@@ -20,13 +20,13 @@ class QueryParameterPlaceholderAnnotationRule(options: List<RuleOption>? = null)
             run {
                 if (exclude.contains(queryParameter.name).not() && queryParameter.isPatternParameter()) {
                     if (queryParameter.getAnnotation("placeholderParam") == null) {
-                        validationResults.add(error(queryParameter, "Property \"{0}\" name must use alphanum and dot", queryParameter.name))
+                        validationResults.add(error(queryParameter, "Property \"{0}\" must define placeholder annotation", queryParameter.name))
                     } else {
                         val annoValue = queryParameter.getAnnotation("placeholderParam").value;
                         when (annoValue) {
                             is ObjectInstance -> {
-                                if (!(annoValue.value.find { propertyValue -> propertyValue.name == "whatver" } != null && annoValue.value.find { propertyValue -> propertyValue.name == "whatver2" } != null))
-                                    validationResults.add(error(queryParameter, "Property \"{0}\" must be lower camel cased", queryParameter.name))
+                                if (!(annoValue.value.find { propertyValue -> propertyValue.name == "paramName" } != null && annoValue.value.find { propertyValue -> propertyValue.name == "template" } != null && annoValue.value.find { propertyValue -> propertyValue.name == "placeholder" } != null))
+                                    validationResults.add(error(queryParameter, "Placeholder object must have fields paramName, template and placeholder"))
                             }
                             else -> {
                                 validationResults.add(error(queryParameter, "Property \"{0}\" must be lower camel cased", queryParameter.name))
