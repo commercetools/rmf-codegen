@@ -176,3 +176,49 @@ jobs:
           CTP_OSS_SECRET: ${{ secrets.OSS_SECRET }}
           SOURCE_TAG: ${{ steps.branch_name.outputs.SOURCE_TAG }}
 
+
+  release_npm:
+    name: Build and release to NPM
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup Node
+        uses: actions/setup-node@v2
+        with:
+          java-version: "14"
+
+      - name: Retrieve branch name
+        id: branch_name
+        run: |
+          echo ::set-output name=SOURCE_NAME::${GITHUB_REF#refs/*/}
+          echo ::set-output name=SOURCE_BRANCH::${GITHUB_REF#refs/heads/}
+          echo ::set-output name=SOURCE_TAG::${GITHUB_REF#refs/tags/}
+
+      - name: Build npm package
+        working-directory: node/rmf-codegen
+        run: yarn build
+
+      - name: Creating .npmrc
+        run: |
+          cat << EOF > "$HOME/.npmrc"
+            email=npmjs@commercetools.com
+            //registry.npmjs.org/:_authToken=$NPM_TOKEN
+          EOF
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish npm package
+        working-directory: node/rmf-codegen
+        run: yarn publish --no-git-tag-version --new-version $SOURCE_TAG
+
+      - uses: stefanzweifel/git-auto-commit-action@v4.6.0
+        with:
+          file_pattern: "node/rmf-codegen/package.json"
+          commit_message: "Bump package version"
+          commit_user_name: Auto Mation
+          commit_user_email: automation@commercetools.com
+          commit_author: Auto Mation <automation@commercetools.com>
