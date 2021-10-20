@@ -45,4 +45,4 @@ jobs:
 
       - name: Build npm package
         working-directory: node/rmf-codegen
-        run: yarn build && npx rmf-codegen
+        run: yarn build && node src/run.js
