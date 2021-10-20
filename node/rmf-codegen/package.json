@@ -9,7 +9,6 @@
   "keywords": ["cli", "raml", "code generator", "REST", "API documentation"],
   "scripts": {
     "build": "cd ../../ && ./gradlew tools:cli-application:shadowJar && cp rmf-codegen.jar node/rmf-codegen/bin",
-    "prepare": "yarn run build",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "bin": {
