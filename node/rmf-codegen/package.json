@@ -1,6 +1,6 @@
 {
   "name": "@commercetools-docs/rmf-codegen",
-  "version": "12.4.2",
+  "version": "13.0.0",
   "description": "Provides RMF-Codegen to javascript projects",
   "license": "MIT",
   "publishConfig": {

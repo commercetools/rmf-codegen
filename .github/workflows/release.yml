@@ -214,12 +214,4 @@ jobs:
 
       - name: Publish npm package
         working-directory: node/rmf-codegen
-        run: yarn publish --no-git-tag-version --major
-
-      - uses: stefanzweifel/git-auto-commit-action@v4.6.0
-        with:
-          file_pattern: "node/rmf-codegen/package.json"
-          commit_message: "Bump package version"
-          commit_user_name: Auto Mation
-          commit_user_email: automation@commercetools.com
-          commit_author: Auto Mation <automation@commercetools.com>
+        run: yarn publish --no-git-tag-version --minor
