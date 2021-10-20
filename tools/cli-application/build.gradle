@@ -103,7 +103,7 @@ shadowJar {
         attributes 'Main-Class': 'io.vrap.rmf.codegen.cli.MainKt'
     }
     append "plugin.properties"
-    archiveFileName = 'rmf-gen.jar'
+    archiveFileName = 'rmf-codegen.jar'
     minimize()
     destinationDirectory = file("../..")
 }
