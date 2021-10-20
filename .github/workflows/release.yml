@@ -214,7 +214,7 @@ jobs:
 
       - name: Publish npm package
         working-directory: node/rmf-codegen
-        run: yarn publish --no-git-tag-version --minor
+        run: yarn publish --no-git-tag-version --major
 
       - uses: stefanzweifel/git-auto-commit-action@v4.6.0
         with:
