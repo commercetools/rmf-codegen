@@ -15,8 +15,8 @@ class ResourceLowerCaseHyphenRule(options: List<RuleOption>? = null) : Resources
     override fun caseResource(resource: Resource): List<Diagnostic> {
         val validationResults: MutableList<Diagnostic> = ArrayList()
 
-        if (resource.relativeUri.components.filterIsInstance(Literal::class.java)
-                .any { literal -> literal.value != StringCaseFormat.LOWER_HYPHEN_CASE.apply(literal.value) }
+        if (exclude.contains(resource.fullUri.template).not() && resource.relativeUri.components.filterIsInstance(Literal::class.java)
+                .any { literal -> literal.value != StringCaseFormat.LOWER_HYPHEN_CASE.apply(literal.value) && exclude.contains(literal.value).not() }
         ) {
             validationResults.add(error(resource, "Resource \"{0}\" must be lower case hyphen separated", resource.fullUri.template))
         }

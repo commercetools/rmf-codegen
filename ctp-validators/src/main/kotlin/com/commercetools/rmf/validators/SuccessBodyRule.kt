@@ -14,7 +14,7 @@ class SuccessBodyRule(options: List<RuleOption>? = null) : ResourcesRule(options
     override fun caseMethod(method: Method): List<Diagnostic> {
         val validationResults: MutableList<Diagnostic> = ArrayList()
         val successResponses = method.responses.filter { response -> response.statusCode.toInt() >= 200 && response.statusCode.toInt() < 300 }
-        if (!successResponses.all { response -> response.bodies.all { body -> body.type != null } }) {
+        if (!successResponses.all { response -> response.bodies.all { body -> body.type != null } } && exclude.contains("${method.method.name} ${(method.eContainer() as Resource).fullUri.template}").not()) {
             validationResults.add(error(method, "Method \"{0} {1}\" must have body type for success response(s) defined", method.method.name, (method.eContainer() as Resource).fullUri.template))
         }
         return validationResults

@@ -19,14 +19,14 @@ class NestedTypeRule(options: List<RuleOption>? = null) : TypesRule(options) {
             val propertyType = it.type
             when (propertyType) {
                 is ObjectType -> {
-                    if ((propertyType.name == BuiltinType.OBJECT.getName() || propertyType.name.isNullOrBlank()) && propertyType.properties.isNotEmpty()) {
+                    if (exclude.contains(type.name + "#" + it.name).not() && (propertyType.name == BuiltinType.OBJECT.getName() || propertyType.name.isNullOrBlank()) && propertyType.properties.isNotEmpty()) {
                         validationResults.add(error(it, "Type \"{0}\" must not use nested inline types for property \"{1}\"", type.name, it.name))
                     } else { }
                 }
                 is ArrayType -> {
-                    if ((propertyType.items.name == BuiltinType.OBJECT.getName() || propertyType.items.name.isNullOrBlank())) {
+                    if (exclude.contains(type.name + "#" + it.name).not() && (propertyType.items.name == BuiltinType.OBJECT.getName() || propertyType.items.name.isNullOrBlank())) {
                         validationResults.add(error(it, "Type \"{0}\" must not use nested inline types for property \"{1}\"", type.name, it.name))
-                    } else if ((propertyType.items.name == BuiltinType.ARRAY.getName() || propertyType.items.name.isNullOrBlank())) {
+                    } else if (exclude.contains(type.name + "#" + it.name).not() && (propertyType.items.name == BuiltinType.ARRAY.getName() || propertyType.items.name.isNullOrBlank())) {
                         validationResults.add(error(it, "Type \"{0}\" must not use nested inline types for property \"{1}\"", type.name, it.name))
                     } else { }
                 }
