@@ -123,6 +123,9 @@
         <rule>
             <name>com.commercetools.rmf.validators.QueryParameterPlaceholderAnnotationRule</name>
         </rule>
+        <rule>
+            <name>com.commercetools.rmf.validators.DatetimeRule</name>
+        </rule> 
 <!--        <rule>-->
 <!--            <name>com.commercetools.rmf.validators.NamedBodyTypeRule</name>-->
 <!--        </rule>-->
