@@ -14,7 +14,7 @@
     "API documentation"
   ],
   "scripts": {
-    "build": "cd ../../ && ./gradlew tools:cli-application:shadowJar && cp rmf-codegen.jar node/rmf-codegen/bin",
+    "build": "cd ../../ && ./gradlew tools:cli-application:shadowJar && cp rmf-codegen.jar node/rmf-codegen/bin && cp ctp-validators/src/main/resources/ruleset.xml node/rmf-codegen",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "bin": {
