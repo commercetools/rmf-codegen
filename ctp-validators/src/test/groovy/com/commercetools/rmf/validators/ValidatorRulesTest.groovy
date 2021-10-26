@@ -17,12 +17,20 @@ class ValidatorRulesTest extends Specification implements ValidatorFixtures {
 
     def "datetime rule"() {
         when:
-        def validators = Arrays.asList(new TypesValidator(Arrays.asList(DatetimeRule.create())))
+        def validators = Arrays.asList(new TypesValidator(Arrays.asList(DatetimeRule.create(emptyList()))))
         def uri = uriFromClasspath("/datetime-rule.raml")
         def result = new RamlModelBuilder(validators).buildApi(uri)
         then:
-        result.validationResults.size == 16
-//        result.validationResults[0].message == "DatetimeRule: Property \"BarFoo\" must finish with At or From or To"
+        result.validationResults.size == 9
+        result.validationResults[0].message == "DatetimeRule: Property \"fooDateTime\" must end with \"At\", \"From\" or \"To\""
+        result.validationResults[1].message == "DatetimeRule: Property \"fooDate\" must end with \"At\", \"From\" or \"To\""
+        result.validationResults[2].message == "DatetimeRule: Property \"fooTime\" must end with \"At\", \"From\" or \"To\""
+        result.validationResults[3].message == "DatetimeRule: Property \"fooDateTimeFrom\" indicates a range, property ending with \"To\" is missing"
+        result.validationResults[4].message == "DatetimeRule: Property \"fooDateTimeTo\" indicates a range, property ending with \"From\" is missing"
+        result.validationResults[5].message == "DatetimeRule: Property \"fooDateFrom\" indicates a range, property ending with \"To\" is missing"
+        result.validationResults[6].message == "DatetimeRule: Property \"fooDateTo\" indicates a range, property ending with \"From\" is missing"
+        result.validationResults[7].message == "DatetimeRule: Property \"fooTimeFrom\" indicates a range, property ending with \"To\" is missing"
+        result.validationResults[8].message == "DatetimeRule: Property \"fooTimeTo\" indicates a range, property ending with \"From\" is missing"
     }
 
     def "discriminator name rule"() {

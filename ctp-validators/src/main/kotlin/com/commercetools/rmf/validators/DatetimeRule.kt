@@ -1,41 +1,41 @@
 package com.commercetools.rmf.validators
 
-import io.vrap.rmf.raml.model.types.ObjectType
+import io.vrap.rmf.raml.model.types.*
 import org.eclipse.emf.common.util.Diagnostic
 import java.util.*
 
-class DatetimeRule(options: List<RuleOption>? = null) : TypesRule(options) {
+class DatetimeRule(severity: RuleSeverity, options: List<RuleOption>? = null) : TypesRule(severity, options) {
 
     private val exclude: List<String> =
-        (options?.filter { ruleOption -> ruleOption.type.toLowerCase() == RuleOptionType.EXCLUDE.toString() }?.map { ruleOption -> ruleOption.value }?.plus("") ?: defaultExcludes)
+        (options?.filter { ruleOption -> ruleOption.type.lowercase(Locale.getDefault()) == RuleOptionType.EXCLUDE.toString() }?.map { ruleOption -> ruleOption.value }?.plus("") ?: defaultExcludes)
 
     override fun caseObjectType(type: ObjectType): List<Diagnostic> {
         val validationResults: MutableList<Diagnostic> = ArrayList()
-        val attributeName = type.name ?: ""
 
-        if (exclude.contains(attributeName).not()) {
-            if (type.name.endsWith("Date").not() && type.name.endsWith("Time").not() && type.name.endsWith("DateTime").not()) {
-                validationResults.add(error(type, "Attribute Name \"{0}\" must finish with 'DateTime' or 'Date' or \'Time\'", attributeName))
-            }
-            type.properties.forEach { property ->
-                kotlin.run {
-                    if (property.name.endsWith("At").not() && property.name.endsWith("From").not() && property.name.endsWith("To").not()) {
-                        validationResults.add(error(type, "Property \"{0}\" must finish with 'At' or 'From' or \'To\'", property.name))
-                    }
-                    else {
-                if (type.properties.size == 1 && !property.name.endsWith("At")) {
-                    if (property.name.endsWith("From")) {
-                        validationResults.add(error(type, "Property \"{0}\" must need a property that finish with \'To\'", property.name))
-                    }
-                    if (property.name.endsWith("To")) {
-                        validationResults.add(error(type, "Property \"{0}\" must need a property that finish with \'From\'", property.name))
-                    }
-                        }
-                    }
+        type.properties.filter { property -> property.type.isDateTime() }.forEach { property ->
+            if (exclude.contains(property.name).not()) {
+                if (property.name.endsWith("At").not() && property.name.endsWith("From").not() && property.name.endsWith("To").not()) {
+                    validationResults.add(error(type, "Property \"{0}\" must end with \"At\", \"From\" or \"To\"", property.name))
+                }
+                if (property.name.endsWith("From") && type.properties.none { p -> p.name.endsWith("To") }) {
+                    validationResults.add(error(type, "Property \"{0}\" indicates a range, property ending with \"To\" is missing", property.name))
+                }
+                if (property.name.endsWith("To") && type.properties.none { p -> p.name.endsWith("From") }) {
+                    validationResults.add(error(type, "Property \"{0}\" indicates a range, property ending with \"From\" is missing", property.name))
                 }
             }
         }
-            return validationResults
+        return validationResults
+    }
+
+    private fun AnyType.isDateTime(): Boolean {
+        return when(this) {
+            is DateTimeType -> true
+            is TimeOnlyType -> true
+            is DateOnlyType -> true
+            is DateTimeOnlyType -> true
+            else -> false
+        }
     }
 
     companion object : ValidatorFactory<DatetimeRule> {
@@ -43,7 +43,12 @@ class DatetimeRule(options: List<RuleOption>? = null) : TypesRule(options) {
 
         @JvmStatic
         override fun create(options: List<RuleOption>?): DatetimeRule {
-            return DatetimeRule(options)
+            return DatetimeRule(RuleSeverity.ERROR, options)
+        }
+
+        @JvmStatic
+        override fun create(severity: RuleSeverity, options: List<RuleOption>?): DatetimeRule {
+            return DatetimeRule(severity, options)
         }
     }
 }
