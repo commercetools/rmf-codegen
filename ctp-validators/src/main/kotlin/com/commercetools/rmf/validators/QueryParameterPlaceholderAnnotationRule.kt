@@ -30,11 +30,11 @@ class QueryParameterPlaceholderAnnotationRule(options: List<RuleOption>? = null)
                                 val template = annoValue.getValue("template")?.value
                                 val placeholder = annoValue.getValue("placeholder")?.value
                                 if (template != null && placeholder != null) {
-                                    if (!template.toString().contains(placeholder.toString())) validationResults.add(error(queryParameter, "Property \"placeholder\" should be contained in the \"template\""))
+                                    if (!template.toString().contains(placeholder.toString())) validationResults.add(error(queryParameter, "Placeholder value \"<{0}>\" must be contained in the template \"{1}\"", placeholder, template))
                                 }
                             }
                             else -> {
-                                validationResults.add(error(queryParameter, "Property \"{0}\" must be lower camel cased", queryParameter.name))
+                                validationResults.add(error(queryParameter, "Property \"{0}\" must define object type for placeholder annotation", queryParameter.name))
                             }
                         }
                     }
