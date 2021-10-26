@@ -294,4 +294,26 @@ class ValidatorRulesTest extends Specification implements ValidatorFixtures {
         result.validationResults[1].message == "NestedTypeRule: Type \"Foo\" must not use nested inline types for property \"invalid\""
         result.validationResults[2].message == "NestedTypeRule: Type \"FooArrayArray\" must not use nested inline types for property \"invalid\""
     }
+
+    def "placeholder annotation query parameter rule"() {
+        when:
+        def validators = Arrays.asList(new ResourcesValidator(Arrays.asList(QueryParameterPlaceholderAnnotationRule.create())))
+        def uri = uriFromClasspath("/placeholder-annotation-rule.raml")
+        def result = new RamlModelBuilder(validators).buildApi(uri)
+        then:
+        result.validationResults.size == 3
+        result.validationResults[0].message == "QueryParameterPlaceholderAnnotationRule: Property \"/invalid/\" must define placeholder annotation"
+        result.validationResults[1].message == "QueryParameterPlaceholderAnnotationRule: Placeholder object must have fields paramName, template and placeholder"
+        result.validationResults[2].message == "QueryParameterPlaceholderAnnotationRule: Placeholder value \"<locale>\" must be contained in the template \"text.en\""
+    }
+
+    def "placeholder annotation for query parameter must be object"() {
+        when:
+        def validators = Arrays.asList(new ResourcesValidator(Arrays.asList(QueryParameterPlaceholderAnnotationRule.create())))
+        def uri = uriFromClasspath("/placeholder-annotation-rule-object.raml")
+        def result = new RamlModelBuilder(validators).buildApi(uri)
+        then:
+        result.validationResults.size == 1
+        result.validationResults[0].message == "QueryParameterPlaceholderAnnotationRule: Property \"/invalid/\" must define object type for placeholder annotation"
+    }
 }
