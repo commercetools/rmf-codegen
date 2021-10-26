@@ -8,6 +8,7 @@ import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.FileProducer
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
 import io.vrap.rmf.raml.model.modules.Api
+import java.util.*
 
 class PhpBaseFileProducer constructor(val api: Api, @BasePackageName val packagePrefix: String) : FileProducer {
 
@@ -673,9 +674,10 @@ class PhpBaseFileProducer constructor(val api: Api, @BasePackageName val package
     }
 
     private fun composerJson(): TemplateFile {
-        val vendorName = packagePrefix.toLowerCase()
-        return TemplateFile(relativePath = "composer.json",
-                content = """
+        val vendorName = packagePrefix.lowercase(Locale.getDefault())
+        return TemplateFile(
+            relativePath = "composer.json",
+            content = """
                     |{
                     |  "name": "$vendorName/$vendorName-sdk-base",
                     |  "license": "MIT",
@@ -716,7 +718,8 @@ class PhpBaseFileProducer constructor(val api: Api, @BasePackageName val package
                     |    "squizlabs/php_codesniffer": "^3.0"
                     |  }
                     |}
-                """.trimMargin())
+                """.trimMargin()
+        )
     }
 
     private fun preAuthTokenProvider(): TemplateFile {

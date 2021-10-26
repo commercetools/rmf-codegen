@@ -1,5 +1,6 @@
 package io.vrap.codegen.languages.postman.model
 
+import io.vrap.rmf.codegen.firstUpperCase
 import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.types.BooleanInstance
 
@@ -15,7 +16,7 @@ class ResourceRenderer {
         }
         return """
             |{
-            |    "name": "${resource.displayName?.value ?: resource.resourcePathName.capitalize()}",
+            |    "name": "${resource.displayName?.value ?: resource.resourcePathName.firstUpperCase()}",
             |    "description": "${resource.description?.description()}",
             |    "item": [
             |        <<${items.joinToString(",\n")}>>

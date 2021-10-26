@@ -19,10 +19,11 @@ import io.vrap.rmf.raml.model.responses.Response
 import io.vrap.rmf.raml.model.security.SecuredBy
 import io.vrap.rmf.raml.model.types.*
 import org.eclipse.emf.ecore.EObject
+import java.util.*
 
 class OasResourceRenderer constructor(val api: Api, val vrapTypeProvider: VrapTypeProvider) : ResourceRenderer {
     override fun render(type: Resource): TemplateFile {
-        val vrapType = vrapTypeProvider.doSwitch(type as EObject) as VrapObjectType
+        vrapTypeProvider.doSwitch(type as EObject) as VrapObjectType
 
         val content = """
             |${type.fullUri.template}:${if (type.description != null) """
@@ -67,16 +68,21 @@ class OasResourceRenderer constructor(val api: Api, val vrapTypeProvider: VrapTy
             HttpMethod.PUT,
             HttpMethod.POST ->
                 """
-                    |curl -X ${method.methodName.toUpperCase()} ${api.baseUri.template}${r.fullUri.template}$queryParameters -i \\
+                    |curl -X ${method.methodName.uppercase(Locale.getDefault())} ${api.baseUri.template}${r.fullUri.template}$queryParameters -i \\
                     |--header 'Authorization: Bearer ${'$'}{BEARER_TOKEN}' \\
                     |--header 'Content-Type: application/json' \\
                     |--data-binary @- \<< DATA 
-                    |${requestExamples(method.bodies.filter { it.type != null }.first(), method).values.firstOrNull()?.value?.toJson() ?: ""}
+                    |${
+                    requestExamples(
+                        method.bodies.filter { it.type != null }.first(),
+                        method
+                    ).values.firstOrNull()?.value?.toJson() ?: ""
+                }
                     |DATA
                 """
             else ->
                 """
-                    |curl -X ${method.methodName.toUpperCase()} ${api.baseUri.template}${r.fullUri.template}$queryParameters -i \\
+                    |curl -X ${method.methodName.uppercase(Locale.getDefault())} ${api.baseUri.template}${r.fullUri.template}$queryParameters -i \\
                     |--header 'Authorization: Bearer ${'$'}{BEARER_TOKEN}'
                 """
         }.trimMargin().escapeAll()
@@ -108,7 +114,7 @@ class OasResourceRenderer constructor(val api: Api, val vrapTypeProvider: VrapTy
     }
 
     private fun renderBody(body: Body, method: Method): String {
-        val bodyExamples = requestExamples(body, method)
+//        val bodyExamples = requestExamples(body, method)
         return """
             |content:
             |  ${body.contentType}: {}
@@ -120,7 +126,7 @@ class OasResourceRenderer constructor(val api: Api, val vrapTypeProvider: VrapTy
     }
 
     private fun renderBody(body: Body, method: Method, response: Response): String {
-        val bodyExamples = body.inlineTypes.flatMap { inlineType -> inlineType.examples.map { example -> "${method.toRequestName()}-${response.statusCode}-${if (example.name.isNotEmpty()) example.name else "default"}" to example } }.toMap()
+//        val bodyExamples = body.inlineTypes.flatMap { inlineType -> inlineType.examples.map { example -> "${method.toRequestName()}-${response.statusCode}-${if (example.name.isNotEmpty()) example.name else "default"}" to example } }.toMap()
         return """
             |${body.contentType}: {}
         """.trimMargin().keepAngleIndent()

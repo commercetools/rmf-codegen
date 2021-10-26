@@ -6,8 +6,7 @@ import io.vrap.codegen.languages.extensions.isPatternProperty
 import io.vrap.codegen.languages.php.ClientConstants
 import io.vrap.codegen.languages.php.PhpSubTemplates
 import io.vrap.codegen.languages.php.extensions.*
-import io.vrap.rmf.codegen.di.BasePackageName
-import io.vrap.rmf.codegen.di.SharedPackageName
+import io.vrap.rmf.codegen.firstUpperCase
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.ObjectTypeRenderer
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
@@ -154,7 +153,7 @@ class PhpInterfaceObjectTypeRenderer constructor(override val vrapTypeProvider: 
             |/**
             | * @param $d $${this.name}
             | */
-            |public function set${this.name.capitalize()}($t $${this.name}): void;
+            |public function set${this.name.firstUpperCase()}($t $${this.name}): void;
         """.trimMargin()
     }
 
@@ -169,7 +168,7 @@ class PhpInterfaceObjectTypeRenderer constructor(override val vrapTypeProvider: 
             | *""" else ""}
             | * @return null|$typeName
             | */
-            |public function get${this.name.capitalize()}();
+            |public function get${this.name.firstUpperCase()}();
         """.trimMargin().keepCurlyIndent()
     }
 

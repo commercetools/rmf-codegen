@@ -5,6 +5,7 @@ import io.vrap.codegen.languages.extensions.isPatternProperty
 import io.vrap.codegen.languages.php.ClientConstants
 import io.vrap.codegen.languages.php.PhpSubTemplates
 import io.vrap.codegen.languages.php.extensions.*
+import io.vrap.rmf.codegen.firstUpperCase
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.ObjectTypeRenderer
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
@@ -239,7 +240,7 @@ class PhpBuilderObjectTypeRenderer constructor(override val vrapTypeProvider: Vr
             | * @param $d $${this.name}
             | * @return $!this
             | */
-            |public function with${this.name.capitalize()}($t $${this.name})
+            |public function with${this.name.firstUpperCase()}($t $${this.name})
             |{
             |    $!this->${this.name} = $${this.name};
             |    
@@ -251,10 +252,10 @@ class PhpBuilderObjectTypeRenderer constructor(override val vrapTypeProvider: Vr
     fun Property.withBuilder(): String {
         return """
             |/**
-            | * @deprecated use with${this.name.capitalize()}() instead
+            | * @deprecated use with${this.name.firstUpperCase()}() instead
             | * @return $!this
             | */
-            |public function with${this.name.capitalize()}Builder(?${this.type.toVrapType().simpleBuilderName()} $${this.name})
+            |public function with${this.name.firstUpperCase()}Builder(?${this.type.toVrapType().simpleBuilderName()} $${this.name})
             |{
             |    $!this->${this.name} = $${this.name};
             |    
@@ -270,7 +271,7 @@ class PhpBuilderObjectTypeRenderer constructor(override val vrapTypeProvider: Vr
                 | *""" else ""}
                 | * @return null|${if (this.type.toVrapType().simpleName() != "stdClass") this.type.toVrapType().simpleName() else "JsonObject" }
                 | */
-                |public function get${this.name.capitalize()}()
+                |public function get${this.name.firstUpperCase()}()
                 |{
                 |    return ${this.buildProperty()};
                 |}

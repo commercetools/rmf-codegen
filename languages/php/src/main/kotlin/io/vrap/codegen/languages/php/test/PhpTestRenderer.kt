@@ -22,11 +22,11 @@ import io.vrap.rmf.raml.model.util.StringCaseFormat
 class PhpTestRenderer constructor(api: Api, vrapTypeProvider: VrapTypeProvider, clientConstants: ClientConstants) : FileProducer, AbstractRequestBuilder(api, vrapTypeProvider, clientConstants) {
 
     override fun produceFiles(): List<TemplateFile> = listOf(
-            configTest(api),
+            configTest(),
             rootResourceTest(api)
     )
 
-    private fun configTest(type: Api): TemplateFile {
+    private fun configTest(): TemplateFile {
         val clientTestPackageName = basePackagePrefix + "/test" + clientPackageName.replace(basePackagePrefix, "")
         val baseUri = when (val sdkBaseUri = api.getAnnotation("sdkBaseUri")?.value) {
             is StringInstance -> UriTemplate.fromTemplate(sdkBaseUri.value)

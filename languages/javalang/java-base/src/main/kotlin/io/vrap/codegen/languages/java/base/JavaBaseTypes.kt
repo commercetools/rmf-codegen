@@ -1,3 +1,5 @@
+@file:Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
+
 package io.vrap.codegen.languages.java.base
 
 import io.vrap.rmf.codegen.types.LanguageBaseTypes

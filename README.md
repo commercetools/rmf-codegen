@@ -104,7 +104,7 @@ cd tools/cli-application/
 ../../gradlew build
 ```
 
-The JAR can then be found at `./rmf-gen.jar`
+The JAR can then be found at `./rmf-codegen.jar`
 
 ### Build a native executable with GraalVM
 

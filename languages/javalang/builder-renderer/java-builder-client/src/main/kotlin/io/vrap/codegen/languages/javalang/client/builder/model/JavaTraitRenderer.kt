@@ -4,6 +4,7 @@ import io.vrap.codegen.languages.extensions.toComment
 import io.vrap.codegen.languages.java.base.JavaSubTemplates
 import io.vrap.codegen.languages.java.base.extensions.*
 import io.vrap.codegen.languages.javalang.client.builder.requests.PLACEHOLDER_PARAM_ANNOTATION
+import io.vrap.rmf.codegen.firstUpperCase
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.TraitRenderer
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
@@ -39,7 +40,7 @@ class JavaTraitRenderer constructor(override val vrapTypeProvider: VrapTypeProvi
             |
             |    <${type.queryParamsTemplateSetters(vrapType.simpleClassName)}>
             |    
-            |    default ${vrapType.simpleClassName}\<T\> as${vrapType.simpleClassName.capitalize()}() {
+            |    default ${vrapType.simpleClassName}\<T\> as${vrapType.simpleClassName.firstUpperCase()}() {
             |        return this;
             |    }
             |    
@@ -59,7 +60,7 @@ class JavaTraitRenderer constructor(override val vrapTypeProvider: VrapTypeProvi
     private fun Trait.queryParamsGetters() : String = this.queryParameters
             .filter { it.getAnnotation(PLACEHOLDER_PARAM_ANNOTATION, true) == null }
             .map { """
-                |List<String> get${it.fieldName().capitalize()}();
+                |List<String> get${it.fieldName().firstUpperCase()}();
                 """.trimMargin().escapeAll() }
             .joinToString(separator = "\n\n")
 
@@ -69,12 +70,12 @@ class JavaTraitRenderer constructor(override val vrapTypeProvider: VrapTypeProvi
                 |/**
                 | * set ${it.fieldName()} with the specificied value
                 | */
-                |${simpleClassName}<T> with${it.fieldName().capitalize()}(final ${it.witherType()} ${it.fieldName()});
+                |${simpleClassName}<T> with${it.fieldName().firstUpperCase()}(final ${it.witherType()} ${it.fieldName()});
                 |
                 |/**
                 | * add additional ${it.fieldName()} query parameter
                 | */
-                |${simpleClassName}<T> add${it.fieldName().capitalize()}(final ${it.witherType()} ${it.fieldName()});
+                |${simpleClassName}<T> add${it.fieldName().firstUpperCase()}(final ${it.witherType()} ${it.fieldName()});
             """.trimMargin().escapeAll() }
             .joinToString(separator = "\n\n")
 

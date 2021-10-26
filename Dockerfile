@@ -10,7 +10,7 @@ FROM openjdk:8-jre-alpine
 WORKDIR /app
 
 RUN apk add --no-cache git
-COPY --from=builder /rmf/rmf-gen.jar /app/rmf-gen.jar
+COPY --from=builder /rmf/rmf-codegen.jar /app/rmf-codegen.jar
 ADD rmf-gen.sh /app/rmf-gen.sh
 
 ENV JAVA_OPTS ""

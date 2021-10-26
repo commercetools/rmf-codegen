@@ -9,10 +9,12 @@ import io.reactivex.rxjava3.schedulers.Schedulers
 import io.vrap.rmf.raml.model.RamlModelBuilder
 import io.vrap.rmf.raml.validation.RamlValidationSetup
 import io.vrap.rmf.raml.validation.RamlValidator
+import org.eclipse.emf.common.util.Diagnostic
 import org.eclipse.emf.common.util.URI
 import picocli.CommandLine
 import java.io.File
 import java.nio.file.Path
+import java.util.*
 import java.util.concurrent.Callable
 import java.util.concurrent.TimeUnit
 import java.util.stream.Collectors
@@ -69,7 +71,7 @@ class ValidateSubcommand : Callable<Int> {
                     .throttleLast(1, TimeUnit.SECONDS)
                     .blockingSubscribe(
                             {
-                                InternalLogger.debug("Consume ${it.eventType().name.toLowerCase()}: ${it.path()}")
+                                InternalLogger.debug("Consume ${it.eventType().name.lowercase(Locale.getDefault())}: ${it.path()}")
                                 safeRun { validate() }
                             },
                             {
@@ -85,16 +87,20 @@ class ValidateSubcommand : Callable<Int> {
         val modelResult = modelBuilder.buildApi(fileURI)
         val validationResults = modelResult.validationResults
         if (validationResults.isNotEmpty()) {
-            val res = validationResults.stream().map { "$it" }.collect( Collectors.joining( "\n" ) );
-            InternalLogger.error("${validationResults.size} Error(s) found validating ${fileURI.toFileString()}:\n$res")
-            return 1
+            val errors = validationResults.filter { diagnostic -> diagnostic.severity == Diagnostic.ERROR }
+            val warnings = validationResults.filter { diagnostic -> diagnostic.severity == Diagnostic.WARNING }
+            val infos = validationResults.filter { diagnostic -> diagnostic.severity == Diagnostic.INFO }
+            if (errors.isNotEmpty()) InternalLogger.error("${errors.size} Error(s) found validating ${fileURI.toFileString()}:\n${errors.joinToString("\n") { "$it" }}")
+            if (warnings.isNotEmpty()) InternalLogger.error("${warnings.size} Warnings(s) found validating ${fileURI.toFileString()}:\n${warnings.joinToString("\n") { "$it" }}")
+            if (infos.isNotEmpty()) InternalLogger.info("${infos.size} Info(s) found validating ${fileURI.toFileString()}:\n${infos.joinToString("\n") { "$it" }}")
+            return errors.size
         }
         InternalLogger.info("Specification at ${fileURI.toFileString()} is valid.")
         return 0
     }
 
     private fun setupValidators(): RamlModelBuilder {
-        val ruleset = rulesetFile?.toFile() ?: File(ValidateSubcommand::class.java.getResource("/ruleset.xml").toURI())
+        val ruleset = rulesetFile?.toFile()?.inputStream() ?: ValidateSubcommand::class.java.getResourceAsStream("/ruleset.xml")
         return RamlModelBuilder(ValidatorSetup.setup(ruleset))
     }
 }

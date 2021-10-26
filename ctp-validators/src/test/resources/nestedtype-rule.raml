@@ -1,11 +1,17 @@
 #%RAML 1.0
-title: property camel case rule
+title: nested inline type rule
 
 types:
+  FooObject:
+    type: object
+    properties:
+      meta:
+        type: object
+        description: valid
   Baz:
     type: object
     properties:
-        validNested: string
+      validNested: string
   Bar:
     type: object
     properties:
@@ -22,7 +28,7 @@ types:
       invalid:
         type: object
         properties:
-            invalidNested: string
+          invalidNested: string
   FooArray:
     type: object
     properties:
@@ -32,3 +38,11 @@ types:
           type: object
           properties:
             invalidNested: string
+  FooArrayArray:
+    type: object
+    properties:
+      invalid:
+        type: array
+        items:
+          type: array
+          items: string

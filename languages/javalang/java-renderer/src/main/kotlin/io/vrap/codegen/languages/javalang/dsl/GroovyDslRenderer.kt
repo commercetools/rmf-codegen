@@ -4,6 +4,7 @@ import io.vrap.codegen.languages.java.base.JavaSubTemplates
 import io.vrap.codegen.languages.java.base.extensions.JavaEObjectTypeExtensions
 import io.vrap.codegen.languages.java.base.extensions.JavaObjectTypeExtensions
 import io.vrap.codegen.languages.java.base.extensions.toJavaVType
+import io.vrap.rmf.codegen.firstLowerCase
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.ObjectTypeRenderer
 import io.vrap.rmf.codegen.types.VrapObjectType
@@ -34,12 +35,12 @@ class GroovyDslRenderer constructor(override val vrapTypeProvider: VrapTypeProvi
             |   * @param closure the closure to initialize the fields of the new instance
             |   * @return new instance intialized via the given closure
             |   */
-            |  default ${vrapType.simpleClassName} ${type.name.decapitalize()}(@DelegatesTo(value = ${vrapType.simpleClassName}.class, strategy = Closure.DELEGATE_FIRST) final Closure<${vrapType.simpleClassName}> closure) {
-            |    final ${vrapType.simpleClassName} ${type.name.decapitalize()} = new ${vrapType.simpleClassName}();
-            |    closure.setDelegate(${type.name.decapitalize()});
+            |  default ${vrapType.simpleClassName} ${type.name.firstLowerCase()}(@DelegatesTo(value = ${vrapType.simpleClassName}.class, strategy = Closure.DELEGATE_FIRST) final Closure<${vrapType.simpleClassName}> closure) {
+            |    final ${vrapType.simpleClassName} ${type.name.firstLowerCase()} = new ${vrapType.simpleClassName}();
+            |    closure.setDelegate(${type.name.firstLowerCase()});
             |    closure.setResolveStrategy(Closure.DELEGATE_FIRST);
             |    closure.call();
-            |    return ${type.name.decapitalize()};
+            |    return ${type.name.firstLowerCase()};
             |  }
             |}
         """.trimMargin()

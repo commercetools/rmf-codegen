@@ -6,7 +6,7 @@ name: CI
 
 
 jobs:
-  release:
+  test:
     name: Build and test
 
     runs-on: ubuntu-latest
@@ -16,9 +16,37 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Setup Java
-        uses: actions/setup-java@v1
+        uses: actions/setup-java@v2
         with:
+          distribution: adopt
           java-version: "8"
 
       - name: Build and Release
-        run: ./gradlew -Pversion=$VERSION clean check
+        run: ./gradlew clean check
+  test_node:
+    name: Build npm package
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup Java
+        uses: actions/setup-java@v2
+        with:
+          distribution: adopt
+          java-version: "8"
+
+      - name: Setup Node
+        uses: actions/setup-node@v2
+        with:
+          node-version: "14"
+
+      - name: Build npm package
+        working-directory: node/rmf-codegen
+        run: yarn build
+
+      - name: Run npm package
+        working-directory: node/rmf-codegen
+        run: node bin/rmf-codegen.js

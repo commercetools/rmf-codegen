@@ -121,8 +121,11 @@
             <name>com.commercetools.rmf.validators.AsMapRule</name>
         </rule>
         <rule>
-            <name>com.commercetools.rmf.validators.DatetimeRule</name>
+            <name>com.commercetools.rmf.validators.QueryParameterPlaceholderAnnotationRule</name>
         </rule>
+        <rule>
+            <name>com.commercetools.rmf.validators.DatetimeRule</name>
+        </rule> 
 <!--        <rule>-->
 <!--            <name>com.commercetools.rmf.validators.NamedBodyTypeRule</name>-->
 <!--        </rule>-->

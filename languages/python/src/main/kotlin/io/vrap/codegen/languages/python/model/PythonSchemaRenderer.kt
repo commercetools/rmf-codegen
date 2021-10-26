@@ -91,7 +91,6 @@ class PythonSchemaRenderer constructor(
 
     private fun ObjectType.renderObjectType(): String {
         if (isDict()) {
-            val prop = this.PyClassProperties(false)[0]
 
             return """
                 |class ${name}Field(marshmallow.fields.Dict):

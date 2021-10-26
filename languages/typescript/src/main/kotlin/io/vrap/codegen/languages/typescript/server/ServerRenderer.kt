@@ -15,6 +15,7 @@ import io.vrap.rmf.raml.model.resources.ResourceContainer
 import io.vrap.rmf.raml.model.types.ArrayInstance
 import io.vrap.rmf.raml.model.types.QueryParameter
 import io.vrap.rmf.raml.model.types.StringInstance
+import java.util.*
 
 class ServerRenderer constructor(
         val api: Api,
@@ -36,8 +37,8 @@ class ServerRenderer constructor(
             |$tsGeneratedComment
             |
             |import * as Joi from 'joi'
-            |<${handlerImports(moduleName)}>
-            |<${joiValidatorImports(moduleName)}>
+            |<${handlerImports()}>
+            |<${joiValidatorImports()}>
             |
             |const requiredString = Joi.string().required()
             |
@@ -76,7 +77,7 @@ class ServerRenderer constructor(
                             resourceContainer
                                     .methods
                                     .map {
-                                        "${it.methodName.toLowerCase()}: ${it.toHandlerName()}"
+                                        "${it.methodName.lowercase(Locale.getDefault())}: ${it.toHandlerName()}"
                                     }
                         } else {
                             emptyList()
@@ -105,19 +106,19 @@ class ServerRenderer constructor(
                 .map {
                     """ |{
                         |   path: '${it.resource().fullUri.template}',
-                        |   method: '${it.methodName.toUpperCase()}',
+                        |   method: '${it.methodName.uppercase(Locale.getDefault())}',
                         |   handler: async (request: Request, responseToolkit: ResponseToolkit, err?: Error) =\> {
                         |        const method =
                         |          ${it.handlerNavigator()}
                         |        try {
                         |          const result = await method({
                         |            headers: request.headers,
-                        |            ${if(it.hasPathParams()) "pathParams: request.params as any," else ""}
-                        |            ${if(it.hasQueryParams()) "queryParams: request.query as any," else ""}
-                        |            <${if(it.hasBody()) "body: request.payload as any" else ""}>
+                        |            ${if (it.hasPathParams()) "pathParams: request.params as any," else ""}
+                        |            ${if (it.hasQueryParams()) "queryParams: request.query as any," else ""}
+                        |            <${if (it.hasBody()) "body: request.payload as any" else ""}>
                         |          });
                         |          const response = responseToolkit
-                        |            .response(${if(it.hasReturnPayload()) "result.body" else ""})
+                        |            .response(${if (it.hasReturnPayload()) "result.body" else ""})
                         |            .code(result.statusCode);
                         |          // Add headers to response
                         |          for (const header in result.headers) {
@@ -134,15 +135,23 @@ class ServerRenderer constructor(
                         |   },
                         |   options: {
                         |      validate: {
-                        |        <${if(it.hasBody()) "payload: ${it.bodies[0].type.toVrapType().simpleJoiName()}()," else ""}>
+                        |        <${
+                        if (it.hasBody()) "payload: ${
+                            it.bodies[0].type.toVrapType().simpleJoiName()
+                        }()," else ""
+                    }>
                         |        params: Joi.object({
-                        |          <${it.resource().fullUri.variables.map { "$it: requiredString" }.joinToString(separator = ",\n")}>
+                        |          <${
+                        it.resource().fullUri.variables.map { "$it: requiredString" }.joinToString(separator = ",\n")
+                    }>
                         |        }),
                         |        options: {
                         |          abortEarly: false
                         |        },
                         |        query: Joi.object({
-                        |          <${it.queryParameters.map { "${it.name}: ${it.toJoiSchema()}" }.joinToString(separator = ",\n")}>
+                        |          <${
+                        it.queryParameters.map { "${it.name}: ${it.toJoiSchema()}" }.joinToString(separator = ",\n")
+                    }>
                         |        }),
                         |        failAction,
                         |      },${it.auth()}
@@ -213,7 +222,7 @@ class ServerRenderer constructor(
 
     private fun Resource.relativePath(): String = this.relativeUri.template.replaceFirst("/", "")
 
-    private fun handlerImports(moduleName: String): String {
+    private fun handlerImports(): String {
         return api.allMethods()
                 .map {
                     VrapObjectType(constantsProvider.parametersModule, it.toHandlerName())
@@ -235,7 +244,7 @@ class ServerRenderer constructor(
 
     }
 
-    private fun joiValidatorImports(moduleName: String): String {
+    private fun joiValidatorImports(): String {
         val bodyTypes = api.allMethods()
                 .filter { it.bodies.isNotEmpty() }
                 .map { it.bodies[0] }

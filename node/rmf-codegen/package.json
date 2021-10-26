@@ -1,0 +1,24 @@
+{
+  "name": "@commercetools-docs/rmf-codegen",
+  "version": "13.2.0",
+  "description": "Provides RMF-Codegen to javascript projects",
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
+  "keywords": [
+    "cli",
+    "raml",
+    "code generator",
+    "REST",
+    "API documentation"
+  ],
+  "scripts": {
+    "build": "cd ../../ && ./gradlew tools:cli-application:shadowJar && cp rmf-codegen.jar node/rmf-codegen/bin && cp ctp-validators/src/main/resources/ruleset.xml node/rmf-codegen",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "bin": {
+    "rmf-codegen": "bin/rmf-codegen.js"
+  },
+  "dependencies": {}
+}

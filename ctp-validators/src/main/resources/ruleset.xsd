@@ -18,7 +18,15 @@
       <xs:element type="xs:string" name="name"/>
       <xs:element type="optionsType" name="options" minOccurs="0"/>
     </xs:all>
+    <xs:attribute type="severity" name="severity" use="optional" default="error"/>
   </xs:complexType>
+  <xs:simpleType name="severity" final="restriction" >
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="error" />
+      <xs:enumeration value="warn" />
+      <xs:enumeration value="info" />
+    </xs:restriction>
+  </xs:simpleType>
   <xs:complexType name="rulesType">
     <xs:sequence>
       <xs:element type="ruleType" name="rule" maxOccurs="unbounded" minOccurs="0"/>

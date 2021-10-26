@@ -26,6 +26,7 @@ import java.nio.file.Paths
 open class RamlCodeGeneratorTask : DefaultTask() {
 
 
+    @Suppress("UNCHECKED_CAST")
     @TaskAction
     internal fun generateClasses() {
 

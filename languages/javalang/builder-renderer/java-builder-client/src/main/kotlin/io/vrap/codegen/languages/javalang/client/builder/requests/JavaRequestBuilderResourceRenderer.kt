@@ -9,6 +9,7 @@ import io.vrap.codegen.languages.java.base.JavaSubTemplates
 import io.vrap.codegen.languages.java.base.extensions.JavaEObjectTypeExtensions
 import io.vrap.codegen.languages.java.base.extensions.simpleName
 import io.vrap.codegen.languages.java.base.extensions.toJavaVType
+import io.vrap.rmf.codegen.firstLowerCase
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.ResourceRenderer
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
@@ -18,6 +19,7 @@ import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.resources.ResourceContainer
 import io.vrap.rmf.raml.model.types.BooleanInstance
+import java.util.*
 
 class JavaRequestBuilderResourceRenderer constructor(override val vrapTypeProvider: VrapTypeProvider) : ResourceRenderer, JavaEObjectTypeExtensions {
 
@@ -107,17 +109,17 @@ class JavaRequestBuilderResourceRenderer constructor(override val vrapTypeProvid
             this.pathArguments().forEach { requestArguments.add(it) }
             requestArguments.add("new ArrayList<>()".escapeAll())
             return """
-                |public ${this.toRequestName()} ${this.method.name.toLowerCase()}(${this.constructorArguments()}) {
+                |public ${this.toRequestName()} ${this.method.name.lowercase(Locale.getDefault())}(${this.constructorArguments()}) {
                 |    return new ${this.toRequestName()}(${this.requestArguments()});
                 |}
                 |
-                |public ${this.toRequestName()} ${this.method.name.toLowerCase()}() {
+                |public ${this.toRequestName()} ${this.method.name.lowercase(Locale.getDefault())}() {
                 |    return new ${this.toRequestName()}(${requestArguments.joinToString(separator = ", ")});
                 |}
             """.trimMargin()
         }
         return """
-            |public ${this.toRequestName()} ${this.method.name.toLowerCase()}(${this.constructorArguments()}) {
+            |public ${this.toRequestName()} ${this.method.name.lowercase(Locale.getDefault())}(${this.constructorArguments()}) {
             |    return new ${this.toRequestName()}(${this.requestArguments()});
             |}
         """.trimMargin()
@@ -128,7 +130,7 @@ class JavaRequestBuilderResourceRenderer constructor(override val vrapTypeProvid
             val methodBodyVrapType = this.bodies[0].type.toVrapType()
             if(methodBodyVrapType is VrapObjectType) {
                 val methodBodyArgument =
-                    "${methodBodyVrapType.`package`}.${methodBodyVrapType.simpleClassName} ${methodBodyVrapType.simpleClassName.decapitalize()}"
+                    "${methodBodyVrapType.`package`}.${methodBodyVrapType.simpleClassName} ${methodBodyVrapType.simpleClassName.firstLowerCase()}"
                 methodBodyArgument
             } else if (this.bodies[0].contentMediaType.`is`(MediaType.FORM_DATA)) {
                 "List<ApiMethod.ParamEntry<String, String>> formParams".escapeAll()
@@ -147,7 +149,7 @@ class JavaRequestBuilderResourceRenderer constructor(override val vrapTypeProvid
         if(this.bodies != null && this.bodies.isNotEmpty()){
             val vrapType = this.bodies[0].type.toVrapType()
             if(vrapType is VrapObjectType) {
-                requestArguments.add(vrapType.simpleClassName.decapitalize())
+                requestArguments.add(vrapType.simpleClassName.firstLowerCase())
             } else if (this.bodies[0].contentMediaType.`is`(MediaType.FORM_DATA)) {
                 requestArguments.add("formParams")
             } else {

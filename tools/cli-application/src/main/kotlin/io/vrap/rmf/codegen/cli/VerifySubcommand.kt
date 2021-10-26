@@ -8,6 +8,7 @@ import io.vrap.rmf.raml.model.RamlModelBuilder
 import org.eclipse.emf.common.util.URI
 import picocli.CommandLine
 import java.nio.file.Path
+import java.util.*
 import java.util.concurrent.Callable
 import java.util.concurrent.TimeUnit
 import java.util.stream.Collectors
@@ -58,7 +59,7 @@ class VerifySubcommand : Callable<Int> {
                     .throttleLast(1, TimeUnit.SECONDS)
                     .blockingSubscribe(
                             {
-                                InternalLogger.debug("Consume ${it.eventType().name.toLowerCase()}: ${it.path()}")
+                                InternalLogger.debug("Consume ${it.eventType().name.lowercase(Locale.getDefault())}: ${it.path()}")
                                 safeRun { verify() }
                             },
                             {
