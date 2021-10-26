@@ -3,7 +3,7 @@
          xsi:noNamespaceSchemaLocation="ruleset.xsd">
     <name>default</name>
     <rules>
-        <rule severity="info">
+        <rule>
             <name>com.commercetools.rmf.validators.ResourcePluralRule</name>
             <options>
                 <option type="exclude">in-store</option>
