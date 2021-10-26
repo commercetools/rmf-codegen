@@ -6,7 +6,7 @@ import io.vrap.rmf.raml.model.resources.Resource
 import org.eclipse.emf.common.util.Diagnostic
 import java.util.*
 
-class PostBodyRule(options: List<RuleOption>? = null) : ResourcesRule(options) {
+class PostBodyRule(severity: RuleSeverity, options: List<RuleOption>? = null) : ResourcesRule(severity, options) {
 
     private val exclude: List<String> =
         (options?.filter { ruleOption -> ruleOption.type.lowercase(Locale.getDefault()) == RuleOptionType.EXCLUDE.toString() }?.map { ruleOption -> ruleOption.value }?.plus("") ?: defaultExcludes)
@@ -16,7 +16,7 @@ class PostBodyRule(options: List<RuleOption>? = null) : ResourcesRule(options) {
         val httpMethod = method.method
 
         if (httpMethod == HttpMethod.POST && !method.bodies.all { body -> body.type != null } && exclude.contains("${method.method.name} ${(method.eContainer() as Resource).fullUri.template}").not()) {
-            validationResults.add(error(method, "Method \"{0} {1}\" must have body type defined", method.method.name, (method.eContainer() as Resource).fullUri.template))
+            validationResults.add(create(method, "Method \"{0} {1}\" must have body type defined", method.method.name, (method.eContainer() as Resource).fullUri.template))
         }
         return validationResults
     }
@@ -26,7 +26,12 @@ class PostBodyRule(options: List<RuleOption>? = null) : ResourcesRule(options) {
 
         @JvmStatic
         override fun create(options: List<RuleOption>?): PostBodyRule {
-            return PostBodyRule(options)
+            return PostBodyRule(RuleSeverity.ERROR, options)
+        }
+
+        @JvmStatic
+        override fun create(severity: RuleSeverity, options: List<RuleOption>?): PostBodyRule {
+            return PostBodyRule(severity, options)
         }
     }
 }

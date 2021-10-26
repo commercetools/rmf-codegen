@@ -4,7 +4,7 @@ import io.vrap.rmf.raml.model.types.AnyType
 import org.eclipse.emf.common.util.Diagnostic
 import java.util.*
 
-class UpdateActionNameRule(options: List<RuleOption>? = null) : TypesRule(options) {
+class UpdateActionNameRule(severity: RuleSeverity, options: List<RuleOption>? = null) : TypesRule(severity, options) {
 
     private val exclude: List<String> =
         (options?.filter { ruleOption -> ruleOption.type.lowercase(Locale.getDefault()) == RuleOptionType.EXCLUDE.toString() }?.map { ruleOption -> ruleOption.value }?.plus("") ?: defaultExcludes)
@@ -14,7 +14,7 @@ class UpdateActionNameRule(options: List<RuleOption>? = null) : TypesRule(option
 
         if (exclude.contains(type.name).not()) {
             if (type.type != null && type.type.name.endsWith("UpdateAction") && !type.name.endsWith("Action")) {
-                validationResults.add(error(type, "Update action type \"{0}\" name must end with \"Action\"", type.name))
+                validationResults.add(create(type, "Update action type \"{0}\" name must end with \"Action\"", type.name))
             }
         }
 
@@ -26,7 +26,12 @@ class UpdateActionNameRule(options: List<RuleOption>? = null) : TypesRule(option
 
         @JvmStatic
         override fun create(options: List<RuleOption>?): UpdateActionNameRule {
-            return UpdateActionNameRule(options)
+            return UpdateActionNameRule(RuleSeverity.ERROR, options)
+        }
+
+        @JvmStatic
+        override fun create(severity: RuleSeverity, options: List<RuleOption>?): UpdateActionNameRule {
+            return UpdateActionNameRule(severity, options)
         }
     }
 }

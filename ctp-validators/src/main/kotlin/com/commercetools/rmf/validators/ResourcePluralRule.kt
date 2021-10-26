@@ -5,7 +5,7 @@ import io.vrap.rmf.raml.model.resources.Resource
 import org.eclipse.emf.common.util.Diagnostic
 import java.util.*
 
-class ResourcePluralRule(options: List<RuleOption>? = null) : ResourcesRule(options) {
+class ResourcePluralRule(severity: RuleSeverity, options: List<RuleOption>? = null) : ResourcesRule(severity, options) {
 
     private val exclude: List<String> =
         (options?.filter { ruleOption -> ruleOption.type.lowercase(Locale.getDefault()) == RuleOptionType.EXCLUDE.toString() }?.map { ruleOption -> ruleOption.value }?.plus("") ?: defaultExcludes)
@@ -15,7 +15,7 @@ class ResourcePluralRule(options: List<RuleOption>? = null) : ResourcesRule(opti
         val resourcePathName = resource.resourcePathName
         val pluralName = English.plural(English.singular(resourcePathName))
         if (exclude.contains(resourcePathName).not() && pluralName != resourcePathName) {
-            validationResults.add(error(resource, "Resource \"{0}\" must be plural", resourcePathName))
+            validationResults.add(create(resource, "Resource \"{0}\" must be plural", resourcePathName))
         }
         return validationResults
     }
@@ -25,7 +25,12 @@ class ResourcePluralRule(options: List<RuleOption>? = null) : ResourcesRule(opti
 
         @JvmStatic
         override fun create(options: List<RuleOption>?): ResourcePluralRule {
-            return ResourcePluralRule(options)
+            return ResourcePluralRule(RuleSeverity.ERROR, options)
+        }
+
+        @JvmStatic
+        override fun create(severity: RuleSeverity, options: List<RuleOption>?): ResourcePluralRule {
+            return ResourcePluralRule(severity, options)
         }
     }
 }

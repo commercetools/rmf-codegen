@@ -23,4 +23,17 @@ interface DiagnosticsCreator {
         val message = MessageFormat.format("{0}: {1}", this.javaClass.simpleName, MessageFormat.format(messagePattern, *messageArgs))
         return BasicDiagnostic(severity, null, -1, message, arrayOf<Any?>(eObject, this.javaClass.simpleName))
     }
+
+}
+
+interface DiagnosticsAware: DiagnosticsCreator {
+    val severity: RuleSeverity
+
+    fun create(eObject: EObject, messagePattern: String, vararg messageArgs: Any?): Diagnostic {
+        return when (severity) {
+            RuleSeverity.ERROR -> error(eObject, messagePattern, *messageArgs)
+            RuleSeverity.WARN -> warning(eObject, messagePattern, *messageArgs)
+            else -> create(Diagnostic.INFO, eObject, messagePattern, *messageArgs)
+        }
+    }
 }

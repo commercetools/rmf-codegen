@@ -8,7 +8,7 @@ import io.vrap.rmf.raml.model.types.TypeTemplate
 import org.eclipse.emf.common.util.Diagnostic
 import java.util.*
 
-class PackageDefinedRule(options: List<RuleOption>? = null) : TypesRule(options) {
+class PackageDefinedRule(severity: RuleSeverity, options: List<RuleOption>? = null) : TypesRule(severity, options) {
 
     private val exclude: List<String> =
         (options?.filter { ruleOption -> ruleOption.type.lowercase(Locale.getDefault()) == RuleOptionType.EXCLUDE.toString() }?.map { ruleOption -> ruleOption.value }?.plus("") ?: defaultExcludes)
@@ -25,10 +25,10 @@ class PackageDefinedRule(options: List<RuleOption>? = null) : TypesRule(options)
                         else -> type
                     }
                     if ((currentType.eContainer() as Library).getAnnotation("package") == null) {
-                        validationResults.add(error(currentType.eContainer(), "Library type \"{0}\" must have package annotation defined", currentType.name))
+                        validationResults.add(create(currentType.eContainer(), "Library type \"{0}\" must have package annotation defined", currentType.name))
                     }
                 } else {
-                    validationResults.add(error(type, "Type \"{0}\" must have package annotation defined", type.name))
+                    validationResults.add(create(type, "Type \"{0}\" must have package annotation defined", type.name))
                 }
             }
         }
@@ -41,7 +41,12 @@ class PackageDefinedRule(options: List<RuleOption>? = null) : TypesRule(options)
 
         @JvmStatic
         override fun create(options: List<RuleOption>?): PackageDefinedRule {
-            return PackageDefinedRule(options)
+            return PackageDefinedRule(RuleSeverity.ERROR, options)
+        }
+
+        @JvmStatic
+        override fun create(severity: RuleSeverity, options: List<RuleOption>?): PackageDefinedRule {
+            return PackageDefinedRule(severity, options)
         }
     }
 }

@@ -8,7 +8,7 @@ import io.vrap.rmf.raml.model.util.StringCaseFormat
 import org.eclipse.emf.common.util.Diagnostic
 import java.util.ArrayList
 
-class QueryParameterPlaceholderAnnotationRule(options: List<RuleOption>? = null) : ResourcesRule(options) {
+class QueryParameterPlaceholderAnnotationRule(severity: RuleSeverity, options: List<RuleOption>? = null) : ResourcesRule(severity, options) {
 
     private val exclude: List<String> =
         (options?.filter { ruleOption -> ruleOption.type.lowercase() == RuleOptionType.EXCLUDE.toString() }?.map { ruleOption -> ruleOption.value }?.plus("") ?: defaultExcludes)
@@ -49,7 +49,12 @@ class QueryParameterPlaceholderAnnotationRule(options: List<RuleOption>? = null)
 
         @JvmStatic
         override fun create(options: List<RuleOption>?): QueryParameterPlaceholderAnnotationRule {
-            return QueryParameterPlaceholderAnnotationRule(options)
+            return QueryParameterPlaceholderAnnotationRule(RuleSeverity.ERROR, options)
+        }
+
+        @JvmStatic
+        override fun create(severity: RuleSeverity, options: List<RuleOption>?): QueryParameterPlaceholderAnnotationRule {
+            return QueryParameterPlaceholderAnnotationRule(severity, options)
         }
     }
 

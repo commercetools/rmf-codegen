@@ -9,6 +9,7 @@ import io.reactivex.rxjava3.schedulers.Schedulers
 import io.vrap.rmf.raml.model.RamlModelBuilder
 import io.vrap.rmf.raml.validation.RamlValidationSetup
 import io.vrap.rmf.raml.validation.RamlValidator
+import org.eclipse.emf.common.util.Diagnostic
 import org.eclipse.emf.common.util.URI
 import picocli.CommandLine
 import java.io.File
@@ -86,9 +87,13 @@ class ValidateSubcommand : Callable<Int> {
         val modelResult = modelBuilder.buildApi(fileURI)
         val validationResults = modelResult.validationResults
         if (validationResults.isNotEmpty()) {
-            val res = validationResults.stream().map { "$it" }.collect( Collectors.joining( "\n" ) );
-            InternalLogger.error("${validationResults.size} Error(s) found validating ${fileURI.toFileString()}:\n$res")
-            return 1
+            val errors = validationResults.filter { diagnostic -> diagnostic.severity == Diagnostic.ERROR }
+            val warnings = validationResults.filter { diagnostic -> diagnostic.severity == Diagnostic.WARNING }
+            val infos = validationResults.filter { diagnostic -> diagnostic.severity == Diagnostic.INFO }
+            if (errors.isNotEmpty()) InternalLogger.error("${errors.size} Error(s) found validating ${fileURI.toFileString()}:\n${errors.joinToString("\n") { "$it" }}")
+            if (warnings.isNotEmpty()) InternalLogger.error("${warnings.size} Warnings(s) found validating ${fileURI.toFileString()}:\n${warnings.joinToString("\n") { "$it" }}")
+            if (infos.isNotEmpty()) InternalLogger.info("${infos.size} Info(s) found validating ${fileURI.toFileString()}:\n${infos.joinToString("\n") { "$it" }}")
+            return errors.size
         }
         InternalLogger.info("Specification at ${fileURI.toFileString()} is valid.")
         return 0

@@ -9,7 +9,7 @@ import org.eclipse.emf.common.util.Diagnostic
 import org.eclipse.emf.ecore.EObject
 import java.util.*
 
-class NamedBodyTypeRule(options: List<RuleOption>? = null) : ResourcesRule(options) {
+class NamedBodyTypeRule(severity: RuleSeverity, options: List<RuleOption>? = null) : ResourcesRule(severity, options) {
 
     private val exclude: List<String> =
         (options?.filter { ruleOption -> ruleOption.type.lowercase(Locale.getDefault()) == RuleOptionType.EXCLUDE.toString() }?.map { ruleOption -> ruleOption.value }?.plus("") ?: defaultExcludes)
@@ -19,7 +19,7 @@ class NamedBodyTypeRule(options: List<RuleOption>? = null) : ResourcesRule(optio
 //        val httpMethod = method?.method
 //
 //        if (httpMethod == HttpMethod.POST && !method.bodies.all { body -> body.type != null } && exclude.contains("${method.method.name} ${(method.eContainer() as Resource).fullUri.template}").not()) {
-//            validationResults.add(error(method, "Method \"{0} {1}\" must have body type defined", method.method.name, (method.eContainer() as Resource).fullUri.template))
+//            validationResults.add(create(method, "Method \"{0} {1}\" must have body type defined", method.method.name, (method.eContainer() as Resource).fullUri.template))
 //        }
 //        return validationResults
 //    }
@@ -59,7 +59,12 @@ class NamedBodyTypeRule(options: List<RuleOption>? = null) : ResourcesRule(optio
 
         @JvmStatic
         override fun create(options: List<RuleOption>?): NamedBodyTypeRule {
-            return NamedBodyTypeRule(options)
+            return NamedBodyTypeRule(RuleSeverity.ERROR, options)
+        }
+
+        @JvmStatic
+        override fun create(severity: RuleSeverity, options: List<RuleOption>?): NamedBodyTypeRule {
+            return NamedBodyTypeRule(severity, options)
         }
     }
 

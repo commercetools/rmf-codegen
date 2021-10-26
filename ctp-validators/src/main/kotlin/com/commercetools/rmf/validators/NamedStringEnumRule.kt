@@ -5,7 +5,7 @@ import io.vrap.rmf.raml.model.types.StringType
 import org.eclipse.emf.common.util.Diagnostic
 import java.util.*
 
-class NamedStringEnumRule(options: List<RuleOption>? = null) : TypesRule(options) {
+class NamedStringEnumRule(severity: RuleSeverity, options: List<RuleOption>? = null) : TypesRule(severity, options) {
 
     private val exclude: List<String> =
         (options?.filter { ruleOption -> ruleOption.type.lowercase(Locale.getDefault()) == RuleOptionType.EXCLUDE.toString() }?.map { ruleOption -> ruleOption.value }?.plus("") ?: defaultExcludes)
@@ -15,10 +15,10 @@ class NamedStringEnumRule(options: List<RuleOption>? = null) : TypesRule(options
 
         if (exclude.contains(type.name).not() && type.name != "string") {
             if (!type.isInlineType() && type.enum.isNullOrEmpty() && type.pattern == null) {
-                validationResults.add(error(type, "Named string type \"{0}\" must define enum values", type.name))
+                validationResults.add(create(type, "Named string type \"{0}\" must define enum values", type.name))
             }
             if (type.isInlineType() && type.type.enum.isNullOrEmpty() && (type.type as StringType).pattern == null) {
-                validationResults.add(error(type, "Named string type \"{0}\" must define enum values", type.name))
+                validationResults.add(create(type, "Named string type \"{0}\" must define enum values", type.name))
             }
         }
 
@@ -30,7 +30,12 @@ class NamedStringEnumRule(options: List<RuleOption>? = null) : TypesRule(options
 
         @JvmStatic
         override fun create(options: List<RuleOption>?): NamedStringEnumRule {
-            return NamedStringEnumRule(options)
+            return NamedStringEnumRule(RuleSeverity.ERROR, options)
+        }
+
+        @JvmStatic
+        override fun create(severity: RuleSeverity, options: List<RuleOption>?): NamedStringEnumRule {
+            return NamedStringEnumRule(severity, options)
         }
     }
 }

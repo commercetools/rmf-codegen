@@ -3,8 +3,9 @@ package com.commercetools.rmf.validators
 import io.vrap.rmf.raml.model.types.*
 import org.eclipse.emf.common.util.Diagnostic
 import java.util.*
+import javax.print.attribute.standard.Severity
 
-class AsMapRule(options: List<RuleOption>? = null) : TypesRule(options) {
+class AsMapRule(severity: RuleSeverity, options: List<RuleOption>? = null) : TypesRule(severity, options) {
 
     private val exclude: List<String> =
         (options?.filter { ruleOption -> ruleOption.type.lowercase(Locale.getDefault()) == RuleOptionType.EXCLUDE.toString() }?.map { ruleOption -> ruleOption.value }?.plus("") ?: defaultExcludes)
@@ -15,7 +16,7 @@ class AsMapRule(options: List<RuleOption>? = null) : TypesRule(options) {
         if (exclude.contains(type.name).not()) {
             if (type.properties.size == 1 && type.properties[0].isPatternProperty() && type.properties[0].type.isScalar()) {
                 if (type.getAnnotation("asMap") == null) {
-                    validationResults.add(error(type, "Pattern property \"{0}\" must define an asMap annotation", type.name))
+                    validationResults.add(create(type, "Pattern property \"{0}\" must define an asMap annotation", type.name))
                 }
             }
         }
@@ -29,7 +30,12 @@ class AsMapRule(options: List<RuleOption>? = null) : TypesRule(options) {
 
         @JvmStatic
         override fun create(options: List<RuleOption>?): AsMapRule {
-            return AsMapRule(options)
+            return AsMapRule(RuleSeverity.ERROR, options)
+        }
+
+        @JvmStatic
+        override fun create(severity: RuleSeverity, options: List<RuleOption>?): AsMapRule {
+            return AsMapRule(severity, options)
         }
     }
 

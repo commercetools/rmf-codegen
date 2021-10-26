@@ -5,7 +5,7 @@ import io.vrap.rmf.raml.model.types.UnionType
 import org.eclipse.emf.common.util.Diagnostic
 import java.util.*
 
-class UnionTypePropertyRule(options: List<RuleOption>? = null) : TypesRule(options) {
+class UnionTypePropertyRule(severity: RuleSeverity, options: List<RuleOption>? = null) : TypesRule(severity, options) {
 
     private val exclude: List<String> =
         (options?.filter { ruleOption -> ruleOption.type.lowercase(Locale.getDefault()) == RuleOptionType.EXCLUDE.toString() }?.map { ruleOption -> ruleOption.value }?.plus("") ?: defaultExcludes)
@@ -16,7 +16,7 @@ class UnionTypePropertyRule(options: List<RuleOption>? = null) : TypesRule(optio
 
         if (property.type is UnionType && exclude.contains(propertyName).not()) {
 
-            validationResults.add(error(property, "Usage of union type is not allowed for property \"{0}\"", propertyName))
+            validationResults.add(create(property, "Usage of union type is not allowed for property \"{0}\"", propertyName))
         }
         return validationResults
     }
@@ -26,7 +26,12 @@ class UnionTypePropertyRule(options: List<RuleOption>? = null) : TypesRule(optio
 
         @JvmStatic
         override fun create(options: List<RuleOption>?): UnionTypePropertyRule {
-            return UnionTypePropertyRule(options)
+            return UnionTypePropertyRule(RuleSeverity.ERROR, options)
+        }
+
+        @JvmStatic
+        override fun create(severity: RuleSeverity, options: List<RuleOption>?): UnionTypePropertyRule {
+            return UnionTypePropertyRule(severity, options)
         }
     }
 }
