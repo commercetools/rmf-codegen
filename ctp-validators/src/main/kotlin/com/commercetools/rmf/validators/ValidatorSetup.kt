@@ -31,7 +31,11 @@ class ValidatorSetup {
 
             val ruleSet = mapper.readValue(config, RuleSet::class.java)
 
-            val validators = ruleSet.rules.map { rule -> Class.forName(rule.name).getConstructor(List::class.java).newInstance(rule.options) }
+            val validators = ruleSet.rules.map { rule -> when(rule.severity != null) {
+                    true -> Class.forName(rule.name).getConstructor(RuleSeverity::class.java, List::class.java).newInstance(rule.severity, rule.options)
+                    else -> Class.forName(rule.name).getConstructor(RuleSeverity::class.java, List::class.java).newInstance(RuleSeverity.ERROR, rule.options)
+                }
+            }
 
             return listOf(
                 ResolvedResourcesValidator(validators.filterIsInstance( ResolvedResourcesRule::class.java )),

@@ -16,13 +16,17 @@ public class Rule {
     @JacksonXmlElementWrapper(localName = "options")
     private List<RuleOption> options;
 
+    @JacksonXmlProperty(localName = "severity")
+    private RuleSeverity severity;
+
     @JsonCreator
     public Rule() {
     }
 
-    public Rule(String name, List<RuleOption> options) {
+    public Rule(String name, RuleSeverity severity, List<RuleOption> options) {
         this.name = name;
         this.options = options;
+        this.severity = severity;
     }
 
     public String getName() {
@@ -39,5 +43,13 @@ public class Rule {
 
     public void setOptions(List<RuleOption> options) {
         this.options = options;
+    }
+
+    public RuleSeverity getSeverity() {
+        return severity;
+    }
+
+    public void setSeverity(RuleSeverity severity) {
+        this.severity = severity;
     }
 }
