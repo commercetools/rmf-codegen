@@ -1,0 +1,20 @@
+#%RAML 1.0
+title: property query parameter placeholder annotation rule
+
+annotationTypes:
+    placeholderParam: string
+
+/products:
+    get:
+        queryParameters:
+            /text.[a-z]{2}/?:
+                (placeholderParam):
+                    paramName: text
+                    template: text.<locale>
+                    placeholder: locale
+                type: string
+            filter:
+                type: string
+            /invalid/?:
+                type: string
+                (placeholderParam): foo
