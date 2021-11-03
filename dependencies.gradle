@@ -12,7 +12,7 @@ ext {
             kotlin: kotlinVersion,
             picocli: '4.6.1',
             rmf: '0.2.0-20211026101321',
-            rxjava: '3.0.7',
+            rxjava: '3.1.2',
             slf4j: '1.7.25',
             spock: '2.0-groovy-3.0',
     ]
