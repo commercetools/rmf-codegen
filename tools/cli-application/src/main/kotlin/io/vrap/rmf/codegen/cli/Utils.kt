@@ -18,7 +18,8 @@ fun safeRun(block: () -> Int): Int {
 enum class LogLevel constructor(val level: Int) {
     DEBUG(0),
     INFO(1),
-    ERROR(2);
+    WARN(2),
+    ERROR(3);
 }
 
 
@@ -35,6 +36,12 @@ object InternalLogger {
     fun info(message: String) {
         if (logLevel.level <= LogLevel.INFO.level) {
             println("✅   $message")
+        }
+    }
+
+    fun warn(message: Throwable) {
+        if (logLevel.level <= LogLevel.WARN.level) {
+            println("⚠️   $message")
         }
     }
 

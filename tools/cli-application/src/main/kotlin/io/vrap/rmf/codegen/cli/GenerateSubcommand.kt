@@ -3,13 +3,14 @@ package io.vrap.rmf.codegen.cli
 import io.methvin.watcher.DirectoryChangeEvent
 import io.methvin.watcher.DirectoryWatcher
 import io.reactivex.rxjava3.core.Observable
+import io.reactivex.rxjava3.plugins.RxJavaPlugins
 import io.reactivex.rxjava3.schedulers.Schedulers
 import io.vrap.codegen.languages.csharp.CsharpBaseTypes
+import io.vrap.codegen.languages.csharp.client.builder.test.CsharpTestModule
 import io.vrap.codegen.languages.csharp.modules.CsharpClientBuilderModule
 import io.vrap.codegen.languages.csharp.modules.CsharpModule
 import io.vrap.codegen.languages.java.base.JavaBaseTypes
 import io.vrap.codegen.languages.javalang.client.builder.module.JavaCompleteModule
-import io.vrap.codegen.languages.csharp.client.builder.test.CsharpTestModule
 import io.vrap.codegen.languages.javalang.client.builder.test.JavaTestModule
 import io.vrap.codegen.languages.oas.model.OasBaseTypes
 import io.vrap.codegen.languages.oas.model.OasModelModule
@@ -19,14 +20,14 @@ import io.vrap.codegen.languages.php.model.PhpModelModule
 import io.vrap.codegen.languages.php.test.PhpTestModule
 import io.vrap.codegen.languages.postman.model.PostmanBaseTypes
 import io.vrap.codegen.languages.postman.model.PostmanModelModule
+import io.vrap.codegen.languages.python.client.PythonClientModule
+import io.vrap.codegen.languages.python.model.PythonBaseTypes
+import io.vrap.codegen.languages.python.model.PythonModelModule
 import io.vrap.codegen.languages.ramldoc.model.RamldocBaseTypes
 import io.vrap.codegen.languages.ramldoc.model.RamldocModelModule
 import io.vrap.codegen.languages.typescript.client.TypescriptClientModule
 import io.vrap.codegen.languages.typescript.model.TypeScriptBaseTypes
 import io.vrap.codegen.languages.typescript.model.TypescriptModelModule
-import io.vrap.codegen.languages.python.client.PythonClientModule
-import io.vrap.codegen.languages.python.model.PythonBaseTypes
-import io.vrap.codegen.languages.python.model.PythonModelModule
 import io.vrap.codegen.languages.typescript.test.TypescriptTestModule
 import io.vrap.rmf.codegen.CodeGeneratorConfig
 import io.vrap.rmf.codegen.di.ApiProvider
@@ -97,6 +98,7 @@ class GenerateSubcommand : Callable<Int> {
     lateinit var ramlFileLocation: Path
 
     override fun call(): Int {
+        RxJavaPlugins.setErrorHandler { e: Throwable -> InternalLogger.warn(e)}
         if(verbose){
             InternalLogger.logLevel = LogLevel.DEBUG
         }
