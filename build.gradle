@@ -142,10 +142,6 @@ subprojects { project ->
     group 'com.commercetools.rmf'
     version=globalVersion
 
-    test {
-        useJUnitPlatform()
-    }
-
     compileKotlin {
         kotlinOptions {
             jvmTarget = "1.8"
