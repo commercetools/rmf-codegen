@@ -123,6 +123,7 @@ class GenerateSubcommand : Callable<Int> {
                 run {
                     val watcher = DirectoryWatcher.builder()
                             .path(watchDir)
+                            .watchService(osDefaultWatchService())
                             .listener { event ->
                                 when (event.eventType()) {
                                     DirectoryChangeEvent.EventType.CREATE,
