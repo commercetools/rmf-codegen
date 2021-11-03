@@ -8,8 +8,9 @@ import io.vrap.rmf.codegen.di.ApiProvider
 import io.vrap.rmf.codegen.di.GeneratorComponent
 import io.vrap.rmf.codegen.di.GeneratorModule
 import org.apache.commons.io.IOUtils
-import org.junit.Assert
-import org.junit.Test
+import org.junit.jupiter.api.Assertions
+
+import org.junit.jupiter.api.Test
 import java.nio.charset.StandardCharsets
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -130,6 +131,6 @@ class TestCodeGenerator {
                 .start()
 
         val output: String = IOUtils.toString(process.inputStream, StandardCharsets.UTF_8)
-        Assert.assertEquals("Unit tests didn't ran successful!\n$output",0, process.waitFor())
+        Assertions.assertEquals("Unit tests didn't ran successful!\n$output",process.waitFor())
     }
 }

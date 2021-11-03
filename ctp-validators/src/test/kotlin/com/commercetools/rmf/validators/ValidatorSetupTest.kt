@@ -1,7 +1,8 @@
 package com.commercetools.rmf.validators
 
 import org.assertj.core.api.Assertions
-import org.junit.Test
+import org.junit.jupiter.api.Test
+
 
 class ValidatorSetupTest : ValidatorFixtures {
     @Test

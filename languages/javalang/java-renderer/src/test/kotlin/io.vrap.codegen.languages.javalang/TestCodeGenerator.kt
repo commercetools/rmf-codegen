@@ -9,7 +9,7 @@ import io.vrap.rmf.codegen.CodeGeneratorConfig
 import io.vrap.rmf.codegen.di.ApiProvider
 import io.vrap.rmf.codegen.di.GeneratorComponent
 import io.vrap.rmf.codegen.di.GeneratorModule
-import org.junit.Test
+import org.junit.jupiter.api.Test
 import java.nio.file.Path
 import java.nio.file.Paths
 
