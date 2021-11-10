@@ -1,6 +1,7 @@
 
 apply plugin: 'java-gradle-plugin'
 apply plugin: 'com.gradle.plugin-publish'
+apply plugin: 'com.github.johnrengelman.shadow'
 
 dependencies {
     implementation project(':languages:javalang:java-renderer')
@@ -39,6 +40,11 @@ pluginBundle {
             tags = ['RAML', 'java']
         }
     }
+}
+
+shadowJar {
+    zip64 true
+    append "plugin.properties"
 }
 
 task createClasspathManifest {
