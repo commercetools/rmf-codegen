@@ -3,7 +3,7 @@
 * Add [test examples](https://github.com/commercetools/rmf-codegen/tree/main/ctp-validators/src/test/resources) to validate your new addition. Ensure to include both valid and invalid test cases to ensure it works fine and as expected.
 
 * Add the new rule to the [ctp-validators ruleset](https://github.com/commercetools/rmf-codegen/blob/main/ctp-validators/src/main/resources/ruleset.xml). Ensure to exclude any exceptions e.g
-```raml
+```xml
 <rule>
     <name>com.commercetools.rmf.validators.ResourcePluralRule</name>
     <options>
