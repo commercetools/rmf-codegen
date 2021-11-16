@@ -29,9 +29,7 @@ class CsharpObjectTypeRenderer constructor(override val vrapTypeProvider: VrapTy
             |        <${if(type.isADictionaryType()) "" else type.toProperties()}>
             |        <${type.renderConstructor(vrapType.simpleClassName)}>
             |    }
-            |}
-            |
-        """.trimMargin().keepIndentation()
+            |}""".trimMargin().keepIndentation()
 
         if(type.isADictionaryType())
         {
@@ -59,9 +57,7 @@ class CsharpObjectTypeRenderer constructor(override val vrapTypeProvider: VrapTy
             |    public partial class ${vrapType.simpleClassName} : Dictionary\<string, ${property.type.toVrapType().simpleName()}\>, I${vrapType.simpleClassName}
             |    {
             |    }
-            |}
-            |
-        """
+            |}"""
     }
 
     private fun ObjectType.toProperties() : String = this.allProperties
@@ -75,7 +71,7 @@ class CsharpObjectTypeRenderer constructor(override val vrapTypeProvider: VrapTy
         var deprecationAttr = if(this.deprecationAnnotation() == "") "" else this.deprecationAnnotation()+"\n";
 
         return """
-            |${deprecationAttr}public ${typeName}$nullableChar $propName { get; set;}
+            |${deprecationAttr}public ${typeName}$nullableChar $propName { get; set; }
             """.trimMargin()
     }
 

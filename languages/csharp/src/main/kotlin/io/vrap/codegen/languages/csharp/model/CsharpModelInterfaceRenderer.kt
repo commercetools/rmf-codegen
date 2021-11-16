@@ -30,9 +30,7 @@ class CsharpModelInterfaceRenderer constructor(override val vrapTypeProvider: Vr
             |    {
             |        <${type.toProperties()}>
             |    }
-            |}
-            |
-        """.trimMargin().keepIndentation()
+            |}""".trimMargin().keepIndentation()
 
 
         if(type.isADictionaryType())
@@ -61,7 +59,7 @@ class CsharpModelInterfaceRenderer constructor(override val vrapTypeProvider: Vr
         var deprecationAttr = if(this.deprecationAnnotation() == "") "" else this.deprecationAnnotation()+"\n";
 
         return """
-            |${deprecationAttr}${newKeyword}${typeName}$nullableChar $propName { get; set;}
+            |${deprecationAttr}${newKeyword}${typeName}$nullableChar $propName { get; set; }
             """.trimMargin()
     }
 
