@@ -11,6 +11,7 @@ import io.vrap.rmf.codegen.rendring.FileProducer
 import io.vrap.rmf.codegen.rendring.utils.keepIndentation
 import io.vrap.rmf.codegen.types.*
 import io.vrap.rmf.raml.model.types.*
+import org.eclipse.emf.common.util.EList
 
 class JoiValidatorModuleRenderer constructor(override val vrapTypeProvider: VrapTypeProvider, @AllAnyTypes val allAnyTypes: List<AnyType>) : JoiObjectTypeExtensions, TsObjectTypeExtensions, FileProducer {
 
@@ -117,8 +118,7 @@ class JoiValidatorModuleRenderer constructor(override val vrapTypeProvider: Vrap
         val nonPatternProperties = this.allProperties
                 .filter { !it.isPatternProperty() }
                 .sortedWith(PropertiesComparator).joinToString(separator = ",\n") { it.renderPropertyTypeSchema(this, discriminatorProperty) }
-        val patternProperties = this.allProperties
-                .filter { it.isPatternProperty() }.joinToString(separator = "\n") { ".pattern(${it.asRegExp()}, ${it.type.toVrapType().renderTypeRef()})" }
+        val patternProperties = this.allProperties.renderPatternProperties()
         val additionalProperties = this.additionalProperties?:true
         val unknown = if (!additionalProperties) ".unknown(false)" else ""
         return if (patternProperties.isNullOrEmpty())
@@ -207,4 +207,25 @@ class JoiValidatorModuleRenderer constructor(override val vrapTypeProvider: Vrap
             }
         }
     }
+
+    private fun EList<Property>.renderPatternProperties(): String {
+        return this.filter { it.isPatternProperty() }
+            .joinToString(separator = "\n") {
+                renderTypes(it)
+            }
+        }
+
+    private fun renderTypes(it: Property) = when (it.type) {
+        is UnionType -> renderUnion(it)
+        else -> renderDefault(it)
+    }
+
+    private fun renderUnion(it: Property) = ".pattern(${it.asRegExp()}, ${
+        (it.type as UnionType).oneOf.map { ite ->
+            if (ite is NilType) "null" else it.type.toVrapType().renderTypeRef()
+        }
+    })"
+
+    private fun renderDefault(it: Property) =
+        ".pattern(${it.asRegExp()}, ${it.type.toVrapType().renderTypeRef()})"
 }
