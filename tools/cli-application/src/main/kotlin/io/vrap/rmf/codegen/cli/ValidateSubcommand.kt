@@ -1,23 +1,17 @@
 package io.vrap.rmf.codegen.cli
 
 import com.commercetools.rmf.validators.ValidatorSetup
-import com.google.common.collect.Lists
 import io.methvin.watcher.DirectoryChangeEvent
 import io.methvin.watcher.DirectoryWatcher
 import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.schedulers.Schedulers
 import io.vrap.rmf.raml.model.RamlModelBuilder
-import io.vrap.rmf.raml.validation.RamlValidationSetup
-import io.vrap.rmf.raml.validation.RamlValidator
-import org.eclipse.emf.common.util.Diagnostic
 import org.eclipse.emf.common.util.URI
 import picocli.CommandLine
-import java.io.File
 import java.nio.file.Path
 import java.util.*
 import java.util.concurrent.Callable
 import java.util.concurrent.TimeUnit
-import java.util.stream.Collectors
 
 
 @CommandLine.Command(name = "validate", description = ["Allows to verify if a raml spec is valid according to CT guideline"])
@@ -35,9 +29,15 @@ class ValidateSubcommand : Callable<Int> {
     @CommandLine.Option(names = ["-w", "--watch"], description = ["Watches the files for changes"], required = false)
     var watch: Boolean = false
 
-    lateinit var modelBuilder: RamlModelBuilder;
+    @CommandLine.Option(names = ["-p", "--printer"], required = false)
+    var printerType: Printer = Printer.LOGGER
+
+    lateinit var modelBuilder: RamlModelBuilder
+
+    lateinit var ramlDiagnosticPrinter: RamlDiagnosticPrinter
 
     override fun call(): Int {
+        ramlDiagnosticPrinter = Printer.diagnosticPrinter(printerType)
         modelBuilder = setupValidators()
         val res = safeRun { validate()}
         if (watch) {
@@ -85,18 +85,8 @@ class ValidateSubcommand : Callable<Int> {
     fun validate(): Int {
         val fileURI = URI.createURI(ramlFileLocation.toUri().toString())
         val modelResult = modelBuilder.buildApi(fileURI)
-        val validationResults = modelResult.validationResults
-        if (validationResults.isNotEmpty()) {
-            val errors = validationResults.filter { diagnostic -> diagnostic.severity == Diagnostic.ERROR }
-            val warnings = validationResults.filter { diagnostic -> diagnostic.severity == Diagnostic.WARNING }
-            val infos = validationResults.filter { diagnostic -> diagnostic.severity == Diagnostic.INFO }
-            if (errors.isNotEmpty()) InternalLogger.error("${errors.size} Error(s) found validating ${fileURI.toFileString()}:\n${errors.joinToString("\n") { "$it" }}")
-            if (warnings.isNotEmpty()) InternalLogger.error("${warnings.size} Warnings(s) found validating ${fileURI.toFileString()}:\n${warnings.joinToString("\n") { "$it" }}")
-            if (infos.isNotEmpty()) InternalLogger.info("${infos.size} Info(s) found validating ${fileURI.toFileString()}:\n${infos.joinToString("\n") { "$it" }}")
-            return errors.size
-        }
-        InternalLogger.info("Specification at ${fileURI.toFileString()} is valid.")
-        return 0
+
+        return ramlDiagnosticPrinter.print(fileURI, modelResult);
     }
 
     private fun setupValidators(): RamlModelBuilder {
