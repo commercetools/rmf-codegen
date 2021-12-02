@@ -3,6 +3,7 @@ dependencies {
     implementation orgkotlin.stdlib
     api commonmark.commonmark
     api rmf.raml_model
+    api swagger.swagger_parser
     implementation slf4j.slf4j
     implementation commons.io
     implementation rxjava.rxjava

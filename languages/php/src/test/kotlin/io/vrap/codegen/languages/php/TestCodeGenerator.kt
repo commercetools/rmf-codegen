@@ -4,9 +4,9 @@ import io.vrap.codegen.languages.php.base.PhpBaseModule
 import io.vrap.codegen.languages.php.model.PhpModelModule
 import io.vrap.codegen.languages.php.test.PhpTestModule
 import io.vrap.rmf.codegen.CodeGeneratorConfig
-import io.vrap.rmf.codegen.di.ApiProvider
-import io.vrap.rmf.codegen.di.GeneratorComponent
-import io.vrap.rmf.codegen.di.GeneratorModule
+import io.vrap.rmf.codegen.di.RamlApiProvider
+import io.vrap.rmf.codegen.di.RamlGeneratorComponent
+import io.vrap.rmf.codegen.di.RamlGeneratorModule
 import org.apache.commons.io.IOUtils
 import org.junit.jupiter.api.Assertions
 
@@ -27,9 +27,9 @@ class TestCodeGenerator {
         private val importerPath : Path = Paths.get(if (importerUserProvidedPath == null) "../../api-spec/api.raml" else importerUserProvidedPath)
         private val mlPath : Path = Paths.get(if (mlUserProvidedPath == null) "../../api-spec/api.raml" else mlUserProvidedPath)
         private val outputFolder : Path = Paths.get(if (userProvidedOutputPath == null) "build/gensrc" else userProvidedOutputPath)
-        val apiProvider: ApiProvider = ApiProvider(apiPath)
-        val importProvider: ApiProvider = ApiProvider(importerPath)
-        val mlProvider: ApiProvider = ApiProvider(mlPath)
+        val apiProvider: RamlApiProvider = RamlApiProvider(apiPath)
+        val importProvider: RamlApiProvider = RamlApiProvider(importerPath)
+        val mlProvider: RamlApiProvider = RamlApiProvider(mlPath)
     }
 
     @Test
@@ -40,8 +40,8 @@ class TestCodeGenerator {
                 outputFolder = Paths.get("${outputFolder}/commercetools-api")
         )
 
-        val generatorModule = GeneratorModule(apiProvider, generatorConfig, PhpBaseTypes)
-        val generatorComponent = GeneratorComponent(generatorModule, PhpModelModule)
+        val generatorModule = RamlGeneratorModule(apiProvider, generatorConfig, PhpBaseTypes)
+        val generatorComponent = RamlGeneratorComponent(generatorModule, PhpModelModule)
         generatorComponent.generateFiles()
 
         if (runPhpUnitTest && userProvidedPath != null) {
@@ -54,8 +54,8 @@ class TestCodeGenerator {
                 outputFolder = Paths.get("${outputFolder}/commercetools-api-tests")
         )
 
-        val generatorModuleTests = GeneratorModule(apiProvider, generatorConfigTests, PhpBaseTypes)
-        val generatorComponentTests = GeneratorComponent(generatorModuleTests, PhpTestModule)
+        val generatorModuleTests = RamlGeneratorModule(apiProvider, generatorConfigTests, PhpBaseTypes)
+        val generatorComponentTests = RamlGeneratorComponent(generatorModuleTests, PhpTestModule)
         generatorComponentTests.generateFiles()
     }
 
@@ -67,8 +67,8 @@ class TestCodeGenerator {
                 outputFolder = Paths.get("${outputFolder}/commercetools-import")
         )
 
-        val generatorModule = GeneratorModule(importProvider, generatorConfig, PhpBaseTypes)
-        val generatorComponent = GeneratorComponent(generatorModule, PhpModelModule)
+        val generatorModule = RamlGeneratorModule(importProvider, generatorConfig, PhpBaseTypes)
+        val generatorComponent = RamlGeneratorComponent(generatorModule, PhpModelModule)
         generatorComponent.generateFiles()
 
         if (runPhpUnitTest && importerUserProvidedPath != null) {
@@ -81,8 +81,8 @@ class TestCodeGenerator {
                 outputFolder = Paths.get("${outputFolder}/commercetools-import-tests")
         )
 
-        val generatorModuleTests = GeneratorModule(importProvider, generatorConfigTests, PhpBaseTypes)
-        val generatorComponentTests = GeneratorComponent(generatorModuleTests, PhpTestModule)
+        val generatorModuleTests = RamlGeneratorModule(importProvider, generatorConfigTests, PhpBaseTypes)
+        val generatorComponentTests = RamlGeneratorComponent(generatorModuleTests, PhpTestModule)
         generatorComponentTests.generateFiles()
     }
 
@@ -94,8 +94,8 @@ class TestCodeGenerator {
                 outputFolder = Paths.get("${outputFolder}/commercetools-ml")
         )
 
-        val generatorModule = GeneratorModule(mlProvider, generatorConfig, PhpBaseTypes)
-        val generatorComponent = GeneratorComponent(generatorModule, PhpModelModule)
+        val generatorModule = RamlGeneratorModule(mlProvider, generatorConfig, PhpBaseTypes)
+        val generatorComponent = RamlGeneratorComponent(generatorModule, PhpModelModule)
         generatorComponent.generateFiles()
 
         if (runPhpUnitTest && mlUserProvidedPath != null) {
@@ -108,8 +108,8 @@ class TestCodeGenerator {
                 outputFolder = Paths.get("${outputFolder}/commercetools-ml-tests")
         )
 
-        val generatorModuleTests = GeneratorModule(mlProvider, generatorConfigTests, PhpBaseTypes)
-        val generatorComponentTests = GeneratorComponent(generatorModuleTests, PhpTestModule)
+        val generatorModuleTests = RamlGeneratorModule(mlProvider, generatorConfigTests, PhpBaseTypes)
+        val generatorComponentTests = RamlGeneratorComponent(generatorModuleTests, PhpTestModule)
         generatorComponentTests.generateFiles()
     }
 
@@ -120,8 +120,8 @@ class TestCodeGenerator {
                 outputFolder = Paths.get("${outputFolder}/commercetools-base")
         )
 
-        val generatorModule = GeneratorModule(apiProvider, generatorConfig, PhpBaseTypes)
-        val generatorComponent = GeneratorComponent(generatorModule, PhpBaseModule)
+        val generatorModule = RamlGeneratorModule(apiProvider, generatorConfig, PhpBaseTypes)
+        val generatorComponent = RamlGeneratorComponent(generatorModule, PhpBaseModule)
         generatorComponent.generateFiles()
     }
 

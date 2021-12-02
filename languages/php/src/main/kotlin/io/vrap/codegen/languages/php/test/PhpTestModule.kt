@@ -2,13 +2,13 @@
 package io.vrap.codegen.languages.php.test
 
 import io.vrap.codegen.languages.php.ClientConstants
-import io.vrap.rmf.codegen.di.GeneratorModule
+import io.vrap.rmf.codegen.di.RamlGeneratorModule
 import io.vrap.rmf.codegen.di.Module
 import io.vrap.rmf.codegen.rendring.*
 
 object PhpTestModule: Module {
 
-    override fun configure(generatorModule: GeneratorModule) = setOf<CodeGenerator> (
+    override fun configure(generatorModule: RamlGeneratorModule) = setOf<CodeGenerator> (
         ResourceGenerator(
                 setOf(
                      PhpRequestTestRenderer(generatorModule.provideRamlModel(), generatorModule.vrapTypeProvider(), generatorModule.clientConstants())
@@ -22,6 +22,6 @@ object PhpTestModule: Module {
         )
     )
 
-    private fun GeneratorModule.clientConstants() =
+    private fun RamlGeneratorModule.clientConstants() =
             ClientConstants(this.provideSharedPackageName(), this.provideClientPackageName(), this.providePackageName())
 }

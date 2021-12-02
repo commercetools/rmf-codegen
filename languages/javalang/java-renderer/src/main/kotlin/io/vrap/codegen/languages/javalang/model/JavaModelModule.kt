@@ -1,12 +1,12 @@
 package io.vrap.codegen.languages.javalang.model
 
-import io.vrap.rmf.codegen.di.GeneratorModule
+import io.vrap.rmf.codegen.di.RamlGeneratorModule
 import io.vrap.rmf.codegen.di.Module
 import io.vrap.rmf.codegen.rendring.*
 
 object JavaModelModule: Module {
 
-    override fun configure(generatorModule: GeneratorModule) = setOf(
+    override fun configure(generatorModule: RamlGeneratorModule) = setOf(
             ObjectTypeGenerator(
                     setOf(
                             JavaObjectTypeRenderer(generatorModule.vrapTypeProvider())

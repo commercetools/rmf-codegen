@@ -2,13 +2,13 @@
 package io.vrap.codegen.languages.php.model
 
 import io.vrap.codegen.languages.php.ClientConstants
-import io.vrap.rmf.codegen.di.GeneratorModule
+import io.vrap.rmf.codegen.di.RamlGeneratorModule
 import io.vrap.rmf.codegen.di.Module
 import io.vrap.rmf.codegen.rendring.*
 
 object PhpModelModule: Module {
 
-    override fun configure(generatorModule: GeneratorModule) = setOf<CodeGenerator> (
+    override fun configure(generatorModule: RamlGeneratorModule) = setOf<CodeGenerator> (
         ObjectTypeGenerator(
                 setOf(
                         PhpInterfaceObjectTypeRenderer(generatorModule.vrapTypeProvider(), generatorModule.clientConstants()),
@@ -50,6 +50,6 @@ object PhpModelModule: Module {
         ), generatorModule.allTraits())
     )
 
-    private fun GeneratorModule.clientConstants() =
+    private fun RamlGeneratorModule.clientConstants() =
             ClientConstants(this.provideSharedPackageName(), this.provideClientPackageName(), this.providePackageName())
 }

@@ -1,10 +1,10 @@
 package io.vrap.codegen.languages.typescript.server
-import io.vrap.rmf.codegen.di.GeneratorModule
+import io.vrap.rmf.codegen.di.RamlGeneratorModule
 import io.vrap.rmf.codegen.di.Module
 import io.vrap.rmf.codegen.rendring.FileGenerator
 
 object TypescriptServerModule : Module {
-    override fun configure(generatorModule: GeneratorModule) = setOf(
+    override fun configure(generatorModule: RamlGeneratorModule) = setOf(
             FileGenerator(
                     setOf(
                             ParameterGenerator(generatorModule.provideRamlModel(), ConstantsProvider(generatorModule.provideClientPackageName()), generatorModule.provideClientPackageName(), generatorModule.vrapTypeProvider()),

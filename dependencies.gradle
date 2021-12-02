@@ -15,6 +15,7 @@ ext {
             rxjava: '3.1.2',
             slf4j: '1.7.25',
             spock: '2.0-groovy-3.0',
+            swaggerParser: '2.0.28'
     ]
 
     commons = [
@@ -82,5 +83,8 @@ ext {
     javax = [
             annotations: "javax.annotation:javax.annotation-api:${versions.annotations}",
             validation: "javax.validation:validation-api:${versions.javaxValidation}"
+    ]
+    swagger = [
+            swagger_parser: "io.swagger.parser.v3:swagger-parser:${versions.swaggerParser}"
     ]
 }

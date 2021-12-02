@@ -6,9 +6,9 @@ import io.vrap.codegen.languages.javalang.dsl.GroovyDslModule
 import io.vrap.codegen.languages.javalang.model.JavaModelModule
 import io.vrap.codegen.languages.javalang.plantuml.PlantUmlModule
 import io.vrap.rmf.codegen.CodeGeneratorConfig
-import io.vrap.rmf.codegen.di.ApiProvider
-import io.vrap.rmf.codegen.di.GeneratorComponent
-import io.vrap.rmf.codegen.di.GeneratorModule
+import io.vrap.rmf.codegen.di.RamlApiProvider
+import io.vrap.rmf.codegen.di.RamlGeneratorComponent
+import io.vrap.rmf.codegen.di.RamlGeneratorModule
 import org.junit.jupiter.api.Test
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -19,15 +19,15 @@ class TestCodeGenerator {
     companion object {
         private val userProvidedPath = System.getenv("TEST_RAML_FILE")
         private val apiPath : Path = Paths.get(if (userProvidedPath == null) "../../../api-spec/api.raml" else userProvidedPath)
-        val apiProvider: ApiProvider = ApiProvider(apiPath)
+        val apiProvider: RamlApiProvider = RamlApiProvider(apiPath)
     }
 
 
     @Test
     fun generateJavaModels() {
         val generatorConfig = CodeGeneratorConfig(basePackageName = "com/commercetools/importer")
-        val generatorModule = GeneratorModule(apiProvider, generatorConfig, JavaBaseTypes)
-        val generatorComponent = GeneratorComponent(generatorModule, JavaModelModule)
+        val generatorModule = RamlGeneratorModule(apiProvider, generatorConfig, JavaBaseTypes)
+        val generatorComponent = RamlGeneratorComponent(generatorModule, JavaModelModule)
         generatorComponent.generateFiles()
     }
 
@@ -35,16 +35,16 @@ class TestCodeGenerator {
     @Test
     fun generateGroovyDsl() {
         val generatorConfig = CodeGeneratorConfig(basePackageName = "com/commercetools/importer")
-        val generatorModule = GeneratorModule(apiProvider, generatorConfig, JavaBaseTypes)
-        val generatorComponent = GeneratorComponent(generatorModule, GroovyDslModule)
+        val generatorModule = RamlGeneratorModule(apiProvider, generatorConfig, JavaBaseTypes)
+        val generatorComponent = RamlGeneratorComponent(generatorModule, GroovyDslModule)
         generatorComponent.generateFiles()
     }
 
     @Test
     fun generatePlantUmlDiagram() {
         val generatorConfig = CodeGeneratorConfig(basePackageName = "com/commercetools/importer")
-        val generatorModule = GeneratorModule(apiProvider, generatorConfig, JavaBaseTypes)
-        val generatorComponent = GeneratorComponent(generatorModule, PlantUmlModule)
+        val generatorModule = RamlGeneratorModule(apiProvider, generatorConfig, JavaBaseTypes)
+        val generatorComponent = RamlGeneratorComponent(generatorModule, PlantUmlModule)
         generatorComponent.generateFiles()
     }
 

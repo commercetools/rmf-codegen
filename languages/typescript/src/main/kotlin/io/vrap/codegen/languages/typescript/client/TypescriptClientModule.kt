@@ -4,13 +4,13 @@ import io.vrap.codegen.languages.typescript.client.files_producers.ApiRootFilePr
 import io.vrap.codegen.languages.typescript.client.files_producers.ClientConstants
 import io.vrap.codegen.languages.typescript.client.files_producers.ClientFileProducer
 import io.vrap.codegen.languages.typescript.client.files_producers.IndexFileProducer
-import io.vrap.rmf.codegen.di.GeneratorModule
+import io.vrap.rmf.codegen.di.RamlGeneratorModule
 import io.vrap.rmf.codegen.di.Module
 import io.vrap.rmf.codegen.rendring.*
 
 object TypescriptClientModule : Module {
 
-    override fun configure(generatorModule: GeneratorModule) = setOf<CodeGenerator> (
+    override fun configure(generatorModule: RamlGeneratorModule) = setOf<CodeGenerator> (
             ResourceGenerator(
                     setOf(
                             RequestBuilder(generatorModule.provideClientPackageName(), generatorModule.clientConstants(), generatorModule.provideRamlModel(), generatorModule.vrapTypeProvider())
@@ -26,6 +26,6 @@ object TypescriptClientModule : Module {
             )
     )
 
-    private fun GeneratorModule.clientConstants() =
+    private fun RamlGeneratorModule.clientConstants() =
             ClientConstants(this.provideSharedPackageName(), this.provideClientPackageName(), this.providePackageName())
 }

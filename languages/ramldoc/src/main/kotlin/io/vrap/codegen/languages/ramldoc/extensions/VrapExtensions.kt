@@ -10,6 +10,7 @@ import com.fasterxml.jackson.databind.SerializerProvider
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
+import io.swagger.v3.oas.models.servers.ServerVariable
 import io.vrap.codegen.languages.extensions.toParamName
 import io.vrap.rmf.codegen.firstUpperCase
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
@@ -123,6 +124,19 @@ fun UriParameter.renderUriParameter(): String {
             |  examples:
             |    <<${parameterExamples.joinToString("\n") { it.renderSimpleExample() }}>>""" else ""}
         """.trimMargin().keepAngleIndent()
+}
+
+fun Map.Entry<String,ServerVariable>.renderUriParameter(): String {
+//    val parameterExamples = this.inlineTypes.flatMap { inlineType -> inlineType.examples }
+    return """
+            |${this.key.replace("ID", "id", ignoreCase = true)}:${if (this.value.enum.size > 0) """
+            |  enum:
+            |  <<${this.value.enum.joinToString("\n") { "- ${it}"}}>>""" else ""}
+        """.trimMargin().keepAngleIndent()
+//            |  <<${this.type.renderType()}>>
+//            |  required: ${this.required}${if (parameterExamples.isNotEmpty()) """
+//            |  examples:
+//            |    <<${parameterExamples.joinToString("\n") { it.renderSimpleExample() }}>>""" else ""}
 }
 
 fun Example.renderSimpleExample(): String {

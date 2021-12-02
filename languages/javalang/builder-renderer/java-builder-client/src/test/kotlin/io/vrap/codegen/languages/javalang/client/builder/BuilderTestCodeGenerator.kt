@@ -5,9 +5,9 @@ import io.vrap.codegen.languages.javalang.client.builder.module.JavaCompleteModu
 import io.vrap.codegen.languages.javalang.client.builder.test.JavaTestModule
 
 import io.vrap.rmf.codegen.CodeGeneratorConfig
-import io.vrap.rmf.codegen.di.ApiProvider
-import io.vrap.rmf.codegen.di.GeneratorComponent
-import io.vrap.rmf.codegen.di.GeneratorModule
+import io.vrap.rmf.codegen.di.RamlApiProvider
+import io.vrap.rmf.codegen.di.RamlGeneratorComponent
+import io.vrap.rmf.codegen.di.RamlGeneratorModule
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
@@ -38,8 +38,8 @@ class BuilderTestCodeGenerator {
         private val outputFolder : Path = Paths.get(if (generatedCodePath == null) "build/gensrc/main/java-generated" else generatedCodePath)
         private val testOutputFolder : Path = Paths.get(if (generatedCodePath == null) "build/gensrc/test/java-generated" else generatedTestCodePath)
 
-        val apiProvider: ApiProvider = ApiProvider(apiPath)
-        val importApiProvider: ApiProvider = ApiProvider(importApiPath)
+        val apiProvider: RamlApiProvider = RamlApiProvider(apiPath)
+        val importApiProvider: RamlApiProvider = RamlApiProvider(importApiPath)
         val generatorConfig = CodeGeneratorConfig(basePackageName = "com/commercetools/test")
     }
 
@@ -47,8 +47,8 @@ class BuilderTestCodeGenerator {
     @Test
     fun generateJavaModelsWithInterfacesModule() {
         val generatorConfig = CodeGeneratorConfig(basePackageName = "com/commercetools/importer", outputFolder = Paths.get("build/gensrc/java"))
-        val generatorModule = GeneratorModule(apiProvider, generatorConfig, JavaBaseTypes)
-        val generatorComponent = GeneratorComponent(generatorModule, JavaCompleteModule)
+        val generatorModule = RamlGeneratorModule(apiProvider, generatorConfig, JavaBaseTypes)
+        val generatorComponent = RamlGeneratorComponent(generatorModule, JavaCompleteModule)
         generatorComponent.generateFiles()
 
         File("build/compiled").deleteRecursively()
@@ -76,13 +76,13 @@ class BuilderTestCodeGenerator {
     @Test
     fun generateJavaCompleteModule() {
         val generatorConfig = CodeGeneratorConfig(basePackageName = baseBackage, outputFolder = outputFolder)
-        val generatorModule = GeneratorModule(apiProvider, generatorConfig, JavaBaseTypes)
-        val generatorComponent = GeneratorComponent(generatorModule, JavaCompleteModule)
+        val generatorModule = RamlGeneratorModule(apiProvider, generatorConfig, JavaBaseTypes)
+        val generatorComponent = RamlGeneratorComponent(generatorModule, JavaCompleteModule)
         generatorComponent.generateFiles()
 
         val generatorTestConfig = CodeGeneratorConfig(basePackageName = baseBackage, outputFolder = testOutputFolder)
-        val generatorTestModule = GeneratorModule(apiProvider, generatorTestConfig, JavaBaseTypes)
-        val generatorTestComponent = GeneratorComponent(generatorTestModule, JavaTestModule)
+        val generatorTestModule = RamlGeneratorModule(apiProvider, generatorTestConfig, JavaBaseTypes)
+        val generatorTestComponent = RamlGeneratorComponent(generatorTestModule, JavaTestModule)
         generatorTestComponent.generateFiles()
     }
 
@@ -90,8 +90,8 @@ class BuilderTestCodeGenerator {
     @Test
     fun generateJavaImportApi() {
         val generatorConfig = CodeGeneratorConfig(basePackageName = "com.commercetools.importer", outputFolder = Paths.get(generatedImporterCodePath))
-        val generatorModule = GeneratorModule(importApiProvider, generatorConfig, JavaBaseTypes)
-        val generatorComponent = GeneratorComponent(generatorModule, JavaCompleteModule)
+        val generatorModule = RamlGeneratorModule(importApiProvider, generatorConfig, JavaBaseTypes)
+        val generatorComponent = RamlGeneratorComponent(generatorModule, JavaCompleteModule)
         generatorComponent.generateFiles()
     }
 
@@ -102,10 +102,10 @@ class BuilderTestCodeGenerator {
     @Disabled
     @Test
     fun generateFromCustomRamlAndCompareToAlreadyGeneratedFiles() {
-        val testApiProvider = ApiProvider(Paths.get("src/test/resources/java/ramlTestFiles/test-api.raml"))
+        val testApiProvider = RamlApiProvider(Paths.get("src/test/resources/java/ramlTestFiles/test-api.raml"))
         val generatorConfig = CodeGeneratorConfig(basePackageName = "com.commercetools.test", outputFolder = Paths.get("build/gensrc/java"))
-        val generatorModule = GeneratorModule(testApiProvider, generatorConfig, JavaBaseTypes)
-        val generatorComponent = GeneratorComponent(generatorModule, JavaCompleteModule)
+        val generatorModule = RamlGeneratorModule(testApiProvider, generatorConfig, JavaBaseTypes)
+        val generatorComponent = RamlGeneratorComponent(generatorModule, JavaCompleteModule)
         generatorComponent.generateFiles()
 
         val generatedSimpleTypeInterface = String(Files.readAllBytes(Paths.get("build/gensrc/java/com/commercetools/test/models/simpleTypes/SimpleType.java")))

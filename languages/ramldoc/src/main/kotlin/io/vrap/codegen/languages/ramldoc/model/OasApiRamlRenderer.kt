@@ -1,0 +1,133 @@
+package io.vrap.codegen.languages.ramldoc.model
+
+import io.swagger.v3.oas.models.OpenAPI
+import io.vrap.codegen.languages.extensions.EObjectExtensions
+import io.vrap.codegen.languages.ramldoc.extensions.*
+import io.vrap.rmf.codegen.di.AllAnyTypes
+import io.vrap.rmf.codegen.di.ModelPackageName
+import io.vrap.rmf.codegen.io.TemplateFile
+import io.vrap.rmf.codegen.rendring.FileProducer
+import io.vrap.rmf.codegen.rendring.utils.keepAngleIndent
+import io.vrap.rmf.codegen.types.VrapEnumType
+import io.vrap.rmf.codegen.types.VrapObjectType
+import io.vrap.rmf.codegen.types.VrapScalarType
+import io.vrap.rmf.codegen.types.VrapTypeProvider
+import io.vrap.rmf.raml.model.modules.Api
+import io.vrap.rmf.raml.model.security.OAuth20Settings
+import io.vrap.rmf.raml.model.security.SecurityScheme
+import io.vrap.rmf.raml.model.types.*
+
+class OasApiRamlRenderer constructor(val api: OpenAPI): FileProducer {
+
+    override fun produceFiles(): List<TemplateFile> {
+        return listOf(
+                apiRaml(api)
+        ) //.plus(api.securitySchemes.map { it.renderScheme() })
+    }
+
+    private fun apiRaml(api: OpenAPI): TemplateFile {
+        val docsBaseUri = api.extensions?.get("docsBaseUri")
+        val docsBaseUriParameters = api.extensions?.get("docsBaseUriParameters")
+        val baseUri = if (docsBaseUri != null) { docsBaseUri as String} else { api.servers.get(0).url }
+        val content = """
+            |#%RAML 1.0
+            |---
+            |title: ${api.info.title}
+            |annotationTypes:
+            |  resourceName:
+            |    type: string
+            |    allowedTargets: [Resource, Method]
+            |  resourcePathUri:
+            |    type: string
+            |    allowedTargets: [Resource, Method]
+            |  builtinType:
+            |    type: string
+            |    allowedTargets: TypeDeclaration
+            |  oneOf:
+            |    type: array
+            |    items: string
+            |    allowedTargets: TypeDeclaration
+            |  inherited:
+            |    type: boolean
+            |    allowedTargets: TypeDeclaration
+            |  codeExamples:
+            |    type: object
+            |    allowedTargets: Method
+            |baseUri: ${baseUri}${if (docsBaseUriParameters == null && api.servers[0].variables != null && api.servers[0].variables.size > 0) """
+            |baseUriParameters:
+            |  <<${api.servers[0].variables.entries.joinToString("\n") { it.renderUriParameter() }}>>""" else ""}${if (docsBaseUriParameters != null) """
+            |baseUriParameters:
+            |  <<${(docsBaseUriParameters)}>>""" else ""}
+        """.trimMargin().keepAngleIndent()
+//            |  <<${api.annotationTypes.plus(api.uses.flatMap { libraryUse -> libraryUse.library.annotationTypes }).joinToString("\n") { renderAnnotationType(it) }}>>
+//            |baseUri: ${baseUri}${if (docsBaseUriParameters == null && api.baseUriParameters.size > 0) """
+//            |baseUriParameters:
+//            |  <<${api.baseUriParameters.joinToString("\n") { it.renderUriParameter() }}>>""" else ""}${if (docsBaseUriParameters != null) """
+//            |baseUriParameters:
+//            |  <<${(docsBaseUriParameters.value).toYaml()}>>""" else ""}
+//            |${api.annotations.joinToString("\n") { it.renderAnnotation() }}
+//            |securitySchemes:
+//            |  <<${api.securitySchemes.joinToString("\n") { "${it.name}: !include ${it.name}.raml" }}>>
+//            |securedBy:
+//            |- oauth_2_0
+//            |types:
+//            |  <<${anyTypeList.filterNot { it is UnionType }.sortedWith(compareBy { it.name }).joinToString("\n") { "${it.name}: !include ${ramlFileName(it)}" }}>>
+//            |
+//            |${api.allContainedResources.sortedWith(compareBy { it.resourcePath }).joinToString("\n") { "${it.fullUri.normalize().template }: !include resources/${it.toResourceName()}.raml" }}
+
+        return TemplateFile(relativePath = "api.raml",
+                content = content
+        )
+    }
+
+    private fun SecurityScheme.renderScheme(): TemplateFile {
+        val settings = this.settings as OAuth20Settings
+        return TemplateFile(
+            relativePath = "${this.name}.raml",
+            content = """
+            |#%RAML 1.0 SecurityScheme
+            |description: |
+            |  <<${this.description?.value}>>
+            |type: ${this.type}
+            |describedBy:
+            |  headers:
+            |    Authorization:
+            |      description: |
+            |        On successful completion of an authorization flow,
+            |        a client will be given an `access_token`, which they need to include in requests
+            |        to authorized service endpoints via the HTTP `Authorization` header like this:
+            |
+            |        Authorization: Bearer {access_token}
+            |      type: string
+            |  responses:
+            |    401:
+            |      description: Unauthorized
+            |settings:
+            |  authorizationUri: ${settings.authorizationUri}
+            |  accessTokenUri: ${settings.accessTokenUri}
+            |  <<${settings.annotations.joinToString("\n") { it.renderAnnotation() }}>>
+            |  authorizationGrants: ${settings.authorizationGrants.joinToString(", ", "[ ", " ]")}
+            |  scopes:
+            |    <<${settings.scopes.joinToString("\n") { "- '${it}'" }}>>
+            """.trimMargin().keepAngleIndent())
+    }
+
+    private fun renderAnnotationType(annotation: AnyAnnotationType): String {
+        return """
+            |${annotation.name}:
+            |   <<${annotation.renderType()}>>
+        """.trimMargin().keepAngleIndent()
+    }
+
+//    private fun ramlFileName(type: AnyType): String {
+//        when (val vrapType = type.toVrapType()) {
+//            is VrapObjectType ->
+//                return "types/" + vrapType.packageDir(modelPackageName) + vrapType.simpleClassName + ".raml"
+//            is VrapEnumType ->
+//                return "types/" + vrapType.packageDir(modelPackageName) + vrapType.simpleClassName + ".raml"
+//            is VrapScalarType ->
+//                return "types/" + type.name + ".raml"
+//            else -> return ""
+//        }
+//    }
+}
