@@ -126,19 +126,6 @@ fun UriParameter.renderUriParameter(): String {
         """.trimMargin().keepAngleIndent()
 }
 
-fun Map.Entry<String,ServerVariable>.renderUriParameter(): String {
-//    val parameterExamples = this.inlineTypes.flatMap { inlineType -> inlineType.examples }
-    return """
-            |${this.key.replace("ID", "id", ignoreCase = true)}:${if (this.value.enum.size > 0) """
-            |  enum:
-            |  <<${this.value.enum.joinToString("\n") { "- ${it}"}}>>""" else ""}
-        """.trimMargin().keepAngleIndent()
-//            |  <<${this.type.renderType()}>>
-//            |  required: ${this.required}${if (parameterExamples.isNotEmpty()) """
-//            |  examples:
-//            |    <<${parameterExamples.joinToString("\n") { it.renderSimpleExample() }}>>""" else ""}
-}
-
 fun Example.renderSimpleExample(): String {
     val t = """
             |${if (this.name.isNotEmpty()) this.name else "default"}:${if (this.displayName != null) """

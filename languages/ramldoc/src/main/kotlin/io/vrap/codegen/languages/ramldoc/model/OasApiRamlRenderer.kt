@@ -1,34 +1,27 @@
 package io.vrap.codegen.languages.ramldoc.model
 
+import com.damnhandy.uri.template.UriTemplate
 import io.swagger.v3.oas.models.OpenAPI
-import io.vrap.codegen.languages.extensions.EObjectExtensions
+import io.swagger.v3.oas.models.security.OAuthFlows
+import io.swagger.v3.oas.models.security.SecurityScheme
 import io.vrap.codegen.languages.ramldoc.extensions.*
-import io.vrap.rmf.codegen.di.AllAnyTypes
-import io.vrap.rmf.codegen.di.ModelPackageName
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.FileProducer
 import io.vrap.rmf.codegen.rendring.utils.keepAngleIndent
-import io.vrap.rmf.codegen.types.VrapEnumType
-import io.vrap.rmf.codegen.types.VrapObjectType
-import io.vrap.rmf.codegen.types.VrapScalarType
-import io.vrap.rmf.codegen.types.VrapTypeProvider
-import io.vrap.rmf.raml.model.modules.Api
-import io.vrap.rmf.raml.model.security.OAuth20Settings
-import io.vrap.rmf.raml.model.security.SecurityScheme
 import io.vrap.rmf.raml.model.types.*
+import java.lang.IllegalArgumentException
+import java.text.MessageFormat
 
 class OasApiRamlRenderer constructor(val api: OpenAPI): FileProducer {
 
     override fun produceFiles(): List<TemplateFile> {
         return listOf(
                 apiRaml(api)
-        ) //.plus(api.securitySchemes.map { it.renderScheme() })
+        ).plus(api.components.securitySchemes.map { it.renderScheme() })
     }
 
     private fun apiRaml(api: OpenAPI): TemplateFile {
-        val docsBaseUri = api.extensions?.get("docsBaseUri")
-        val docsBaseUriParameters = api.extensions?.get("docsBaseUriParameters")
-        val baseUri = if (docsBaseUri != null) { docsBaseUri as String} else { api.servers.get(0).url }
+        val baseUri = api.servers.get(0).url
         val content = """
             |#%RAML 1.0
             |---
@@ -53,11 +46,14 @@ class OasApiRamlRenderer constructor(val api: OpenAPI): FileProducer {
             |  codeExamples:
             |    type: object
             |    allowedTargets: Method
-            |baseUri: ${baseUri}${if (docsBaseUriParameters == null && api.servers[0].variables != null && api.servers[0].variables.size > 0) """
+            |baseUri: ${baseUri}${if (api.servers[0].variables != null && api.servers[0].variables.size > 0) """
             |baseUriParameters:
-            |  <<${api.servers[0].variables.entries.joinToString("\n") { it.renderUriParameter() }}>>""" else ""}${if (docsBaseUriParameters != null) """
-            |baseUriParameters:
-            |  <<${(docsBaseUriParameters)}>>""" else ""}
+            |  <<${api.servers[0].variables.entries.joinToString("\n") { it.renderUriParameter() }}>>""" else ""}${if (api.components?.securitySchemes != null) """
+            |securitySchemes:
+            |  <<${api.components.securitySchemes.entries.joinToString("\n") { "${it.key}: !include ${it.key}.raml" }}>>""" else ""}
+            |securedBy:
+            |- oauth_2_0
+            |${api.paths.entries.sortedWith(compareBy { it.key }).joinToString("\n") { "${it.key}: !include resources/${UriTemplate.fromTemplate(it.key).toResourceName()}.raml" }}
         """.trimMargin().keepAngleIndent()
 //            |  <<${api.annotationTypes.plus(api.uses.flatMap { libraryUse -> libraryUse.library.annotationTypes }).joinToString("\n") { renderAnnotationType(it) }}>>
 //            |baseUri: ${baseUri}${if (docsBaseUriParameters == null && api.baseUriParameters.size > 0) """
@@ -80,15 +76,18 @@ class OasApiRamlRenderer constructor(val api: OpenAPI): FileProducer {
         )
     }
 
-    private fun SecurityScheme.renderScheme(): TemplateFile {
-        val settings = this.settings as OAuth20Settings
+    private fun Map.Entry<String, SecurityScheme>.renderScheme(): TemplateFile {
+        val settings = this.value
+        if (settings.type != SecurityScheme.Type.OAUTH2) {
+            throw IllegalArgumentException(MessageFormat.format("Security scheme {0} not supported", settings.type))
+        }
         return TemplateFile(
-            relativePath = "${this.name}.raml",
+            relativePath = "${this.key}.raml",
             content = """
             |#%RAML 1.0 SecurityScheme
             |description: |
-            |  <<${this.description?.value}>>
-            |type: ${this.type}
+            |  <<${settings.description ?: ""}>>
+            |type: ${settings.type}
             |describedBy:
             |  headers:
             |    Authorization:
@@ -103,13 +102,13 @@ class OasApiRamlRenderer constructor(val api: OpenAPI): FileProducer {
             |    401:
             |      description: Unauthorized
             |settings:
-            |  authorizationUri: ${settings.authorizationUri}
-            |  accessTokenUri: ${settings.accessTokenUri}
-            |  <<${settings.annotations.joinToString("\n") { it.renderAnnotation() }}>>
-            |  authorizationGrants: ${settings.authorizationGrants.joinToString(", ", "[ ", " ]")}
+            |  authorizationUri: ${settings.flows.clientCredentials.tokenUrl}
+            |  accessTokenUri: ${settings.flows.clientCredentials.tokenUrl}
+            |  authorizationGrants: ${settings.flows.authorisationGrants().joinToString(", ", "[ ", " ]")}
             |  scopes:
-            |    <<${settings.scopes.joinToString("\n") { "- '${it}'" }}>>
+            |    <<${settings.flows.clientCredentials.scopes.keys.joinToString("\n") { "- '${it}'" }}>>
             """.trimMargin().keepAngleIndent())
+//            |  <<${settings.extensions.entries.joinToString("\n") { it.renderAnnotation() }}>>
     }
 
     private fun renderAnnotationType(annotation: AnyAnnotationType): String {
@@ -117,6 +116,15 @@ class OasApiRamlRenderer constructor(val api: OpenAPI): FileProducer {
             |${annotation.name}:
             |   <<${annotation.renderType()}>>
         """.trimMargin().keepAngleIndent()
+    }
+
+    private fun OAuthFlows.authorisationGrants(): List<String> {
+        val grants = mutableListOf<String>()
+        if (this.clientCredentials != null) grants.add("client_credentials")
+        if (this.password != null) grants.add("password")
+        if (this.implicit != null) grants.add("implicit")
+        if (this.authorizationCode != null) grants.add("authorization_code")
+        return grants
     }
 
 //    private fun ramlFileName(type: AnyType): String {

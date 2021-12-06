@@ -3,6 +3,7 @@ package io.vrap.codegen.languages.oas.model
 import io.vrap.codegen.languages.extensions.EObjectExtensions
 import io.vrap.codegen.languages.extensions.toResourceName
 import io.vrap.codegen.languages.oas.extensions.packageDir
+import io.vrap.codegen.languages.oas.extensions.renderBaseUriParameter
 import io.vrap.codegen.languages.oas.extensions.renderType
 import io.vrap.codegen.languages.oas.extensions.renderUriParameter
 import io.vrap.rmf.codegen.di.AllAnyTypes
@@ -39,7 +40,7 @@ class OasRenderer constructor(val api: Api, override val vrapTypeProvider: VrapT
             |servers:
             |  - url: ${api.baseUri.template}${if (api.baseUriParameters.size > 0) """
             |    variables:
-            |      <<${api.baseUriParameters.joinToString("\n") { it.renderUriParameter() }}>>""" else ""}
+            |      <<${api.baseUriParameters.joinToString("\n") { it.renderBaseUriParameter() }}>>""" else ""}
             |
             |paths:
             |  <<${api.allContainedResources.sortedWith(compareBy { it.resourcePath }).joinToString("\n") { resourceRenderer.render(it).content }}>>
@@ -58,21 +59,23 @@ class OasRenderer constructor(val api: Api, override val vrapTypeProvider: VrapT
         return """
             |${scheme.name}:
             |  <<${when(scheme.settings) {
-                is OAuth20Settings -> renderOAuth2(scheme.settings as OAuth20Settings)
+                is OAuth20Settings -> renderOAuth2(scheme, scheme.settings as OAuth20Settings)
                 else -> ""
             }}>>
         """.trimMargin().keepAngleIndent()
     }
 
-    private fun renderOAuth2(scheme: OAuth20Settings): String {
+    private fun renderOAuth2(scheme: SecurityScheme, settings: OAuth20Settings): String {
         return """
             |type: oauth2
+            |description: |
+            |  <<${scheme.description?.value}>>
             |flows:
-            |  <<${scheme.authorizationGrants.joinToString { """
+            |  <<${settings.authorizationGrants.joinToString { """
             |  ${StringCaseFormat.LOWER_CAMEL_CASE.apply(it)}:
-            |    tokenUrl: ${scheme.accessTokenUri}
+            |    tokenUrl: ${settings.accessTokenUri}
             |    scopes:
-            |      <<${scheme.scopes.distinct().joinToString("\": \"\"\n\"", "\"", "\": \"\"")}>>
+            |      <<${settings.scopes.distinct().joinToString("\": \"\"\n\"", "\"", "\": \"\"")}>>
             |""".trimMargin().keepAngleIndent() }}>>
         """.trimMargin().keepAngleIndent()
     }
