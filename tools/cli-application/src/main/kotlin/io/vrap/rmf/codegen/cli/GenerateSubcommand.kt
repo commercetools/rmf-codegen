@@ -160,7 +160,7 @@ class GenerateSubcommand : Callable<Int> {
     private fun generate(fileLocation: Path, target: GenerationTarget, generatorConfig: CodeGeneratorConfig): Int {
         val generateDuration = measureTimeMillis {
             val generatorComponent: GeneratorComponent
-            if (fileLocation.endsWith(".raml")) {
+            if (fileLocation.toString().endsWith(".raml")) {
                 val apiProvider = RamlApiProvider(fileLocation)
                 generatorComponent = when (target) {
                     GenerationTarget.JAVA_CLIENT -> {
