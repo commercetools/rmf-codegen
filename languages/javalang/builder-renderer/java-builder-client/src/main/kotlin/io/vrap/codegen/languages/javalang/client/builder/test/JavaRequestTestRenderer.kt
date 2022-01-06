@@ -39,7 +39,6 @@ class JavaRequestTestRenderer constructor(override val vrapTypeProvider: VrapTyp
             |import org.junit.jupiter.api.Test;
             |import org.junit.jupiter.api.TestTemplate;
             |import org.junit.jupiter.api.extension.ExtendWith;
-            |import org.junit.runner.RunWith;
             |import org.mockito.Mockito;
             |import io.vrap.rmf.base.client.utils.Generated;
             |import io.vrap.rmf.base.client.ApiHttpClient;
