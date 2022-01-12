@@ -459,6 +459,7 @@ class PhpBaseFileProducer constructor(val api: Api, @BasePackageName val package
                     |        return null;
                     |    }
                     |
+                    |    #[\ReturnTypeWillChange]
                     |    public function jsonSerialize()
                     |    {
                     |        return (object)$!this->toArray();
@@ -1481,6 +1482,7 @@ class PhpBaseFileProducer constructor(val api: Api, @BasePackageName val package
                     |        $!this->mapper = $!mapper;
                     |    }
                     |
+                    |    #[\ReturnTypeWillChange]
                     |    public function current()
                     |    {
                     |        /** @psalm-suppress MixedReturnStatement */
@@ -1610,7 +1612,8 @@ class PhpBaseFileProducer constructor(val api: Api, @BasePackageName val package
                     |interface CSequence extends Collection, \ArrayAccess, \JsonSerializable, \IteratorAggregate
                     |{
                     |    public function toArray(): ?array;
-                    |    
+                    |
+                    |    #[\ReturnTypeWillChange]
                     |    public function jsonSerialize(): ?array;
                     |
                     |    /**
@@ -1664,18 +1667,21 @@ class PhpBaseFileProducer constructor(val api: Api, @BasePackageName val package
                     |     */
                     |    public function rewind();
                     |
+                    |    #[\ReturnTypeWillChange]
                     |    /**
                     |     * @param int $!offset
                     |     * @return bool
                     |     */
                     |    public function offsetExists($!offset);
                     |
+                    |    #[\ReturnTypeWillChange]
                     |    /**
                     |     * @param int $!offset
                     |     * @return ?TObject
                     |     */
                     |    public function offsetGet($!offset);
                     |
+                    |    #[\ReturnTypeWillChange]
                     |    /**
                     |     * @param int $!offset
                     |     * @psalm-param TObject|TRaw $!value
@@ -1684,6 +1690,7 @@ class PhpBaseFileProducer constructor(val api: Api, @BasePackageName val package
                     |     */
                     |    public function offsetSet($!offset, $!value);
                     |
+                    |    #[\ReturnTypeWillChange]
                     |    /**
                     |     * @param int $!offset
                     |     * @return void
@@ -1734,7 +1741,8 @@ class PhpBaseFileProducer constructor(val api: Api, @BasePackageName val package
                     |    {
                     |        return $!this->data;
                     |    }
-                    |    
+                    |
+                    |    #[\ReturnTypeWillChange]
                     |    public function jsonSerialize(): ?array
                     |    {
                     |        return $!this->data;
@@ -1994,7 +2002,8 @@ class PhpBaseFileProducer constructor(val api: Api, @BasePackageName val package
                     |    {
                     |        return $!this->data;
                     |    }
-                    |    
+                    |
+                    |    #[\ReturnTypeWillChange]
                     |    public function jsonSerialize(): ?array
                     |    {
                     |        return $!this->data;
@@ -2238,6 +2247,7 @@ class PhpBaseFileProducer constructor(val api: Api, @BasePackageName val package
                     |     */
                     |    public function toArray(): ?array;
                     |
+                    |    #[\ReturnTypeWillChange]
                     |    /**
                     |     * @psalm-return array<string, stdClass|mixed>
                     |     */
@@ -2300,18 +2310,21 @@ class PhpBaseFileProducer constructor(val api: Api, @BasePackageName val package
                     |     */
                     |    public function rewind();
                     |
+                    |    #[\ReturnTypeWillChange]
                     |    /**
                     |     * @param string $!offset
                     |     * @return bool
                     |     */
                     |    public function offsetExists($!offset);
                     |
+                    |    #[\ReturnTypeWillChange]
                     |    /**
                     |     * @param string $!offset
                     |     * @return ?TObject
                     |     */
                     |    public function offsetGet($!offset);
                     |
+                    |    #[\ReturnTypeWillChange]
                     |    /**
                     |     * @param string $!offset
                     |     * @psalm-param TObject|stdClass $!value
@@ -2320,6 +2333,7 @@ class PhpBaseFileProducer constructor(val api: Api, @BasePackageName val package
                     |     */
                     |    public function offsetSet($!offset, $!value);
                     |
+                    |    #[\ReturnTypeWillChange]
                     |    /**
                     |     * @param string $!offset
                     |     * @return void
@@ -2387,6 +2401,7 @@ class PhpBaseFileProducer constructor(val api: Api, @BasePackageName val package
                     |        return $!this->data;
                     |    }
                     |
+                    |    #[\ReturnTypeWillChange]
                     |    /**
                     |     * @psalm-return array<string, stdClass|mixed>
                     |     */

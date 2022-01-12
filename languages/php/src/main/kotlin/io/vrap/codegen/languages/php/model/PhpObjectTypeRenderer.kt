@@ -211,6 +211,7 @@ class PhpObjectTypeRenderer constructor(override val vrapTypeProvider: VrapTypeP
 
         if (dtProperties.isNotEmpty()) {
             return """
+                |#[\\ReturnTypeWillChange]
                 |public function jsonSerialize()
                 |{
                 |    $!data = $!this->toArray();
