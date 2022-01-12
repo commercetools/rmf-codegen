@@ -90,8 +90,9 @@ class VrapEnumType(val `package` :String, val simpleClassName:String) : VrapType
 /**
  * Represent a type that comes from the default package
  */
-class VrapScalarType(val scalarType:String) : VrapType() {
+class VrapScalarType constructor(val scalarType:String, val primitiveType:String) : VrapType() {
 
+    constructor(scalarType: String): this(scalarType, scalarType)
 
     override fun toString(): String {
         return "VrapScalarType(scalarType='$scalarType')"
@@ -104,12 +105,15 @@ class VrapScalarType(val scalarType:String) : VrapType() {
         other as VrapScalarType
 
         if (scalarType != other.scalarType) return false
+        if (primitiveType != other.primitiveType) return false
 
         return true
     }
 
     override fun hashCode(): Int {
-        return scalarType.hashCode()
+        var result = scalarType.hashCode()
+        result = 31 * result + primitiveType.hashCode()
+        return result
     }
 }
 

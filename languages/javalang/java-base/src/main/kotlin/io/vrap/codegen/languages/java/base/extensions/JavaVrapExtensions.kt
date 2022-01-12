@@ -16,9 +16,9 @@ import io.vrap.rmf.raml.model.types.StringInstance
 import io.vrap.rmf.raml.model.util.StringCaseFormat
 import kotlin.random.Random
 
-fun VrapType.simpleName(): String {
+fun VrapType.simpleName(unboxed: Boolean = false): String {
     return when (this) {
-        is VrapScalarType -> this.scalarType
+        is VrapScalarType -> if (unboxed) this.primitiveType else this.scalarType
         is VrapEnumType -> this.simpleClassName
         is VrapObjectType -> this.simpleClassName
         is VrapAnyType -> this.baseType
@@ -39,10 +39,10 @@ fun String.toScalarType(): String {
     return t
 }
 
-fun VrapType.fullClassName(): String {
+fun VrapType.fullClassName(unboxed: Boolean = false): String {
     return when (this) {
         is VrapAnyType -> this.baseType
-        is VrapScalarType -> this.scalarType
+        is VrapScalarType -> if (unboxed) this.primitiveType else this.scalarType
         is VrapEnumType -> "${this.`package`}.${this.simpleClassName}"
         is VrapObjectType -> "${this.`package`}.${this.simpleClassName}"
         is VrapArrayType -> "java.util.List<${this.itemType.fullClassName()}>"

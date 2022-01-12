@@ -35,7 +35,6 @@ class JavaRequestTestRenderer constructor(override val vrapTypeProvider: VrapTyp
             |import com.tngtech.junit.dataprovider.DataProviderExtension;
             |import com.tngtech.junit.dataprovider.UseDataProvider;
             |import com.tngtech.junit.dataprovider.UseDataProviderExtension;
-            |import org.junit.Assert;
             |import org.junit.jupiter.api.Test;
             |import org.junit.jupiter.api.TestTemplate;
             |import org.junit.jupiter.api.extension.ExtendWith;
@@ -60,8 +59,8 @@ class JavaRequestTestRenderer constructor(override val vrapTypeProvider: VrapTyp
             |    ${if (type.methods.size > 0) """@TestTemplate
             |    @UseDataProvider("requestWithMethodParameters")
             |    public void withMethods(ApiHttpRequest request, String httpMethod, String uri) {
-            |        Assert.assertEquals(httpMethod, request.getMethod().name().toLowerCase());
-            |        Assert.assertEquals(uri, request.getUri().toString());
+            |        Assertions.assertThat(httpMethod).isEqualTo(request.getMethod().name().toLowerCase());
+            |        Assertions.assertThat(uri).isEqualTo(request.getUri().toString());
             |    }""".trimMargin() else ""}
             |    
             |    ${if (type.methods.size > 0) """@TestTemplate

@@ -35,4 +35,14 @@ fun fromJavaType(kClass: KClass<out Any>): VrapObjectType {
     return VrapObjectType(kClass.java.`package`.name, kClass.java.simpleName)
 }
 
-fun fromDefaultJavaType(kClass: KClass<out Any>): VrapScalarType = fromJavaType(kClass).let { VrapScalarType(it.simpleClassName) }
+fun fromDefaultJavaType(kClass: KClass<out Any>): VrapScalarType = fromJavaType(kClass).let { VrapScalarType(it.simpleClassName, kClass.primitiveType()) }
+
+fun KClass<out Any>.primitiveType(): kotlin.String {
+    return when (this.java.simpleName) {
+        "Long" -> "long"
+        "Integer" -> "int"
+        "Boolean" -> "boolean"
+        "Double" -> "double"
+        else -> this.java.simpleName
+    }
+}
