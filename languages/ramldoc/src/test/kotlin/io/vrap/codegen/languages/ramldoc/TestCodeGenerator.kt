@@ -1,11 +1,13 @@
 package io.vrap.codegen.languages.ramldoc
 
+import io.vrap.codegen.languages.ramldoc.extensions.renderAnnotation
 import io.vrap.codegen.languages.ramldoc.model.RamldocBaseTypes
 import io.vrap.codegen.languages.ramldoc.model.RamldocModelModule
 import io.vrap.rmf.codegen.CodeGeneratorConfig
 import io.vrap.rmf.codegen.di.RamlApiProvider
 import io.vrap.rmf.codegen.di.RamlGeneratorComponent
 import io.vrap.rmf.codegen.di.RamlGeneratorModule
+import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -38,5 +40,34 @@ class TestCodeGenerator {
 
     private fun cleanFolder(path: String) {
         Paths.get(path).toFile().deleteRecursively()
+    }
+
+    @Test
+    fun testAnnotationToYaml() {
+        val generatorConfig = CodeGeneratorConfig(
+            basePackageName = "com/commercetools/importer",
+            outputFolder = Paths.get("build/gensrc")
+        )
+
+        val apiProvider = RamlApiProvider(Paths.get("src/test/resources/multiline.raml"))
+
+        val generatorModule = RamlGeneratorModule(apiProvider, generatorConfig, RamldocBaseTypes)
+        val generatorComponent = RamlGeneratorComponent(generatorModule, RamldocModelModule)
+        generatorComponent.generateFiles()
+
+        val api = apiProvider.api
+        val t = api.getAnnotation("test").renderAnnotation()
+
+
+        Assertions.assertThat(t).isEqualTo("""
+            (test):
+              enumValue1: "Description 1"
+              enumValue2: |-
+                Description 2 with a line break (first line)
+                Second line.
+            
+                New paragraph.
+              enumWithMarkdownDescription: "`inline-code` should be formatted as an inline code. [ObjectTestType](/types/general#objecttesttype) should link to the header of the definition of `ObjectTestType` on this website - `api-docs-smoke-test`. [Links](/../docs-smoke-test/views/markdown#links) should link to the header for the definition of  `Links` on `docs-smoke-test` microsite."
+        """.trimIndent().trimStart())
     }
 }

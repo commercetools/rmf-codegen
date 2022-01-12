@@ -323,6 +323,8 @@ fun Instance.toYaml(): String {
     var example = ""
     val mapper = YAMLMapper()
     mapper.disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER)
+    mapper.enable(YAMLGenerator.Feature.LITERAL_BLOCK_STYLE)
+    mapper.disable(YAMLGenerator.Feature.SPLIT_LINES)
 
     val module = SimpleModule()
     module.addSerializer(ObjectInstance::class.java, ObjectInstanceSerializer())
