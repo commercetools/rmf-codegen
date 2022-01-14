@@ -36,7 +36,7 @@ class InitFileProducer constructor(
                 it.moduleName()
             }
             .map {
-                var moduleName = it.key.split(".")[1]
+                var moduleName = it.key.split(".").last()
                 "from .$moduleName import *  # noqa"
             }
             .joinToString(separator = "\n")

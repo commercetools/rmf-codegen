@@ -20,6 +20,7 @@ import io.vrap.rmf.codegen.rendring.utils.keepIndentation
 import io.vrap.rmf.codegen.types.VrapEnumType
 import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
+import io.vrap.rmf.codegen.types.VrapScalarType
 import io.vrap.rmf.raml.model.types.AnyType
 import io.vrap.rmf.raml.model.types.IntersectionType
 import io.vrap.rmf.raml.model.types.NilType
@@ -243,15 +244,23 @@ class PythonModelRenderer constructor(
     }
 
     private fun StringType.renderStringType(): String {
-        val vrapType = this.toVrapType() as VrapEnumType
+        val vrapType = this.toVrapType()
 
-        return """
-        |class ${vrapType.simpleClassName}(enum.Enum):
-        |   <${toDocString().escapeAll()}>
-        |   <${this.renderEnumValues()}>
-        |
-        |
-        """.trimMargin()
+        return when (vrapType) {
+            is VrapEnumType ->
+                return """
+                |class ${vrapType.simpleClassName}(enum.Enum):
+                |   <${toDocString().escapeAll()}>
+                |   <${this.renderEnumValues()}>
+                |
+                |
+                """.trimMargin()
+            is VrapScalarType -> """
+                |${this.name} = ${vrapType.scalarType}
+            """.trimMargin()
+            else -> ""
+        }
+
     }
 
     private fun StringType.renderEnumValues(): String = enumValues()
