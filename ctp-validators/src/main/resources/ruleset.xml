@@ -40,10 +40,6 @@
         </rule>
         <rule>
             <name>com.commercetools.rmf.validators.UpdateActionNameRule</name>
-            <options>
-                <option type="exclude">ProjectChangeCartsConfiguration</option>
-                <option type="exclude">ProjectChangeShoppingListsConfiguration</option>
-            </options>
         </rule>
         <rule>
             <name>com.commercetools.rmf.validators.PropertyPluralRule</name>
