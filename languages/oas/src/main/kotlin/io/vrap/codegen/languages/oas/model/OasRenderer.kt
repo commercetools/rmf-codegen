@@ -18,6 +18,7 @@ import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.modules.Api
 import io.vrap.rmf.raml.model.security.OAuth20Settings
 import io.vrap.rmf.raml.model.security.SecurityScheme
+import io.vrap.rmf.raml.model.security.SecuritySchemeType
 import io.vrap.rmf.raml.model.types.*
 import io.vrap.rmf.raml.model.util.StringCaseFormat
 
@@ -43,11 +44,13 @@ class OasRenderer constructor(val api: Api, override val vrapTypeProvider: VrapT
             |      <<${api.baseUriParameters.joinToString("\n") { it.renderBaseUriParameter() }}>>""" else ""}
             |
             |paths:
-            |  <<${api.allContainedResources.sortedWith(compareBy { it.resourcePath }).joinToString("\n") { resourceRenderer.render(it).content }}>>
+            |  <<${api.allContainedResources.filterNot { it.methods.isEmpty() }.sortedWith(compareBy { it.resourcePath }).joinToString("\n") { resourceRenderer.render(it).content }}>>
             |
+            |${if (api.securitySchemes.any { it.type == SecuritySchemeType.OAUTH_20 }) """
             |components:
             |  securitySchemes:
             |    <<${api.securitySchemes.joinToString("\n") { renderScheme(it)}}>>
+            """ else ""}
         """.trimMargin().keepAngleIndent()
 
         return TemplateFile(relativePath = "openapi.yaml",

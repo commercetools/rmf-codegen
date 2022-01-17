@@ -1,6 +1,8 @@
 package io.vrap.rmf.codegen.di
 
 import io.vrap.rmf.codegen.common.generator.core.ResourceCollection
+import io.vrap.rmf.codegen.io.DataSink
+import io.vrap.rmf.codegen.io.FileDataSink
 import io.vrap.rmf.codegen.types.*
 import io.vrap.rmf.raml.model.elements.NamedElement
 import io.vrap.rmf.raml.model.modules.Api
@@ -23,7 +25,8 @@ class RamlGeneratorModule constructor(
     override val apiProvider: RamlApiProvider,
     override val generatorConfig: io.vrap.rmf.codegen.CodeGeneratorConfig,
     override val languageBaseTypes: LanguageBaseTypes,
-    override val defaultPackage: String = "io/vrap/rmf"
+    override val defaultPackage: String = "io/vrap/rmf",
+    override val dataSink: DataSink = FileDataSink(generatorConfig.outputFolder)
 ): GeneratorModule {
 
     companion object {

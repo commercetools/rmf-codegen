@@ -7,6 +7,7 @@ import io.vrap.rmf.codegen.CodeGeneratorConfig
 import io.vrap.rmf.codegen.di.RamlApiProvider
 import io.vrap.rmf.codegen.di.RamlGeneratorComponent
 import io.vrap.rmf.codegen.di.RamlGeneratorModule
+import io.vrap.rmf.codegen.io.MemoryDataSink
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test
 import java.nio.file.Path
@@ -69,5 +70,21 @@ class TestCodeGenerator {
                 New paragraph.
               enumWithMarkdownDescription: "`inline-code` should be formatted as an inline code. [ObjectTestType](/types/general#objecttesttype) should link to the header of the definition of `ObjectTestType` on this website - `api-docs-smoke-test`. [Links](/../docs-smoke-test/views/markdown#links) should link to the header for the definition of  `Links` on `docs-smoke-test` microsite."
         """.trimIndent().trimStart())
+    }
+
+    @Test
+    fun oasRenderToRamlDoc() {
+        val generatorConfig = CodeGeneratorConfig(
+            basePackageName = "com/commercetools/importer",
+            outputFolder = Paths.get("build/gensrc")
+        )
+
+        val apiProvider = RamlApiProvider(Paths.get("src/test/resources/oauth.raml"))
+
+        val dataSink = MemoryDataSink()
+        val generatorModule = RamlGeneratorModule(apiProvider, generatorConfig, RamldocBaseTypes, dataSink = dataSink)
+        val generatorComponent = RamlGeneratorComponent(generatorModule, RamldocModelModule)
+        generatorComponent.generateFiles()
+
     }
 }

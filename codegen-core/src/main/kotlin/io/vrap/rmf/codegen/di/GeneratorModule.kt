@@ -11,6 +11,8 @@ interface GeneratorModule {
     val generatorConfig: io.vrap.rmf.codegen.CodeGeneratorConfig
     val languageBaseTypes: LanguageBaseTypes
     val defaultPackage: String
+    val dataSink: DataSink
+
 
     @DefaultPackage
     fun defaultPackage(): String = defaultPackage
@@ -19,7 +21,7 @@ interface GeneratorModule {
     fun outpuFolder(): Path = generatorConfig.outputFolder
 
     @GenDataSink
-    fun dataSink(): DataSink = FileDataSink(outpuFolder())
+    fun dataSink(): DataSink = dataSink
 
     @CustomTypeMapping
     fun customTypeMapping(): Map<String, VrapType> = generatorConfig.customTypeMapping
