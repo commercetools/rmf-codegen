@@ -1,6 +1,7 @@
 package io.vrap.codegen.languages.csharp.extensions
 
 import io.vrap.codegen.languages.extensions.*
+import io.vrap.rmf.codegen.firstUpperCase
 import io.vrap.rmf.codegen.types.VrapArrayType
 import io.vrap.rmf.codegen.types.VrapEnumType
 import io.vrap.rmf.codegen.types.VrapObjectType
@@ -51,6 +52,15 @@ interface CsharpObjectTypeExtensions : ExtensionsBase {
                     |using System.Text.Json.Serialization;
                     |using commercetools.Base.CustomAttributes;
                     |"""
+    }
+
+    public fun ObjectType.objectClassName(): String {
+        val simpleClassName = (vrapTypeProvider.doSwitch(this) as VrapObjectType).simpleClassName
+
+        if (this.allProperties.firstOrNull { property -> property.name.firstUpperCase() == simpleClassName } != null) {
+            return simpleClassName + "Model"
+        }
+        return simpleClassName
     }
 
     fun ObjectType.isAbstract() : Boolean = this.annotations.find { it.type.name == ANNOTATION_ABSTRACT } != null || !this.discriminator.isNullOrEmpty()

@@ -8,10 +8,11 @@ import io.vrap.rmf.raml.model.resources.Method
 fun Method.csharpReturnType(vrapTypeProvider: VrapTypeProvider) : String {
     val returnType = vrapTypeProvider.doSwitch(this.returnType())
     if(returnType is VrapObjectType) {
-        if((returnType as VrapObjectType).`package`=="")
-            return "${returnType.simpleClassName}"
+        val simpleClassNameAsInterface = if(returnType.simpleClassName == "Object") "Object" else "I${returnType.simpleClassName}"
+        if(returnType.`package`=="")
+            return simpleClassNameAsInterface
         else
-            return "${returnType.`package`.toCsharpPackage()}.${returnType.simpleClassName}"
+            return "${returnType.`package`.toCsharpPackage()}.${simpleClassNameAsInterface}"
     }
     return "JsonElement"
 }

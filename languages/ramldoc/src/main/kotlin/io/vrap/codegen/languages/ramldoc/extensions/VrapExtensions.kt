@@ -10,11 +10,12 @@ import com.fasterxml.jackson.databind.SerializerProvider
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
+import io.swagger.v3.oas.models.servers.ServerVariable
 import io.vrap.codegen.languages.extensions.toParamName
+import io.vrap.rmf.codegen.firstUpperCase
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
 import io.vrap.rmf.codegen.rendring.utils.keepAngleIndent
 import io.vrap.rmf.codegen.types.*
-import io.vrap.rmf.raml.model.elements.NamedElement
 import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.resources.UriParameter
 import io.vrap.rmf.raml.model.types.*
@@ -37,10 +38,10 @@ fun UriTemplate.toParamName(delimiter: String, suffix: String): String {
     return this.components.stream().map { uriTemplatePart ->
         if (uriTemplatePart is Expression) {
             return@map uriTemplatePart.varSpecs.stream()
-                    .map { s -> delimiter + s.variableName.capitalize() + suffix }.collect(Collectors.joining())
+                    .map { s -> delimiter + s.variableName.firstUpperCase() + suffix }.collect(Collectors.joining())
         }
         StringCaseFormat.UPPER_CAMEL_CASE.apply(uriTemplatePart.toString().replace("/", "-"))
-    }.collect(Collectors.joining()).replace("[^\\p{L}\\p{Nd}]+".toRegex(), "").capitalize()
+    }.collect(Collectors.joining()).replace("[^\\p{L}\\p{Nd}]+".toRegex(), "").firstUpperCase()
 }
 
 fun UriTemplate.normalize(): UriTemplate {
@@ -322,6 +323,8 @@ fun Instance.toYaml(): String {
     var example = ""
     val mapper = YAMLMapper()
     mapper.disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER)
+    mapper.enable(YAMLGenerator.Feature.LITERAL_BLOCK_STYLE)
+    mapper.disable(YAMLGenerator.Feature.SPLIT_LINES)
 
     val module = SimpleModule()
     module.addSerializer(ObjectInstance::class.java, ObjectInstanceSerializer())
@@ -370,6 +373,7 @@ fun Instance.toJson(pretty: Boolean = true): String {
     return example.trim()
 }
 
+@Suppress("UNCHECKED_CAST")
 fun <T> EObject.getParent(parentClass: Class<T>): T? {
     if (this.eContainer() == null) {
         return null

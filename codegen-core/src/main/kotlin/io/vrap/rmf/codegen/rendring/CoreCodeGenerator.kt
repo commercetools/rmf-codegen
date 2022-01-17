@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory
 class CoreCodeGenerator constructor(val dataSink: DataSink, val gitHash: String, val generators: Set<CodeGenerator>) {
 
     private val LOGGER = LoggerFactory.getLogger(CoreCodeGenerator::class.java)
-    private val PARALLELISM = 100
+    private val PARALLELISM = Runtime.getRuntime().availableProcessors()
 
     fun generate() {
 
@@ -22,9 +22,11 @@ class CoreCodeGenerator constructor(val dataSink: DataSink, val gitHash: String,
 
         val templateFiles :MutableList<Publisher<TemplateFile>> = mutableListOf()
 
-        templateFiles.add(Flowable.just(TemplateFile( relativePath = "gen.properties", content = """
-            hash=${gitHash}
-        """.trimIndent())))
+        if (gitHash.isNotBlank()) {
+            templateFiles.add(Flowable.just(TemplateFile(relativePath = "gen.properties", content = """
+                hash=${gitHash}
+            """.trimIndent())))
+        }
 
         templateFiles.addAll(generators.flatMap { generator -> generator.generate() })
 

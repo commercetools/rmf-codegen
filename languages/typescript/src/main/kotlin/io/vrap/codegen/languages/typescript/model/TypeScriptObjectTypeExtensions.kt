@@ -24,6 +24,7 @@ interface TsObjectTypeExtensions : ExtensionsBase {
         return when (type) {
             is VrapObjectType -> type.`package`
             is VrapEnumType -> type.`package`
+            is VrapScalarType -> "models/scalar-types"
             else -> ""
         }
     }

@@ -1,0 +1,22 @@
+#%RAML 1.0
+title: asMap valid rule
+
+annotationTypes:
+    asMap:
+        type: object
+types:
+  LocalizedString:
+    type: object
+    (asMap):
+        key: string
+        value: string
+    properties:
+      /^[a-z]{2}$/: string
+  InvalidLocalizedString:
+    type: object
+    properties:
+      /^[a-z]{2}$/: string
+  Foo:
+    type: object
+    properties:
+      bar: string

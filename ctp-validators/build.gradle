@@ -1,0 +1,9 @@
+
+dependencies {
+    api rmf.raml_model
+    implementation orgkotlin.stdlib
+    implementation orgkotlin.reflect
+    implementation jackson_core.dataformat_xml
+    implementation jackson_core.kotlin
+    implementation 'com.fasterxml.woodstox:woodstox-core:6.2.5'
+}

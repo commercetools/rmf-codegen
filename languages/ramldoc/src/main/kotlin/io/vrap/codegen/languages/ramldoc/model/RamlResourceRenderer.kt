@@ -21,11 +21,10 @@ import io.vrap.rmf.raml.model.responses.Response
 import io.vrap.rmf.raml.model.security.SecuredBy
 import io.vrap.rmf.raml.model.types.*
 import org.eclipse.emf.ecore.EObject
+import java.util.*
 
 class RamlResourceRenderer constructor(val api: Api, val vrapTypeProvider: VrapTypeProvider) : ResourceRenderer {
     override fun render(type: Resource): TemplateFile {
-        val vrapType = vrapTypeProvider.doSwitch(type as EObject) as VrapObjectType
-
         val content = """
             |# Resource
             |(resourceName): ${type.toResourceName()}
@@ -77,16 +76,21 @@ class RamlResourceRenderer constructor(val api: Api, val vrapTypeProvider: VrapT
             HttpMethod.PUT,
             HttpMethod.POST ->
                 """
-                    |curl -X ${method.methodName.toUpperCase()} ${baseUri}${r.fullUri.normalize().template}$queryParameters -i \\
+                    |curl -X ${method.methodName.uppercase(Locale.getDefault())} ${baseUri}${r.fullUri.normalize().template}$queryParameters -i \\
                     |--header 'Authorization: Bearer ${'$'}{BEARER_TOKEN}' \\
                     |--header 'Content-Type: application/json' \\
                     |--data-binary @- \<< DATA 
-                    |${requestExamples(method.bodies.filter { it.type != null }.first(), method).values.firstOrNull()?.value?.toJson() ?: ""}
+                    |${
+                    requestExamples(
+                        method.bodies.filter { it.type != null }.first(),
+                        method
+                    ).values.firstOrNull()?.value?.toJson() ?: ""
+                }
                     |DATA
                 """
             else ->
                 """
-                    |curl -X ${method.methodName.toUpperCase()} ${baseUri}${r.fullUri.normalize().template}$queryParameters -i \\
+                    |curl -X ${method.methodName.uppercase(Locale.getDefault())} ${baseUri}${r.fullUri.normalize().template}$queryParameters -i \\
                     |--header 'Authorization: Bearer ${'$'}{BEARER_TOKEN}'
                 """
         }.trimMargin().escapeAll()

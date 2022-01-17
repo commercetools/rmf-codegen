@@ -1,0 +1,25 @@
+#%RAML 1.0
+title: name string enum rule
+
+types:
+  Foo:
+    type: string
+    enum:
+      - bar
+  Bar:
+    type: string
+    pattern: /a-z/
+  InvalidString:
+    type: string
+  FooDesc:
+    type: string
+    description: foo
+    enum:
+      - bar
+  BarDesc:
+    type: string
+    description: bar
+    pattern: /a-z/
+  InvalidStringDesc:
+    description: invalid
+    type: string

@@ -1,0 +1,32 @@
+#%RAML 1.0
+title: pacakge defined rule
+
+annotationTypes:
+  package: string
+resourceTypes:
+  base:
+    get:
+      body:
+        application/json:
+          type: <<resourceType>>
+
+types:
+  Foo:
+    (package): Common
+    type: string
+  FooDesc:
+    (package): Common
+    description: test
+    type: string
+  InvalidString:
+    type: string
+  InvalidStringDesc:
+    description: invalid
+    type: string
+
+/:
+  get:
+    body:
+      application/json:
+        type: Foo
+        example: "test"

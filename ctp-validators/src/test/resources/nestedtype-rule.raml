@@ -1,0 +1,48 @@
+#%RAML 1.0
+title: nested inline type rule
+
+types:
+  FooObject:
+    type: object
+    properties:
+      meta:
+        type: object
+        description: valid
+  Baz:
+    type: object
+    properties:
+      validNested: string
+  Bar:
+    type: object
+    properties:
+      valid: string
+      validBaz: Baz
+  FooArray:
+    type: object
+    properties:
+      validArr:
+        type: string[]
+  Foo:
+    type: object
+    properties:
+      invalid:
+        type: object
+        properties:
+          invalidNested: string
+  FooArray:
+    type: object
+    properties:
+      invalid:
+        type: array
+        items:
+          type: object
+          properties:
+            invalidNested: string
+  FooArrayArray:
+    type: object
+    properties:
+      invalid:
+        type: array
+        items:
+          type: array
+          items: string

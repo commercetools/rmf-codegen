@@ -12,6 +12,7 @@ import io.vrap.rmf.codegen.rendring.FileProducer
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
 import io.vrap.rmf.codegen.rendring.utils.keepIndentation
 import io.vrap.rmf.codegen.types.VrapEnumType
+import io.vrap.rmf.codegen.types.VrapScalarType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.types.*
 
@@ -135,13 +136,20 @@ class TypeScriptModuleRenderer constructor(override val vrapTypeProvider: VrapTy
     }
 
     private fun StringType.renderStringType(): String {
-        val vrapType = this.toVrapType() as VrapEnumType
+        val vrapType = this.toVrapType()
 
-        return """
-        |<${this.toTsComment().escapeAll()}>
-        |export type ${vrapType.simpleClassName} =
-        |   <${this.renderEnumValues()}>;
-        """.trimMargin()
+        return when (vrapType) {
+            is VrapEnumType ->
+                """
+                |<${this.toTsComment().escapeAll()}>
+                |export type ${vrapType.simpleClassName} =
+                |   <${this.renderEnumValues()}>;
+                """.trimMargin()
+            is VrapScalarType -> """
+                |export type ${this.name} = ${vrapType.scalarType}
+            """.trimMargin()
+            else -> ""
+        }
     }
 
     private fun StringType.renderEnumValues(): String = enumValues()

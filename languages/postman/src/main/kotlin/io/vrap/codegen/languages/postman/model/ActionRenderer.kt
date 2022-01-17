@@ -3,6 +3,7 @@ package io.vrap.codegen.languages.postman.model
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.ObjectNode
 import io.vrap.codegen.languages.extensions.resource
+import io.vrap.rmf.codegen.firstUpperCase
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
 import io.vrap.rmf.codegen.rendring.utils.keepAngleIndent
 import io.vrap.rmf.raml.model.resources.HttpMethod
@@ -19,7 +20,7 @@ class ActionRenderer {
 
         val updateMethod = resource.getUpdateMethod()
 
-        val actions = updateMethod?.getActions()?.map { renderAction(resource, updateMethod, it) } ?: return emptyList()
+        val actions = updateMethod?.getActions()?.filterNot { objType -> objType.deprecated() }?.map { renderAction(resource, updateMethod, it) } ?: return emptyList()
 
         return listOf("""
             |{
@@ -39,7 +40,7 @@ class ActionRenderer {
         }}
         return """
             |{
-            |    "name": "${type.discriminatorValue.capitalize()}",
+            |    "name": "${type.discriminatorValue.firstUpperCase()}${if (type.markDeprecated()) " (deprecated)" else ""}",
             |    "event": [
             |        {
             |            "listen": "test",
@@ -83,6 +84,17 @@ class ActionRenderer {
             |}
         """.trimMargin()
     }
+
+    private fun ObjectType.deprecated() : Boolean {
+        val anno = this.getAnnotation("deprecated")
+        return (anno != null && (anno.value as BooleanInstance).value)
+    }
+
+    private fun ObjectType.markDeprecated() : Boolean {
+        val anno = this.getAnnotation("markDeprecated")
+        return (anno != null && (anno.value as BooleanInstance).value)
+    }
+
 
     private fun Resource.actionExample(type: ObjectType): String {
         val example = getExample(type)
@@ -157,8 +169,8 @@ class ActionRenderer {
     }
 
     fun Method.description(): String {
-        val name = StringCaseFormat.UPPER_CAMEL_CASE.apply(Optional.ofNullable(this.resource().displayName).map<String> { it.value }.orElse(this.resource().resourcePathName))
-        val description = Optional.ofNullable(this.description).map<String> { it.value }.orElse(this.method.getName() + " " + name)
-        return description.escapeJson().escapeAll() ?:""
+        val name = StringCaseFormat.UPPER_CAMEL_CASE.apply(Optional.ofNullable(this.resource().displayName).map { it.value }.orElse(this.resource().resourcePathName))
+        val description = Optional.ofNullable(this.description).map { it.value }.orElse(this.method.getName() + " " + name)
+        return description.escapeJson().escapeAll()
     }
 }

@@ -5,12 +5,14 @@ import io.vrap.codegen.languages.javalang.client.builder.model.JavaStringTypeRen
 import io.vrap.codegen.languages.javalang.client.builder.producers.JavaModelClassFileProducer
 import io.vrap.codegen.languages.javalang.client.builder.producers.JavaModelDraftBuilderFileProducer
 import io.vrap.rmf.codegen.di.GeneratorModule
+import io.vrap.rmf.codegen.di.RamlGeneratorModule
 import io.vrap.rmf.codegen.di.Module
 import io.vrap.rmf.codegen.rendring.*
+import java.text.MessageFormat
 
 object JavaInterfaceModelModule : Module {
 
-    override fun configure(generatorModule: GeneratorModule) = setOf<CodeGenerator> (
+        override fun configure(generatorModule: RamlGeneratorModule) = setOf<CodeGenerator> (
             ObjectTypeGenerator(setOf(
                     JavaModelInterfaceRenderer(generatorModule.vrapTypeProvider())
             ), generatorModule.allObjectTypes()),
@@ -21,5 +23,5 @@ object JavaInterfaceModelModule : Module {
                     JavaModelClassFileProducer(generatorModule.vrapTypeProvider(), generatorModule.allObjectTypes()),
                     JavaModelDraftBuilderFileProducer(generatorModule.vrapTypeProvider(), generatorModule.allObjectTypes())
             ))
-    )
+        )
 }

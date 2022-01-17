@@ -14,9 +14,9 @@ import io.vrap.codegen.languages.typescript.model.TypeScriptBaseTypes
 import io.vrap.codegen.languages.typescript.model.TypescriptModelModule
 import io.vrap.codegen.languages.typescript.server.TypescriptServerModule
 import io.vrap.rmf.codegen.CodeGeneratorConfig
-import io.vrap.rmf.codegen.di.ApiProvider
-import io.vrap.rmf.codegen.di.GeneratorComponent
-import io.vrap.rmf.codegen.di.GeneratorModule
+import io.vrap.rmf.codegen.di.RamlApiProvider
+import io.vrap.rmf.codegen.di.RamlGeneratorComponent
+import io.vrap.rmf.codegen.di.RamlGeneratorModule
 import io.vrap.rmf.codegen.types.VrapObjectType
 import org.gradle.api.DefaultTask
 import org.gradle.api.NamedDomainObjectContainer
@@ -26,6 +26,7 @@ import java.nio.file.Paths
 open class RamlCodeGeneratorTask : DefaultTask() {
 
 
+    @Suppress("UNCHECKED_CAST")
     @TaskAction
     internal fun generateClasses() {
 
@@ -38,13 +39,13 @@ open class RamlCodeGeneratorTask : DefaultTask() {
                     logger.error("uri in $generator must be non null")
                     return
                 }
-                val apiProvider = ApiProvider(file.toPath())
+                val apiProvider = RamlApiProvider(file.toPath())
                 generator.targets?.all { target: Target -> generateFiles(apiProvider, target) }
             }
         }
     }
 
-    fun generateFiles(apiProvider: ApiProvider, target: Target): Unit {
+    fun generateFiles(apiProvider: RamlApiProvider, target: Target): Unit {
 
 
         val generatorConfig = CodeGeneratorConfig(
@@ -54,54 +55,55 @@ open class RamlCodeGeneratorTask : DefaultTask() {
             clientPackage = target.client_package,
             outputFolder = target.path?.toPath() ?: Paths.get("gensrc/${target.name}"),
             customTypeMapping = target.customTypeMapping.
-                    entries.associate { kotlin.Pair(it.key, VrapObjectType(it.value.substringBeforeLast("."), it.value.substringAfterLast("."))) }
+                    entries.associate { kotlin.Pair(it.key, VrapObjectType(it.value.substringBeforeLast("."), it.value.substringAfterLast("."))) },
+            writeGitHash = target.writeGitHash
         )
 
-        val generatorComponent: GeneratorComponent = when (target.target) {
+        val generatorComponent: RamlGeneratorComponent = when (target.target) {
 
             TargetType.JAVA_MODEL -> {
-                val generatorModule = GeneratorModule(apiProvider, generatorConfig, JavaBaseTypes)
-                GeneratorComponent(generatorModule, JavaModelModule)
+                val generatorModule = RamlGeneratorModule(apiProvider, generatorConfig, JavaBaseTypes)
+                RamlGeneratorComponent(generatorModule, JavaModelModule)
             }
             TargetType.JAVA_MODEL_WITH_INTERFACES -> {
-                val generatorModule = GeneratorModule(apiProvider, generatorConfig, JavaBaseTypes)
-                GeneratorComponent(generatorModule, JavaInterfaceModelModule)
+                val generatorModule = RamlGeneratorModule(apiProvider, generatorConfig, JavaBaseTypes)
+                RamlGeneratorComponent(generatorModule, JavaInterfaceModelModule)
             }
             TargetType.JAVA_API_BUILDER -> {
-                val generatorModule = GeneratorModule(apiProvider, generatorConfig, JavaBaseTypes)
-                GeneratorComponent(generatorModule, JavaClientBuilderModule)
+                val generatorModule = RamlGeneratorModule(apiProvider, generatorConfig, JavaBaseTypes)
+                RamlGeneratorComponent(generatorModule, JavaClientBuilderModule)
             }
             TargetType.GROOVY_DSL -> {
-                val generatorModule = GeneratorModule(apiProvider, generatorConfig, JavaBaseTypes)
-                GeneratorComponent(generatorModule, GroovyDslModule)
+                val generatorModule = RamlGeneratorModule(apiProvider, generatorConfig, JavaBaseTypes)
+                RamlGeneratorComponent(generatorModule, GroovyDslModule)
             }
             TargetType.JAVA_COMPLETE -> {
-                val generatorModule = GeneratorModule(apiProvider, generatorConfig, JavaBaseTypes)
-                GeneratorComponent(generatorModule, JavaCompleteModule)
+                val generatorModule = RamlGeneratorModule(apiProvider, generatorConfig, JavaBaseTypes)
+                RamlGeneratorComponent(generatorModule, JavaCompleteModule)
             }
             TargetType.TYPESCRIPT_MODEL -> {
-                val generatorModule = GeneratorModule(apiProvider, generatorConfig, TypeScriptBaseTypes)
-                GeneratorComponent(generatorModule, TypescriptModelModule)
+                val generatorModule = RamlGeneratorModule(apiProvider, generatorConfig, TypeScriptBaseTypes)
+                RamlGeneratorComponent(generatorModule, TypescriptModelModule)
             }
             TargetType.TYPESCRIPT_CLIENT -> {
-                val generatorModule = GeneratorModule(apiProvider, generatorConfig, TypeScriptBaseTypes)
-                GeneratorComponent(generatorModule, TypescriptClientModule)
+                val generatorModule = RamlGeneratorModule(apiProvider, generatorConfig, TypeScriptBaseTypes)
+                RamlGeneratorComponent(generatorModule, TypescriptClientModule)
             }
             TargetType.TYPESCRIPT_HAPI_SERVER -> {
-                val generatorModule = GeneratorModule(apiProvider, generatorConfig, TypeScriptBaseTypes)
-                GeneratorComponent(generatorModule, TypescriptServerModule)
+                val generatorModule = RamlGeneratorModule(apiProvider, generatorConfig, TypeScriptBaseTypes)
+                RamlGeneratorComponent(generatorModule, TypescriptServerModule)
             }
             TargetType.JOI_VALIDATOR -> {
-                val generatorModule = GeneratorModule(apiProvider, generatorConfig, JoiBaseTypes)
-                GeneratorComponent(generatorModule, JoiModule)
+                val generatorModule = RamlGeneratorModule(apiProvider, generatorConfig, JoiBaseTypes)
+                RamlGeneratorComponent(generatorModule, JoiModule)
             }
             TargetType.TS_CLIENT_COMPLETE -> {
-                val generatorModule = GeneratorModule(apiProvider, generatorConfig, TypeScriptBaseTypes)
-                GeneratorComponent(generatorModule, TypescriptModelModule, TypescriptClientModule)
+                val generatorModule = RamlGeneratorModule(apiProvider, generatorConfig, TypeScriptBaseTypes)
+                RamlGeneratorComponent(generatorModule, TypescriptModelModule, TypescriptClientModule)
             }
             TargetType.TS_SERVER_COMPLETE -> {
-                val generatorModule = GeneratorModule(apiProvider, generatorConfig, TypeScriptBaseTypes)
-                GeneratorComponent(generatorModule, TypescriptModelModule, JoiModule, TypescriptServerModule)
+                val generatorModule = RamlGeneratorModule(apiProvider, generatorConfig, TypeScriptBaseTypes)
+                RamlGeneratorComponent(generatorModule, TypescriptModelModule, JoiModule, TypescriptServerModule)
             }
 
             else -> throw IllegalArgumentException("unsupported target value '${target.target}', allowed values is one of ${TargetType.values().toList()}")

@@ -3,14 +3,14 @@
  */
 package io.vrap.codegen.languages.python.client
 
-import io.vrap.rmf.codegen.di.GeneratorModule
+import io.vrap.rmf.codegen.di.RamlGeneratorModule
 import io.vrap.rmf.codegen.di.Module
 import io.vrap.rmf.codegen.rendring.CodeGenerator
 import io.vrap.rmf.codegen.rendring.FileGenerator
 import io.vrap.rmf.codegen.rendring.ResourceGenerator
 
 object PythonClientModule : Module {
-    override fun configure(generatorModule: GeneratorModule) = setOf<CodeGenerator>(
+    override fun configure(generatorModule: RamlGeneratorModule) = setOf<CodeGenerator>(
         ResourceGenerator(
             setOf(
                 RequestBuilder(

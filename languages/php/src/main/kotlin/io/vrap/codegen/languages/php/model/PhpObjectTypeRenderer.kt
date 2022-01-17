@@ -6,6 +6,7 @@ import io.vrap.codegen.languages.php.ClientConstants
 import io.vrap.codegen.languages.php.PhpBaseTypes
 import io.vrap.codegen.languages.php.PhpSubTemplates
 import io.vrap.codegen.languages.php.extensions.*
+import io.vrap.rmf.codegen.firstUpperCase
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.ObjectTypeRenderer
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
@@ -210,6 +211,7 @@ class PhpObjectTypeRenderer constructor(override val vrapTypeProvider: VrapTypeP
 
         if (dtProperties.isNotEmpty()) {
             return """
+                |#[\\ReturnTypeWillChange]
                 |public function jsonSerialize()
                 |{
                 |    $!data = $!this->toArray();
@@ -237,7 +239,7 @@ class PhpObjectTypeRenderer constructor(override val vrapTypeProvider: VrapTypeP
             |/**
             | * @param $d $${this.name}
             | */
-            |public function set${this.name.capitalize()}($t $${this.name}): void
+            |public function set${this.name.firstUpperCase()}($t $${this.name}): void
             |{
             |    $!this->${this.name} = $${this.name};
             |}
@@ -253,7 +255,7 @@ class PhpObjectTypeRenderer constructor(override val vrapTypeProvider: VrapTypeP
                     | *""" else ""}
                     | * @return ?mixed
                     | */
-                    |public function get${this.name.capitalize()}()
+                    |public function get${this.name.firstUpperCase()}()
                     |{
                     |    if (is_null($!this->${this.name})) {
                     |        /** @psalm-var ?mixed $!data */
@@ -274,7 +276,7 @@ class PhpObjectTypeRenderer constructor(override val vrapTypeProvider: VrapTypeP
                     | *""" else ""}
                     | * @return null|${this.type.typeNames()}
                     | */
-                    |public function get${this.name.capitalize()}()
+                    |public function get${this.name.firstUpperCase()}()
                     |{
                     |    if (is_null($!this->${this.name})) {
                     |        <<${this.mapper()}>>
@@ -291,7 +293,7 @@ class PhpObjectTypeRenderer constructor(override val vrapTypeProvider: VrapTypeP
             is VrapDateTimeType -> type.name
             else -> if (type.toVrapType().simpleName() != "stdClass") type.toVrapType().simpleName() else "JsonObject"
         }
-        return "get${this.name.capitalize()}As${StringCaseFormat.UPPER_CAMEL_CASE.apply(typeName)}"
+        return "get${this.name.firstUpperCase()}As${StringCaseFormat.UPPER_CAMEL_CASE.apply(typeName)}"
     }
 
     private fun Property.unionGetter(type: AnyType): String {

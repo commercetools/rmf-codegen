@@ -88,8 +88,8 @@ class TypescriptRequestTestRenderer constructor(override val vrapTypeProvider: V
         var paramName: String = parameter.name
         var methodValue = parameter.template()
         var requiredParams = method.queryParameters.toMutableList().filter { p -> p.name != parameter.name && p.required  }
-        var requiredParamsStr: String = requiredParams.map { r -> "${r.name}:${queryParamValueString(r.name, r.type, Random(r.hashCode()))}" }.joinToString(", ")
-        var requiredParamsStrUrl: String = requiredParams.map { r -> "${r.name}:${queryParamValueString(r.name, r.type, Random(r.hashCode())).toString().replace("\"","")}" }.joinToString("&")
+        var requiredParamsStr: String = requiredParams.map { r -> "${r.name}:${queryParamValueString(r.name, r.type, Random(r.name.hashCode()))}" }.joinToString(", ")
+        var requiredParamsStrUrl: String = requiredParams.map { r -> "${r.name}:${queryParamValueString(r.name, r.type, Random(r.name.hashCode())).toString().replace("\"","")}" }.joinToString("&")
 
         if (anno != null) {
             val o = anno.value as ObjectInstance

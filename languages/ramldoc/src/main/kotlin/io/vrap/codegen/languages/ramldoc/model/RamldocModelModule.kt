@@ -2,12 +2,24 @@ package io.vrap.codegen.languages.ramldoc.model
 
 import io.vrap.codegen.languages.ramldoc.extensions.isScalar
 import io.vrap.rmf.codegen.di.GeneratorModule
+import io.vrap.rmf.codegen.di.RamlGeneratorModule
 import io.vrap.rmf.codegen.di.Module
+import io.vrap.rmf.codegen.di.OasGeneratorModule
 import io.vrap.rmf.codegen.rendring.*
 import io.vrap.rmf.raml.model.types.*
+import java.lang.IllegalArgumentException
+import java.text.MessageFormat
 
 object RamldocModelModule : Module {
-    override fun configure(generatorModule: GeneratorModule) = setOf<CodeGenerator>(
+    override fun configure(generatorModule: OasGeneratorModule) = setOf<CodeGenerator>(
+        FileGenerator(
+            setOf(
+                OasApiRamlRenderer(generatorModule.apiProvider.api)
+            )
+        )
+    )
+
+    override fun configure(generatorModule: RamlGeneratorModule) = setOf(
         ObjectTypeGenerator(
                 setOf(
                         RamlObjectTypeRenderer(generatorModule.vrapTypeProvider(), generatorModule.provideModelPackageName())

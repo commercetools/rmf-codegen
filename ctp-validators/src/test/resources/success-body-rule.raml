@@ -1,0 +1,40 @@
+#%RAML 1.0
+title: success body rule
+
+/categories:
+  get:
+    responses:
+      200:
+        body:
+          application/json:
+            type: object
+  post:
+    responses:
+      201:
+        body:
+          application/json:
+            type: object
+/invalid:
+  post:
+    responses:
+      201:
+        body:
+          application/json:
+/invalid-mixed:
+  post:
+    responses:
+      200:
+        body:
+          application/json:
+            type: object
+      201:
+        body:
+          application/json:
+/invalid-all:
+  post:
+    responses:
+      201:
+        body:
+          application/json:
+            type: object
+          application/xml:

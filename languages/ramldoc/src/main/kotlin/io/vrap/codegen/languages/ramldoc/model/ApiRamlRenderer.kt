@@ -14,6 +14,7 @@ import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.modules.Api
 import io.vrap.rmf.raml.model.security.OAuth20Settings
 import io.vrap.rmf.raml.model.security.SecurityScheme
+import io.vrap.rmf.raml.model.security.SecuritySchemeType
 import io.vrap.rmf.raml.model.types.*
 
 class ApiRamlRenderer constructor(val api: Api, override val vrapTypeProvider: VrapTypeProvider, @AllAnyTypes val anyTypeList: List<AnyType>, @ModelPackageName val modelPackageName: String) : EObjectExtensions, FileProducer {
@@ -21,13 +22,14 @@ class ApiRamlRenderer constructor(val api: Api, override val vrapTypeProvider: V
     override fun produceFiles(): List<TemplateFile> {
         return listOf(
                 apiRaml(api)
-        ).plus(api.securitySchemes.map { it.renderScheme() })
+        ).plus(api.securitySchemes.filter { it.settings is OAuth20Settings }.map { it.renderScheme() })
     }
 
     private fun apiRaml(api: Api): TemplateFile {
         val docsBaseUri = api.getAnnotation("docsBaseUri")
         val docsBaseUriParameters = api.getAnnotation("docsBaseUriParameters")
         val baseUri = if (docsBaseUri != null) { docsBaseUri.value.value as String} else { api.baseUri.template }
+        val oAuth20Settings = api.securitySchemes.filter { it.type == SecuritySchemeType.OAUTH_20 }
         val content = """
             |#%RAML 1.0
             |---
@@ -58,11 +60,12 @@ class ApiRamlRenderer constructor(val api: Api, override val vrapTypeProvider: V
             |  <<${api.baseUriParameters.joinToString("\n") { it.renderUriParameter() }}>>""" else ""}${if (docsBaseUriParameters != null) """
             |baseUriParameters:
             |  <<${(docsBaseUriParameters.value).toYaml()}>>""" else ""}
-            |${api.annotations.joinToString("\n") { it.renderAnnotation() }}
+            |${api.annotations.joinToString("\n") { it.renderAnnotation() }}${if (oAuth20Settings.isNotEmpty()) """
             |securitySchemes:
-            |  <<${api.securitySchemes.joinToString("\n") { "${it.name}: !include ${it.name}.raml" }}>>
+            |  <<${oAuth20Settings.joinToString("\n") { "${it.name}: !include ${it.name}.raml" }}>>
             |securedBy:
-            |- oauth_2_0
+            |  <<${oAuth20Settings.joinToString("\n") { "- ${it.name}" }}>>
+            """ else ""}
             |types:
             |  <<${anyTypeList.filterNot { it is UnionType }.sortedWith(compareBy { it.name }).joinToString("\n") { "${it.name}: !include ${ramlFileName(it)}" }}>>
             |  

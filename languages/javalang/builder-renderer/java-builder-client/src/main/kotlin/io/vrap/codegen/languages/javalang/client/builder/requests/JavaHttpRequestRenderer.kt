@@ -7,6 +7,8 @@ import io.vrap.codegen.languages.extensions.toComment
 import io.vrap.codegen.languages.extensions.toRequestName
 import io.vrap.codegen.languages.java.base.JavaSubTemplates
 import io.vrap.codegen.languages.java.base.extensions.*
+import io.vrap.rmf.codegen.firstUpperCase
+import io.vrap.rmf.codegen.firstLowerCase
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.MethodRenderer
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
@@ -74,6 +76,8 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
             |import java.net.URLEncoder;
             |import io.vrap.rmf.base.client.*;
             |${type.imports()}
+            |import org.apache.commons.lang3.builder.EqualsBuilder;
+            |import org.apache.commons.lang3.builder.HashCodeBuilder;
             |
             |import static io.vrap.rmf.base.client.utils.ClientUtils.blockingWait;
             |
@@ -104,6 +108,8 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
             |    <${type.queryParamsTemplateSetters()}>
             |    
             |    <${type.formParamMethods()}>
+            |    
+            |    <${type.equalsMethod()}>
             |
             |    @Override
             |    protected ${type.toRequestName()} copy()
@@ -118,6 +124,48 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
                 relativePath = "${vrapType.`package`}.${type.toRequestName()}".replace(".", "/") + ".java",
                 content = content
         )
+    }
+
+    private fun Method.equalsMethod() : String {
+        val body: String = if (this.bodies != null && this.bodies.isNotEmpty()) {
+            when {
+                this.bodies[0].type.toVrapType() is VrapObjectType -> {
+                    val methodBodyVrapType = this.bodies[0].type.toVrapType() as VrapObjectType
+                    methodBodyVrapType.simpleClassName.firstLowerCase()
+                }
+                this.bodies[0].contentMediaType.`is`(MediaType.FORM_DATA) -> {
+                    "formParams"
+                }
+                else -> {
+                    "obj"
+                }
+            }
+        } else {
+            ""
+        }
+        val fields = this.pathArguments().plus(body).filterNot { s -> s.isEmpty() }
+
+        return """
+            |@Override
+            |public boolean equals(Object o) {
+            |    if (this == o) return true;
+            |
+            |    if (o == null || getClass() != o.getClass()) return false;
+            |
+            |    ${this.toRequestName()} that = (${this.toRequestName()}) o;
+            |
+            |    return new EqualsBuilder()
+            |            <${fields.joinToString("\n") { ".append(${it}, that.${it})" }}>
+            |            .isEquals();
+            |}
+            |
+            |@Override
+            |public int hashCode() {
+            |    return new HashCodeBuilder(17, 37)
+            |        <${fields.joinToString("\n") { ".append(${it})" }}>
+            |        .toHashCode();
+            |}
+        """.trimMargin().keepIndentation()
     }
 
     private fun Trait.className(): String {
@@ -137,10 +185,10 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
             if(this.bodies[0].type.toVrapType() is VrapObjectType) {
                 val methodBodyVrapType = this.bodies[0].type.toVrapType() as VrapObjectType
                 val methodBodyArgument =
-                    "${methodBodyVrapType.`package`.toJavaPackage()}.${methodBodyVrapType.simpleClassName} ${methodBodyVrapType.simpleClassName.decapitalize()}"
+                    "${methodBodyVrapType.`package`.toJavaPackage()}.${methodBodyVrapType.simpleClassName} ${methodBodyVrapType.simpleClassName.firstLowerCase()}"
                 constructorArguments.add(methodBodyArgument)
                 val methodBodyAssignment =
-                    "this.${methodBodyVrapType.simpleClassName.decapitalize()} = ${methodBodyVrapType.simpleClassName.decapitalize()};"
+                    "this.${methodBodyVrapType.simpleClassName.firstLowerCase()} = ${methodBodyVrapType.simpleClassName.firstLowerCase()};"
                 constructorAssignments.add(methodBodyAssignment)
             } else if (this.bodies[0].contentMediaType.`is`(MediaType.FORM_DATA)){
                 constructorArguments.add("List<ParamEntry<String, String>> formParams".escapeAll())
@@ -167,7 +215,7 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
         if(this.bodies != null && this.bodies.isNotEmpty()){
             if(this.bodies[0].type.toVrapType() is VrapObjectType) {
                 val methodBodyVrapType = this.bodies[0].type.toVrapType() as VrapObjectType
-                val methodBodyAssignment = "this.${methodBodyVrapType.simpleClassName.decapitalize()} = t.${methodBodyVrapType.simpleClassName.decapitalize()};"
+                val methodBodyAssignment = "this.${methodBodyVrapType.simpleClassName.firstLowerCase()} = t.${methodBodyVrapType.simpleClassName.firstLowerCase()};"
                 constructorAssignments.add(methodBodyAssignment)
             } else if (this.bodies[0].contentMediaType.`is`(MediaType.FORM_DATA)){
                 constructorAssignments.add("this.formParams = new ArrayList<>(t.formParams);".escapeAll())
@@ -190,7 +238,7 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
         val body: String = if(this.bodies != null && this.bodies.isNotEmpty()){
             if(this.bodies[0].type.toVrapType() is VrapObjectType) {
                 val methodBodyVrapType = this.bodies[0].type.toVrapType() as VrapObjectType
-                "private ${methodBodyVrapType.`package`.toJavaPackage()}.${methodBodyVrapType.simpleClassName} ${methodBodyVrapType.simpleClassName.decapitalize()};"
+                "private ${methodBodyVrapType.`package`.toJavaPackage()}.${methodBodyVrapType.simpleClassName} ${methodBodyVrapType.simpleClassName.firstLowerCase()};"
             } else if (this.bodies[0].contentMediaType.`is`(MediaType.FORM_DATA)) {
                 "private List<ParamEntry<String, String>> formParams;".escapeAll()
             } else {
@@ -228,11 +276,11 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
         val bodyName : String? = if(this.bodies != null && this.bodies.isNotEmpty()){
             if(this.bodies[0].type.toVrapType() is VrapObjectType) {
                 val methodBodyVrapType = this.bodies[0].type.toVrapType() as VrapObjectType
-                methodBodyVrapType.simpleClassName.decapitalize()
-            }else {
+                methodBodyVrapType.simpleClassName.firstLowerCase()
+            } else {
                 "obj"
             }
-        }else {
+        } else {
             null
         }
 
@@ -290,9 +338,8 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
     private fun Method.executeBlockingMethod() : String {
         return """
             |@Override
-            |public ApiHttpResponse\<${this.javaReturnType(vrapTypeProvider)}\> executeBlocking(final ApiHttpClient client, Duration timeout){
-            |    ApiHttpRequest request = this.createHttpRequest();
-            |    return blockingWait(client.execute(request, ${this.javaReturnType(vrapTypeProvider)}.class), request, timeout);
+            |public ApiHttpResponse\<${this.javaReturnType(vrapTypeProvider)}\> executeBlocking(final ApiHttpClient client, final Duration timeout){
+            |    return executeBlocking(client, timeout, ${this.javaReturnType(vrapTypeProvider)}.class);
             |}
         """.trimMargin()
     }
@@ -301,33 +348,41 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
         return """
             |@Override
             |public CompletableFuture\<ApiHttpResponse\<${this.javaReturnType(vrapTypeProvider)}\>\> execute(final ApiHttpClient client){
-            |    return client.execute(this.createHttpRequest(), ${this.javaReturnType(vrapTypeProvider)}.class);
+            |    return execute(client, ${this.javaReturnType(vrapTypeProvider)}.class);
             |}
         """.trimMargin()
     }
 
     private fun Method.pathArgumentsGetters() : String = this.pathArguments()
-            .map { "public String get${it.capitalize()}() {return this.$it;}" }
+            .map { "public String get${it.firstUpperCase()}() {return this.$it;}" }
             .joinToString(separator = "\n")
 
     private fun Method.pathArgumentsSetters() : String = this.pathArguments()
-            .map { "public void set${it.capitalize()}(final String $it) { this.$it = $it; }" }
+            .map { "public void set${it.firstUpperCase()}(final String $it) { this.$it = $it; }" }
             .joinToString(separator = "\n\n")
 
     private fun Method.queryParamsGetters() : String = this.queryParameters
             .filter { it.getAnnotation(PLACEHOLDER_PARAM_ANNOTATION, true) == null }
             .map { """
-                |public List<String> get${it.fieldName().capitalize()}() {
+                |public List<String> get${it.fieldName().firstUpperCase()}() {
                 |    return this.getQueryParam("${it.name}");
                 |}
                 """.trimMargin().escapeAll() }
             .joinToString(separator = "\n\n")
 
     private fun QueryParameter.witherType() : String {
-        val type = this.type;
+        val type = this.type
         return when (type) {
             is ArrayType -> type.items.toVrapType().simpleName().toScalarType()
             else -> type.toVrapType().simpleName().toScalarType()
+        }
+    }
+
+    private fun QueryParameter.witherBoxedType() : String {
+        val type = this.type
+        return when (type) {
+            is ArrayType -> type.items.toVrapType().simpleName()
+            else -> type.toVrapType().simpleName()
         }
     }
 
@@ -344,16 +399,38 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
 
                 val methodName = StringCaseFormat.UPPER_CAMEL_CASE.apply(paramName.value)
                 val parameters =  "final String " + StringCaseFormat.LOWER_CAMEL_CASE.apply(placeholder.value) + ", final ${it.witherType()} " + paramName.value
+                val listParameters =  "final String " + StringCaseFormat.LOWER_CAMEL_CASE.apply(placeholder.value) + ", final List<${it.witherType()}> " + paramName.value
 
                 return """
+                |/**
+                | * set ${paramName.value} with the specificied value
+                | */
                 |public ${this.toRequestName()} with$methodName($parameters){
                 |    return copy().withQueryParam($value, ${paramName.value});
                 |}
                 |
+                |/**
+                | * add additional ${paramName.value} query parameter
+                | */
                 |public ${this.toRequestName()} add$methodName($parameters){
                 |    return copy().addQueryParam($value, ${paramName.value});
                 |}
-
+                |
+                |/**
+                | * set ${paramName.value} with the specificied values
+                | */
+                |public ${this.toRequestName()} with$methodName($listParameters) {
+                |    final String placeholderName = String.format("var.%s", ${StringCaseFormat.LOWER_CAMEL_CASE.apply(placeholder.value)});
+                |    return copy().withoutQueryParam(placeholderName).addQueryParams(${paramName.value}.stream().map(s -> new ParamEntry<>(placeholderName, s)).collect(Collectors.toList()));
+                |}
+                |
+                |/**
+                | * add additional ${paramName.value} query parameters
+                | */
+                |public ${this.toRequestName()} add$methodName($listParameters) {
+                |    final String placeholderName = String.format("var.%s", ${StringCaseFormat.LOWER_CAMEL_CASE.apply(placeholder.value)});
+                |    return copy().addQueryParams(${paramName.value}.stream().map(s -> new ParamEntry<>(placeholderName, s)).collect(Collectors.toList()));
+                |}
             """.trimMargin().escapeAll()
 
             }
@@ -362,12 +439,32 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
     private fun Method.queryParamsSetters() : String = this.queryParameters
             .filter { it.getAnnotation(PLACEHOLDER_PARAM_ANNOTATION, true) == null }
             .map { """
-                |public ${this.toRequestName()} with${it.fieldName().capitalize()}(final ${it.witherType()} ${it.fieldName()}){
+                |/**
+                | * set ${it.fieldName()} with the specificied value
+                | */
+                |public ${this.toRequestName()} with${it.fieldName().firstUpperCase()}(final ${it.witherType()} ${it.fieldName()}){
                 |    return copy().withQueryParam("${it.name}", ${it.fieldName()});
                 |}
                 |
-                |public ${this.toRequestName()} add${it.fieldName().capitalize()}(final ${it.witherType()} ${it.fieldName()}){
+                |/**
+                | * add additional ${it.fieldName()} query parameter
+                | */
+                |public ${this.toRequestName()} add${it.fieldName().firstUpperCase()}(final ${it.witherType()} ${it.fieldName()}){
                 |    return copy().addQueryParam("${it.name}", ${it.fieldName()});
+                |}
+                |
+                |/**
+                | * set ${it.fieldName()} with the specificied values
+                | */
+                |public ${this.toRequestName()} with${it.fieldName().firstUpperCase()}(final List<${it.witherBoxedType()}> ${it.fieldName()}){
+                |    return copy().withoutQueryParam("${it.name}").addQueryParams(${it.fieldName()}.stream().map(s -> new ParamEntry<>("${it.name}", s.toString())).collect(Collectors.toList())); 
+                |}
+                |
+                |/**
+                | * add additional ${it.fieldName()} query parameters
+                | */
+                |public ${this.toRequestName()} add${it.fieldName().firstUpperCase()}(final List<${it.witherBoxedType()}> ${it.fieldName()}){
+                |    return copy().addQueryParams(${it.fieldName()}.stream().map(s -> new ParamEntry<>("${it.name}", s.toString())).collect(Collectors.toList())); 
                 |}
             """.trimMargin().escapeAll() }
             .joinToString(separator = "\n\n")

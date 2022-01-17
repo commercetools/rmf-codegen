@@ -4,6 +4,7 @@ import io.vrap.codegen.languages.extensions.toComment
 import io.vrap.codegen.languages.java.base.JavaSubTemplates
 import io.vrap.codegen.languages.java.base.extensions.*
 import io.vrap.codegen.languages.javalang.client.builder.requests.PLACEHOLDER_PARAM_ANNOTATION
+import io.vrap.rmf.codegen.firstUpperCase
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.TraitRenderer
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
@@ -12,7 +13,9 @@ import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.resources.Trait
 import io.vrap.rmf.raml.model.types.ArrayType
+import io.vrap.rmf.raml.model.types.ObjectInstance
 import io.vrap.rmf.raml.model.types.QueryParameter
+import io.vrap.rmf.raml.model.types.StringInstance
 import io.vrap.rmf.raml.model.util.StringCaseFormat
 import org.eclipse.emf.ecore.EObject
 
@@ -30,10 +33,21 @@ class JavaTraitRenderer constructor(override val vrapTypeProvider: VrapTypeProvi
             |
             |<${type.toComment().escapeAll()}>
             |<${JavaSubTemplates.generatedAnnotation}>
-            |public interface ${vrapType.simpleClassName}\<T\> {
+            |public interface ${vrapType.simpleClassName}\<T extends ${vrapType.simpleClassName}\<T\>\> {
             |    <${type.queryParamsGetters()}>
             |
-            |    <${type.queryParamsSetters()}>
+            |    <${type.queryParamsSetters(vrapType.simpleClassName)}>
+            |
+            |    <${type.queryParamsTemplateSetters(vrapType.simpleClassName)}>
+            |    
+            |    default ${vrapType.simpleClassName}\<T\> as${vrapType.simpleClassName.firstUpperCase()}() {
+            |        return this;
+            |    }
+            |    
+            |    @SuppressWarnings("unchecked")
+            |    default T as${vrapType.simpleClassName}ToBaseType() {
+            |        return (T)this;
+            |    }
             |}
         """.trimMargin().keepIndentation()
 
@@ -46,15 +60,49 @@ class JavaTraitRenderer constructor(override val vrapTypeProvider: VrapTypeProvi
     private fun Trait.queryParamsGetters() : String = this.queryParameters
             .filter { it.getAnnotation(PLACEHOLDER_PARAM_ANNOTATION, true) == null }
             .map { """
-                |List<String> get${it.fieldName().capitalize()}();
+                |List<String> get${it.fieldName().firstUpperCase()}();
                 """.trimMargin().escapeAll() }
             .joinToString(separator = "\n\n")
 
-    private fun Trait.queryParamsSetters() : String = this.queryParameters
+    private fun Trait.queryParamsSetters(simpleClassName: String) : String = this.queryParameters
             .filter { it.getAnnotation(PLACEHOLDER_PARAM_ANNOTATION, true) == null }
             .map { """
-                |T with${it.fieldName().capitalize()}(final ${it.witherType()} ${it.fieldName()});
+                |/**
+                | * set ${it.fieldName()} with the specificied value
+                | */
+                |${simpleClassName}<T> with${it.fieldName().firstUpperCase()}(final ${it.witherType()} ${it.fieldName()});
+                |
+                |/**
+                | * add additional ${it.fieldName()} query parameter
+                | */
+                |${simpleClassName}<T> add${it.fieldName().firstUpperCase()}(final ${it.witherType()} ${it.fieldName()});
             """.trimMargin().escapeAll() }
+            .joinToString(separator = "\n\n")
+
+    private fun Trait.queryParamsTemplateSetters(simpleClassName: String) : String = this.queryParameters
+            .filter { it.getAnnotation(PLACEHOLDER_PARAM_ANNOTATION, true) != null }
+            .map {
+                val anno = it.getAnnotation("placeholderParam", true)
+                val o = anno.value as ObjectInstance
+                val paramName = o.value.stream().filter { propertyValue -> propertyValue.name == "paramName" }.findFirst().orElse(null).value as StringInstance
+                val placeholder = o.value.stream().filter { propertyValue -> propertyValue.name == "placeholder" }.findFirst().orElse(null).value as StringInstance
+
+                val methodName = StringCaseFormat.UPPER_CAMEL_CASE.apply(paramName.value)
+                val parameters =  "final String " + StringCaseFormat.LOWER_CAMEL_CASE.apply(placeholder.value) + ", final ${it.witherType()} " + paramName.value
+
+                return """
+                |/**
+                | * set ${paramName.value} with the specificied value
+                | */
+                |${simpleClassName}<T> with$methodName($parameters);
+                |
+                |/**
+                | * add additional ${paramName.value} query parameter
+                | */
+                |${simpleClassName}<T> add$methodName($parameters);
+            """.trimMargin().escapeAll()
+
+            }
             .joinToString(separator = "\n\n")
 
     private fun QueryParameter.witherType() : String {

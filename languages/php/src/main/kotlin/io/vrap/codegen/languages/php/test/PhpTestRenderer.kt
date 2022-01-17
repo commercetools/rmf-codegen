@@ -16,17 +16,22 @@ import io.vrap.rmf.codegen.rendring.utils.keepAngleIndent
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.modules.Api
 import io.vrap.rmf.raml.model.resources.Resource
+import io.vrap.rmf.raml.model.types.StringInstance
 import io.vrap.rmf.raml.model.util.StringCaseFormat
 
 class PhpTestRenderer constructor(api: Api, vrapTypeProvider: VrapTypeProvider, clientConstants: ClientConstants) : FileProducer, AbstractRequestBuilder(api, vrapTypeProvider, clientConstants) {
 
     override fun produceFiles(): List<TemplateFile> = listOf(
-            configTest(api),
+            configTest(),
             rootResourceTest(api)
     )
 
-    private fun configTest(type: Api): TemplateFile {
+    private fun configTest(): TemplateFile {
         val clientTestPackageName = basePackagePrefix + "/test" + clientPackageName.replace(basePackagePrefix, "")
+        val baseUri = when (val sdkBaseUri = api.getAnnotation("sdkBaseUri")?.value) {
+            is StringInstance -> UriTemplate.fromTemplate(sdkBaseUri.value)
+            else -> api.baseUri.value
+        }
 
         return TemplateFile(relativePath = "test/unit/Client/ConfigTest.php",
                 content = """
@@ -42,22 +47,22 @@ class PhpTestRenderer constructor(api: Api, vrapTypeProvider: VrapTypeProvider, 
                     |{
                     |    public function testDefaultUri()
                     |    {
-                    |        $!c = new Config(${if (api.baseUri.value.variables.isNotEmpty()) { api.baseUri.value.testParams().joinToString(", ") } else ""});
-                    |        $!expectedUri = "${api.baseUri.value.expand(api.baseUri.value.variables.map { it to "test_${it}" }.toMap())}";
+                    |        $!c = new Config(${if (baseUri.variables.isNotEmpty()) { baseUri.testParams().joinToString(", ") } else ""});
+                    |        $!expectedUri = "${baseUri.expand(baseUri.variables.map { it to "test_${it}" }.toMap())}";
                     |        self::assertSame($!expectedUri, $!c->getApiUri());
                     |        self::assertSame($!expectedUri, $!c->getOptions()[Config::OPT_BASE_URI]);
                     |    }
                     |
                     |    public function testBaseUri()
                     |    {
-                    |        $!c = new Config(${if (api.baseUri.value.variables.isNotEmpty()) { api.baseUri.value.testParams().joinToString(", ", postfix = ", ") } else ""}[], "baseUri");
+                    |        $!c = new Config(${if (baseUri.variables.isNotEmpty()) { baseUri.testParams().joinToString(", ", postfix = ", ") } else ""}[], "baseUri");
                     |        self::assertSame("baseUri", $!c->getApiUri());
                     |        self::assertSame("baseUri", $!c->getOptions()[Config::OPT_BASE_URI]);
                     |    }
                     |
                     |    public function testOptionsBaseUri()
                     |    {
-                    |        $!c = new Config(${if (api.baseUri.value.variables.isNotEmpty()) { api.baseUri.value.testParams().joinToString(", ", postfix = ", ") } else ""}[Config::OPT_BASE_URI => "optBaseUri"], "baseUri");
+                    |        $!c = new Config(${if (baseUri.variables.isNotEmpty()) { baseUri.testParams().joinToString(", ", postfix = ", ") } else ""}[Config::OPT_BASE_URI => "optBaseUri"], "baseUri");
                     |        self::assertSame("baseUri", $!c->getApiUri());
                     |        self::assertSame("optBaseUri", $!c->getOptions()[Config::OPT_BASE_URI]);
                     |    }

@@ -26,6 +26,7 @@ import io.vrap.rmf.codegen.types.VrapType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Resource
+import java.util.*
 
 class RequestBuilder constructor(
     @ClientPackageName val client_package: String,
@@ -236,11 +237,13 @@ class RequestBuilder constructor(
         |    <${if (paramsPatternDicts.isNotEmpty()) "params = $paramsKwarg" else ""}>
         |    <$paramsPatternDicts>
         |    headers = {} if headers is None else headers
-        |    response = self._client._${method.methodName.toLowerCase()}(
+        |    response = self._client._${method.methodName.lowercase(Locale.getDefault())}(
         |        endpoint=f'$endpoint',
         |        <${if (paramsPatternDicts.isEmpty()) "params=$paramsKwarg" else "params=params"}>,
         |        <$bodyExpr>
-        |        headers=<${if (method.pyMediaType().isNotEmpty()) "{${method.pyMediaType()}, **headers}" else "headers"}>,
+        |        headers=<${
+            if (method.pyMediaType().isNotEmpty()) "{${method.pyMediaType()}, **headers}" else "headers"
+        }>,
         |        options=options
         |    )
         |    <$responseHandler>

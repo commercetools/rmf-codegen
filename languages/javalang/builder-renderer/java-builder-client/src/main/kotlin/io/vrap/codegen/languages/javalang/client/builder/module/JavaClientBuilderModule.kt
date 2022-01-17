@@ -4,12 +4,14 @@ import io.vrap.codegen.languages.javalang.client.builder.producers.JavaApiRootFi
 import io.vrap.codegen.languages.javalang.client.builder.requests.JavaHttpRequestRenderer
 import io.vrap.codegen.languages.javalang.client.builder.requests.JavaRequestBuilderResourceRenderer
 import io.vrap.rmf.codegen.di.GeneratorModule
+import io.vrap.rmf.codegen.di.RamlGeneratorModule
 import io.vrap.rmf.codegen.di.Module
 import io.vrap.rmf.codegen.rendring.*
+import java.text.MessageFormat
 
 
 object JavaClientBuilderModule: Module {
-    override fun configure(generatorModule: GeneratorModule) = setOf(
+    override fun configure(generatorModule: RamlGeneratorModule) = setOf(
             FileGenerator(setOf(
                     JavaApiRootFileProducer(generatorModule.provideClientPackageName(), generatorModule.provideRamlModel())
             )),

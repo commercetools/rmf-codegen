@@ -30,6 +30,7 @@ class PhpCollectionRenderer constructor(override val vrapTypeProvider: VrapTypeP
             true -> """@template T of ${vrapType.simpleClassName}
                 | * @extends $sequenceType<T>
                 | * @psalm-method T current()
+                | * @psalm-method T end()
                 | * @psalm-method T at($!offset)"""
             else -> "@extends $sequenceType<${vrapType.simpleClassName}>"
         }
@@ -51,6 +52,7 @@ class PhpCollectionRenderer constructor(override val vrapTypeProvider: VrapTypeP
             |/**
             | * $template
             | * @method ${vrapType.simpleClassName} current()
+            | * @method ${vrapType.simpleClassName} end()
             | * @method ${vrapType.simpleClassName} at($!offset)
             | */
             |class ${vrapType.simpleClassName}Collection extends $sequenceType
@@ -77,7 +79,7 @@ class PhpCollectionRenderer constructor(override val vrapTypeProvider: VrapTypeP
             |     */
             |    protected function mapper()
             |    {
-            |        return function (int $!index): ?${vrapType.simpleClassName} {
+            |        return function (?int $!index): ?${vrapType.simpleClassName} {
             |            $!data = $!this->get($!index);
             |            if ($!data instanceof stdClass) {
             |                /** @var $genType $!data */

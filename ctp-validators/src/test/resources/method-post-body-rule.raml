@@ -1,0 +1,19 @@
+#%RAML 1.0
+title: method post body
+
+/categories:
+  get:
+  post:
+    body:
+      application/json:
+        type: object
+/invalid:
+  post:
+    body:
+      application/json:
+/invalid-all:
+  post:
+    body:
+      application/json:
+        type: object
+      application/xml:

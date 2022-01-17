@@ -1,6 +1,7 @@
 package io.vrap.rmf.codegen.types
 
 import com.google.common.base.CaseFormat
+import io.vrap.rmf.codegen.firstUpperCase
 import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.resources.Trait
@@ -16,7 +17,7 @@ class ResourcesTypeProvider constructor(val packageProvider: PackageProvider) : 
 
     override fun caseMethod(method: Method): VrapType {
         val resource = method.eContainer() as Resource
-        return VrapObjectType(packageProvider.doSwitch(method), "${classNameMapper.convert(resource.resourcePathName)}${method.methodName.capitalize()}")
+        return VrapObjectType(packageProvider.doSwitch(method), "${classNameMapper.convert(resource.resourcePathName)}${method.methodName.firstUpperCase()}")
     }
 
     override fun caseTrait(trait: Trait): VrapType {

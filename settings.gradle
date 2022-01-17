@@ -12,6 +12,7 @@ include 'languages:typescript'
 include 'languages:python'
 include 'languages:ramldoc'
 
+include 'ctp-validators'
 include 'tools:cli-application'
 
 include 'tools:codegen-gradle-plugin'

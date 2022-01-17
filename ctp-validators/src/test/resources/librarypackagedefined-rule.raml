@@ -1,0 +1,15 @@
+#%RAML 1.0
+title: pacakge defined rule
+
+uses:
+  annotations: annotationlibrary.raml
+  packagedefinedtypes: packagedefinedtypes.raml
+  packagenotdefinedtypes: packagenotdefinedtypes.raml
+
+
+/:
+  get:
+    body:
+      application/json:
+        type: packagedefinedtypes.Foo
+        example: "test"

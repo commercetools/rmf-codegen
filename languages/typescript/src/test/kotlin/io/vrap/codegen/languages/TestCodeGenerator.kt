@@ -9,10 +9,10 @@ import io.vrap.codegen.languages.typescript.model.TypescriptModelModule
 import io.vrap.codegen.languages.typescript.server.TypescriptServerModule
 import io.vrap.codegen.languages.typescript.test.TypescriptTestModule
 import io.vrap.rmf.codegen.CodeGeneratorConfig
-import io.vrap.rmf.codegen.di.ApiProvider
-import io.vrap.rmf.codegen.di.GeneratorComponent
-import io.vrap.rmf.codegen.di.GeneratorModule
-import org.junit.Test
+import io.vrap.rmf.codegen.di.RamlApiProvider
+import io.vrap.rmf.codegen.di.RamlGeneratorComponent
+import io.vrap.rmf.codegen.di.RamlGeneratorModule
+import org.junit.jupiter.api.Test
 import java.nio.file.Path
 import java.nio.file.Paths
 
@@ -26,7 +26,7 @@ class TestCodeGenerator {
         private val apiPath : Path = Paths.get(if (userProvidedPath == null) "../../api-spec/api.raml" else userProvidedPath)
         private val outputFolder : Path = Paths.get(if (userProvidedOutputPath == null) "build/gensrc" else userProvidedOutputPath)
 
-        val apiProvider: ApiProvider = ApiProvider(apiPath)
+        val apiProvider: RamlApiProvider = RamlApiProvider(apiPath)
         val generatorConfig = CodeGeneratorConfig(
                 basePackageName = "",
                 outputFolder = Paths.get("${outputFolder}")
@@ -36,15 +36,15 @@ class TestCodeGenerator {
 
     @Test
     fun generateTsModels() {
-        val generatorModule = GeneratorModule(apiProvider, generatorConfig, TypeScriptBaseTypes)
-        val generatorComponent = GeneratorComponent(generatorModule, TypescriptModelModule,TypescriptClientModule)
+        val generatorModule = RamlGeneratorModule(apiProvider, generatorConfig, TypeScriptBaseTypes)
+        val generatorComponent = RamlGeneratorComponent(generatorModule, TypescriptModelModule,TypescriptClientModule)
         generatorComponent.generateFiles()
     }
 
     @Test
     fun generateTsTests() {
-        val generatorModule = GeneratorModule(apiProvider, generatorConfig, TypeScriptBaseTypes)
-        val generatorComponent = GeneratorComponent(generatorModule, TypescriptTestModule)
+        val generatorModule = RamlGeneratorModule(apiProvider, generatorConfig, TypeScriptBaseTypes)
+        val generatorComponent = RamlGeneratorComponent(generatorModule, TypescriptTestModule)
         generatorComponent.generateFiles()
     }
 
@@ -53,20 +53,20 @@ class TestCodeGenerator {
 
         // Generate joi validators
         val joiGeneratorConfig = CodeGeneratorConfig(modelPackage = "")
-        val joigeneratorModule = GeneratorModule(apiProvider, joiGeneratorConfig, TypeScriptBaseTypes)
-        val joigeneratorComponent = GeneratorComponent(joigeneratorModule, JoiModule)
+        val joigeneratorModule = RamlGeneratorModule(apiProvider, joiGeneratorConfig, TypeScriptBaseTypes)
+        val joigeneratorComponent = RamlGeneratorComponent(joigeneratorModule, JoiModule)
         joigeneratorComponent.generateFiles()
 
         // Generate ts models
         val modelGeneratorConfig = CodeGeneratorConfig(modelPackage = "")
-        val modelGeneratorModule = GeneratorModule(apiProvider, modelGeneratorConfig, TypeScriptBaseTypes)
-        val modelGeneratorComponent = GeneratorComponent(modelGeneratorModule, TypescriptModelModule)
+        val modelGeneratorModule = RamlGeneratorModule(apiProvider, modelGeneratorConfig, TypeScriptBaseTypes)
+        val modelGeneratorComponent = RamlGeneratorComponent(modelGeneratorModule, TypescriptModelModule)
         modelGeneratorComponent.generateFiles()
 
         // Generate the server code
         val serverGeneratorConfig = CodeGeneratorConfig(modelPackage = "",clientPackage = "")
-        val serverGeneratorModule = GeneratorModule(apiProvider, serverGeneratorConfig, TypeScriptBaseTypes)
-        val serverGeneratorComponent = GeneratorComponent(serverGeneratorModule, TypescriptServerModule)
+        val serverGeneratorModule = RamlGeneratorModule(apiProvider, serverGeneratorConfig, TypeScriptBaseTypes)
+        val serverGeneratorComponent = RamlGeneratorComponent(serverGeneratorModule, TypescriptServerModule)
         serverGeneratorComponent.generateFiles()
 
 
@@ -75,8 +75,8 @@ class TestCodeGenerator {
 
     @Test
     fun generateJoiValidators() {
-        val generatorModule = GeneratorModule(apiProvider, generatorConfig, JoiBaseTypes)
-        val generatorComponent = GeneratorComponent(generatorModule, JoiModule)
+        val generatorModule = RamlGeneratorModule(apiProvider, generatorConfig, JoiBaseTypes)
+        val generatorComponent = RamlGeneratorComponent(generatorModule, JoiModule)
         generatorComponent.generateFiles()
     }
 

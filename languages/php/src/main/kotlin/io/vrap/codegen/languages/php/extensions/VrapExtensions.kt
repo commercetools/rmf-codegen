@@ -3,6 +3,7 @@ package io.vrap.codegen.languages.php.extensions
 import com.damnhandy.uri.template.Expression
 import com.damnhandy.uri.template.UriTemplate
 import com.google.common.collect.Lists
+import io.vrap.rmf.codegen.firstUpperCase
 import io.vrap.rmf.codegen.types.*
 import io.vrap.rmf.raml.model.modules.Api
 import io.vrap.rmf.raml.model.resources.Method
@@ -131,9 +132,9 @@ fun Trait.toTraitName(): String {
 
 fun Method.toRequestName(): String {
     if (this.apiResource().fullUri.template == "/") {
-        return "ApiRoot" + this.method.toString().capitalize()
+        return "ApiRoot" + this.method.toString().firstUpperCase()
     }
-    return this.apiResource().fullUri.toParamName("By") + this.method.toString().capitalize()
+    return this.apiResource().fullUri.toParamName("By") + this.method.toString().firstUpperCase()
 }
 
 fun Resource.toResourceName(): String {
@@ -148,10 +149,10 @@ fun UriTemplate.toParamName(delimiter: String, suffix: String): String {
     return this.components.stream().map { uriTemplatePart ->
         if (uriTemplatePart is Expression) {
             return@map uriTemplatePart.varSpecs.stream()
-                    .map { s -> delimiter + s.variableName.capitalize() + suffix }.collect(Collectors.joining())
+                    .map { s -> delimiter + s.variableName.firstUpperCase() + suffix }.collect(Collectors.joining())
         }
         StringCaseFormat.UPPER_CAMEL_CASE.apply(uriTemplatePart.toString().replace("/", "-"))
-    }.collect(Collectors.joining()).replace("[^\\p{L}\\p{Nd}]+".toRegex(), "").capitalize()
+    }.collect(Collectors.joining()).replace("[^\\p{L}\\p{Nd}]+".toRegex(), "").firstUpperCase()
 }
 
 fun Method.allParams(): List<String>? {

@@ -8,6 +8,7 @@ import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.FileProducer
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
 import io.vrap.rmf.raml.model.modules.Api
+import java.util.*
 
 class PhpBaseFileProducer constructor(val api: Api, @BasePackageName val packagePrefix: String) : FileProducer {
 
@@ -458,6 +459,7 @@ class PhpBaseFileProducer constructor(val api: Api, @BasePackageName val package
                     |        return null;
                     |    }
                     |
+                    |    #[\ReturnTypeWillChange]
                     |    public function jsonSerialize()
                     |    {
                     |        return (object)$!this->toArray();
@@ -673,9 +675,10 @@ class PhpBaseFileProducer constructor(val api: Api, @BasePackageName val package
     }
 
     private fun composerJson(): TemplateFile {
-        val vendorName = packagePrefix.toLowerCase()
-        return TemplateFile(relativePath = "composer.json",
-                content = """
+        val vendorName = packagePrefix.lowercase(Locale.getDefault())
+        return TemplateFile(
+            relativePath = "composer.json",
+            content = """
                     |{
                     |  "name": "$vendorName/$vendorName-sdk-base",
                     |  "license": "MIT",
@@ -716,7 +719,8 @@ class PhpBaseFileProducer constructor(val api: Api, @BasePackageName val package
                     |    "squizlabs/php_codesniffer": "^3.0"
                     |  }
                     |}
-                """.trimMargin())
+                """.trimMargin()
+        )
     }
 
     private fun preAuthTokenProvider(): TemplateFile {
@@ -1075,25 +1079,38 @@ class PhpBaseFileProducer constructor(val api: Api, @BasePackageName val package
                     |     * @readonly
                     |     */
                     |    private $!userAgent;
-                    |    
+                    |    public const USER_AGENT = 'commercetools-sdk-php-v2';
+                    |
                     |    public function __construct(string $!suffix = null)
                     |    {
                     |        if (defined('\GuzzleHttp\ClientInterface::MAJOR_VERSION')) {
-                    |           $!clientVersion = (string) constant(ClientInterface::class . '::MAJOR_VERSION');
+                    |            $!clientVersion = (string) constant(ClientInterface::class . '::MAJOR_VERSION');
                     |        } else {
-                    |           $!clientVersion = (string) constant(ClientInterface::class . '::VERSION');
+                    |            $!clientVersion = (string) constant(ClientInterface::class . '::VERSION');
                     |        }
-                    |        $!userAgent = 'commercetools-sdk';
                     |
+                    |        $!userAgent = self::USER_AGENT . $!this->getPackageVersion();
+                    |        
                     |        $!userAgent .= ' (GuzzleHttp/' . $!clientVersion;
                     |        if (extension_loaded('curl') && function_exists('curl_version')) {
                     |            $!userAgent .= '; curl/' . (string) \curl_version()['version'];
                     |        }
                     |        $!userAgent .= ') PHP/' . PHP_VERSION;
                     |        if (!is_null($!suffix)) {
-                    |           $!userAgent .= ' ' . $!suffix;
+                    |            $!userAgent .= ' ' . $!suffix;
                     |        }
                     |        $!this->userAgent = $!userAgent;
+                    |    }
+                    |
+                    |    private function getPackageVersion(): string
+                    |    {
+                    |        if (class_exists("\${packagePrefix.toNamespaceName()}\Client\PackageVersion")) {
+                    |            $!version = PackageVersion::get();
+                    |            if ($!version != null) {
+                    |                return "/" . $!version;
+                    |            }
+                    |        }
+                    |        return "";
                     |    }
                     |
                     |    public function getUserAgent(): string
@@ -1465,6 +1482,7 @@ class PhpBaseFileProducer constructor(val api: Api, @BasePackageName val package
                     |        $!this->mapper = $!mapper;
                     |    }
                     |
+                    |    #[\ReturnTypeWillChange]
                     |    public function current()
                     |    {
                     |        /** @psalm-suppress MixedReturnStatement */
@@ -1594,7 +1612,8 @@ class PhpBaseFileProducer constructor(val api: Api, @BasePackageName val package
                     |interface CSequence extends Collection, \ArrayAccess, \JsonSerializable, \IteratorAggregate
                     |{
                     |    public function toArray(): ?array;
-                    |    
+                    |
+                    |    #[\ReturnTypeWillChange]
                     |    public function jsonSerialize(): ?array;
                     |
                     |    /**
@@ -1624,6 +1643,11 @@ class PhpBaseFileProducer constructor(val api: Api, @BasePackageName val package
                     |    public function current();
                     |
                     |    /**
+                    |     * @return ?TObject
+                    |     */
+                    |    public function end();
+                    |
+                    |    /**
                     |     * @return void
                     |     */
                     |    public function next();
@@ -1643,18 +1667,21 @@ class PhpBaseFileProducer constructor(val api: Api, @BasePackageName val package
                     |     */
                     |    public function rewind();
                     |
+                    |    #[\ReturnTypeWillChange]
                     |    /**
                     |     * @param int $!offset
                     |     * @return bool
                     |     */
                     |    public function offsetExists($!offset);
                     |
+                    |    #[\ReturnTypeWillChange]
                     |    /**
                     |     * @param int $!offset
                     |     * @return ?TObject
                     |     */
                     |    public function offsetGet($!offset);
                     |
+                    |    #[\ReturnTypeWillChange]
                     |    /**
                     |     * @param int $!offset
                     |     * @psalm-param TObject|TRaw $!value
@@ -1663,6 +1690,7 @@ class PhpBaseFileProducer constructor(val api: Api, @BasePackageName val package
                     |     */
                     |    public function offsetSet($!offset, $!value);
                     |
+                    |    #[\ReturnTypeWillChange]
                     |    /**
                     |     * @param int $!offset
                     |     * @return void
@@ -1713,7 +1741,8 @@ class PhpBaseFileProducer constructor(val api: Api, @BasePackageName val package
                     |    {
                     |        return $!this->data;
                     |    }
-                    |    
+                    |
+                    |    #[\ReturnTypeWillChange]
                     |    public function jsonSerialize(): ?array
                     |    {
                     |        return $!this->data;
@@ -1739,7 +1768,7 @@ class PhpBaseFileProducer constructor(val api: Api, @BasePackageName val package
                     |    /**
                     |     * @psalm-return TObject|stdClass|null
                     |     */
-                    |    final protected function get(int $!index)
+                    |    final protected function get(?int $!index)
                     |    {
                     |        if (isset($!this->data[$!index])) {
                     |            return $!this->data[$!index];
@@ -1831,6 +1860,20 @@ class PhpBaseFileProducer constructor(val api: Api, @BasePackageName val package
                     |    {
                     |        /** @psalm-var ?TObject */
                     |        return $!this->iterator->current();
+                    |    }
+                    |
+                    |    /**
+                    |     * @return ?TObject
+                    |     */
+                    |    public function end()
+                    |    {
+                    |        if ($!this->data == null) {
+                    |            return null;
+                    |        }
+                    |        $!arrayKeys = array_keys($!this->data);
+                    |        $!lastKey = array_pop($!arrayKeys);
+                    |
+                    |        return $!this->at($!lastKey);
                     |    }
                     |
                     |    /**
@@ -1959,7 +2002,8 @@ class PhpBaseFileProducer constructor(val api: Api, @BasePackageName val package
                     |    {
                     |        return $!this->data;
                     |    }
-                    |    
+                    |
+                    |    #[\ReturnTypeWillChange]
                     |    public function jsonSerialize(): ?array
                     |    {
                     |        return $!this->data;
@@ -1985,7 +2029,7 @@ class PhpBaseFileProducer constructor(val api: Api, @BasePackageName val package
                     |    /**
                     |     * @psalm-return TScalar|scalar|null
                     |     */
-                    |    final protected function get(int $!index)
+                    |    final protected function get(?int $!index)
                     |    {
                     |        if (isset($!this->data[$!index])) {
                     |            return $!this->data[$!index];
@@ -2074,6 +2118,20 @@ class PhpBaseFileProducer constructor(val api: Api, @BasePackageName val package
                     |    {
                     |        /** @psalm-var ?TScalar */
                     |        return $!this->iterator->current();
+                    |    }
+                    |
+                    |    /**
+                    |     * @return ?TScalar
+                    |     */
+                    |    public function end()
+                    |    {
+                    |        if ($!this->data == null) {
+                    |            return null;
+                    |        }
+                    |        $!arrayKeys = array_keys($!this->data);
+                    |        $!lastKey = array_pop($!arrayKeys);
+                    |
+                    |        return $!this->at($!lastKey);
                     |    }
                     |
                     |    /**
@@ -2189,6 +2247,7 @@ class PhpBaseFileProducer constructor(val api: Api, @BasePackageName val package
                     |     */
                     |    public function toArray(): ?array;
                     |
+                    |    #[\ReturnTypeWillChange]
                     |    /**
                     |     * @psalm-return array<string, stdClass|mixed>
                     |     */
@@ -2251,18 +2310,21 @@ class PhpBaseFileProducer constructor(val api: Api, @BasePackageName val package
                     |     */
                     |    public function rewind();
                     |
+                    |    #[\ReturnTypeWillChange]
                     |    /**
                     |     * @param string $!offset
                     |     * @return bool
                     |     */
                     |    public function offsetExists($!offset);
                     |
+                    |    #[\ReturnTypeWillChange]
                     |    /**
                     |     * @param string $!offset
                     |     * @return ?TObject
                     |     */
                     |    public function offsetGet($!offset);
                     |
+                    |    #[\ReturnTypeWillChange]
                     |    /**
                     |     * @param string $!offset
                     |     * @psalm-param TObject|stdClass $!value
@@ -2271,6 +2333,7 @@ class PhpBaseFileProducer constructor(val api: Api, @BasePackageName val package
                     |     */
                     |    public function offsetSet($!offset, $!value);
                     |
+                    |    #[\ReturnTypeWillChange]
                     |    /**
                     |     * @param string $!offset
                     |     * @return void
@@ -2338,6 +2401,7 @@ class PhpBaseFileProducer constructor(val api: Api, @BasePackageName val package
                     |        return $!this->data;
                     |    }
                     |
+                    |    #[\ReturnTypeWillChange]
                     |    /**
                     |     * @psalm-return array<string, stdClass|mixed>
                     |     */

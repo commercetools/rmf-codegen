@@ -1,0 +1,15 @@
+#%RAML 1.0
+title: resource lower case hyphen rule
+
+/{projectKey}:
+  /valid:
+    /key={key}:
+    /{id}:
+  /valid-resource:
+    /{id}:
+  /invalidResource:
+    /key={key}:
+    /{id}:
+  /another_invalid_resource:
+    /key={key}:
+    /{id}:

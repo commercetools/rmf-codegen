@@ -3,10 +3,9 @@ package io.vrap.rmf.codegen.common
 import org.assertj.core.api.Assertions
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.TaskOutcome
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
-import org.junit.rules.TemporaryFolder
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.io.TempDir
 import org.slf4j.LoggerFactory
 import java.io.BufferedWriter
 import java.io.File
@@ -16,15 +15,15 @@ import java.nio.file.Paths
 
 class BuildLogicFunctionalTest {
 
-    @get:Rule
-    val testProjectDir = TemporaryFolder()
+    @TempDir
+    lateinit var testProjectDir: File
 
     private lateinit var buildFile: File
     private val logger = LoggerFactory.getLogger(javaClass)
 
-    @Before
+    @BeforeEach
     fun setup() {
-        buildFile = testProjectDir.newFile("build.gradle")
+        buildFile = File(testProjectDir, "build.gradle")
     }
 
     @Test
@@ -37,7 +36,7 @@ class BuildLogicFunctionalTest {
 
         val buildFileContent = """
         |plugins {
-        |    id 'io.vrap.rmf.codegen-plugin'
+        |    id 'com.commercetools.rmf.codegen-plugin'
         |}
         |
         |RamlGenerator {
@@ -101,7 +100,7 @@ class BuildLogicFunctionalTest {
 
         writeFile(buildFile, buildFileContent)
         val result = GradleRunner.create()
-                .withProjectDir(testProjectDir.root)
+                .withProjectDir(testProjectDir)
                 .withArguments("generateRamlStub", "--stacktrace")
                 .withPluginClasspath()
                 .build()
@@ -110,7 +109,7 @@ class BuildLogicFunctionalTest {
 
         Assertions.assertThat(result.task(":generateRamlStub")!!.outcome).isEqualTo(TaskOutcome.SUCCESS)
 
-        Assertions.assertThat(testProjectDir.root.list { _, name -> name == "import-api" }).isNotEmpty
+        Assertions.assertThat(testProjectDir.list { _, name -> name == "import-api" }).isNotEmpty
     }
 
     private fun writeFile(destination: File?, content: String) {

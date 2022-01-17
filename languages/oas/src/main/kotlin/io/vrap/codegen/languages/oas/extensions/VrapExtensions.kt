@@ -10,11 +10,11 @@ import com.fasterxml.jackson.databind.SerializerProvider
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
+import io.vrap.rmf.codegen.firstUpperCase
 import io.vrap.rmf.codegen.rendring.utils.escapeAll
 import io.vrap.rmf.codegen.rendring.utils.keepAngleIndent
 import io.vrap.rmf.codegen.types.VrapEnumType
 import io.vrap.rmf.codegen.types.VrapObjectType
-import io.vrap.rmf.raml.model.elements.NamedElement
 import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.resources.UriParameter
 import io.vrap.rmf.raml.model.types.*
@@ -37,10 +37,10 @@ fun UriTemplate.toParamName(delimiter: String, suffix: String): String {
     return this.components.stream().map { uriTemplatePart ->
         if (uriTemplatePart is Expression) {
             return@map uriTemplatePart.varSpecs.stream()
-                    .map { s -> delimiter + s.variableName.capitalize() + suffix }.collect(Collectors.joining())
+                    .map { s -> delimiter + s.variableName.firstUpperCase() + suffix }.collect(Collectors.joining())
         }
         StringCaseFormat.UPPER_CAMEL_CASE.apply(uriTemplatePart.toString().replace("/", "-"))
-    }.collect(Collectors.joining()).replace("[^\\p{L}\\p{Nd}]+".toRegex(), "").capitalize()
+    }.collect(Collectors.joining()).replace("[^\\p{L}\\p{Nd}]+".toRegex(), "").firstUpperCase()
 }
 
 fun AnyType.renderScalarType(): String {
@@ -106,6 +106,19 @@ fun AnyType.renderTypeFacet(): String {
         is ObjectType -> this.renderObjectType()
         is NumberType -> this.renderNumberType()
         else -> this.renderScalarType()}
+}
+
+fun UriParameter.renderBaseUriParameter(): String {
+    return """
+            |${this.name}:
+            |  default: ${this.type.enum.first().value}
+            |  enum:
+            |   <<${this.type.enum.joinToString("\n") { "- ${it.value}" }}>>
+            |  description: |
+            |    <<${this.type.description?.value ?: ""}>>${if (this.type.examples.isNotEmpty()) """
+            |  x-annotation-examples:
+            |    <<${this.type.examples.map { it.renderSimpleExample() }.joinToString("\n")}>>""" else ""}
+        """.trimMargin().keepAngleIndent()
 }
 
 fun UriParameter.renderUriParameter(): String {
@@ -340,6 +353,7 @@ fun Instance.toJson(pretty: Boolean = true): String {
     return example.trim()
 }
 
+@Suppress("UNCHECKED_CAST")
 fun <T> EObject.getParent(parentClass: Class<T>): T? {
     if (this.eContainer() == null) {
         return null

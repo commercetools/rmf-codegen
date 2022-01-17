@@ -35,7 +35,8 @@ class PhpMethodBuilderRenderer constructor(api: Api, vrapTypeProvider: VrapTypeP
             |<<${type.imports()}>>
             |
             |/**
-            | * @psalm-suppress PropertyNotSetInConstructor
+            | * @psalm-suppress PropertyNotSetInConstructor${if (type.markDeprecated() || type.deprecated()) """
+            | * @deprecated""" else ""}
             | */
             |class ${type.resourceBuilderName()} extends ApiResource
             |{

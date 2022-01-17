@@ -2,7 +2,7 @@ package io.vrap.codegen.languages.extensions
 
 import com.damnhandy.uri.template.Expression
 import com.damnhandy.uri.template.UriTemplate
-import io.vrap.rmf.codegen.types.VrapType
+import io.vrap.rmf.codegen.firstUpperCase
 import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.responses.Response
@@ -13,7 +13,7 @@ import io.vrap.rmf.raml.model.util.StringCaseFormat
 import java.util.stream.Collectors
 
 fun Method.toRequestName(): String {
-    return this.resource().fullUri.toParamName("By") + this.method.toString().capitalize()
+    return this.resource().fullUri.toParamName("By") + this.method.toString().firstUpperCase()
 }
 
 fun UriTemplate.toParamName(delimiter: String): String {
@@ -24,10 +24,10 @@ fun UriTemplate.toParamName(delimiter: String, suffix: String): String {
     return this.components.stream().map { uriTemplatePart ->
         if (uriTemplatePart is Expression) {
             return@map uriTemplatePart.varSpecs.stream()
-                    .map { s -> delimiter + s.variableName.capitalize() + suffix }.collect(Collectors.joining())
+                    .map { s -> delimiter + s.variableName.firstUpperCase() + suffix }.collect(Collectors.joining())
         }
         StringCaseFormat.UPPER_CAMEL_CASE.apply(uriTemplatePart.toString().replace("/", "-"))
-    }.collect(Collectors.joining()).replace("[^\\p{L}\\p{Nd}]+".toRegex(), "").capitalize()
+    }.collect(Collectors.joining()).replace("[^\\p{L}\\p{Nd}]+".toRegex(), "").firstUpperCase()
 }
 
 fun Method.resource(): Resource = this.eContainer() as Resource

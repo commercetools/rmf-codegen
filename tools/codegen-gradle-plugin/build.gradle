@@ -1,34 +1,22 @@
-plugins {
-    id 'org.jetbrains.kotlin.jvm' version '1.3.72'
-}
-
-compileKotlin {
-    kotlinOptions.jvmTarget = "1.8"
-}
-compileTestKotlin {
-    kotlinOptions.jvmTarget = "1.8"
-}
 
 apply plugin: 'java-gradle-plugin'
 apply plugin: 'com.gradle.plugin-publish'
+apply plugin: 'com.github.johnrengelman.shadow'
 
 dependencies {
-    compile project(':languages:javalang:java-renderer')
-    compile project(':languages:javalang:builder-renderer:java-builder-client')
-    compile project(':languages:typescript')
-    compile project(':languages:postman')
-    compile project(':languages:python')
-    compile project(':languages:php')
-    compile project(':languages:csharp')
-    compile project(':languages:ramldoc')
-    compile project(':languages:oas')
+    implementation project(':languages:javalang:java-renderer')
+    implementation project(':languages:javalang:builder-renderer:java-builder-client')
+    implementation project(':languages:typescript')
+    implementation project(':languages:postman')
+    implementation project(':languages:python')
+    implementation project(':languages:php')
+    implementation project(':languages:csharp')
+    implementation project(':languages:ramldoc')
+    implementation project(':languages:oas')
 
-    compile gradleApi()
-    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
-    testCompile 'junit:junit:4.13'
-    testCompile gradleTestKit()
-    testCompile "org.spockframework:spock-core:${versions.spock}"
-    testCompile "org.assertj:assertj-core:3.16.0"
+    implementation gradleApi()
+    implementation orgkotlin.stdlib
+    testImplementation gradleTestKit()
 }
 
 
@@ -54,6 +42,11 @@ pluginBundle {
     }
 }
 
+shadowJar {
+    zip64 true
+    append "plugin.properties"
+}
+
 task createClasspathManifest {
     def outputDir = file("$buildDir/testClasspath")
     inputs.files sourceSets.main.runtimeClasspath
@@ -66,7 +59,7 @@ task createClasspathManifest {
 
 // Add the classpath file to the test runtime classpath
 dependencies {
-    testRuntime files(createClasspathManifest)
+    testRuntimeOnly files(createClasspathManifest)
 }
 
 compileJava.finalizedBy(createClasspathManifest)

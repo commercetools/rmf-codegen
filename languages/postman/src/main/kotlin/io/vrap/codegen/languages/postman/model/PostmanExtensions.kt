@@ -6,7 +6,7 @@ import io.vrap.rmf.raml.model.modules.Api
 import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.security.OAuth20Settings
 import io.vrap.rmf.raml.model.types.StringInstance
-import org.apache.commons.lang3.StringEscapeUtils
+import org.apache.commons.text.StringEscapeUtils
 import org.eclipse.emf.ecore.EObject
 import java.net.URI
 
@@ -30,6 +30,7 @@ fun String.singularize(): String {
     return English.singular(this)
 }
 
+@Suppress("UNCHECKED_CAST")
 fun <T> EObject.getParent(parentClass: Class<T>): T? {
     if (this.eContainer() == null) {
         return null
@@ -40,5 +41,5 @@ fun <T> EObject.getParent(parentClass: Class<T>): T? {
 }
 
 fun StringInstance.description(): String {
-    return this.value.escapeJson()?.escapeAll()?:""
+    return this.value.escapeJson().escapeAll()
 }

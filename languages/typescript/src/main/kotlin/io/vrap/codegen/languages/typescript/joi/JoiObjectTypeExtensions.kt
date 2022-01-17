@@ -2,12 +2,11 @@ package io.vrap.codegen.languages.typescript.joi
 
 import io.vrap.codegen.languages.typescript.model.TsObjectTypeExtensions
 import io.vrap.codegen.languages.typescript.model.simpleTSName
+import io.vrap.rmf.codegen.firstLowerCase
 import io.vrap.rmf.codegen.types.*
 import io.vrap.rmf.raml.model.types.AnyType
 import io.vrap.rmf.raml.model.types.ObjectType
 import io.vrap.rmf.raml.model.types.UnionType
-import java.nio.file.Path
-import java.nio.file.Paths
 
 interface JoiObjectTypeExtensions : TsObjectTypeExtensions {
 
@@ -86,9 +85,9 @@ fun VrapType.simpleJoiName():String{
     return when(this){
         is VrapAnyType -> "Joi.${this.baseType}"
         is VrapScalarType -> "Joi.${this.scalarType}"
-        is VrapEnumType -> "${this.simpleClassName.decapitalize()}Type"
-        is VrapObjectType -> "${this.simpleClassName.decapitalize()}Type"
-        is VrapArrayType -> "${this.itemType.simpleTSName().decapitalize()}Type"
+        is VrapEnumType -> "${this.simpleClassName.firstLowerCase()}Type"
+        is VrapObjectType -> "${this.simpleClassName.firstLowerCase()}Type"
+        is VrapArrayType -> "${this.itemType.simpleTSName().firstLowerCase()}Type"
         is VrapNilType -> throw IllegalStateException("$this has no simple class name.")
     }
 }

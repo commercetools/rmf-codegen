@@ -3,10 +3,10 @@ package io.vrap.codegen.languages.oas
 import io.vrap.codegen.languages.oas.model.OasBaseTypes
 import io.vrap.codegen.languages.oas.model.OasModelModule
 import io.vrap.rmf.codegen.CodeGeneratorConfig
-import io.vrap.rmf.codegen.di.ApiProvider
-import io.vrap.rmf.codegen.di.GeneratorComponent
-import io.vrap.rmf.codegen.di.GeneratorModule
-import org.junit.Test
+import io.vrap.rmf.codegen.di.RamlApiProvider
+import io.vrap.rmf.codegen.di.RamlGeneratorComponent
+import io.vrap.rmf.codegen.di.RamlGeneratorModule
+import org.junit.jupiter.api.Test
 import java.nio.file.Path
 import java.nio.file.Paths
 
@@ -16,7 +16,7 @@ class TestCodeGenerator {
         private val userProvidedOutputPath = System.getenv("OUTPUT_FOLDER")
         private val apiPath : Path = Paths.get(if (userProvidedPath == null) "../../api-spec/api.raml" else userProvidedPath)
         private val outputFolder : Path = Paths.get(if (userProvidedOutputPath == null) "build/gensrc" else userProvidedOutputPath)
-        val apiProvider: ApiProvider = ApiProvider(apiPath)
+        val apiProvider: RamlApiProvider = RamlApiProvider(apiPath)
         val generatorConfig = CodeGeneratorConfig(basePackageName = "")
     }
 
@@ -27,8 +27,8 @@ class TestCodeGenerator {
                 outputFolder = Paths.get("${outputFolder}")
         )
 
-        val generatorModule = GeneratorModule(apiProvider, generatorConfig, OasBaseTypes)
-        val generatorComponent = GeneratorComponent(generatorModule, OasModelModule)
+        val generatorModule = RamlGeneratorModule(apiProvider, generatorConfig, OasBaseTypes)
+        val generatorComponent = RamlGeneratorComponent(generatorModule, OasModelModule)
         generatorComponent.generateFiles()
     }
 
