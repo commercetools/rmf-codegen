@@ -7,6 +7,7 @@ import io.vrap.codegen.languages.oas.extensions.renderEAttributes
 import io.vrap.rmf.codegen.di.ModelPackageName
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.NamedScalarTypeRenderer
+import io.vrap.rmf.codegen.rendring.NamedStringTypeRenderer
 import io.vrap.rmf.codegen.rendring.PatternStringTypeRenderer
 import io.vrap.rmf.codegen.rendring.StringTypeRenderer
 import io.vrap.rmf.codegen.rendring.utils.keepAngleIndent
@@ -14,7 +15,7 @@ import io.vrap.rmf.codegen.types.*
 import io.vrap.rmf.raml.model.types.*
 import java.lang.Exception
 
-class OasScalarTypeRenderer constructor(override val vrapTypeProvider: VrapTypeProvider, @ModelPackageName val modelPackageName: String) : ExtensionsBase, StringTypeRenderer, PatternStringTypeRenderer, NamedScalarTypeRenderer {
+class OasScalarTypeRenderer constructor(override val vrapTypeProvider: VrapTypeProvider, @ModelPackageName val modelPackageName: String) : ExtensionsBase, StringTypeRenderer, PatternStringTypeRenderer, NamedStringTypeRenderer {
 
     override fun render(type: StringType): TemplateFile {
         return when (val vrapType = vrapTypeProvider.doSwitch(type)) {
