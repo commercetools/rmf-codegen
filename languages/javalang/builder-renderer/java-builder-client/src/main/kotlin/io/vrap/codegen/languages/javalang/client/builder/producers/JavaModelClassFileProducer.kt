@@ -33,6 +33,7 @@ class JavaModelClassFileProducer constructor(override val vrapTypeProvider: Vrap
                 |
                 |${type.imports()}
                 |import io.vrap.rmf.base.client.utils.Generated;
+                |import io.vrap.rmf.base.client.ModelBase;
                 |import javax.validation.Valid;
                 |import javax.validation.constraints.NotNull;
                 |import java.util.*;
@@ -50,7 +51,7 @@ class JavaModelClassFileProducer constructor(override val vrapTypeProvider: Vrap
                 |
                 |<${type.toComment().escapeAll()}>
                 |<${JavaSubTemplates.generatedAnnotation}>
-                |public class ${vrapType.simpleClassName}Impl implements ${vrapType.simpleClassName} {
+                |public class ${vrapType.simpleClassName}Impl implements ${vrapType.simpleClassName}, ModelBase {
                 |
                 |    <${type.beanFields().escapeAll()}>
                 |
@@ -64,7 +65,6 @@ class JavaModelClassFileProducer constructor(override val vrapTypeProvider: Vrap
                 |
                 |}
         """.trimMargin().keepIndentation()
-
         return TemplateFile(
                 relativePath = "${vrapType.`package`}.${vrapType.simpleClassName}Impl".replace(".", "/") + ".java",
                 content = content
