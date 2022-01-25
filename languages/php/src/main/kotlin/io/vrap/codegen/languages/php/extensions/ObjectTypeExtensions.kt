@@ -123,4 +123,4 @@ fun getImportsForType(vrapType: VrapType): String? {
     }
 }
 
-fun ObjectType.namedSubTypes() = this.subTypes.plus( this.subTypes.flatMap { it.subTypes } ).filterNot { it.isInlineType }
+fun ObjectType.namedSubTypes() = this.subTypes.plus( this.subTypes.flatMap { it.subTypes } ).distinctBy { it.name }.filterNot { it.isInlineType }

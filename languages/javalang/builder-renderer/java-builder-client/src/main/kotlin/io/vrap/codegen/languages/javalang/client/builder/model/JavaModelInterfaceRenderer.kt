@@ -101,7 +101,7 @@ class JavaModelInterfaceRenderer constructor(override val vrapTypeProvider: Vrap
             """
             |@JsonSubTypes({
             |   <${
-                this.subTypes.plus(this.subTypes.flatMap { it.subTypes })
+                this.subTypes.plus(this.subTypes.flatMap { it.subTypes }).distinctBy { it.name }
                     .asSequence()
                     .filterIsInstance<ObjectType>()
                     .filter { it.discriminatorValue != null }
