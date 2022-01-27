@@ -53,7 +53,7 @@ class ApiRootFileProducer constructor(
                 |    baseUri?: string;
                 |  }) {
                 |    this.executeRequest = args.executeRequest
-                |    this.baseUri = args.baseUri${if(baseUri?.template.isNullOrEmpty()) "" else " ?? '${baseUri?.template}'"}
+                |    this.baseUri = args.baseUri${if(baseUri?.template.isNullOrEmpty()) "" else " || '${baseUri?.template}'"}
                 |  }
                 |
                 |  <${type.subResources()}>

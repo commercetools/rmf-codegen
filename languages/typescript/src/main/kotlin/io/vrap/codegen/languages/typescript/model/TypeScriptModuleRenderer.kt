@@ -56,7 +56,7 @@ class TypeScriptModuleRenderer constructor(override val vrapTypeProvider: VrapTy
                 """
                 |<${toTsComment().escapeAll()}>
                 |export type ${name} =
-                |  <${subTypes.filter { !it.isInlineType }.map { it.renderTypeExpr() }.sorted().joinToString(" |\n")}>
+                |  <${subTypes.plus(subTypes.flatMap { it.subTypes }).distinctBy { it.name }.filter { !it.isInlineType }.map { it.renderTypeExpr() }.sorted().joinToString(" |\n")}>
                 |;
                 """.trimMargin()
             } else {

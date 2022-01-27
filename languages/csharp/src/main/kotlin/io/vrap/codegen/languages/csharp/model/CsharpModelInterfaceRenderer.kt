@@ -103,7 +103,7 @@ class CsharpModelInterfaceRenderer constructor(override val vrapTypeProvider: Vr
             """
             |[TypeDiscriminator(nameof(${this.discriminator.firstUpperCase()}))]
             |[DefaultTypeDiscriminator(typeof(${vrapType.csharpPackage()}.${this.objectClassName()}))]
-            |<${this.subTypes
+            |<${this.subTypes.plus(this.subTypes.flatMap { it.subTypes }).distinctBy { it.name }
                     .asSequence()
                     .filterIsInstance<ObjectType>()
                     .filter { it.discriminatorValue != null }

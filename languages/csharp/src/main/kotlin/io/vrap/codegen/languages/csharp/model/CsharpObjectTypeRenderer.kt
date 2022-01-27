@@ -95,11 +95,11 @@ class CsharpObjectTypeRenderer constructor(override val vrapTypeProvider: VrapTy
         {
             val enumName : String = this.allProperties.filter { it.name == this.discriminator() }.get(0).type.toVrapType().simpleName()
             if(enumName == "string") {
-                content = "this.${(this.type as ObjectTypeImpl).discriminator.firstUpperCase()} = \"${this.discriminatorValue}\";"
+                content = "this.${(this.type as ObjectTypeImpl).discriminator().firstUpperCase()} = \"${this.discriminatorValue}\";"
             }
             else
             {
-                content = "this.${(this.type as ObjectTypeImpl).discriminator.firstUpperCase()} = $enumName.FindEnum(\"${this.discriminatorValue}\");"
+                content = "this.${(this.type as ObjectTypeImpl).discriminator().firstUpperCase()} = $enumName.FindEnum(\"${this.discriminatorValue}\");"
             }
 
         }

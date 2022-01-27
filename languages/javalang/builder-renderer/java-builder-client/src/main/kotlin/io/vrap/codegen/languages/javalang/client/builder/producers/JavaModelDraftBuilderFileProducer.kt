@@ -173,11 +173,12 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
             """.trimMargin()
         } else {
             var propertyName = property.name
+            var checkedPropertyType = if (propertyType.isInlineType) propertyType.type else propertyType
             if(SourceVersion.isKeyword(propertyName)) {
                 propertyName = "_$propertyName"
             }
             """
-                |${if (propertyType is ObjectType && !propertyType.isAbstract() && propType.simpleName() != JavaBaseTypes.objectType.simpleName()) """
+                |${if (checkedPropertyType is ObjectType && !checkedPropertyType.isAbstract() && propType.simpleName() != JavaBaseTypes.objectType.simpleName()) """
                 |${property.deprecationAnnotation()}
                 |public ${type.simpleClassName}Builder $propertyName(Function<${propType.fullClassName()}Builder, ${propType.fullClassName()}Builder> builder) {
                 |    this.$propertyName = builder.apply(${propType.fullClassName()}Builder.of()).build();

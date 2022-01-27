@@ -58,7 +58,7 @@ interface TsObjectTypeExtensions : ExtensionsBase {
     private fun ObjectType.getDependencies(): List<VrapType> {
         var dependentTypes = this.allProperties
                 .map { it.type }
-                .plus(subTypes)
+                .plus(subTypes.plus(subTypes.flatMap { it.subTypes }).distinctBy { it.name })
                 .plus(type)
                 .flatMap { if (it is UnionType) it.oneOf else Collections.singletonList(it) }
                 .filterNotNull()
