@@ -1,5 +1,6 @@
 package io.vrap.codegen.languages.csharp.requests
 
+import com.google.common.collect.Lists
 import com.google.common.net.MediaType
 import io.vrap.codegen.languages.csharp.extensions.*
 import io.vrap.codegen.languages.extensions.EObjectExtensions
@@ -17,6 +18,7 @@ import io.vrap.rmf.codegen.types.VrapScalarType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.impl.ResourceImpl
+import io.vrap.rmf.raml.model.types.Annotation
 import io.vrap.rmf.raml.model.types.ArrayType
 import io.vrap.rmf.raml.model.types.ObjectInstance
 import io.vrap.rmf.raml.model.types.QueryParameter
@@ -36,6 +38,17 @@ class CsharpHttpRequestRenderer constructor(override val vrapTypeProvider: VrapT
         var entityFolder = (type.resource() as ResourceImpl).GetNameAsPlural()
         val cPackage = vrapType.requestBuildersPackage(entityFolder)
 
+        val implements = Lists.newArrayList<String>()
+            .plus(
+                when (val ex = type.getAnnotation("csharp-implements") ) {
+                    is Annotation -> {
+                        (ex.value as StringInstance).value.escapeAll()
+                    }
+                    else -> null
+                }
+            )
+            .filterNotNull()
+
         val content = """
             |using System;
             |using System.IO;
@@ -52,7 +65,7 @@ class CsharpHttpRequestRenderer constructor(override val vrapTypeProvider: VrapT
             |
             |namespace ${cPackage}
             |{
-            |   public partial class ${type.toRequestName()} : ApiMethod\<${type.toRequestName()}\> {
+            |   public partial class ${type.toRequestName()} : ApiMethod\<${type.toRequestName()}\>${if (implements.isNotEmpty()) ", ${implements.joinToString(", ")}" else ""} {
             |
             |       <${type.properties()}>
             |   
