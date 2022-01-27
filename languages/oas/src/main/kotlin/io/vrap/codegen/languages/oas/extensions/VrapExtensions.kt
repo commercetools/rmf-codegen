@@ -91,7 +91,7 @@ fun UnionType.renderUnionType(): String {
     val typeString = this.oneOf.joinToString(" | ") { when(it) { is ArrayType -> "${it.items.name}[]" else -> it.name } }
 
     val unionString = """
-        |(oneOf):
+        |x-oneOf:
         |${this.oneOf.joinToString("\n") { when(it) { is ArrayType -> "- ${it.items.name}[]" else -> "- ${it.name}" } }}
     """.trimMargin()
 
@@ -215,7 +215,7 @@ fun UnionAnnotationType.renderUnionType(): String {
     val typeString = this.oneOf.joinToString(" | ") { when(it) { is ArrayType -> "${it.items.name}[]" else -> it.name } }
 
     val unionString = """
-        |(oneOf):
+        |x-oneOf:
         |${this.oneOf.joinToString("\n") { when(it) { is ArrayType -> "- ${it.items.name}[]" else -> "- ${it.name}" } }}
     """.trimMargin()
 
@@ -232,7 +232,7 @@ fun AnyAnnotationType.renderTypeFacet(): String {
 }
 
 fun AnyAnnotationType.renderType(withDescription: Boolean = true): String {
-    val builtinType = "(builtinType): ${BuiltinType.of(this.eClass()).map { it.getName() }.orElse("any")}"
+    val builtinType = "x-builtinType: ${BuiltinType.of(this.eClass()).map { it.getName() }.orElse("any")}"
     val description = if (withDescription && this.description?.value.isNullOrBlank().not()) {
         """
         |description: |-
@@ -261,22 +261,22 @@ fun VrapObjectType.packageDir(prefix: String): String {
 fun Annotation.renderAnnotation(): String {
     return when (this.type) {
         is ObjectAnnotationType -> """
-            |(${this.type.name}):
+            |x-annotation-${this.type.name}:
             |  <<${this.value.toYaml()}>>""".trimMargin().keepAngleIndent()
         is ArrayAnnotationType -> """
-            |(${this.type.name}):
+            |x-annotation-${this.type.name}:
             |  <<${this.value.toYaml()}>>""".trimMargin().keepAngleIndent()
         is StringAnnotationType ->
             when(this.value) {
                 is ObjectInstance -> """
-                    |(${this.type.name}): |-
+                    |x-annotation-${this.type.name}: |-
                     |  <<${this.value.toJson()}>>""".trimMargin().keepAngleIndent()
                 is ArrayInstance -> """
-                    |(${this.type.name}): |-
+                    |x-annotation-${this.type.name}: |-
                     |  <<${this.value.toJson()}>>""".trimMargin().keepAngleIndent()
-                else -> "(${this.type.name}): ${this.value.toYaml()}"
+                else -> "x-annotation-${this.type.name}: ${this.value.toYaml()}"
             }
-        else -> "(${this.type.name}): ${this.value.toYaml()}"
+        else -> "x-${this.type.name}: ${this.value.toYaml()}"
     }
 }
 
