@@ -109,7 +109,138 @@ class OasObjectTypeRenderer constructor(override val vrapTypeProvider: VrapTypeP
         val examples = if (property.type.isInlineType) property.type.examples.filterNotNull().sortedWith(compareBy { it.name }) else listOf()
         return """
             |${if (property.isPatternProperty()) "\"${property.name}\"" else property.name}:
-            |  type: "string"
+            |  <<${property.type.renderAnyType()}>>
         """.trimMargin().keepAngleIndent()
     }
+
+
+}
+
+public fun AnyType.renderAnyType(): String {
+    if (this.isInlineType && this.type != null && this.name != null) {
+        return this.type.renderAnyType()
+    }
+    return when(this) {
+        is BooleanType -> renderBoolean(this)
+        is NumberType -> renderNumber(this)
+        is IntegerType -> renderInteger(this)
+        is StringType -> renderString(this)
+        is DateTimeType -> renderDateTime(this)
+        is DateTimeOnlyType -> renderDateTimeOnly(this)
+        is DateOnlyType -> renderDateOnly(this)
+        is TimeOnlyType -> renderTimeOnly(this)
+        is ObjectType -> renderObject(this)
+        is ArrayType -> renderArray(this)
+        else -> renderAny(this)
+    }
+}
+
+private fun renderString(type: StringType): String {
+    if (type.name != "string") {
+        return "${"$"}ref: '#/components/schemas/${type.name}'"
+    }
+    return "type: \"string\""
+}
+
+private fun renderArray(type: ArrayType): String {
+    return """
+            |type: "array"
+            |items:
+            |  <<${type.items.renderAnyType()}>>""".trimMargin().keepAngleIndent()
+}
+
+private fun renderBoolean(type: BooleanType): String {
+    return "type: \"boolean\""
+}
+
+private fun renderAny(type: AnyType): String {
+    return """
+            |anyOf:
+            |  - type: "string"
+            |  - type: "object"
+            |  - type: "array"
+            |  - type: "number"
+            |  - type: "integer"
+            |  - type: "boolean"
+        """.trimMargin()
+}
+
+private fun renderObject(type: ObjectType): String {
+    return "${"$"}ref: '#/components/schemas/${type.name}'"
+}
+
+private fun NumberType.numberType(): String {
+    return when (this.format) {
+        NumberFormat.INT,
+        NumberFormat.INT8,
+        NumberFormat.INT16,
+        NumberFormat.INT32,
+        NumberFormat.LONG,
+        NumberFormat.INT64 ->  "integer"
+        else -> "number"
+    }
+}
+
+private fun NumberType.format(): String {
+    return when (this.format) {
+        NumberFormat.INT,
+        NumberFormat.INT8,
+        NumberFormat.INT16,
+        NumberFormat.INT32 -> "int32"
+        NumberFormat.LONG,
+        NumberFormat.INT64 ->  "int64"
+        else -> "double"
+    }
+}
+
+private fun IntegerType.format(): String {
+    return when (this.format) {
+        NumberFormat.INT,
+        NumberFormat.INT8,
+        NumberFormat.INT16,
+        NumberFormat.INT32 -> "int32"
+        else -> "int64"
+    }
+}
+
+private fun renderNumber(type: NumberType): String {
+    return """
+            |type: "${type.numberType()}"
+            |format: "${type.format()}"
+        """.trimMargin()
+}
+
+private fun renderInteger(type: IntegerType): String {
+    return """
+            |type: "integer"
+            |format: "${type.format()}"
+        """.trimMargin()
+}
+
+private fun renderDateTime(type: DateTimeType): String {
+    return """
+            |type: "string"
+            |format: "datetime"
+        """.trimMargin()
+}
+
+private fun renderDateTimeOnly(type: DateTimeOnlyType): String {
+    return """
+            |type: "string"
+            |format: "datetime-only"
+        """.trimMargin()
+}
+
+private fun renderDateOnly(type: DateOnlyType): String {
+    return """
+            |type: "string"
+            |format: "date-only"
+        """.trimMargin()
+}
+
+private fun renderTimeOnly(type: TimeOnlyType): String {
+    return """
+            |type: "string"
+            |format: "time-only"
+        """.trimMargin()
 }

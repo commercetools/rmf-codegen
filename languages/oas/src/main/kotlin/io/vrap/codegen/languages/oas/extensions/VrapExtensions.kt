@@ -261,20 +261,20 @@ fun VrapObjectType.packageDir(prefix: String): String {
 fun Annotation.renderAnnotation(): String {
     return when (this.type) {
         is ObjectAnnotationType -> """
-            |x-${this.type.name}:
+            |x-annotation-${this.type.name}:
             |  <<${this.value.toYaml()}>>""".trimMargin().keepAngleIndent()
         is ArrayAnnotationType -> """
-            |x-${this.type.name}:
+            |x-annotation-${this.type.name}:
             |  <<${this.value.toYaml()}>>""".trimMargin().keepAngleIndent()
         is StringAnnotationType ->
             when(this.value) {
                 is ObjectInstance -> """
-                    |x-${this.type.name}: |-
+                    |x-annotation-${this.type.name}: |-
                     |  <<${this.value.toJson()}>>""".trimMargin().keepAngleIndent()
                 is ArrayInstance -> """
-                    |x-${this.type.name}: |-
+                    |x-annotation-${this.type.name}: |-
                     |  <<${this.value.toJson()}>>""".trimMargin().keepAngleIndent()
-                else -> "x-${this.type.name}: ${this.value.toYaml()}"
+                else -> "x-annotation-${this.type.name}: ${this.value.toYaml()}"
             }
         else -> "x-${this.type.name}: ${this.value.toYaml()}"
     }

@@ -117,7 +117,10 @@ class OasResourceRenderer constructor(val api: Api, val vrapTypeProvider: VrapTy
 //        val bodyExamples = requestExamples(body, method)
         return """
             |content:
-            |  ${body.contentType}: {}
+            |  ${body.contentType}:${if (body.type != null) """
+            |    schema:
+            |      ${"$"}ref: '#/components/schemas/${body.type.name}'
+            """ else ""}
         """.trimMargin().keepAngleIndent()
 //        |  <<${body.type.renderType(false)}>>${if (bodyExamples.isNotEmpty()) """
 //            |  examples:
@@ -128,7 +131,10 @@ class OasResourceRenderer constructor(val api: Api, val vrapTypeProvider: VrapTy
     private fun renderBody(body: Body, method: Method, response: Response): String {
 //        val bodyExamples = body.inlineTypes.flatMap { inlineType -> inlineType.examples.map { example -> "${method.toRequestName()}-${response.statusCode}-${if (example.name.isNotEmpty()) example.name else "default"}" to example } }.toMap()
         return """
-            |${body.contentType}: {}
+            |${body.contentType}:${if (body.type != null) """
+            |    schema:
+            |      ${"$"}ref: '#/components/schemas/${body.type.name}'
+            """ else ""}
         """.trimMargin().keepAngleIndent()
 //        |  <<${body.type.renderType(false)}>>${if (bodyExamples.isNotEmpty()) """
 //            |  examples:
@@ -149,14 +155,12 @@ class OasResourceRenderer constructor(val api: Api, val vrapTypeProvider: VrapTy
     private fun renderQueryParameter(queryParameter: QueryParameter): String {
         return """
             |- name: ${queryParameter.name}${if (queryParameter.type.default != null) """
-            |  default: ${queryParameter.type.default.toYaml()}""" else ""}
+            |  x-annotation-default: ${queryParameter.type.default.toYaml()}""" else ""}
             |  in: query
             |  required: ${queryParameter.required}
             |  style: form
             |  schema:
-            |    type: array
-            |    items:
-            |      type: ${queryParameter.type.name ?: "string"}
+            |    <<${queryParameter.type.renderAnyType()}>>
             |  explode: true
         """.trimMargin().keepAngleIndent()
     }

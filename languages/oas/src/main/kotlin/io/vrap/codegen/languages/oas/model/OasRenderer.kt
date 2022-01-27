@@ -34,6 +34,7 @@ class OasRenderer constructor(val api: Api, override val vrapTypeProvider: VrapT
     val scalarTypeRenderer = OasScalarTypeRenderer(vrapTypeProvider, "");
 
     private fun apiRaml(api: Api): TemplateFile {
+
         val resourceRenderer = OasResourceRenderer(api, vrapTypeProvider);
         val content = """
             |openapi: "3.0.0"
@@ -55,12 +56,17 @@ class OasRenderer constructor(val api: Api, override val vrapTypeProvider: VrapT
             |    <<${api.securitySchemes.joinToString("\n") { renderScheme(it)}}>>
             """ else ""}
             |  schemas:
-            |    <<${api.types.joinToString("\n") { renderType(it) }}>>
+            |    <<${api.allAnyTypes().joinToString("\n") { renderType(it) }}>>
         """.trimMargin().keepAngleIndent()
 
         return TemplateFile(relativePath = "openapi.yaml",
                 content = content
         )
+    }
+
+    private fun Api.allAnyTypes(): List<AnyType> {
+        return this.types.plus(this.uses.flatMap { it.library.types })
+
     }
 
     private fun renderType(type: AnyType): String {
@@ -70,7 +76,7 @@ class OasRenderer constructor(val api: Api, override val vrapTypeProvider: VrapT
                     is ObjectType -> objectTypeRenderer.render(type).content
                     is StringType -> scalarTypeRenderer.render(type).content
                     else -> """
-                        |type: "object"
+                        |type: "any"
                     """.trimMargin()
                 }}>>
         """.trimMargin().keepAngleIndent()
