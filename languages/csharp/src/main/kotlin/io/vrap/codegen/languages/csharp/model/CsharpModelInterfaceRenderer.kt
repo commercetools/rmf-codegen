@@ -1,5 +1,6 @@
 package io.vrap.codegen.languages.csharp.model
 
+import com.google.common.collect.Lists
 import io.vrap.codegen.languages.csharp.extensions.*
 import io.vrap.codegen.languages.extensions.EObjectExtensions
 import io.vrap.codegen.languages.extensions.hasSubtypes
@@ -7,11 +8,13 @@ import io.vrap.rmf.codegen.firstUpperCase
 import io.vrap.rmf.codegen.di.BasePackageName
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendring.ObjectTypeRenderer
+import io.vrap.rmf.codegen.rendring.utils.escapeAll
 import io.vrap.rmf.codegen.rendring.utils.keepIndentation
 import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
-import io.vrap.rmf.raml.model.types.ObjectType
-import io.vrap.rmf.raml.model.types.Property
+import io.vrap.rmf.raml.model.types.*
+import io.vrap.rmf.raml.model.types.Annotation
+import io.vrap.rmf.raml.model.util.StringCaseFormat
 import java.util.*
 
 
@@ -20,13 +23,23 @@ class CsharpModelInterfaceRenderer constructor(override val vrapTypeProvider: Vr
     override fun render(type: ObjectType): TemplateFile {
         val vrapType = vrapTypeProvider.doSwitch(type) as VrapObjectType
 
+        val extends = Lists.newArrayList(type.type?.toVrapType()?.simpleName())
+            .plus(
+                when (val ex = type.getAnnotation("csharp-extends") ) {
+                    is Annotation -> {
+                        (ex.value as StringInstance).value.escapeAll()
+                    }
+                    else -> null
+                }
+            ).filterNotNull()
+
         var content : String = """
             |${type.usings()}
             |
             |namespace ${vrapType.csharpPackage()}
             |{
             |    <${type.DeserializationAttributes()}>
-            |    public partial interface I${vrapType.simpleClassName} ${type.type?.toVrapType()?.simpleName()?.let { ": $it" } ?: ""}
+            |    public partial interface I${vrapType.simpleClassName} ${if (extends.isNotEmpty()) { ": ${extends.joinToString(separator = ", ")}" } else ""}
             |    {
             |        <${type.toProperties()}>
             |    }
