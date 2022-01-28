@@ -49,11 +49,10 @@ class CsharpHttpRequestRenderer constructor(override val vrapTypeProvider: VrapT
             |using commercetools.Base.Client;
             |using commercetools.Base.Serialization;
             |${type.usings()}
-            |
             |namespace ${cPackage}
             |{
-            |   public partial class ${type.toRequestName()} : ApiMethod\<${type.toRequestName()}\> {
-            |
+            |   public partial class ${type.toRequestName()} : ApiMethod\<${type.toRequestName()}\> 
+            |   {
             |       <${type.properties()}>
             |   
             |       <${type.constructor()}>
@@ -68,9 +67,7 @@ class CsharpHttpRequestRenderer constructor(override val vrapTypeProvider: VrapT
             |
             |       <${type.formParamMethods()}>
             |   }
-            |}
-        """.trimMargin()
-                .keepIndentation()
+            |}""".trimMargin().keepIndentation()
 
         val relativePath = cPackage
                 .replace(basePackagePrefix, "").replace(".", "/")
@@ -108,11 +105,12 @@ class CsharpHttpRequestRenderer constructor(override val vrapTypeProvider: VrapT
             ""
         }
 
-        return """|
-            |<$pathArgs>
-            |
-            |<$body>
-        """.trimMargin()
+        return if(body != "")
+            """|<$pathArgs>
+                      |
+                      |<$body>""".trimMargin()
+        else
+            """|<$pathArgs>""".trimMargin()
     }
 
     private fun Method.constructor(): String? {
@@ -154,7 +152,8 @@ class CsharpHttpRequestRenderer constructor(override val vrapTypeProvider: VrapT
         constructorAssignments.add("this.RequestUrl = $\"${requestUrl}\";")
 
         return """
-            |public ${this.toRequestName()}(${constructorArguments.joinToString(separator = ", ")}) {
+            |public ${this.toRequestName()}(${constructorArguments.joinToString(separator = ", ")})
+            |{
             |    <${constructorAssignments.joinToString(separator = "\n")}>
             |}
         """.trimMargin().keepIndentation().escapeAll()
@@ -182,7 +181,8 @@ class CsharpHttpRequestRenderer constructor(override val vrapTypeProvider: VrapT
     private fun Method.queryParamsGetters() : String = this.queryParameters
             .filter { it.getAnnotation(PLACEHOLDER_PARAM_ANNOTATION, true) == null }
             .map { """
-                |public List<string> Get${it.fieldName().firstUpperCase()}() {
+                |public List<string> Get${it.fieldName().firstUpperCase()}() 
+                |{
                 |    return this.GetQueryParam("${it.name}");
                 |}
                 """.trimMargin().escapeAll() }
@@ -191,7 +191,8 @@ class CsharpHttpRequestRenderer constructor(override val vrapTypeProvider: VrapT
     private fun Method.queryParamsSetters() : String = this.queryParameters
             .filter { it.getAnnotation(PLACEHOLDER_PARAM_ANNOTATION, true) == null }
             .map { """
-                |public ${this.toRequestName()} With${it.fieldName().firstUpperCase()}(${it.witherType()} ${it.fieldName()}){
+                |public ${this.toRequestName()} With${it.fieldName().firstUpperCase()}(${it.witherType()} ${it.fieldName()})
+                |{
                 |    return this.AddQueryParam("${it.name}", ${it.fieldNameAsString(it.witherType())});
                 |}
             """.trimMargin().escapeAll() }
@@ -210,8 +211,8 @@ class CsharpHttpRequestRenderer constructor(override val vrapTypeProvider: VrapT
                 """
             |public async Task\<${this.csharpReturnType(vrapTypeProvider)}\> ExecuteAsync()
             |{
-            |   var requestMessage = Build();
-            |   return await ApiHttpClient.ExecuteAsync\<${this.csharpReturnType(vrapTypeProvider)}\>(requestMessage);
+            |    var requestMessage = Build();
+            |    return await ApiHttpClient.ExecuteAsync\<${this.csharpReturnType(vrapTypeProvider)}\>(requestMessage);
             |}
         """.trimMargin()
 
@@ -235,12 +236,12 @@ class CsharpHttpRequestRenderer constructor(override val vrapTypeProvider: VrapT
                     |
                     |public override HttpRequestMessage Build()
                     |{
-                    |   var request = base.Build();
-                    |   if ($bodyName != null && $bodyName.Length \> 0)
-                    |   {
-                    |       request.Content = new StreamContent($bodyName);
-                    |   }
-                    |   return request;
+                    |    var request = base.Build();
+                    |    if ($bodyName != null && $bodyName.Length \> 0)
+                    |    {
+                    |        request.Content = new StreamContent($bodyName);
+                    |    }
+                    |    return request;
                     |}
                 """.trimMargin()
             }
@@ -249,10 +250,9 @@ class CsharpHttpRequestRenderer constructor(override val vrapTypeProvider: VrapT
                     |
                     |public override HttpRequestMessage Build()
                     |{
-                    |   var request = base.Build();
-                    |
-                    |   request.Content = new FormUrlEncodedContent(_formParams);
-                    |   return request;
+                    |    var request = base.Build();
+                    |    request.Content = new FormUrlEncodedContent(_formParams);
+                    |    return request;
                     |}
                 """.trimMargin()
             else
@@ -261,16 +261,16 @@ class CsharpHttpRequestRenderer constructor(override val vrapTypeProvider: VrapT
                     |
                     |public override HttpRequestMessage Build()
                     |{
-                    |   var request = base.Build();
-                    |   if (SerializerService != null)
-                    |   {
-                    |       var body = this.SerializerService.Serialize(${bodyName});
-                    |       if(!string.IsNullOrEmpty(body))
-                    |       {
-                    |           request.Content = new StringContent(body, Encoding.UTF8, "application/json");
-                    |       }
-                    |   }
-                    |   return request;
+                    |    var request = base.Build();
+                    |    if (SerializerService != null)
+                    |    {
+                    |        var body = this.SerializerService.Serialize(${bodyName});
+                    |        if(!string.IsNullOrEmpty(body))
+                    |        {
+                    |            request.Content = new StringContent(body, Encoding.UTF8, "application/json");
+                    |        }
+                    |    }
+                    |    return request;
                     |}
                 """.trimMargin()
             }
@@ -281,12 +281,14 @@ class CsharpHttpRequestRenderer constructor(override val vrapTypeProvider: VrapT
     private fun Method.formParamMethods() : String =
         if (this.bodies != null && !this.bodies.isEmpty() && this.bodies[0].contentMediaType.`is`(MediaType.FORM_DATA)) {
             """
-                public ${this.toRequestName()} AddFormParam<TValue>(string key, TValue value) {
+                public ${this.toRequestName()} AddFormParam<TValue>(string key, TValue value)
+                {
                     this._formParams.Add(new KeyValuePair<string, string>(key, value.ToString()));
                     return this;
                 }
             
-                public ${this.toRequestName()} WithFormParam<TValue>(string key, TValue value) {
+                public ${this.toRequestName()} WithFormParam<TValue>(string key, TValue value)
+                {
                     return WithoutFormParam(key).AddFormParam(key, value);
                 }
             
@@ -295,7 +297,8 @@ class CsharpHttpRequestRenderer constructor(override val vrapTypeProvider: VrapT
                  * @param key form parameter name
                  * @return T
                  */
-                public ${this.toRequestName()} WithoutFormParam(string key) {
+                public ${this.toRequestName()} WithoutFormParam(string key)
+                {
                     this._formParams = this._formParams.FindAll(pair => !pair.Key.Equals(key, StringComparison.InvariantCultureIgnoreCase));
                     return this;
                 }
@@ -305,28 +308,34 @@ class CsharpHttpRequestRenderer constructor(override val vrapTypeProvider: VrapT
                  * @param formParams list of form parameters
                  * @return T
                  */
-                public ${this.toRequestName()} WithFormParams(List<KeyValuePair<string, string>> formParams) {
+                public ${this.toRequestName()} WithFormParams(List<KeyValuePair<string, string>> formParams)
+                {
                     this._formParams = formParams;
                     return this;
                 }
             
-                public List<KeyValuePair<string, string>> GetFormParams() {
+                public List<KeyValuePair<string, string>> GetFormParams()
+                {
                     return this._formParams.ToList();
                 }
             
-                public List<string> GetFormParam(string key) {
+                public List<string> GetFormParam(string key)
+                {
                     return this._formParams.FindAll(pair => pair.Key.Equals(key, StringComparison.InvariantCultureIgnoreCase)).Select(pair => pair.Value).ToList();
                 }
                 
-                public List<string> GetFormParamUriStrings() {
+                public List<string> GetFormParamUriStrings()
+                {
                     return this._formParams.Select(ToUriString).ToList();
                 }
 
-                public string GetFormParamUriString() {
+                public string GetFormParamUriString()
+                {
                     return string.Join('&', this._formParams.Select(ToUriString));
                 }
                 
-                private static string ToUriString(KeyValuePair<string, string> entry) {
+                private static string ToUriString(KeyValuePair<string, string> entry) 
+                {
                     return entry.Key + "=" + WebUtility.UrlEncode(entry.Value);
                 }
 
@@ -370,7 +379,8 @@ class CsharpHttpRequestRenderer constructor(override val vrapTypeProvider: VrapT
                 val parameters =  "string " + StringCaseFormat.LOWER_CAMEL_CASE.apply(placeholder.value) + ", ${it.witherType()} " + paramName.value
 
                 return """
-                |public ${this.toRequestName()} With$methodName($parameters){
+                |public ${this.toRequestName()} With$methodName($parameters)
+                |{
                 |    return this.AddQueryParam($value, ${paramName.value});
                 |}
             """.trimMargin().escapeAll()
