@@ -299,7 +299,7 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
                 |    final String mimeType = Optional.ofNullable(URLConnection.guessContentTypeFromName(file.getName())).orElse("application/octet-stream");
                 |    headers = headers.withHeader(ApiHttpHeaders.CONTENT_TYPE, mimeType);
                 |}
-                |return new ApiHttpRequest(ApiHttpMethod.${this.method.name}, URI.create(httpRequestPath), headers, io.vrap.rmf.base.client.utils.FileUtils.executing(() -> Files.readAllBytes(file.toPath())));
+                |return new ApiHttpRequest(ApiHttpMethod.${this.method.name}, URI.create(httpRequestPath), headers, io.vrap.rmf.base.client.utils.FileUtils.executing(() -\> Files.readAllBytes(file.toPath())));
                 |""".trimMargin()
             else if (this.bodies[0].contentMediaType.`is`(MediaType.FORM_DATA))
                 """
@@ -307,7 +307,7 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
                 """.trimMargin()
             else
                 """
-                |return new ApiHttpRequest(ApiHttpMethod.${this.method.name}, URI.create(httpRequestPath), getHeaders(), io.vrap.rmf.base.client.utils.json.JsonUtils.executing(() -> apiHttpClient().getSerializerService().toJsonByteArray($bodyName)));
+                |return new ApiHttpRequest(ApiHttpMethod.${this.method.name}, URI.create(httpRequestPath), getHeaders(), io.vrap.rmf.base.client.utils.json.JsonUtils.executing(() -\> apiHttpClient().getSerializerService().toJsonByteArray($bodyName)));
                 |""".trimMargin()
         } else """
                 |return new ApiHttpRequest(ApiHttpMethod.${this.method.name}, URI.create(httpRequestPath), getHeaders(), null);
