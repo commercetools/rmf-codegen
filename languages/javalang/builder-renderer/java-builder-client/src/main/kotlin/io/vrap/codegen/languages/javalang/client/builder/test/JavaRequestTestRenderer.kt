@@ -154,7 +154,7 @@ class JavaRequestTestRenderer constructor(override val vrapTypeProvider: VrapTyp
         val bodyDef = method.firstBody()
         return if (bodyDef != null) {
             if (bodyDef.type.isFile()) {
-                "FileTestUtils.testFileFor(${resource.toResourceName()}.class)"
+                "FileTestUtils.testFileFor(${resource.toResourceName()}Test.class)"
             }
             else {
                 "null"
