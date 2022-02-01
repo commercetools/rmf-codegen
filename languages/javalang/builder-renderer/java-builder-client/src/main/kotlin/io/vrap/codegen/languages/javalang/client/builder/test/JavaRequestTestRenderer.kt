@@ -108,7 +108,7 @@ class JavaRequestTestRenderer constructor(override val vrapTypeProvider: VrapTyp
 
     private fun parameterTestProvider(resource: Resource, method: Method): String {
         val builderChain = resource.resourcePathList().map { r -> "${r.getMethodName()}(${if (r.relativeUri.paramValues().isNotEmpty()) "\"${r.relativeUri.paramValues().joinToString("\", \"") { p -> "test_$p"} }\"" else ""})" }
-                .plus("${method.method}(${if (method.firstBody() != null) "null" else ""})")
+                .plus("${method.method}(${bodyContent(resource, method)})")
                 .plus("createHttpRequest()")
 
         return """
@@ -135,8 +135,9 @@ class JavaRequestTestRenderer constructor(override val vrapTypeProvider: VrapTyp
             methodValue = "\"${placeholder.value}\", \"${paramName}\""
         }
 
+
         val builderChain = resource.resourcePathList().map { r -> "${r.getMethodName()}(${if (r.relativeUri.paramValues().isNotEmpty()) "\"${r.relativeUri.paramValues().joinToString("\", \"") { p -> "test_$p"} }\"" else ""})" }
-                .plus("${method.method}(${if (method.firstBody() != null) "null" else ""})")
+                .plus("${method.method}(${bodyContent(resource, method)})")
                 .plus("${parameter.methodName()}(${methodValue})")
                 .plus("createHttpRequest()")
         return """
@@ -149,9 +150,21 @@ class JavaRequestTestRenderer constructor(override val vrapTypeProvider: VrapTyp
             """.trimMargin().keepAngleIndent()
     }
 
+    private fun bodyContent(resource: Resource, method: Method): String {
+        val bodyDef = method.firstBody()
+        return if (bodyDef != null) {
+            if (bodyDef.type.isFile()) {
+                "FileTestUtils.testFileFor(${resource.toResourceName()}.class)"
+            }
+            else {
+                "null"
+            }
+        } else ""
+    }
+
     private fun requestTestProvider(resource: Resource, method: Method): String {
         val builderChain = resource.resourcePathList().map { r -> "${r.getMethodName()}(${if (r.relativeUri.paramValues().isNotEmpty()) "\"${r.relativeUri.paramValues().joinToString("\", \"") { p -> "test_$p"} }\"" else ""})" }
-                .plus("${method.method}(${if (method.firstBody() != null) "null" else ""})")
+                .plus("${method.method}(${bodyContent(resource, method)})")
 
         return """
                 |new Object[] {           
@@ -176,7 +189,7 @@ class JavaRequestTestRenderer constructor(override val vrapTypeProvider: VrapTyp
         }
 
         val builderChain = resource.resourcePathList().map { r -> "${r.getMethodName()}(${if (r.relativeUri.paramValues().isNotEmpty()) "\"${r.relativeUri.paramValues().joinToString("\", \"") { p -> "test_$p"} }\"" else ""})" }
-                .plus("${method.method}(${if (method.firstBody() != null) "null" else ""})")
+                .plus("${method.method}(${bodyContent(resource, method)})")
                 .plus("${parameter.methodName()}(${methodValue})")
         return """
                 |new Object[] {           
