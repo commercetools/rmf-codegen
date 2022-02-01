@@ -193,7 +193,7 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
             } else if (this.bodies[0].contentMediaType.`is`(MediaType.FORM_DATA)){
                 constructorArguments.add("List<ParamEntry<String, String>> formParams".escapeAll())
                 constructorAssignments[0] = "super(apiHttpClient, new ApiHttpHeaders(new ApiHttpHeaders.StringHeaderEntry(ApiHttpHeaders.CONTENT_TYPE, \"application/x-www-form-urlencoded\")), new ArrayList<>());".escapeAll()
-                constructorAssignments.add("this.formParams = formParams;")
+                constructorAssignments.add("this.formParams = formParams != null ? formParams : new ArrayList<>();".escapeAll())
             }else {
                 constructorArguments.add("Object obj")
                 constructorAssignments.add("this.obj = obj;")
