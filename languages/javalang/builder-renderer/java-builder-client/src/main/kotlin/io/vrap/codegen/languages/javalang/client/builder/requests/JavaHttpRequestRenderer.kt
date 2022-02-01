@@ -294,43 +294,30 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
         val bodySetter: String = if(bodyName != null){
             if(this.bodies[0].type.isFile())
                 """
-                |try {
-                |    ApiHttpHeaders headers = getHeaders();
-                |    if (headers.getFirst(ApiHttpHeaders.CONTENT_TYPE) == null) {
-                |        final String mimeType = Optional.ofNullable(URLConnection.guessContentTypeFromName(file.getName())).orElse("application/octet-stream");
-                |        headers = headers.withHeader(ApiHttpHeaders.CONTENT_TYPE, mimeType);
-                |    }
-                |    return new ApiHttpRequest(ApiHttpMethod.${this.method.name}, URI.create(httpRequestPath), headers, Files.readAllBytes(file.toPath()));
-                |} catch (Exception e) {
-                |    e.printStackTrace();
+                |ApiHttpHeaders headers = getHeaders();
+                |if (headers.getFirst(ApiHttpHeaders.CONTENT_TYPE) == null) {
+                |    final String mimeType = Optional.ofNullable(URLConnection.guessContentTypeFromName(file.getName())).orElse("application/octet-stream");
+                |    headers = headers.withHeader(ApiHttpHeaders.CONTENT_TYPE, mimeType);
                 |}
+                |return new ApiHttpRequest(ApiHttpMethod.${this.method.name}, URI.create(httpRequestPath), headers, io.vrap.rmf.base.client.utils.FileUtils.executing(() -> Files.readAllBytes(file.toPath())));
                 |""".trimMargin()
             else if (this.bodies[0].contentMediaType.`is`(MediaType.FORM_DATA))
                 """
-                |
-                |try {
-                |    return new ApiHttpRequest(ApiHttpMethod.${this.method.name}, URI.create(httpRequestPath), getHeaders(), getFormParamUriString().getBytes(StandardCharsets.UTF_8));
-                |} catch (Exception e) {
-                |    e.printStackTrace();
-                |}
+                |return new ApiHttpRequest(ApiHttpMethod.${this.method.name}, URI.create(httpRequestPath), getHeaders(), getFormParamUriString().getBytes(StandardCharsets.UTF_8));
                 """.trimMargin()
             else
                 """
-                |try {
-                |    final byte[] body = apiHttpClient().getSerializerService().toJsonByteArray($bodyName);
-                |    return new ApiHttpRequest(ApiHttpMethod.${this.method.name}, URI.create(httpRequestPath), getHeaders(), body);
-                |} catch(Exception e) {
-                |    e.printStackTrace();
-                |}
+                |return new ApiHttpRequest(ApiHttpMethod.${this.method.name}, URI.create(httpRequestPath), getHeaders(), io.vrap.rmf.base.client.utils.json.JsonUtils.executing(() -> apiHttpClient().getSerializerService().toJsonByteArray($bodyName)));
                 |""".trimMargin()
-        } else ""
+        } else """
+                |return new ApiHttpRequest(ApiHttpMethod.${this.method.name}, URI.create(httpRequestPath), getHeaders(), null);
+            """.trimMargin()
 
         return """
             |@Override
             |public ApiHttpRequest createHttpRequest() {
             |    <$requestPathGeneration>
             |    $bodySetter
-            |    return new ApiHttpRequest(ApiHttpMethod.${this.method.name}, URI.create(httpRequestPath), getHeaders(), null);
             |}
         """.trimMargin()
     }
