@@ -151,7 +151,6 @@ class JavaModelInterfaceRenderer constructor(override val vrapTypeProvider: Vrap
                 |public static ${vrapType.simpleClassName}Builder builder(final ${vrapType.simpleClassName} template){
                 |    return ${vrapType.simpleClassName}Builder.of(template);
                 |}
-                |
              """.trimMargin()
         }
     }

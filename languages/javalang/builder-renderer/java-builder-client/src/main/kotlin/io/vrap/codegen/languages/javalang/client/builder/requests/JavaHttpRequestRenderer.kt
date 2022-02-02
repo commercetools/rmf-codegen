@@ -46,6 +46,13 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
                         type.`is`.map { "${it.trait.className()}<${type.toRequestName()}>".escapeAll() }
                 )
                 .filterNotNull()
+        val bodyType = if (type.bodies != null && type.bodies.isNotEmpty() && type.bodies[0].type.toVrapType() is VrapObjectType) {
+            type.bodies[0].type.toVrapType() as VrapObjectType
+        } else {
+            null
+        }
+        val apiMethodClass = if(bodyType != null) "BodyApiMethod" else "ApiMethod"
+        val bodyTypeClass = if(bodyType != null) ", ${bodyType.`package`.toJavaPackage()}.${bodyType.simpleName()}" else ""
 
         val content = """
             |package ${vrapType.`package`.toJavaPackage()};
@@ -83,7 +90,7 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
             |
             |<${type.toComment().escapeAll()}>
             |<${JavaSubTemplates.generatedAnnotation}>
-            |public class ${type.toRequestName()} extends ApiMethod\<${type.toRequestName()}, ${type.javaReturnType(vrapTypeProvider)}\>${if (implements.isNotEmpty()) " implements ${implements.joinToString(", ")}" else ""} {
+            |public class ${type.toRequestName()} extends $apiMethodClass\<${type.toRequestName()}, ${type.javaReturnType(vrapTypeProvider)}$bodyTypeClass\>${if (implements.isNotEmpty()) " implements ${implements.joinToString(", ")}" else ""} {
             |
             |    <${type.fields()}>
             |
@@ -107,6 +114,8 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
             |
             |    <${type.queryParamsTemplateSetters()}>
             |    
+            |    <${type.bodyMethods()}>
+            |
             |    <${type.formParamMethods()}>
             |    
             |    <${type.equalsMethod()}>
@@ -455,6 +464,22 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
                 |}
             """.trimMargin().escapeAll() }
             .joinToString(separator = "\n\n")
+
+    private fun Method.bodyMethods() : String =
+        if(this.bodies != null && this.bodies.isNotEmpty() && this.bodies[0].type.toVrapType() is VrapObjectType) {
+            val methodBodyVrapType = this.bodies[0].type.toVrapType() as VrapObjectType
+            """
+                |public ${methodBodyVrapType.`package`.toJavaPackage()}.${methodBodyVrapType.simpleClassName} getBody() {
+                |    return ${methodBodyVrapType.simpleClassName.firstLowerCase()};
+                |}
+                |
+                |public ${this.toRequestName()} withBody(${methodBodyVrapType.`package`.toJavaPackage()}.${methodBodyVrapType.simpleClassName} ${methodBodyVrapType.simpleClassName.firstLowerCase()}) {
+                |    ${this.toRequestName()} t = copy();
+                |    t.${methodBodyVrapType.simpleClassName.firstLowerCase()} = ${methodBodyVrapType.simpleClassName.firstLowerCase()};
+                |    return t;
+                |}
+            """.trimMargin()
+        } else ""
 
     private fun Method.formParamMethods() : String =
         if (this.bodies != null && !this.bodies.isEmpty() && this.bodies[0].contentMediaType.`is`(MediaType.FORM_DATA)) {
