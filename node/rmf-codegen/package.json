@@ -24,7 +24,16 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "bin": {
-    "rmf-codegen": "bin/rmf-codegen.js"
+    "rmf-codegen": "bin/rmf-codegen.js",
+    "raml-markdownlint": "bin/raml-markdownlint.mjs"
   },
-  "dependencies": {}
+  "dependencies": {
+    "globby": "^13.1.1",
+    "js-yaml": "^4.0.0",
+    "markdownlint": "^0.25.1",
+    "traverse": "^0.6.6"
+  },
+  "engines": {
+    "node": ">=12"
+  }
 }

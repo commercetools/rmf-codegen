@@ -1,3 +1,4 @@
+!bin
 bin/rmf-codegen.jar
 node_modules
 ruleset.xml
