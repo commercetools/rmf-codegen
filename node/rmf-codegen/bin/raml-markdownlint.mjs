@@ -28,8 +28,9 @@ const markdownLintDefaults = {
     }
 }
 
+let numErrors = 0;
+
 const run = async () => {
-    let numErrors = 0;
 
     console.log("\n# RAML markdown lint\n");
 
