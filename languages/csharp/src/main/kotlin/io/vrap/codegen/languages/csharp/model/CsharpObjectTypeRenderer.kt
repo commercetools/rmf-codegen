@@ -2,6 +2,7 @@ package io.vrap.codegen.languages.csharp.model
 
 import io.vrap.codegen.languages.csharp.extensions.*
 import io.vrap.codegen.languages.extensions.EObjectExtensions
+import io.vrap.codegen.languages.extensions.isPatternProperty
 import io.vrap.rmf.codegen.firstUpperCase
 import io.vrap.rmf.codegen.di.BasePackageName
 import io.vrap.rmf.codegen.io.TemplateFile
@@ -65,7 +66,8 @@ class CsharpObjectTypeRenderer constructor(override val vrapTypeProvider: VrapTy
     }
 
     private fun ObjectType.toProperties() : String = this.allProperties
-            .map { it.toCsharpProperty() }.joinToString(separator = "\n\n")
+        .filterNot { property -> property.isPatternProperty() }
+        .map { it.toCsharpProperty() }.joinToString(separator = "\n\n")
 
     private fun Property.toCsharpProperty(): String {
         val propName = this.name.firstUpperCase()

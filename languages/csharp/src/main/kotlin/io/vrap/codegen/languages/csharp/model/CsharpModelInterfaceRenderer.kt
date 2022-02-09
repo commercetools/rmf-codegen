@@ -4,6 +4,7 @@ import com.google.common.collect.Lists
 import io.vrap.codegen.languages.csharp.extensions.*
 import io.vrap.codegen.languages.extensions.EObjectExtensions
 import io.vrap.codegen.languages.extensions.hasSubtypes
+import io.vrap.codegen.languages.extensions.isPatternProperty
 import io.vrap.rmf.codegen.firstUpperCase
 import io.vrap.rmf.codegen.di.BasePackageName
 import io.vrap.rmf.codegen.io.TemplateFile
@@ -62,6 +63,7 @@ class CsharpModelInterfaceRenderer constructor(override val vrapTypeProvider: Vr
     }
 
     private fun ObjectType.toProperties() : String = this.properties
+            .filterNot { property -> property.isPatternProperty() }
             .map { it.toCsharpProperty(this) }.joinToString(separator = "\n\n")
 
     private fun Property.toCsharpProperty(objectType: ObjectType): String {
