@@ -33,9 +33,9 @@ class ActionRenderer {
     }
 
     private fun renderAction(resource: Resource, method: Method, type: ObjectType): String {
-        val url = PostmanUrl(method.resource(), method) { name -> when (name) {
-            "ID" -> method.resource().resourcePathName.singularize() + "-id"
-            "key" -> method.resource().resourcePathName.singularize() + "-key"
+        val url = PostmanUrl(method.resource(), method) { resource, name -> when (name) {
+            "ID" -> resource.resourcePathName.singularize() + "-id"
+            "key" -> resource.resourcePathName.singularize() + "-key"
             else -> StringCaseFormat.LOWER_HYPHEN_CASE.apply(name)
         }}
         return """

@@ -11,9 +11,9 @@ import org.apache.commons.text.StringEscapeUtils
 class MethodRenderer {
     fun render(method: Method): String {
 
-        val url = PostmanUrl(method.resource(), method) { name -> when (name) {
-            "ID" -> method.resource().resourcePathName.singularize() + "-id"
-            "key" -> method.resource().resourcePathName.singularize() + "-key"
+        val url = PostmanUrl(method.resource(), method) { resource, name -> when (name) {
+            "ID" -> resource.resourcePathName.singularize() + "-id"
+            "key" -> resource.resourcePathName.singularize() + "-key"
             else -> StringCaseFormat.LOWER_HYPHEN_CASE.apply(name)
         }}
         return """

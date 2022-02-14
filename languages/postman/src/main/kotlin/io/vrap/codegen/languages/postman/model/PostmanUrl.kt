@@ -7,25 +7,37 @@ import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.types.QueryParameter
 import io.vrap.rmf.raml.model.types.StringInstance
+import org.eclipse.emf.ecore.EObject
 
-class PostmanUrl (private val resource: Resource, private val method: Method, val renameParam: Function1<String, String>) {
+class PostmanUrl (private val resource: Resource, private val method: Method, val renameParam: Function2<Resource, String, String>) {
 
     fun host(): String {
         return "{{host}}"
     }
 
-    private fun transformUri(uriComponent: UriTemplateComponent): String {
+    private fun transformUri(resource: Resource, uriComponent: UriTemplateComponent): String {
         if (uriComponent is Expression && uriComponent.varSpecs.size == 1) {
             val paramName = uriComponent.varSpecs.first().value
             val uriParameter = resource.uriParameters.find { it.name.equals(paramName) && it.type?.getAnnotation("paramName")  != null }
-            val param = if (uriParameter != null) uriParameter.type.getAnnotation("paramName").value.value else renameParam(paramName)
+            val param = if (uriParameter != null) uriParameter.type.getAnnotation("paramName").value.value else renameParam(resource, paramName)
             return "{{${param}}}"
         }
         else return uriComponent.toString()
     }
 
     private fun postmanUrlPath(): String {
-        return resource.fullUri.components.joinToString("", transform = this::transformUri)
+        return postmanUrlPath(resource).joinToString("")
+    }
+
+    private fun postmanUrlPath(eObject: EObject): List<String> {
+        return when (eObject) {
+            is Resource -> {
+                val pathes = postmanUrlPath(eObject.eContainer())
+                pathes.plus(eObject.relativeUri.components.joinToString("") { uriTemplateComponent -> transformUri(eObject, uriTemplateComponent) })
+            }
+            else ->
+                emptyList()
+        }
     }
 
     fun raw(): String {
