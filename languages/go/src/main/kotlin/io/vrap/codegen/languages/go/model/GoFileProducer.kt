@@ -113,6 +113,9 @@ class GoFileProducer constructor(
         } else if (this.isDiscriminated()) {
             return false
         } else {
+            if (allProperties.any { it.type is ArrayType && !it.required }) {
+                return true
+            }
             if (
                 allProperties
                     .map { it.type }
@@ -176,7 +179,8 @@ class GoFileProducer constructor(
                     }
             ) this.renderUnmarshalFunc() else ""
 
-            val marshalFunc = if (this.discriminatorValue != null) this.renderMarshalFunc() else ""
+            // val marshalFunc = if (this.discriminatorValue != null) this.renderMarshalFunc() else ""
+            val marshalFunc = this.renderMarshalFunc()
             val errorFunc = this.renderErrorFunc()
 
             return """
@@ -208,15 +212,69 @@ class GoFileProducer constructor(
         """.trimMargin()
     }
 
+    /**
+    * Render MarshalJSON() func to customize the JSON serialization. This is
+    * needed for two reasons:
+    *  1. In case this is a discriminated value, we need to add the `discriminator` field
+    *  2. There are optional slices (arrays). We remove optional values which
+    *  are nil but not empty
+    */
     fun ObjectType.renderMarshalFunc(): String {
+        // Check if there are optional slices
+        val optSlices = allProperties.any { it.type is ArrayType && !it.required }
+
+        if (this.discriminatorValue == null && !optSlices) {
+            return ""
+        }
+
+        // Use the alias approach to marshall the struct without causing and
+        // endless recursive loop. Add `Action` field if discriminated
+        var marshalStatement = if (this.discriminatorValue != null)
+            """json.Marshal(struct {
+            |        Action string `json:"${this.discriminator()}"`
+            |        *Alias
+            |    }{Action: "$discriminatorValue", Alias: (*Alias)(&obj)})""".trimMargin()
+        else
+            """json.Marshal(struct {
+            |        *Alias
+            |    }{Alias: (*Alias)(&obj)})""".trimMargin()
+
+        val funcBody = if (!optSlices) {
+            "return ${marshalStatement}"
+        } else {
+            val deleteStatements = allProperties
+                .filter { it.type is ArrayType && !it.required }
+                .map {
+                    """
+                    |   if target["${it.name}"] == nil {
+                    |       delete(target, "${it.name}")
+                    |   }
+                    """
+                }.joinToString("\n")
+
+            """
+            |   data, err := ${marshalStatement}
+            |   if err != nil {
+            |       return nil, err
+            |   }
+            |
+            |   target := make(map[string]interface{})
+            |   if err := json.Unmarshal(data, &target); err != nil {
+            |       return nil, err
+            |   }
+            |
+            |   ${deleteStatements}
+            |
+            |   return json.Marshal(target)
+            """.trimMargin()
+        }
+
         return """
-        |// MarshalJSON override to set the discriminator value
+        |// MarshalJSON override to set the discriminator value or remove
+        |// optional nil slices
         |func (obj $name) MarshalJSON() ([]byte, error) {
         |    type Alias $name
-        |    return json.Marshal(struct {
-        |        Action string `json:"${this.discriminator()}"`
-        |        *Alias
-        |    }{Action: "$discriminatorValue", Alias: (*Alias)(&obj)})
+        |    ${funcBody}
         |}
         """.trimMargin()
     }
@@ -334,6 +392,10 @@ class GoFileProducer constructor(
                     """.trimMargin()
                 } else {
                     val type = it.type
+                    val jsonTags = when (type) {
+                        is ArrayType -> "${it.name}"
+                        else -> "${it.name},omitempty"
+                    }
 
                     val pointer = when (type) {
                         is ArrayType -> ""
@@ -344,7 +406,7 @@ class GoFileProducer constructor(
 
                     """
                     |<$comment>
-                    |${name.exportName()} ${pointer}${type.renderTypeExpr()} `json:"${it.name},omitempty"`
+                    |${name.exportName()} ${pointer}${type.renderTypeExpr()} `json:"${jsonTags}"`
                     """.trimMargin()
                 }
             }
