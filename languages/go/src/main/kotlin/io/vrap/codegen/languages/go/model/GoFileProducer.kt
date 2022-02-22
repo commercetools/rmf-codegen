@@ -283,24 +283,33 @@ class GoFileProducer constructor(
         val retval = if (defaultRetval.isNotEmpty()) "$defaultRetval, err" else "err"
         return allProperties
             .filter {
-                it.type.isDiscriminated()
+                val type = it.type
+                when (type) {
+                    is ArrayType -> {
+                        type.items.isDiscriminated()
+                    }
+                    is ObjectType -> type.isDiscriminated()
+                    else -> false
+                }
             }
             .map {
                 val attrName = it.name.exportName()
-                val typeName = it.type.name.exportName()
-                when (it.type) {
+                val type = it.type
+                when (type) {
                     is ArrayType -> {
+                        val typeName = type.items.name.exportName()
                         """
-                    |for i := range obj.$attrName {
-                    |    var err error
-                    |    obj.$attrName[i], err = mapDiscriminator$typeName(obj.$attrName[i])
-                    |    if err != nil {
-                    |        return $retval
-                    |    }
-                    |}
-                    """.trimMargin()
+                        |for i := range obj.$attrName {
+                        |    var err error
+                        |    obj.$attrName[i], err = mapDiscriminator$typeName(obj.$attrName[i])
+                        |    if err != nil {
+                        |        return $retval
+                        |    }
+                        |}
+                        """.trimMargin()
                     }
                     is ObjectType -> {
+                        val typeName = type.name.exportName()
                         """
                         |if obj.$attrName != nil {
                         |    var err error
