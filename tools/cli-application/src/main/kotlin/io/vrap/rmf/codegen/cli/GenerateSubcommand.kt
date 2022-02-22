@@ -98,7 +98,7 @@ class GenerateSubcommand : Callable<Int> {
     var writeGitHash: Boolean = false
 
     @CommandLine.Option(names = ["--mappingFile"], required = false )
-    lateinit var typeMappingFile: Path
+    var typeMappingFile: Path? = null
 
     @CommandLine.Parameters(index = "0",description = ["Api file location"])
     lateinit var ramlFileLocation: Path
@@ -108,9 +108,8 @@ class GenerateSubcommand : Callable<Int> {
         return VrapObjectType(simpleClassName = classParts.last(), `package` = classParts.dropLast(1).joinToString("."))
     }
 
-    private fun readMapFile(file: Path): Map<String, VrapType> {
-
-        if (!file.exists()) {
+    private fun readMapFile(file: Path?): Map<String, VrapType> {
+        if (file == null || !file.exists()) {
             return mapOf()
         }
         val prop = Properties()
