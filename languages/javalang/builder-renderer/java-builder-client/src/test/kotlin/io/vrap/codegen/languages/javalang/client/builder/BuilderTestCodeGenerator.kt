@@ -8,6 +8,8 @@ import io.vrap.rmf.codegen.CodeGeneratorConfig
 import io.vrap.rmf.codegen.di.RamlApiProvider
 import io.vrap.rmf.codegen.di.RamlGeneratorComponent
 import io.vrap.rmf.codegen.di.RamlGeneratorModule
+import io.vrap.rmf.codegen.types.VrapObjectType
+import io.vrap.rmf.codegen.types.VrapType
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
@@ -73,9 +75,16 @@ class BuilderTestCodeGenerator {
         }
     }
 
+    private fun mapStringClass(className: String): VrapType {
+        val classParts = className.split(".")
+        return VrapObjectType(simpleClassName = classParts.last(), `package` = classParts.dropLast(1).joinToString("."))
+    }
+
     @Test
     fun generateJavaCompleteModule() {
-        val generatorConfig = CodeGeneratorConfig(basePackageName = baseBackage, outputFolder = outputFolder)
+        val typeMapping = mapOf(Pair("LocalizedString", "com.commercetools.api.models.common.LocalizedString"))
+        val customTypeMapping = typeMapping.map { it.key to mapStringClass(it.value)}.toMap()
+        val generatorConfig = CodeGeneratorConfig(basePackageName = baseBackage, outputFolder = outputFolder, customTypeMapping = customTypeMapping)
         val generatorModule = RamlGeneratorModule(apiProvider, generatorConfig, JavaBaseTypes)
         val generatorComponent = RamlGeneratorComponent(generatorModule, JavaCompleteModule)
         generatorComponent.generateFiles()

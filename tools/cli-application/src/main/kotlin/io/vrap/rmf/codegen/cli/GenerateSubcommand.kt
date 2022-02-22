@@ -32,13 +32,17 @@ import io.vrap.codegen.languages.typescript.test.TypescriptTestModule
 import io.vrap.rmf.codegen.CodeGeneratorConfig
 import io.vrap.rmf.codegen.di.*
 import io.vrap.rmf.codegen.toSeconds
+import io.vrap.rmf.codegen.types.VrapObjectType
+import io.vrap.rmf.codegen.types.VrapType
 import picocli.CommandLine
+import java.io.FileInputStream
 import java.lang.IllegalArgumentException
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.*
 import java.util.concurrent.Callable
 import java.util.concurrent.TimeUnit
+import kotlin.io.path.exists
 import kotlin.system.measureTimeMillis
 
 
@@ -93,8 +97,30 @@ class GenerateSubcommand : Callable<Int> {
     @CommandLine.Option(names = ["--hash"], description = ["If set a gen.properties file with the git hash of the RAML specification will be written"], required = false)
     var writeGitHash: Boolean = false
 
+    @CommandLine.Option(names = ["--mappingFile"], required = false )
+    lateinit var typeMappingFile: Path
+
     @CommandLine.Parameters(index = "0",description = ["Api file location"])
     lateinit var ramlFileLocation: Path
+
+    private fun mapStringClass(className: String): VrapType {
+        val classParts = className.split(".")
+        return VrapObjectType(simpleClassName = classParts.last(), `package` = classParts.dropLast(1).joinToString("."))
+    }
+
+    private fun readMapFile(file: Path): Map<String, VrapType> {
+
+        if (!file.exists()) {
+            return mapOf()
+        }
+        val prop = Properties()
+
+        FileInputStream(file.toFile()).use {
+            prop.load(it)
+        }
+
+        return prop.map { it.key.toString() to mapStringClass(it.value.toString()) }.toMap()
+    }
 
     override fun call(): Int {
         RxJavaPlugins.setErrorHandler { e: Throwable -> InternalLogger.warn(e)}
@@ -105,13 +131,16 @@ class GenerateSubcommand : Callable<Int> {
             InternalLogger.error("File '$ramlFileLocation' does not exist, please provide an existing spec path.")
             return 1
         }
+
+        val customTypeMapping = readMapFile(typeMappingFile)
         val generatorConfig = CodeGeneratorConfig(
                 sharedPackage = sharedPackage,
                 basePackageName = basePackageName,
                 modelPackage = modelPackageName,
                 clientPackage = clientPackageName,
                 outputFolder = outputFolder,
-                writeGitHash = writeGitHash
+                writeGitHash = writeGitHash,
+                customTypeMapping = customTypeMapping
         )
 
         val res = safeRun { generate(ramlFileLocation, target, generatorConfig) }
