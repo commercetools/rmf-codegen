@@ -136,7 +136,7 @@ class ClientFileProducer constructor(
                 |
                 |    req, err := http.NewRequestWithContext(ctx, method, endpoint.String(), body)
                 |    if err != nil {
-                |        return nil, fmt.Errorf("Creating new request: %w", err)
+                |        return nil, fmt.Errorf("creating new request: %w", err)
                 |    }
                 |
                 |    if (headers != nil) {
@@ -271,7 +271,7 @@ class ClientFileProducer constructor(
                 |func serializeInput(input interface{}) (io.Reader, error) {
                 |    m, err := json.MarshalIndent(input, "", "  ")
                 |    if err != nil {
-                |        return nil, fmt.Errorf("Unable to serialize content: %w", err)
+                |        return nil, fmt.Errorf("unable to serialize content: %w", err)
                 |    }
                 |    data := bytes.NewReader(m)
                 |    return data, nil

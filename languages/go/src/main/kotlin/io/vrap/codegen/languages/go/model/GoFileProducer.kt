@@ -363,15 +363,14 @@ class GoFileProducer constructor(
 
         return """
             |func mapDiscriminator$name(input interface{}) ($name, error) {
-            |
             |    var discriminator string
             |    if data, ok := input.(map[string]interface{}); ok {
             |        discriminator, ok = data["${this.discriminator()}"].(string)
             |        if !ok {
-            |            return nil, errors.New("Error processing discriminator field '${this.discriminator()}'")
+            |            return nil, errors.New("error processing discriminator field '${this.discriminator()}'")
             |        }
             |    } else {
-            |        return nil, errors.New("Invalid data")
+            |        return nil, errors.New("invalid data")
             |    }
             |
             |    switch discriminator {

@@ -366,7 +366,7 @@ class GoMethodRenderer constructor(
         |switch resp.StatusCode {
         |    <$switchStatements>
         |    default:
-        |        return ${returnValue}fmt.Errorf("Unhandled StatusCode: %d", resp.StatusCode)
+        |        return ${returnValue}fmt.Errorf("unhandled StatusCode: %d", resp.StatusCode)
         |}
         """
     }
