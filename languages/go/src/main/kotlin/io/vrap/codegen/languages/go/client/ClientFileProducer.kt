@@ -69,7 +69,7 @@ class ClientFileProducer constructor(
                 |    if cfg.HTTPClient != nil {
                 |        if (cfg.Credentials != nil) {
                 |            httpClient = cfg.Credentials.Client(
-                |                context.WithValue(oauth2.NoContext, oauth2.HTTPClient, cfg.HTTPClient))
+                |                context.WithValue(context.TODO(), oauth2.HTTPClient, cfg.HTTPClient))
                 |        } else {
                 |            httpClient = cfg.HTTPClient
                 |        }

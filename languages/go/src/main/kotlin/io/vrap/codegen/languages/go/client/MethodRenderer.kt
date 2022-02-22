@@ -163,7 +163,7 @@ class GoMethodRenderer constructor(
                         GoBaseTypes.doubleType -> """values.Add("$key", fmt.Sprintf("%f", $input))"""
                         GoBaseTypes.booleanType -> {
                             """
-                            |if ($input == true) {
+                            |if ($input) {
                             |    values.Add("$key", "true")
                             |} else {
                             |    values.Add("$key", "false")
@@ -362,6 +362,9 @@ class GoMethodRenderer constructor(
         |    return ${returnValue}err
         |}
     	|content, err := ioutil.ReadAll(resp.Body)
+        |if err != nil {
+        |    return ${returnValue}err
+        |}
 	    |defer resp.Body.Close()
         |switch resp.StatusCode {
         |    <$switchStatements>

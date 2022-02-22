@@ -179,7 +179,6 @@ class GoFileProducer constructor(
                     }
             ) this.renderUnmarshalFunc() else ""
 
-            // val marshalFunc = if (this.discriminatorValue != null) this.renderMarshalFunc() else ""
             val marshalFunc = this.renderMarshalFunc()
             val errorFunc = this.renderErrorFunc()
 
@@ -213,12 +212,12 @@ class GoFileProducer constructor(
     }
 
     /**
-    * Render MarshalJSON() func to customize the JSON serialization. This is
-    * needed for two reasons:
-    *  1. In case this is a discriminated value, we need to add the `discriminator` field
-    *  2. There are optional slices (arrays). We remove optional values which
-    *  are nil but not empty
-    */
+     * Render MarshalJSON() func to customize the JSON serialization. This is
+     * needed for two reasons:
+     *  1. In case this is a discriminated value, we need to add the `discriminator` field
+     *  2. There are optional slices (arrays). We remove optional values which
+     *  are nil but not empty
+     */
     fun ObjectType.renderMarshalFunc(): String {
         // Check if there are optional slices
         val optSlices = allProperties.any { it.type is ArrayType && !it.required }
@@ -240,7 +239,7 @@ class GoFileProducer constructor(
             |    }{Alias: (*Alias)(&obj)})""".trimMargin()
 
         val funcBody = if (!optSlices) {
-            "return ${marshalStatement}"
+            "return $marshalStatement"
         } else {
             val deleteStatements = allProperties
                 .filter { it.type is ArrayType && !it.required }
@@ -253,7 +252,7 @@ class GoFileProducer constructor(
                 }.joinToString("\n")
 
             """
-            |   data, err := ${marshalStatement}
+            |   data, err := $marshalStatement
             |   if err != nil {
             |       return nil, err
             |   }
@@ -263,7 +262,7 @@ class GoFileProducer constructor(
             |       return nil, err
             |   }
             |
-            |   ${deleteStatements}
+            |   $deleteStatements
             |
             |   return json.Marshal(target)
             """.trimMargin()
@@ -274,7 +273,7 @@ class GoFileProducer constructor(
         |// optional nil slices
         |func (obj $name) MarshalJSON() ([]byte, error) {
         |    type Alias $name
-        |    ${funcBody}
+        |    $funcBody
         |}
         """.trimMargin()
     }
@@ -414,7 +413,7 @@ class GoFileProducer constructor(
 
                     """
                     |<$comment>
-                    |${name.exportName()} ${pointer}${type.renderTypeExpr()} `json:"${jsonTags}"`
+                    |${name.exportName()} ${pointer}${type.renderTypeExpr()} `json:"$jsonTags"`
                     """.trimMargin()
                 }
             }
