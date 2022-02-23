@@ -18,7 +18,6 @@ class ClientFileProducer constructor(
         return listOf(
             produceClientFile(),
             produceClientApiRoot(api),
-            produceClientLoggingFile(),
             produceErrorsFile(),
             produceUtilsFile(),
             produceDateFile()
@@ -49,7 +48,6 @@ class ClientFileProducer constructor(
                 |type Client struct {
                 |    httpClient *http.Client
                 |    url        *url.URL
-                |    logLevel   int
                 |    userAgent  string
                 |}
                 |
@@ -88,7 +86,6 @@ class ClientFileProducer constructor(
                 |    }
                 |    client := &Client{
                 |        url:        url,
-                |        logLevel:   cfg.LogLevel,
                 |        httpClient: httpClient,
                 |        userAgent:  userAgent,
                 |    }
@@ -146,17 +143,9 @@ class ClientFileProducer constructor(
                 |    req.Header.Set("Content-Type", "application/json; charset=utf-8")
                 |    req.Header.Set("User-Agent", c.userAgent)
                 |
-                |    if c.logLevel > 0 {
-                |        logRequest(req)
-                |    }
-                |
                 |    resp, err := c.httpClient.Do(req)
                 |    if err != nil {
                 |        return nil, err
-                |    }
-                |
-                |    if c.logLevel > 0 {
-                |        logResponse(resp)
                 |    }
                 |
                 |    return resp, nil
@@ -180,50 +169,6 @@ class ClientFileProducer constructor(
                 |<${type.subResources("Client")}>
                 |
             """.trimMargin().keepIndentation()
-        )
-    }
-
-    fun produceClientLoggingFile(): TemplateFile {
-        return TemplateFile(
-            relativePath = "$basePackageName/client_logger.go",
-            content = """
-                |$goGeneratedComment
-                |package $basePackageName
-                |
-                |import (
-                |	"log"
-                |	"net/http"
-                |	"net/http/httputil"
-                |)
-                |
-                |const logRequestTemplate = `DEBUG:
-                |---[ REQUEST ]--------------------------------------------------------
-                |%s
-                |----------------------------------------------------------------------
-                |`
-                |
-                |const logResponseTemplate = `DEBUG:
-                |---[ RESPONSE ]-------------------------------------------------------
-                |%s
-                |----------------------------------------------------------------------
-                |`
-                |
-                |func logRequest(r *http.Request) {
-                |	body, err := httputil.DumpRequestOut(r, true)
-                |	if err != nil {
-                |		return
-                |	}
-                |	log.Printf(logRequestTemplate, body)
-                |}
-                |
-                |func logResponse(r *http.Response) {
-                |	body, err := httputil.DumpResponse(r, true)
-                |	if err != nil {
-                |		return
-                |	}
-                |	log.Printf(logResponseTemplate, body)
-                |}
-                """.trimMargin()
         )
     }
 
