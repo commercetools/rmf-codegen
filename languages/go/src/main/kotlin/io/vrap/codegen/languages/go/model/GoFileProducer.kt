@@ -138,12 +138,12 @@ class GoFileProducer constructor(
 
     private fun ObjectType.renderObjectType(): String {
 
-        val isDict = allProperties.all { it.isPatternProperty() }
-        if (isDict) {
-            val valueType = allProperties[0].type.renderTypeExpr()
+        val isMap = allProperties.all { it.isPatternProperty() }
+        if (isMap) {
+            val valueType = if (allProperties.size > 0) allProperties[0].type.renderTypeExpr() else "interface{}"
 
             return """
-            |// $name is something
+            |<${toBlockComment().escapeAll()}>
             |type $name map[string]$valueType
             """.trimMargin()
         } else if (this.isDiscriminated()) {

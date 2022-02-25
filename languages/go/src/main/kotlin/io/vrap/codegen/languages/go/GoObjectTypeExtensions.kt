@@ -182,7 +182,7 @@ interface GoObjectTypeExtensions : ExtensionsBase {
             }
     }
 
-    fun ObjectType.isDict(): Boolean {
+    fun ObjectType.isMap(): Boolean {
 
         if (this.type != null && this.type.getAnnotation("asMap") != null) {
             return true
