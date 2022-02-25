@@ -31,8 +31,9 @@ class GoMethodRenderer constructor(
         return TemplateFile(
             relativePath = "$basePackageName/$filename.go",
             content = """|
-                |$goGeneratedComment
                 |package $basePackageName
+                |
+                |$goGeneratedComment
                 |
                 |<${type.importStatement()}>
                 |

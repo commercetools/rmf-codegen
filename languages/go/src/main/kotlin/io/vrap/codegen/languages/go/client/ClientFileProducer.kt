@@ -28,8 +28,9 @@ class ClientFileProducer constructor(
         return TemplateFile(
             relativePath = "$basePackageName/client.go",
             content = """|
-                |$goGeneratedComment
                 |package $basePackageName
+                |
+                |$goGeneratedComment
                 |
                 |import (
                 |    "context"
@@ -163,8 +164,9 @@ class ClientFileProducer constructor(
         return TemplateFile(
             relativePath = "$basePackageName/client_api_root.go",
             content = """|
-                |$goGeneratedComment
                 |package $basePackageName
+                |
+                |$goGeneratedComment
                 |
                 |<${type.subResources("Client")}>
                 |
@@ -176,8 +178,9 @@ class ClientFileProducer constructor(
         return TemplateFile(
             relativePath = "$basePackageName/errors.go",
             content = """|
-                |$goGeneratedComment
                 |package $basePackageName
+                |
+                |$goGeneratedComment
                 |
                 |import (
                 |	"fmt"
@@ -199,8 +202,9 @@ class ClientFileProducer constructor(
         return TemplateFile(
             relativePath = "$basePackageName/utils.go",
             content = """|
-                |$goGeneratedComment
                 |package $basePackageName
+                |
+                |$goGeneratedComment
                 |
                 |import (
                 |    "bytes"
@@ -269,8 +273,9 @@ class ClientFileProducer constructor(
         return TemplateFile(
             relativePath = "$basePackageName/date.go",
             content = """|
-                |$goGeneratedComment
                 |package $basePackageName
+                |
+                |$goGeneratedComment
                 |
                 |import (
                 |    "encoding/json"

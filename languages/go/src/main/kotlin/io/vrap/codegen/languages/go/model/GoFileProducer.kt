@@ -47,8 +47,9 @@ class GoFileProducer constructor(
         val importExpr = if (modules.size > 0) modules.joinToString(prefix = "import(\n", separator = "\n", postfix = "\n)") else ""
 
         val content = """
-           |$goGeneratedComment
            |package $basePackageName
+           |
+           |$goGeneratedComment
            |
            |<$importExpr>
            |
