@@ -207,7 +207,10 @@ class GoFileProducer constructor(
 
         return """
         |func (obj $name) Error() string {
-        |    return obj.${messageField.name.exportName()}
+        |    if obj.${messageField.name.exportName()} != "" {
+        |        return obj.${messageField.name.exportName()}
+        |    }
+        |    return "unknown $name: failed to parse error response"
         |}
         """.trimMargin()
     }
