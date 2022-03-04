@@ -19,8 +19,8 @@ import io.vrap.rmf.codegen.rendring.utils.escapeAll
 import io.vrap.rmf.codegen.rendring.utils.keepIndentation
 import io.vrap.rmf.codegen.types.VrapEnumType
 import io.vrap.rmf.codegen.types.VrapObjectType
-import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.codegen.types.VrapScalarType
+import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.types.AnyType
 import io.vrap.rmf.raml.model.types.IntersectionType
 import io.vrap.rmf.raml.model.types.NilType
@@ -87,7 +87,7 @@ class PythonModelRenderer constructor(
 
         val isDict = allProperties.all { it.isPatternProperty() }
         if (isDict) {
-            val valueType = allProperties[0].type.renderTypeExpr()
+            val valueType = if (allProperties.size > 0) allProperties[0].type.renderTypeExpr() else "typing.Any"
 
             return """
             |class $name(typing.Dict[str, $valueType]):
@@ -117,6 +117,9 @@ class PythonModelRenderer constructor(
      */
     fun ObjectType.renderPropertyDecls(): String {
         return PyClassProperties(false)
+            .filter {
+                !it.isPatternProperty()
+            }
             .map {
                 val comment: String = it.type.toLineComment().escapeAll()
                 if (it.required) {
@@ -139,13 +142,21 @@ class PythonModelRenderer constructor(
      */
     fun ObjectType.renderInitFunction(): String {
         var attributes = arrayOf("self")
-        var kwargs = PyClassProperties(true).map {
-            if (it.required) {
-                "${it.name.snakeCase()}: ${it.type.renderTypeExpr()}"
-            } else {
-                "${it.name.snakeCase()}: typing.Optional[${it.type.renderTypeExpr()}] = None"
+        var kwargs = PyClassProperties(true)
+            .filter { !it.isPatternProperty() }
+            .map {
+                if (it.required) {
+                    "${it.name.snakeCase()}: ${it.type.renderTypeExpr()}"
+                } else {
+                    "${it.name.snakeCase()}: typing.Optional[${it.type.renderTypeExpr()}] = None"
+                }
             }
-        }
+            .plus(
+                if (PyClassProperties(true).filter { it.isPatternProperty() }.size > 0) "**kwargs"  else ""
+            )
+            .filter {
+                it != ""
+            }
 
         if (kwargs.size > 0) {
             attributes += arrayOf("*")
@@ -154,11 +165,12 @@ class PythonModelRenderer constructor(
 
         var initArgs = mutableListOf<String>()
         val passProperties = PyClassProperties(true) - PyClassProperties(false)
-        passProperties.forEach {
+        passProperties.filter { !it.isPatternProperty() }.forEach {
             initArgs.add("${it.name.snakeCase()}=${it.name.snakeCase()}")
         }
 
         val property = discriminatorProperty()
+        var cleanKwargsStatement = ""
         if (property != null && discriminatorValue != null) {
             //
             val propVrapType = property.type.toVrapType()
@@ -167,14 +179,23 @@ class PythonModelRenderer constructor(
                 else -> "\"${discriminatorValue}\""
             }
             initArgs.add("${property.name.snakeCase()}=$dVal")
+
+            if (passProperties.filter { it.isPatternProperty() }.size > 0) {
+                cleanKwargsStatement = """kwargs.pop("${property.name.snakeCase()}", None)"""
+            }
+        }
+
+        if (passProperties.filter { it.isPatternProperty() }.size > 0) {
+            initArgs.add("**kwargs")
         }
 
         val attrStr = attributes.joinToString(separator = ", ")
         return """
         |def __init__($attrStr):
         |    ${renderInitAssignments()}
+        |    ${cleanKwargsStatement}
         |    super().__init__(${initArgs.joinToString(separator = ", ")})
-        """
+        """.trimMargin().keepIndentation()
     }
 
     fun ObjectType.renderSerializationMethods(): String {
@@ -227,7 +248,13 @@ class PythonModelRenderer constructor(
 
     fun ObjectType.renderInitAssignments(): String {
         return PyClassProperties(false)
-            .map { "self.${it.name.snakeCase()} = ${it.name.snakeCase()}" }
+            .map {
+                if (it.isPatternProperty()) {
+                    "self.__dict__.update(kwargs)"
+                } else {
+                    "self.${it.name.snakeCase()} = ${it.name.snakeCase()}"
+                }
+            }
             .joinToString("\n    ")
     }
 
@@ -260,7 +287,6 @@ class PythonModelRenderer constructor(
             """.trimMargin()
             else -> ""
         }
-
     }
 
     private fun StringType.renderEnumValues(): String = enumValues()
