@@ -179,7 +179,7 @@ class PythonSchemaRenderer constructor(
             return """
             |helpers.RegexField(
             |    unknown=marshmallow.EXCLUDE,
-            |    pattern=re.compile("${prop.pattern}"),
+            |    metadata={'pattern': re.compile("${prop.pattern}")},
             |    type=${prop.type.PyMarshmallowFieldClass()}(
             |       ${kwargs.joinToString(separator = ",\n      ")}
             |    )
