@@ -73,6 +73,8 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
             |import java.util.Map;
             |import java.util.HashMap;
             |import java.util.Optional;
+            |import java.util.function.Function;
+            |import java.util.function.Supplier;
             |import java.util.stream.Collectors;
             |import java.util.concurrent.CompletableFuture;
             |import io.vrap.rmf.base.client.utils.Generated;
@@ -121,8 +123,7 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
             |    <${type.equalsMethod()}>
             |
             |    @Override
-            |    protected ${type.toRequestName()} copy()
-            |    {
+            |    protected ${type.toRequestName()} copy() {
             |        return new ${type.toRequestName()}(this);
             |    }
             |}
@@ -203,7 +204,7 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
                 constructorArguments.add("List<ParamEntry<String, String>> formParams".escapeAll())
                 constructorAssignments[0] = "super(apiHttpClient, new ApiHttpHeaders(new ApiHttpHeaders.StringHeaderEntry(ApiHttpHeaders.CONTENT_TYPE, \"application/x-www-form-urlencoded\")), new ArrayList<>());".escapeAll()
                 constructorAssignments.add("this.formParams = formParams != null ? formParams : new ArrayList<>();".escapeAll())
-            }else {
+            } else {
                 constructorArguments.add("Object obj")
                 constructorAssignments.add("this.obj = obj;")
             }
@@ -296,7 +297,7 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
         val requestPathGeneration : String = """
             |List<String> params = new ArrayList<>(getQueryParamUriStrings());
             |String httpRequestPath = String.format("$stringFormat", $stringFormatArgs);
-            |if(!params.isEmpty()){
+            |if (!params.isEmpty()) {
             |    httpRequestPath += "?" + String.join("&", params);
             |}
         """.trimMargin().escapeAll()
@@ -334,7 +335,7 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
     private fun Method.executeBlockingMethod() : String {
         return """
             |@Override
-            |public ApiHttpResponse\<${this.javaReturnType(vrapTypeProvider)}\> executeBlocking(final ApiHttpClient client, final Duration timeout){
+            |public ApiHttpResponse\<${this.javaReturnType(vrapTypeProvider)}\> executeBlocking(final ApiHttpClient client, final Duration timeout) {
             |    return executeBlocking(client, timeout, ${this.javaReturnType(vrapTypeProvider)}.class);
             |}
         """.trimMargin()
@@ -343,7 +344,7 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
     private fun Method.executeMethod() : String {
         return """
             |@Override
-            |public CompletableFuture\<ApiHttpResponse\<${this.javaReturnType(vrapTypeProvider)}\>\> execute(final ApiHttpClient client){
+            |public CompletableFuture\<ApiHttpResponse\<${this.javaReturnType(vrapTypeProvider)}\>\> execute(final ApiHttpClient client) {
             |    return execute(client, ${this.javaReturnType(vrapTypeProvider)}.class);
             |}
         """.trimMargin()
@@ -401,14 +402,14 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
                 |/**
                 | * set ${paramName.value} with the specificied value
                 | */
-                |public ${this.toRequestName()} with$methodName($parameters){
+                |public ${this.toRequestName()} with$methodName($parameters) {
                 |    return copy().withQueryParam($value, ${paramName.value});
                 |}
                 |
                 |/**
                 | * add additional ${paramName.value} query parameter
                 | */
-                |public ${this.toRequestName()} add$methodName($parameters){
+                |public ${this.toRequestName()} add$methodName($parameters) {
                 |    return copy().addQueryParam($value, ${paramName.value});
                 |}
                 |
@@ -436,30 +437,58 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
             .filter { it.getAnnotation(PLACEHOLDER_PARAM_ANNOTATION, true) == null }
             .map { """
                 |/**
-                | * set ${it.fieldName()} with the specificied value
+                | * set ${it.fieldName()} with the specified value
                 | */
-                |public ${this.toRequestName()} with${it.fieldName().firstUpperCase()}(final ${it.witherType()} ${it.fieldName()}){
+                |public ${this.toRequestName()} with${it.fieldName().firstUpperCase()}(final ${it.witherType()} ${it.fieldName()}) {
                 |    return copy().withQueryParam("${it.name}", ${it.fieldName()});
                 |}
                 |
                 |/**
                 | * add additional ${it.fieldName()} query parameter
                 | */
-                |public ${this.toRequestName()} add${it.fieldName().firstUpperCase()}(final ${it.witherType()} ${it.fieldName()}){
+                |public ${this.toRequestName()} add${it.fieldName().firstUpperCase()}(final ${it.witherType()} ${it.fieldName()}) {
                 |    return copy().addQueryParam("${it.name}", ${it.fieldName()});
                 |}
                 |
                 |/**
-                | * set ${it.fieldName()} with the specificied values
+                | * set ${it.fieldName()} with the specified value
                 | */
-                |public ${this.toRequestName()} with${it.fieldName().firstUpperCase()}(final List<${it.witherBoxedType()}> ${it.fieldName()}){
+                |public ${this.toRequestName()} with${it.fieldName().firstUpperCase()}(final Supplier<${it.witherBoxedType()}> supplier) {
+                |    return copy().withQueryParam("${it.name}", supplier.get());
+                |}
+                |
+                |/**
+                | * add additional ${it.fieldName()} query parameter
+                | */
+                |public ${this.toRequestName()} add${it.fieldName().firstUpperCase()}(final Supplier<${it.witherBoxedType()}> supplier) {
+                |    return copy().addQueryParam("${it.name}", supplier.get());
+                |}
+                |
+                |/**
+                | * set ${it.fieldName()} with the specified value
+                | */
+                |public ${this.toRequestName()} with${it.fieldName().firstUpperCase()}(final Function<StringBuilder, StringBuilder> op) {
+                |    return copy().withQueryParam("${it.name}", op.apply(new StringBuilder()));
+                |}
+                |
+                |/**
+                | * add additional ${it.fieldName()} query parameter
+                | */
+                |public ${this.toRequestName()} add${it.fieldName().firstUpperCase()}(final Function<StringBuilder, StringBuilder> op) {
+                |    return copy().addQueryParam("${it.name}", op.apply(new StringBuilder()));
+                |}
+                |
+                |/**
+                | * set ${it.fieldName()} with the specified values
+                | */
+                |public ${this.toRequestName()} with${it.fieldName().firstUpperCase()}(final List<${it.witherBoxedType()}> ${it.fieldName()}) {
                 |    return copy().withoutQueryParam("${it.name}").addQueryParams(${it.fieldName()}.stream().map(s -> new ParamEntry<>("${it.name}", s.toString())).collect(Collectors.toList())); 
                 |}
                 |
                 |/**
                 | * add additional ${it.fieldName()} query parameters
                 | */
-                |public ${this.toRequestName()} add${it.fieldName().firstUpperCase()}(final List<${it.witherBoxedType()}> ${it.fieldName()}){
+                |public ${this.toRequestName()} add${it.fieldName().firstUpperCase()}(final List<${it.witherBoxedType()}> ${it.fieldName()}) {
                 |    return copy().addQueryParams(${it.fieldName()}.stream().map(s -> new ParamEntry<>("${it.name}", s.toString())).collect(Collectors.toList())); 
                 |}
             """.trimMargin().escapeAll() }
