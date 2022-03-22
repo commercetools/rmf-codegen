@@ -3,6 +3,7 @@
 package io.vrap.rmf.codegen.cli
 
 import io.vrap.rmf.codegen.cli.info.BuildInfo
+import picocli.AutoComplete
 import picocli.CommandLine
 import picocli.CommandLine.Command
 import picocli.CommandLine.Option
@@ -23,7 +24,7 @@ fun main(args: Array<String>) {
 @Command(
         version = [BuildInfo.VERSION],
         description = ["Allows to validate Raml files and generate code from them"],
-        subcommands = [GenerateSubcommand::class, VerifySubcommand::class, ValidateSubcommand::class]
+        subcommands = [GenerateSubcommand::class, VerifySubcommand::class, ValidateSubcommand::class, AutoComplete.GenerateCompletion::class],
 )
 class RMFCommand : Callable<Int> {
 

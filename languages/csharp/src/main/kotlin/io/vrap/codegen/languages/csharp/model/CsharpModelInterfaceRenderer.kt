@@ -69,11 +69,11 @@ class CsharpModelInterfaceRenderer constructor(override val vrapTypeProvider: Vr
     private fun Property.toCsharpProperty(objectType: ObjectType): String {
         val propName = this.name.firstUpperCase()
         val typeName = this.type.toVrapType().simpleName()
-        var overrideProp = this.shouldOverrideThisProperty(objectType)
+        val overrideProp = this.shouldOverrideThisProperty(objectType)
 
-        var nullableChar = if(!this.required && this.type.isNullableScalar()) "?" else ""
-        var newKeyword = if(overrideProp) "new " else ""
-        var deprecationAttr = if(this.deprecationAnnotation() == "") "" else this.deprecationAnnotation()+"\n";
+        val nullableChar = if(!this.required && this.type.isNullableScalar() && !this.parentRequired(objectType)) "?" else ""
+        val newKeyword = if(overrideProp) "new " else ""
+        val deprecationAttr = if(this.deprecationAnnotation() == "") "" else this.deprecationAnnotation()+"\n";
 
         return """
             |${deprecationAttr}${newKeyword}${typeName}$nullableChar $propName { get; set;}
@@ -82,20 +82,30 @@ class CsharpModelInterfaceRenderer constructor(override val vrapTypeProvider: Vr
 
     //override if it's already exists in the parent type
     private fun Property.shouldOverrideThisProperty(objectType: ObjectType): Boolean  {
-        var hasParent = objectType.type != null;
+        val hasParent = objectType.type != null;
         if(hasParent)
         {
-            var parent = objectType.type as ObjectType;
-            if(parent.properties.any { it.name.equals(this.name) })
+            val parent = objectType.type as ObjectType
+            if(parent.allProperties.any { it.name.equals(this.name) })
                 return true
         }
-        return false;
+        return false
+    }
+
+    private fun Property.parentRequired(objectType: ObjectType): Boolean  {
+        val hasParent = objectType.type != null;
+        if(hasParent)
+        {
+            val parent = objectType.type as ObjectType
+            return parent.allProperties.find { it.name.equals(this.name) }?.required ?: false
+        }
+        return false
     }
 
     fun ObjectType.renderTypeAsADictionaryType() : String {
         val vrapType = vrapTypeProvider.doSwitch(this) as VrapObjectType
 
-        var property = this.properties[0]
+        val property = this.properties[0]
 
         return  """
             |${this.usings()}

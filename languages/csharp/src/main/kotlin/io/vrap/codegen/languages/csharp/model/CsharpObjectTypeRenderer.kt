@@ -67,22 +67,32 @@ class CsharpObjectTypeRenderer constructor(override val vrapTypeProvider: VrapTy
 
     private fun ObjectType.toProperties() : String = this.allProperties
         .filterNot { property -> property.isPatternProperty() }
-        .map { it.toCsharpProperty() }.joinToString(separator = "\n\n")
+        .map { it.toCsharpProperty(this) }.joinToString(separator = "\n\n")
 
-    private fun Property.toCsharpProperty(): String {
+    private fun Property.toCsharpProperty(objectType: ObjectType): String {
         val propName = this.name.firstUpperCase()
         val typeName = this.type.toVrapType().simpleName()
 
-        var nullableChar = if(!this.required && this.type.isNullableScalar()) "?" else ""
-        var deprecationAttr = if(this.deprecationAnnotation() == "") "" else this.deprecationAnnotation()+"\n";
+        val nullableChar = if(!this.required && this.type.isNullableScalar() && !this.parentRequired(objectType)) "?" else ""
+        val deprecationAttr = if(this.deprecationAnnotation() == "") "" else this.deprecationAnnotation()+"\n";
 
         return """
             |${deprecationAttr}public ${typeName}$nullableChar $propName { get; set;}
             """.trimMargin()
     }
 
+    private fun Property.parentRequired(objectType: ObjectType): Boolean  {
+        val hasParent = objectType.type != null;
+        if(hasParent)
+        {
+            val parent = objectType.type as ObjectType
+            return parent.allProperties.find { it.name.equals(this.name) }?.required ?: false
+        }
+        return false
+    }
+
     fun ObjectType.renderConstructor(className: String) : String {
-        var isEmptyConstructor = this.getConstructorContentForDiscriminator() == "";
+        val isEmptyConstructor = this.getConstructorContentForDiscriminator() == "";
         return if(!isEmptyConstructor)
             """public ${className}()
                 |{ 
