@@ -116,6 +116,7 @@ class JavaModelInterfaceRenderer constructor(override val vrapTypeProvider: Vrap
             |    use = JsonTypeInfo.Id.NAME,
             |    include = JsonTypeInfo.As.EXISTING_PROPERTY,
             |    property = "${this.discriminator}",
+            |    defaultImpl = ${vrapType.simpleClassName}Impl.class,
             |    visible = true
             |)
             |@JsonDeserialize(as = ${vrapType.simpleClassName}Impl.class)
