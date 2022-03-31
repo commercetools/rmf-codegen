@@ -100,7 +100,7 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
             |
             |    <${type.copyConstructor()}>
             |
-            |    <${type.createRequestMethod()}>
+            |    <${type.buildRequestMethod()}>
             |
             |    <${type.executeBlockingMethod()}>
             |
@@ -273,7 +273,7 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
         return this.resource().fullUri.variables.toList()
     }
 
-    private fun Method.createRequestMethod() : String {
+    private fun Method.buildRequestMethod() : String {
 
         val pathArguments = this.pathArguments().map { "{$it}" }
         var stringFormat = this.resource().fullUri.template
@@ -325,7 +325,7 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
 
         return """
             |@Override
-            |public ApiHttpRequest createHttpRequest() {
+            |protected ApiHttpRequest buildHttpRequest() {
             |    <$requestPathGeneration>
             |    $bodySetter
             |}
