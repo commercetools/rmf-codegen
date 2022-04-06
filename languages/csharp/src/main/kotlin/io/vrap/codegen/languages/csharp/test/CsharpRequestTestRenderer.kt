@@ -20,15 +20,17 @@ class CsharpRequestTestRenderer constructor(override val vrapTypeProvider: VrapT
     override fun render(type: Resource): TemplateFile {
         val vrapType = vrapTypeProvider.doSwitch(type).toCsharpVType() as VrapObjectType
         var entityFolder = type.GetNameAsPlural()
-        val cPackage = vrapType.requestBuildersPackage(entityFolder)
-        val modelsUsing = basePackagePrefix.replace("Tests", "Models")
+        val cPackage = vrapType.requestBuildersPackage(entityFolder).replace(basePackagePrefix,
+            "$basePackagePrefix.Tests"
+        )
+        val modelsUsing = "$basePackagePrefix.Models"
 
         val content = """
             |using System;
             |using System.Collections.Generic;
             |using System.Net.Http;
             |using System.Text.Json;
-            |using ${basePackagePrefix};
+            |using ${basePackagePrefix}.Tests;
             |using ${modelsUsing};
             |using ${"$modelsUsing.Common"};
             |using Xunit;
@@ -147,7 +149,7 @@ class CsharpRequestTestRenderer constructor(override val vrapTypeProvider: VrapT
                 else -> r.nextInt(1, 10)
             }
             is StringType -> when (vrapType) {
-                is VrapEnumType -> "${vrapType.`package`.replace(".Tests", "")}.${vrapType.simpleName()}.FindEnum(\"${name}\")"
+                is VrapEnumType -> "${vrapType.`package`}.${vrapType.simpleName()}.FindEnum(\"${name}\")"
                 else -> "\"${name}\""
             }
             else -> "\"${name}\""

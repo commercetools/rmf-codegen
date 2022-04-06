@@ -59,7 +59,7 @@ class TestCodeGenerator {
 
     @Test
     fun generateCSharpModelsForHistoryApiTests() {
-        val generatorConfig = CodeGeneratorConfig(basePackageName = "commercetools.Sdk.HistoryApi.Tests", outputFolder = outputFolder)
+        val generatorConfig = CodeGeneratorConfig(basePackageName = "commercetools.Sdk.HistoryApi", outputFolder = outputFolder)
         val generatorModule = RamlGeneratorModule(apiProvider, generatorConfig, CsharpBaseTypes)
         val generatorComponent = RamlGeneratorComponent(generatorModule, CsharpTestModule)
         generatorComponent.generateFiles()
