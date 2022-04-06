@@ -28,6 +28,7 @@ class CsharpRequestTestRenderer constructor(override val vrapTypeProvider: VrapT
             |using System.Collections.Generic;
             |using System.Net.Http;
             |using System.Text.Json;
+            |using ${basePackagePrefix};
             |using ${modelsUsing};
             |using ${"$modelsUsing.Common"};
             |using Xunit;
@@ -146,7 +147,7 @@ class CsharpRequestTestRenderer constructor(override val vrapTypeProvider: VrapT
                 else -> r.nextInt(1, 10)
             }
             is StringType -> when (vrapType) {
-                is VrapEnumType -> "${vrapType.simpleName()}.FindEnum(\"${name}\")"
+                is VrapEnumType -> "${vrapType.`package`.replace(".Tests", "")}.${vrapType.simpleName()}.FindEnum(\"${name}\")"
                 else -> "\"${name}\""
             }
             else -> "\"${name}\""
