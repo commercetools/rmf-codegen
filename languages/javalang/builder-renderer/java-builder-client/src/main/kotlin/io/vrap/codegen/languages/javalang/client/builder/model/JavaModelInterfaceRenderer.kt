@@ -68,6 +68,8 @@ class JavaModelInterfaceRenderer constructor(override val vrapTypeProvider: Vrap
             |
             |    <${type.staticBuilderMethod()}>
             |
+            |    <${type.subTypeBuilders().escapeAll()}>
+            |    
             |    default \<T\> T with${vrapType.simpleClassName}(Function\<${vrapType.simpleClassName}, T\> helper) {
             |        return helper.apply(this);
             |    }
@@ -155,6 +157,27 @@ class JavaModelInterfaceRenderer constructor(override val vrapTypeProvider: Vrap
              """.trimMargin()
         }
     }
+
+    private fun ObjectType.subTypeBuilders() : String {
+        if (this.hasSubtypes()) {
+            return this.subTypes.plus(this.subTypes.flatMap { it.subTypes }).distinctBy { it.name }
+                .asSequence()
+                .filterIsInstance<ObjectType>()
+                .filter { it.discriminatorValue != null }
+                .sortedBy { anyType -> anyType.name }
+                .map {
+                    val vrapSubType = vrapTypeProvider.doSwitch(it) as VrapObjectType
+                    """
+                    |public static ${vrapSubType.`package`.toJavaPackage()}.${vrapSubType.simpleClassName}Builder ${it.discriminatorValue.lowerCamelCase()}Builder() {
+                    |   return ${vrapSubType.`package`.toJavaPackage()}.${vrapSubType.simpleClassName}Builder.of();
+                    |}
+                    """.trimMargin()
+                }
+                .joinToString(separator = "\n")
+        }
+        return ""
+    }
+
 
     private fun ObjectType.getters() = this.properties
             .filter { it.getAnnotation("deprecated") == null }

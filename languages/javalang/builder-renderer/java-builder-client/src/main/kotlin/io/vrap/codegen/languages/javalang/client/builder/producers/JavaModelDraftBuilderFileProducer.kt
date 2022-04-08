@@ -1,5 +1,6 @@
 package io.vrap.codegen.languages.javalang.client.builder.producers
 
+import io.vrap.codegen.languages.extensions.hasSubtypes
 import io.vrap.codegen.languages.extensions.isPatternProperty
 import io.vrap.codegen.languages.java.base.JavaBaseTypes
 import io.vrap.codegen.languages.java.base.JavaSubTemplates
@@ -144,6 +145,15 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
                 |${property.deprecationAnnotation()}
                 |public ${type.simpleClassName}Builder $propertyName(${if (!property.required) "@Nullable" else ""} final ${propType.itemType.fullClassName()} ...$propertyName) {
                 |    this.$propertyName = new ArrayList<>(Arrays.asList($propertyName));
+                |    return this;
+                |}
+                |
+                |${property.deprecationAnnotation()}
+                |public ${type.simpleClassName}Builder add${propertyName.upperCamelCase()}(${if (!property.required) "@Nullable" else ""} final ${propType.itemType.fullClassName()} ...$propertyName) {
+                |    if (this.$propertyName == null) {
+                |        this.$propertyName = new ArrayList<>();
+                |    }
+                |    this.$propertyName.addAll(Arrays.asList($propertyName));
                 |    return this;
                 |}
                 |
