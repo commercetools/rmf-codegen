@@ -24,6 +24,7 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
 
     override fun produceFiles(): List<TemplateFile> {
         return allObjectTypes.filter { !it.isAbstract() }.map { render(it) }
+            .plus(allObjectTypes.filter { it.isAbstract() && it.discriminator != null }.map { renderAbstract(it) })
     }
 
     fun render(type: ObjectType): TemplateFile {
@@ -74,6 +75,57 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
                 relativePath = "${vrapType.`package`}.${vrapType.simpleClassName}Builder".replace(".", "/") + ".java",
                 content = content
         )
+    }
+
+    fun renderAbstract(type: ObjectType): TemplateFile {
+
+        val vrapType = vrapTypeProvider.doSwitch(type).toJavaVType() as VrapObjectType
+
+        val content : String = """
+            |package ${vrapType.`package`};
+            |
+            |${type.imports()}
+            |import ${vrapType.`package`}.${vrapType.simpleClassName};
+            |import javax.annotation.Nullable;
+            |import java.util.*;
+            |import java.util.function.Function;
+            |import java.time.ZonedDateTime;
+            |import io.vrap.rmf.base.client.Builder;
+            |import io.vrap.rmf.base.client.utils.Generated;
+            |
+            |<${JavaSubTemplates.generatedAnnotation}>
+            |public class ${vrapType.simpleClassName}Builder {
+            |
+            |    <${type.subTypeBuilders().escapeAll()}>
+            |
+            |    <${type.staticOfMethod().escapeAll()}>
+            |}
+        """.trimMargin().keepIndentation()
+
+        return TemplateFile(
+            relativePath = "${vrapType.`package`}.${vrapType.simpleClassName}Builder".replace(".", "/") + ".java",
+            content = content
+        )
+    }
+
+    private fun ObjectType.subTypeBuilders() : String {
+        if (this.hasSubtypes()) {
+            return this.subTypes.plus(this.subTypes.flatMap { it.subTypes }).distinctBy { it.name }
+                .asSequence()
+                .filterIsInstance<ObjectType>()
+                .filter { it.discriminatorValue != null }
+                .sortedBy { anyType -> anyType.name }
+                .map {
+                    val vrapSubType = vrapTypeProvider.doSwitch(it) as VrapObjectType
+                    """
+                    |public ${vrapSubType.`package`.toJavaPackage()}.${vrapSubType.simpleClassName}Builder ${it.discriminatorValue.lowerCamelCase()}Builder() {
+                    |   return ${vrapSubType.`package`.toJavaPackage()}.${vrapSubType.simpleClassName}Builder.of();
+                    |}
+                    """.trimMargin()
+                }
+                .joinToString(separator = "\n")
+        }
+        return ""
     }
 
     private fun ObjectType.fields() = this.allProperties
@@ -149,7 +201,13 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
                 |}
                 |
                 |${property.deprecationAnnotation()}
-                |public ${type.simpleClassName}Builder add${propertyName.upperCamelCase()}(${if (!property.required) "@Nullable" else ""} final ${propType.itemType.fullClassName()} ...$propertyName) {
+                |public ${type.simpleClassName}Builder $propertyName(${if (!property.required) "@Nullable" else ""} final ${propType.fullClassName()} $propertyName) {
+                |    this.$propertyName = $propertyName;
+                |    return this;
+                |}
+                |
+                |${property.deprecationAnnotation()}
+                |public ${type.simpleClassName}Builder plus${propertyName.firstUpperCase()}(${if (!property.required) "@Nullable" else ""} final ${propType.itemType.fullClassName()} ...$propertyName) {
                 |    if (this.$propertyName == null) {
                 |        this.$propertyName = new ArrayList<>();
                 |    }
@@ -157,14 +215,25 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
                 |    return this;
                 |}
                 |
-                |${if (propItemType is ObjectType && !propItemType.isAbstract() && propType.simpleName() != JavaBaseTypes.objectType.simpleName()) """
+                |${if (propItemType is ObjectType && propItemType.isAbstract() && propItemType.discriminator != null) """
                 |${property.deprecationAnnotation()}
-                |public ${type.simpleClassName}Builder with${property.name.firstUpperCase()}(Function<${propType.itemType.fullClassName()}Builder, ${propType.itemType.fullClassName()}Builder> builder) {
-                |    this.$propertyName = new ArrayList<>();
+                |public ${type.simpleClassName}Builder plus${property.name.firstUpperCase()}(Function<${propType.itemType.fullClassName()}Builder, Builder<? extends ${propType.itemType.fullClassName()}>> builder) {
+                |    if (this.$propertyName == null) {
+                |        this.$propertyName = new ArrayList<>();
+                |    }
                 |    this.$propertyName.add(builder.apply(${propType.itemType.fullClassName()}Builder.of()).build());
                 |    return this;
                 |}
                 |
+                |${property.deprecationAnnotation()}
+                |public ${type.simpleClassName}Builder with${property.name.firstUpperCase()}(Function<${propType.itemType.fullClassName()}Builder, Builder<? extends ${propType.itemType.fullClassName()}>> builder) {
+                |    this.$propertyName = new ArrayList<>();
+                |    this.$propertyName.add(builder.apply(${propType.itemType.fullClassName()}Builder.of()).build());
+                |    return this;
+                |}
+                """ else ""}
+                |${if (propItemType is ObjectType && !propItemType.isAbstract() && propType.simpleName() != JavaBaseTypes.objectType.simpleName()) """
+                |${property.deprecationAnnotation()}
                 |${property.deprecationAnnotation()}
                 |public ${type.simpleClassName}Builder plus${property.name.firstUpperCase()}(Function<${propType.itemType.fullClassName()}Builder, ${propType.itemType.fullClassName()}Builder> builder) {
                 |    if (this.$propertyName == null) {
@@ -174,12 +243,12 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
                 |    return this;
                 |}
                 |
-                """ else ""}
-                |${property.deprecationAnnotation()}
-                |public ${type.simpleClassName}Builder $propertyName(${if (!property.required) "@Nullable" else ""} final ${propType.fullClassName()} $propertyName) {
-                |    this.$propertyName = $propertyName;
+                |public ${type.simpleClassName}Builder with${property.name.firstUpperCase()}(Function<${propType.itemType.fullClassName()}Builder, ${propType.itemType.fullClassName()}Builder> builder) {
+                |    this.$propertyName = new ArrayList<>();
+                |    this.$propertyName.add(builder.apply(${propType.itemType.fullClassName()}Builder.of()).build());
                 |    return this;
                 |}
+                """ else ""}
             """.trimMargin()
         } else {
             var propertyName = property.name
@@ -201,6 +270,14 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
                 |    this.$propertyName = $propertyName;
                 |    return this;
                 |}
+                |
+                |${if (checkedPropertyType is ObjectType && checkedPropertyType.isAbstract() && checkedPropertyType.discriminator != null) """
+                |${property.deprecationAnnotation()}
+                |public ${type.simpleClassName}Builder $propertyName(Function<${propType.fullClassName()}Builder, Builder<? extends ${propType.fullClassName()}>> builder) {
+                |    this.$propertyName = builder.apply(${propType.fullClassName()}Builder.of()).build();
+                |    return this;
+                |}
+                """ else ""}
             """.trimMargin()
         }
     }
