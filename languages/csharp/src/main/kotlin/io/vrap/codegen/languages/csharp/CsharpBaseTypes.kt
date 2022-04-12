@@ -9,7 +9,7 @@ object CsharpBaseTypes : LanguageBaseTypes(
         objectType = fromCsharpType("", "Object"),
         integerType = fromScalarCsharpType("int"),
         longType = fromScalarCsharpType("long"),
-        doubleType = fromScalarCsharpType("double"),
+        doubleType = fromScalarCsharpType("decimal"),
         stringType = fromScalarCsharpType("string"),
         booleanType = fromScalarCsharpType("bool"),
         dateTimeType = fromCsharpType("", "DateTime"),
