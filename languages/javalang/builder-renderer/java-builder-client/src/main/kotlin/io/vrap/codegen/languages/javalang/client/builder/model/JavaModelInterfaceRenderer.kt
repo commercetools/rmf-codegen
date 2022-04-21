@@ -69,10 +69,11 @@ class JavaModelInterfaceRenderer constructor(override val vrapTypeProvider: Vrap
             |    <${type.staticBuilderMethod()}>
             |
             |    <${type.subTypeBuilders().escapeAll()}>
-            |    
+            |
             |    default \<T\> T with${vrapType.simpleClassName}(Function\<${vrapType.simpleClassName}, T\> helper) {
             |        return helper.apply(this);
             |    }
+            |    <${type.getAnnotation("java-mixin")?.value?.value ?: ""}>
             |}
         """.trimMargin().keepIndentation()
 
@@ -147,11 +148,11 @@ class JavaModelInterfaceRenderer constructor(override val vrapTypeProvider: Vrap
             ""
         }else {
             """
-                |public static ${vrapType.simpleClassName}Builder builder(){
+                |public static ${vrapType.simpleClassName}Builder builder() {
                 |    return ${vrapType.simpleClassName}Builder.of();
                 |}
                 |
-                |public static ${vrapType.simpleClassName}Builder builder(final ${vrapType.simpleClassName} template){
+                |public static ${vrapType.simpleClassName}Builder builder(final ${vrapType.simpleClassName} template) {
                 |    return ${vrapType.simpleClassName}Builder.of(template);
                 |}
              """.trimMargin()
