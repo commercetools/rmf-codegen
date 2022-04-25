@@ -74,6 +74,8 @@ class JavaModelInterfaceRenderer constructor(override val vrapTypeProvider: Vrap
             |        return helper.apply(this);
             |    }
             |    <${type.getAnnotation("java-mixin")?.value?.value ?: ""}>
+            |    
+            |    <${type.typeReference()}>
             |}
         """.trimMargin().keepIndentation()
 
@@ -81,6 +83,20 @@ class JavaModelInterfaceRenderer constructor(override val vrapTypeProvider: Vrap
             relativePath = "${vrapType.`package`}.${vrapType.simpleClassName}".replace(".", "/") + ".java",
             content = content
         )
+    }
+
+    private fun ObjectType.typeReference(): String {
+        val vrapType = vrapTypeProvider.doSwitch(this).toJavaVType() as VrapObjectType
+        return """
+            |public static com.fasterxml.jackson.core.type.TypeReference<${vrapType.simpleClassName}> typeReference() {
+            |    return new com.fasterxml.jackson.core.type.TypeReference<${vrapType.simpleClassName}>() {
+            |        @Override
+            |        public String toString() {
+            |            return "TypeReference<${vrapType.simpleClassName}>";
+            |        }
+            |    };
+            |}
+        """.trimMargin().escapeAll()
     }
 
     private fun ObjectType.subclassImport() : String {
