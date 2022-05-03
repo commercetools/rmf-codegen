@@ -1,6 +1,7 @@
 package io.vrap.codegen.languages.ramldoc
 
 import io.vrap.codegen.languages.ramldoc.extensions.renderAnnotation
+import io.vrap.codegen.languages.ramldoc.extensions.toJson
 import io.vrap.codegen.languages.ramldoc.model.RamldocBaseTypes
 import io.vrap.codegen.languages.ramldoc.model.RamldocModelModule
 import io.vrap.rmf.codegen.CodeGeneratorConfig
@@ -8,6 +9,7 @@ import io.vrap.rmf.codegen.di.RamlApiProvider
 import io.vrap.rmf.codegen.di.RamlGeneratorComponent
 import io.vrap.rmf.codegen.di.RamlGeneratorModule
 import io.vrap.rmf.codegen.io.MemoryDataSink
+import io.vrap.rmf.raml.model.types.ObjectInstance
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test
 import java.nio.file.Path
@@ -21,6 +23,24 @@ class TestCodeGenerator {
         private val outputFolder : Path = Paths.get(if (userProvidedOutputPath == null) "build/gensrc" else userProvidedOutputPath)
         val apiProvider: RamlApiProvider = RamlApiProvider(apiPath)
         val generatorConfig = CodeGeneratorConfig(basePackageName = "")
+    }
+
+    @Test
+    fun testNullExample() {
+        val apiProvider = RamlApiProvider(Paths.get("src/test/resources/nullinstance.raml"))
+
+        val api = apiProvider.api
+        val t = api.getType("foo").examples[0].value
+        Assertions.assertThat(t.toJson()).isEqualTo("""
+            {
+              "attributes" : {
+                "attribute-to-update" : {
+                  "type" : "boolean",
+                  "value" : true
+                },
+                "attribute-to-delete" : null
+              }
+            }""".trimIndent())
     }
 
     @Test

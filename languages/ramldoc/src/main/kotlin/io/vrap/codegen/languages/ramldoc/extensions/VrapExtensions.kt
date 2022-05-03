@@ -290,11 +290,24 @@ fun Annotation.renderAnnotation(): String {
     }
 }
 
+
+class NullInstanceSerializer : JsonSerializer<NullInstance>() {
+
+    @Throws(IOException::class)
+    override fun serialize(value: NullInstance, gen: JsonGenerator, provider: SerializerProvider) {
+        gen.writeNull()
+    }
+}
+
 class StringInstanceSerializer : JsonSerializer<StringInstance>() {
 
     @Throws(IOException::class)
     override fun serialize(value: StringInstance, gen: JsonGenerator, provider: SerializerProvider) {
-        gen.writeObject(value.value.trim())
+        if (value.value == null) {
+            gen.writeNull()
+        } else {
+            gen.writeObject(value.value.trim())
+        }
     }
 }
 
@@ -354,6 +367,7 @@ fun Instance.toJson(pretty: Boolean = true): String {
     val module = SimpleModule()
     module.addSerializer(ObjectInstance::class.java, ObjectInstanceSerializer())
     module.addSerializer(StringInstance::class.java, StringInstanceSerializer())
+    module.addSerializer(NullInstance::class.java, NullInstanceSerializer())
     module.addSerializer<Instance>(ArrayInstance::class.java, InstanceSerializer())
     module.addSerializer<Instance>(IntegerInstance::class.java, InstanceSerializer())
     module.addSerializer<Instance>(BooleanInstance::class.java, InstanceSerializer())

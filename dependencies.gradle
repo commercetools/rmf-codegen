@@ -11,7 +11,7 @@ ext {
             javaxValidation: '2.0.1.Final',
             kotlin: kotlinVersion,
             picocli: '4.6.1',
-            rmf: '0.2.0-20220202134231',
+            rmf: '0.2.0-20220503190321',
             rxjava: '3.1.2',
             slf4j: '1.7.25',
             spock: '2.0-groovy-3.0',

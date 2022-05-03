@@ -1,0 +1,9 @@
+{
+  "attributes" : {
+    "attribute-to-update" : {
+      "type" : "boolean",
+      "value" : true
+    },
+    "attribute-to-delete" : null
+  }
+}
