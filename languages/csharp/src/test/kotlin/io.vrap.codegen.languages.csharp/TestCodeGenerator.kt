@@ -27,7 +27,7 @@ class TestCodeGenerator {
 
     @Test
     fun generateCSharpModels() {
-        val generatorConfig = CodeGeneratorConfig(basePackageName = "commercetools.Api", outputFolder = outputFolder)
+        val generatorConfig = CodeGeneratorConfig(basePackageName = "commercetools.Sdk.Api", outputFolder = outputFolder)
         val generatorModule = RamlGeneratorModule(apiProvider, generatorConfig, CsharpBaseTypes)
         val generatorComponent = RamlGeneratorComponent(generatorModule, CsharpModule, CsharpClientBuilderModule)
         generatorComponent.generateFiles()
