@@ -42,6 +42,7 @@ import java.io.FileInputStream
 import java.lang.IllegalArgumentException
 import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.Paths
 import java.util.*
 import java.util.concurrent.Callable
 import java.util.concurrent.TimeUnit
@@ -134,7 +135,7 @@ class GenerateSubcommand : Callable<Int> {
             InternalLogger.error("File '$ramlFileLocation' does not exist, please provide an existing spec path.")
             return 1
         }
-
+        outputFolder = Paths.get("").toAbsolutePath().resolve(outputFolder).normalize()
         val customTypeMapping = readMapFile(typeMappingFile)
         val generatorConfig = CodeGeneratorConfig(
                 sharedPackage = sharedPackage,
