@@ -43,7 +43,7 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
                         }
                 )
                 .plus(
-                        type.`is`.map { "${it.trait.className()}<${type.toRequestName()}>".escapeAll() }
+                        type.`is`.distinctBy { it.trait.name }.map { "${it.trait.className()}<${type.toRequestName()}>".escapeAll() }
                 )
                 .filterNotNull()
         val bodyType = if (type.bodies != null && type.bodies.isNotEmpty() && type.bodies[0].type.toVrapType() is VrapObjectType) {

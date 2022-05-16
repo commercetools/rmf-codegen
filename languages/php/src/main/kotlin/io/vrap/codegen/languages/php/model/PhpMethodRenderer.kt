@@ -54,7 +54,7 @@ class PhpMethodRenderer constructor(override val vrapTypeProvider: VrapTypeProvi
                         }
                 )
                 .plus(
-                        type.`is`.map { it.trait.toTraitName().escapeAll() }
+                        type.`is`.distinctBy { it.trait.name }.map { it.trait.toTraitName().escapeAll() }
                 )
                 .filterNotNull()
 
