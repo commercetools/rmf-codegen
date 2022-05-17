@@ -42,9 +42,7 @@ class OasResourceRenderer constructor(val api: Api, val vrapTypeProvider: VrapTy
 
     private fun renderMethod(method: Method): String {
         return """
-            |${method.methodName}:
-            |  tags:
-            |    <<${method.resource().fullUri.template.split("/").filterNot(String::isEmpty).joinToString(separator = "\"\n- \"", prefix = "- \"", postfix = "\"") { s -> s.replace(Regex("[{}]"), "")}} >>${if (method.securedBy.isNotEmpty()) """
+            |${method.methodName}:${if (method.securedBy.isNotEmpty()) """
             |  security:
             |    <<${method.securedBy.joinToString("\n") { renderScheme(it)}}>>""" else ""}
             |  operationId: ${method.toRequestName()}${if (method.description != null) """
