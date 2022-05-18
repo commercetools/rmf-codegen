@@ -44,6 +44,66 @@ class TestCodeGenerator {
     }
 
     @Test
+    fun testCurlExample() {
+        val generatorConfig = CodeGeneratorConfig(
+            basePackageName = "com/commercetools/importer",
+            outputFolder = Paths.get("build/gensrc")
+        )
+
+        val apiProvider = RamlApiProvider(Paths.get("src/test/resources/curlexample.raml"))
+
+        val dataSink = MemoryDataSink()
+        val generatorModule = RamlGeneratorModule(apiProvider, generatorConfig, RamldocBaseTypes, dataSink = dataSink)
+        val generatorComponent = RamlGeneratorComponent(generatorModule, RamldocModelModule)
+        generatorComponent.generateFiles()
+
+        Assertions.assertThat(dataSink.files).hasSize(4)
+        Assertions.assertThat(dataSink.files.get("resources/Test.raml")?.trim()).isEqualTo("""
+            # Resource
+            (resourceName): Test
+            (resourcePathUri): /test
+            
+            get:
+              responses:
+                200:
+                  body:
+                    application/json:
+                      type: Test
+                      (builtinType): object
+            
+              (codeExamples):
+                curl: |-
+                  curl -X GET http://com.foo.bar/api/test -i 
+            post:
+              body:
+                application/json:
+                  type: Test
+                  (builtinType): object
+                  examples:
+                    default:
+                      strict: true
+                      value: !include ../examples/TestPost-default.json
+            
+              responses:
+                200:
+                  body:
+                    application/json:
+                      type: Test
+                      (builtinType): object
+            
+              (codeExamples):
+                curl: |-
+                  curl -X POST http://com.foo.bar/api/test -i \
+                  --header 'Content-Type: application/json' \
+                  --data-binary @- << DATA 
+                  {
+                    "foo" : "bar"
+                  }
+                  DATA
+        """.trimIndent().trim())
+    }
+
+    @Test
     fun generateRamldocModels() {
         val generatorConfig = CodeGeneratorConfig(
                 basePackageName = "com/commercetools/importer",

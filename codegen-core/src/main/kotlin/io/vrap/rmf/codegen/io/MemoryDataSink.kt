@@ -10,7 +10,7 @@ class MemoryDataSink: DataSink {
     }
 
     override fun postClean() {
-        files.clear()
+//        files.clear()
     }
 
 
