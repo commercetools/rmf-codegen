@@ -23,9 +23,12 @@ fun DescriptionFacet.toComment(): String {
     return if(htmlString.isNullOrBlank()){
         ""
     }else{
-        Jsoup.clean(htmlString, Safelist.basic().removeTags("a"))
-        htmlString.let {"/**\n${it.lines().map { "*  $it" }.joinToString(separator = "\n")}\n*/"}
+        htmlString.filterLinks().let {"/**\n${it.lines().map { "*  $it" }.joinToString(separator = "\n")}\n*/"}
     }
+}
+
+fun String.filterLinks(): String {
+    return Jsoup.clean(this, Safelist.basic().removeTags("a"))
 }
 
 /**
