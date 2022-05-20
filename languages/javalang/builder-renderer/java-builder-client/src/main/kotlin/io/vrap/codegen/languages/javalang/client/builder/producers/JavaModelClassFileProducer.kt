@@ -21,7 +21,7 @@ import io.vrap.rmf.raml.model.types.UnionType
 class JavaModelClassFileProducer constructor(override val vrapTypeProvider: VrapTypeProvider, @AllObjectTypes private val allObjectTypes: List<ObjectType>) : JavaObjectTypeExtensions, JavaEObjectTypeExtensions, FileProducer {
 
     override fun produceFiles(): List<TemplateFile> {
-        return allObjectTypes.map { render(it) }
+        return allObjectTypes.filter{!it.deprecated()}.map { render(it) }
     }
 
     fun render(type: ObjectType): TemplateFile {
@@ -294,6 +294,11 @@ class JavaModelClassFileProducer constructor(override val vrapTypeProvider: Vrap
 
     private fun ObjectType.markDeprecated() : Boolean {
         val anno = this.getAnnotation("markDeprecated")
+        return (anno != null && (anno.value as BooleanInstance).value)
+    }
+
+    private fun ObjectType.deprecated() : Boolean {
+        val anno = this.getAnnotation("deprecated")
         return (anno != null && (anno.value as BooleanInstance).value)
     }
 }

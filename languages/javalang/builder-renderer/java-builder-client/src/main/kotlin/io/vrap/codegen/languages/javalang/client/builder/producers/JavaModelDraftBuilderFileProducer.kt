@@ -25,7 +25,7 @@ import javax.lang.model.SourceVersion
 class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvider: VrapTypeProvider, @AllObjectTypes private val allObjectTypes: List<ObjectType>) : JavaObjectTypeExtensions, JavaEObjectTypeExtensions, FileProducer {
 
     override fun produceFiles(): List<TemplateFile> {
-        return allObjectTypes.filter { !it.isAbstract() }.map { render(it) }
+        return allObjectTypes.filter { !it.isAbstract() && !it.deprecated() }.map { render(it) }
             .plus(allObjectTypes.filter { it.isAbstract() && it.discriminator != null }.map { renderAbstract(it) })
     }
 
@@ -397,6 +397,11 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
 
     private fun ObjectType.markDeprecated() : Boolean {
         val anno = this.getAnnotation("markDeprecated")
+        return (anno != null && (anno.value as BooleanInstance).value)
+    }
+
+    private fun ObjectType.deprecated() : Boolean {
+        val anno = this.getAnnotation("deprecated")
         return (anno != null && (anno.value as BooleanInstance).value)
     }
 }
