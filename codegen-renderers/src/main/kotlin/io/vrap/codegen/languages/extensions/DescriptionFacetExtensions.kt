@@ -7,6 +7,8 @@ import io.vrap.rmf.raml.model.types.ObjectInstance
 import io.vrap.rmf.raml.model.types.StringInstance
 import org.commonmark.parser.Parser
 import org.commonmark.renderer.html.HtmlRenderer
+import org.jsoup.Jsoup
+import org.jsoup.safety.Safelist
 
 private val HTML_RENDERER = HtmlRenderer.builder().build()
 private val PARSER = Parser.builder().build()
@@ -21,6 +23,7 @@ fun DescriptionFacet.toComment(): String {
     return if(htmlString.isNullOrBlank()){
         ""
     }else{
+        Jsoup.clean(htmlString, Safelist.basic().removeTags("a"))
         htmlString.let {"/**\n${it.lines().map { "*  $it" }.joinToString(separator = "\n")}\n*/"}
     }
 }
