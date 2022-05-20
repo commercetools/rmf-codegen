@@ -50,7 +50,8 @@ class JavaModelClassFileProducer constructor(override val vrapTypeProvider: Vrap
 
                 |
                 |<${type.toComment().escapeAll()}>
-                |<${JavaSubTemplates.generatedAnnotation}>
+                |<${JavaSubTemplates.generatedAnnotation}>${if (type.markDeprecated()) """
+                |@Deprecated""" else ""}
                 |public class ${vrapType.simpleClassName}Impl implements ${vrapType.simpleClassName}, ModelBase {
                 |
                 |    <${type.beanFields().escapeAll()}>
@@ -289,5 +290,10 @@ class JavaModelClassFileProducer constructor(override val vrapTypeProvider: Vrap
             |}
             |${if(constructorArguments.isEmpty()) "" else emptyConstructor }
         """.trimMargin().keepIndentation()
+    }
+
+    private fun ObjectType.markDeprecated() : Boolean {
+        val anno = this.getAnnotation("markDeprecated")
+        return (anno != null && (anno.value as BooleanInstance).value)
     }
 }

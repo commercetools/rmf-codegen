@@ -14,7 +14,9 @@ import io.vrap.rmf.codegen.rendring.utils.keepIndentation
 import io.vrap.rmf.codegen.types.VrapArrayType
 import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
+import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.types.ArrayType
+import io.vrap.rmf.raml.model.types.BooleanInstance
 import io.vrap.rmf.raml.model.types.ObjectType
 import io.vrap.rmf.raml.model.types.Property
 import javax.lang.model.SourceVersion
@@ -43,7 +45,8 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
             |import io.vrap.rmf.base.client.Builder;
             |import io.vrap.rmf.base.client.utils.Generated;
             |
-            |<${JavaSubTemplates.generatedAnnotation}>
+            |<${JavaSubTemplates.generatedAnnotation}>${if (type.markDeprecated() ) """
+            |@Deprecated""" else ""}
             |public class ${vrapType.simpleClassName}Builder implements Builder\<${vrapType.simpleClassName}\> {
             |
             |    <${type.fields().escapeAll()}>
@@ -93,7 +96,8 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
             |import io.vrap.rmf.base.client.Builder;
             |import io.vrap.rmf.base.client.utils.Generated;
             |
-            |<${JavaSubTemplates.generatedAnnotation}>
+            |<${JavaSubTemplates.generatedAnnotation}>${if (type.markDeprecated() ) """
+            |@Deprecated""" else ""}
             |public class ${vrapType.simpleClassName}Builder {
             |
             |    <${type.subTypeBuilders().escapeAll()}>
@@ -389,5 +393,10 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
             |    return builder;
             |}
         """.escapeAll().trimMargin().keepIndentation()
+    }
+
+    private fun ObjectType.markDeprecated() : Boolean {
+        val anno = this.getAnnotation("markDeprecated")
+        return (anno != null && (anno.value as BooleanInstance).value)
     }
 }
