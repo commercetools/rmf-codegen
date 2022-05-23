@@ -2,9 +2,7 @@ package io.vrap.codegen.languages.javalang.client.builder.requests
 
 import com.google.common.collect.Lists
 import com.google.common.net.MediaType
-import io.vrap.codegen.languages.extensions.resource
-import io.vrap.codegen.languages.extensions.toComment
-import io.vrap.codegen.languages.extensions.toRequestName
+import io.vrap.codegen.languages.extensions.*
 import io.vrap.codegen.languages.java.base.JavaSubTemplates
 import io.vrap.codegen.languages.java.base.extensions.*
 import io.vrap.rmf.codegen.firstUpperCase
@@ -17,6 +15,7 @@ import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapScalarType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.resources.Method
+import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.resources.Trait
 import io.vrap.rmf.raml.model.types.*
 import io.vrap.rmf.raml.model.types.Annotation
@@ -90,7 +89,10 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
             |
             |import static io.vrap.rmf.base.client.utils.ClientUtils.blockingWait;
             |
-            |<${type.toComment().escapeAll()}>
+            |/**
+            |<${type.toComment(false).escapeAll()}>
+            |<${type.builderComment().escapeAll()}>
+            | */
             |<${JavaSubTemplates.generatedAnnotation}>
             |public class ${type.toRequestName()} extends $apiMethodClass\<${type.toRequestName()}, ${type.javaReturnType(vrapTypeProvider)}$bodyTypeClass\>${if (implements.isNotEmpty()) " implements ${implements.joinToString(", ")}" else ""} {
             |
@@ -134,6 +136,38 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
                 relativePath = "${vrapType.`package`}.${type.toRequestName()}".replace(".", "/") + ".java",
                 content = content
         )
+    }
+
+    public fun Method.builderComment(): String {
+        val resource = this.eContainer() as Resource
+        return """
+            | \<div class=code-example\>
+            | \<pre\>\<code class='java'\>
+            |   CompletableFuture\<ApiHttpResponse\<${this.javaReturnType(vrapTypeProvider)}\>\> result = apiRoot
+            |           <${builderComment(resource, this)}>
+            | \</code\>\</pre\>
+            | \</div\>
+        """.trimMargin().keepIndentation()
+    }
+
+    private fun builderComment(resource: Resource, method: Method) : String {
+        return resource.resourcePathList().map { r -> ".${r.getMethodName()}(${if (r.relativeUri.paramValues().isNotEmpty()) "\"${r.relativeUri.paramValues().joinToString("\", \"") { p -> "{$p}"} }\"" else ""})" }
+            .plus(".${method.method}(${bodyContent(method)})")
+            .plus(method.queryParameters.filter { it.required }.map { ".with${it.fieldName().firstUpperCase()}(${it.fieldName()})" })
+            .plus(".execute()")
+            .joinToString("\n")
+    }
+
+    private fun bodyContent(method: Method): String {
+        val bodyDef = method.firstBody()
+        return if (bodyDef != null) {
+            if (bodyDef.type.isFile()) {
+                "file"
+            }
+            else {
+                "null"
+            }
+        } else ""
     }
 
     private fun Method.equalsMethod() : String {
