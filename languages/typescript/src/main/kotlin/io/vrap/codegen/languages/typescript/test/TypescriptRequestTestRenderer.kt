@@ -6,9 +6,9 @@ import io.vrap.codegen.languages.typescript.toRequestBuilderName
 import io.vrap.codegen.languages.typescript.tsGeneratedComment
 import io.vrap.codegen.languages.typescript.tsRequestModuleName
 import io.vrap.rmf.codegen.io.TemplateFile
-import io.vrap.rmf.codegen.rendring.ResourceRenderer
-import io.vrap.rmf.codegen.rendring.utils.keepAngleIndent
-import io.vrap.rmf.codegen.rendring.utils.keepIndentation
+import io.vrap.rmf.codegen.rendering.ResourceRenderer
+import io.vrap.rmf.codegen.rendering.utils.keepAngleIndent
+import io.vrap.rmf.codegen.rendering.utils.keepIndentation
 import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.resources.Method

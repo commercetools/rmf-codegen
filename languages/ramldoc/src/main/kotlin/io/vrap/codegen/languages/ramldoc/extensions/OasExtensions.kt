@@ -5,7 +5,7 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
 import io.swagger.v3.oas.models.servers.ServerVariable
 import io.vrap.codegen.languages.extensions.toParamName
-import io.vrap.rmf.codegen.rendring.utils.keepAngleIndent
+import io.vrap.rmf.codegen.rendering.utils.keepAngleIndent
 
 fun UriTemplate.toResourceName(): String {
     return this.normalize().toParamName("By")

@@ -6,7 +6,7 @@ package io.vrap.codegen.languages.python.client
 import io.vrap.codegen.languages.python.model.PyObjectTypeExtensions
 import io.vrap.codegen.languages.python.pyGeneratedComment
 import io.vrap.rmf.codegen.io.TemplateFile
-import io.vrap.rmf.codegen.rendring.ResourceRenderer
+import io.vrap.rmf.codegen.rendering.ResourceRenderer
 import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.resources.Resource

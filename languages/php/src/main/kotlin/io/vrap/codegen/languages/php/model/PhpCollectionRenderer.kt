@@ -1,14 +1,12 @@
 package io.vrap.codegen.languages.php.model
 
-import io.vrap.codegen.languages.extensions.hasSubtypes
 import io.vrap.codegen.languages.php.ClientConstants
 import io.vrap.codegen.languages.php.PhpSubTemplates
 import io.vrap.codegen.languages.php.extensions.*
 import io.vrap.rmf.codegen.io.TemplateFile
-import io.vrap.rmf.codegen.rendring.ObjectTypeRenderer
+import io.vrap.rmf.codegen.rendering.ObjectTypeRenderer
 import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
-import io.vrap.rmf.raml.model.types.BuiltinType
 import io.vrap.rmf.raml.model.types.ObjectType
 
 class PhpCollectionRenderer constructor(override val vrapTypeProvider: VrapTypeProvider, clientConstants: ClientConstants) : ObjectTypeExtensions, EObjectTypeExtensions, ObjectTypeRenderer {

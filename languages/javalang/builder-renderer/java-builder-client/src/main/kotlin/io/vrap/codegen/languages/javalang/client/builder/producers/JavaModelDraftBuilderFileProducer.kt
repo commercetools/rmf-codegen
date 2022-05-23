@@ -9,9 +9,9 @@ import io.vrap.codegen.languages.java.base.extensions.*
 import io.vrap.rmf.codegen.firstUpperCase
 import io.vrap.rmf.codegen.di.AllObjectTypes
 import io.vrap.rmf.codegen.io.TemplateFile
-import io.vrap.rmf.codegen.rendring.FileProducer
-import io.vrap.rmf.codegen.rendring.utils.escapeAll
-import io.vrap.rmf.codegen.rendring.utils.keepIndentation
+import io.vrap.rmf.codegen.rendering.FileProducer
+import io.vrap.rmf.codegen.rendering.utils.escapeAll
+import io.vrap.rmf.codegen.rendering.utils.keepIndentation
 import io.vrap.rmf.codegen.types.VrapArrayType
 import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
@@ -44,6 +44,9 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
             |import io.vrap.rmf.base.client.Builder;
             |import io.vrap.rmf.base.client.utils.Generated;
             |
+            |/**
+            |<${type.builderComment().escapeAll()}> 
+            | */
             |<${JavaSubTemplates.generatedAnnotation}>
             |public class ${vrapType.simpleClassName}Builder implements Builder\<${vrapType.simpleClassName}\> {
             |

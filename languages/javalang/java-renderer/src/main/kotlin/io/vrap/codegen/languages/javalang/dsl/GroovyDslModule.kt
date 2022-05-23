@@ -2,7 +2,7 @@ package io.vrap.codegen.languages.javalang.dsl
 
 import io.vrap.rmf.codegen.di.RamlGeneratorModule
 import io.vrap.rmf.codegen.di.Module
-import io.vrap.rmf.codegen.rendring.ObjectTypeGenerator
+import io.vrap.rmf.codegen.rendering.ObjectTypeGenerator
 
 object GroovyDslModule: Module {
 

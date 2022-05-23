@@ -6,14 +6,13 @@ import io.vrap.codegen.languages.ramldoc.extensions.renderAnnotation
 import io.vrap.codegen.languages.ramldoc.extensions.renderEAttributes
 import io.vrap.rmf.codegen.di.ModelPackageName
 import io.vrap.rmf.codegen.io.TemplateFile
-import io.vrap.rmf.codegen.rendring.NamedScalarTypeRenderer
-import io.vrap.rmf.codegen.rendring.NamedStringTypeRenderer
-import io.vrap.rmf.codegen.rendring.PatternStringTypeRenderer
-import io.vrap.rmf.codegen.rendring.StringTypeRenderer
-import io.vrap.rmf.codegen.rendring.utils.keepAngleIndent
+import io.vrap.rmf.codegen.rendering.NamedScalarTypeRenderer
+import io.vrap.rmf.codegen.rendering.NamedStringTypeRenderer
+import io.vrap.rmf.codegen.rendering.PatternStringTypeRenderer
+import io.vrap.rmf.codegen.rendering.StringTypeRenderer
+import io.vrap.rmf.codegen.rendering.utils.keepAngleIndent
 import io.vrap.rmf.codegen.types.*
 import io.vrap.rmf.raml.model.types.*
-import org.eclipse.emf.ecore.EObject
 import java.lang.Exception
 
 class RamlStringTypeRenderer constructor(override val vrapTypeProvider: VrapTypeProvider, @ModelPackageName override val modelPackageName: String) : RamlScalarTypeRenderer<StringType>(vrapTypeProvider, modelPackageName), StringTypeRenderer, PatternStringTypeRenderer, NamedStringTypeRenderer

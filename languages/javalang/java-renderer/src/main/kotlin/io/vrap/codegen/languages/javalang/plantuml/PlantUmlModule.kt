@@ -2,7 +2,7 @@ package io.vrap.codegen.languages.javalang.plantuml
 
 import io.vrap.rmf.codegen.di.RamlGeneratorModule
 import io.vrap.rmf.codegen.di.Module
-import io.vrap.rmf.codegen.rendring.FileGenerator
+import io.vrap.rmf.codegen.rendering.FileGenerator
 
 object PlantUmlModule : Module {
 

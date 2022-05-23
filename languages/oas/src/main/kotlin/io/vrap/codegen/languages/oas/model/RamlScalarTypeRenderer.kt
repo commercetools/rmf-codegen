@@ -6,10 +6,10 @@ import io.vrap.codegen.languages.oas.extensions.renderAnnotation
 import io.vrap.codegen.languages.oas.extensions.renderEAttributes
 import io.vrap.rmf.codegen.di.ModelPackageName
 import io.vrap.rmf.codegen.io.TemplateFile
-import io.vrap.rmf.codegen.rendring.NamedStringTypeRenderer
-import io.vrap.rmf.codegen.rendring.PatternStringTypeRenderer
-import io.vrap.rmf.codegen.rendring.StringTypeRenderer
-import io.vrap.rmf.codegen.rendring.utils.keepAngleIndent
+import io.vrap.rmf.codegen.rendering.NamedStringTypeRenderer
+import io.vrap.rmf.codegen.rendering.PatternStringTypeRenderer
+import io.vrap.rmf.codegen.rendering.StringTypeRenderer
+import io.vrap.rmf.codegen.rendering.utils.keepAngleIndent
 import io.vrap.rmf.codegen.types.*
 import io.vrap.rmf.raml.model.types.*
 import java.lang.Exception

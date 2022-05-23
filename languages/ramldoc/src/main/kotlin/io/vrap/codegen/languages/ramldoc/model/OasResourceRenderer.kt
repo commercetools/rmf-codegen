@@ -5,29 +5,20 @@ import io.swagger.v3.oas.models.OpenAPI
 import io.swagger.v3.oas.models.Operation
 import io.swagger.v3.oas.models.PathItem
 import io.vrap.codegen.languages.extensions.hasBody
-import io.vrap.codegen.languages.extensions.isSuccessfull
-import io.vrap.codegen.languages.extensions.resource
 import io.vrap.codegen.languages.extensions.toRequestName
 import io.vrap.codegen.languages.ramldoc.extensions.*
 import io.vrap.rmf.codegen.io.TemplateFile
-import io.vrap.rmf.codegen.rendring.OasPathItemRenderer
-import io.vrap.rmf.codegen.rendring.Renderer
-import io.vrap.rmf.codegen.rendring.ResourceRenderer
-import io.vrap.rmf.codegen.rendring.utils.escapeAll
-import io.vrap.rmf.codegen.rendring.utils.keepAngleIndent
-import io.vrap.rmf.codegen.types.VrapObjectType
+import io.vrap.rmf.codegen.rendering.OasPathItemRenderer
+import io.vrap.rmf.codegen.rendering.utils.escapeAll
+import io.vrap.rmf.codegen.rendering.utils.keepAngleIndent
 import io.vrap.rmf.codegen.types.VrapTypeProvider
-import io.vrap.rmf.raml.model.modules.Api
 import io.vrap.rmf.raml.model.resources.HttpMethod
 import io.vrap.rmf.raml.model.resources.Method
-import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.resources.UriParameter
 import io.vrap.rmf.raml.model.responses.Body
 import io.vrap.rmf.raml.model.responses.Response
 import io.vrap.rmf.raml.model.security.SecuredBy
 import io.vrap.rmf.raml.model.types.*
-import org.eclipse.emf.ecore.EObject
-import java.util.*
 
 class OasResourceRenderer constructor(val api: OpenAPI, val vrapTypeProvider: VrapTypeProvider) : OasPathItemRenderer {
     override fun render(type: Map.Entry<String, PathItem>): TemplateFile {

@@ -4,11 +4,9 @@ import io.vrap.codegen.languages.javalang.client.builder.model.JavaModelInterfac
 import io.vrap.codegen.languages.javalang.client.builder.model.JavaStringTypeRenderer
 import io.vrap.codegen.languages.javalang.client.builder.producers.JavaModelClassFileProducer
 import io.vrap.codegen.languages.javalang.client.builder.producers.JavaModelDraftBuilderFileProducer
-import io.vrap.rmf.codegen.di.GeneratorModule
 import io.vrap.rmf.codegen.di.RamlGeneratorModule
 import io.vrap.rmf.codegen.di.Module
-import io.vrap.rmf.codegen.rendring.*
-import java.text.MessageFormat
+import io.vrap.rmf.codegen.rendering.*
 
 object JavaInterfaceModelModule : Module {
 

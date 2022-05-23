@@ -7,8 +7,8 @@ import io.vrap.codegen.languages.typescript.toJoiPackageName
 import io.vrap.codegen.languages.typescript.tsGeneratedComment
 import io.vrap.rmf.codegen.di.AllAnyTypes
 import io.vrap.rmf.codegen.io.TemplateFile
-import io.vrap.rmf.codegen.rendring.FileProducer
-import io.vrap.rmf.codegen.rendring.utils.keepIndentation
+import io.vrap.rmf.codegen.rendering.FileProducer
+import io.vrap.rmf.codegen.rendering.utils.keepIndentation
 import io.vrap.rmf.codegen.types.*
 import io.vrap.rmf.raml.model.types.*
 import org.eclipse.emf.common.util.EList
