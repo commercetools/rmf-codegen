@@ -8,14 +8,13 @@ import io.vrap.codegen.languages.extensions.isPatternProperty
 import io.vrap.rmf.codegen.firstUpperCase
 import io.vrap.rmf.codegen.di.BasePackageName
 import io.vrap.rmf.codegen.io.TemplateFile
-import io.vrap.rmf.codegen.rendring.ObjectTypeRenderer
-import io.vrap.rmf.codegen.rendring.utils.escapeAll
-import io.vrap.rmf.codegen.rendring.utils.keepIndentation
+import io.vrap.rmf.codegen.rendering.ObjectTypeRenderer
+import io.vrap.rmf.codegen.rendering.utils.escapeAll
+import io.vrap.rmf.codegen.rendering.utils.keepIndentation
 import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.types.*
 import io.vrap.rmf.raml.model.types.Annotation
-import io.vrap.rmf.raml.model.util.StringCaseFormat
 import java.util.*
 
 

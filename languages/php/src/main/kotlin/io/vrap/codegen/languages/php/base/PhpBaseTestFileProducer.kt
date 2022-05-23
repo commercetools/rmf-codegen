@@ -4,7 +4,7 @@ import io.vrap.codegen.languages.php.PhpSubTemplates
 import io.vrap.codegen.languages.php.extensions.*
 import io.vrap.rmf.codegen.di.BasePackageName
 import io.vrap.rmf.codegen.io.TemplateFile
-import io.vrap.rmf.codegen.rendring.FileProducer
+import io.vrap.rmf.codegen.rendering.FileProducer
 import io.vrap.rmf.raml.model.modules.Api
 
 class PhpBaseTestFileProducer constructor(val api: Api, @BasePackageName val packagePrefix: String) : FileProducer {

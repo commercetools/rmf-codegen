@@ -6,8 +6,8 @@ import io.swagger.v3.oas.models.security.OAuthFlows
 import io.swagger.v3.oas.models.security.SecurityScheme
 import io.vrap.codegen.languages.ramldoc.extensions.*
 import io.vrap.rmf.codegen.io.TemplateFile
-import io.vrap.rmf.codegen.rendring.FileProducer
-import io.vrap.rmf.codegen.rendring.utils.keepAngleIndent
+import io.vrap.rmf.codegen.rendering.FileProducer
+import io.vrap.rmf.codegen.rendering.utils.keepAngleIndent
 import io.vrap.rmf.raml.model.types.*
 import java.lang.IllegalArgumentException
 import java.text.MessageFormat

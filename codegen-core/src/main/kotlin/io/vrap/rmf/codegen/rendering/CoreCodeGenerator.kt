@@ -1,4 +1,4 @@
-package io.vrap.rmf.codegen.rendring
+package io.vrap.rmf.codegen.rendering
 
 import io.reactivex.rxjava3.core.Flowable
 import io.reactivex.rxjava3.schedulers.Schedulers

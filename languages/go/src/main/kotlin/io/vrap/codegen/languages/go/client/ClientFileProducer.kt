@@ -3,8 +3,8 @@ package io.vrap.codegen.languages.go.client
 import io.vrap.codegen.languages.go.*
 import io.vrap.rmf.codegen.di.BasePackageName
 import io.vrap.rmf.codegen.io.TemplateFile
-import io.vrap.rmf.codegen.rendring.FileProducer
-import io.vrap.rmf.codegen.rendring.utils.keepIndentation
+import io.vrap.rmf.codegen.rendering.FileProducer
+import io.vrap.rmf.codegen.rendering.utils.keepIndentation
 import io.vrap.rmf.raml.model.modules.Api
 
 class ClientFileProducer constructor(

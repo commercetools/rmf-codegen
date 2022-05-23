@@ -1,6 +1,6 @@
 package io.vrap.rmf.codegen.di;
 
-import io.vrap.rmf.codegen.rendring.CodeGenerator;
+import io.vrap.rmf.codegen.rendering.CodeGenerator;
 import java.text.MessageFormat
 
 interface Module {

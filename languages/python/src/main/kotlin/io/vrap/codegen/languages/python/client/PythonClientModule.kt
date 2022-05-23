@@ -5,9 +5,9 @@ package io.vrap.codegen.languages.python.client
 
 import io.vrap.rmf.codegen.di.RamlGeneratorModule
 import io.vrap.rmf.codegen.di.Module
-import io.vrap.rmf.codegen.rendring.CodeGenerator
-import io.vrap.rmf.codegen.rendring.FileGenerator
-import io.vrap.rmf.codegen.rendring.ResourceGenerator
+import io.vrap.rmf.codegen.rendering.CodeGenerator
+import io.vrap.rmf.codegen.rendering.FileGenerator
+import io.vrap.rmf.codegen.rendering.ResourceGenerator
 
 object PythonClientModule : Module {
     override fun configure(generatorModule: RamlGeneratorModule) = setOf<CodeGenerator>(

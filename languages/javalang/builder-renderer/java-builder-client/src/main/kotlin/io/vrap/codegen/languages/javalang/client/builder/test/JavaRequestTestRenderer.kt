@@ -1,21 +1,19 @@
 package io.vrap.codegen.languages.javalang.client.builder.test
 
 import io.vrap.codegen.languages.extensions.getMethodName
-import io.vrap.codegen.languages.extensions.toRequestName
 import io.vrap.codegen.languages.extensions.toResourceName
 import io.vrap.codegen.languages.java.base.JavaSubTemplates
 import io.vrap.codegen.languages.java.base.extensions.*
 
 import io.vrap.rmf.codegen.io.TemplateFile
-import io.vrap.rmf.codegen.rendring.ResourceRenderer
-import io.vrap.rmf.codegen.rendring.utils.*
+import io.vrap.rmf.codegen.rendering.ResourceRenderer
+import io.vrap.rmf.codegen.rendering.utils.*
 import io.vrap.rmf.codegen.types.VrapEnumType
 import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.types.*
-import io.vrap.rmf.raml.model.types.impl.NumberTypeImpl
 import kotlin.random.Random
 
 class JavaRequestTestRenderer constructor(override val vrapTypeProvider: VrapTypeProvider): ResourceRenderer, JavaEObjectTypeExtensions, JavaObjectTypeExtensions {

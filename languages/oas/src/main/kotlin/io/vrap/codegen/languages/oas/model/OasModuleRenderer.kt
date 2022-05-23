@@ -13,7 +13,7 @@ import io.vrap.codegen.languages.extensions.EObjectExtensions
 import io.vrap.codegen.languages.oas.extensions.InstanceSerializer
 import io.vrap.codegen.languages.oas.extensions.ObjectInstanceSerializer
 import io.vrap.rmf.codegen.io.TemplateFile
-import io.vrap.rmf.codegen.rendring.FileProducer
+import io.vrap.rmf.codegen.rendering.FileProducer
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.modules.Api
 import io.vrap.rmf.raml.model.types.*

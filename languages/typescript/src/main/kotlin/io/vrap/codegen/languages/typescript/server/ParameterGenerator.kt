@@ -6,8 +6,8 @@ import io.vrap.codegen.languages.typescript.*
 import io.vrap.codegen.languages.typescript.model.simpleTSName
 import io.vrap.rmf.codegen.di.ClientPackageName
 import io.vrap.rmf.codegen.io.TemplateFile
-import io.vrap.rmf.codegen.rendring.FileProducer
-import io.vrap.rmf.codegen.rendring.utils.keepIndentation
+import io.vrap.rmf.codegen.rendering.FileProducer
+import io.vrap.rmf.codegen.rendering.utils.keepIndentation
 import io.vrap.rmf.codegen.types.*
 import io.vrap.rmf.raml.model.modules.Api
 import io.vrap.rmf.raml.model.resources.Method

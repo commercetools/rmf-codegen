@@ -7,9 +7,9 @@ import io.vrap.codegen.languages.java.base.extensions.JavaObjectTypeExtensions
 import io.vrap.codegen.languages.java.base.extensions.enumValueName
 import io.vrap.codegen.languages.java.base.extensions.toJavaVType
 import io.vrap.rmf.codegen.io.TemplateFile
-import io.vrap.rmf.codegen.rendring.StringTypeRenderer
-import io.vrap.rmf.codegen.rendring.utils.escapeAll
-import io.vrap.rmf.codegen.rendring.utils.keepIndentation
+import io.vrap.rmf.codegen.rendering.StringTypeRenderer
+import io.vrap.rmf.codegen.rendering.utils.escapeAll
+import io.vrap.rmf.codegen.rendering.utils.keepIndentation
 import io.vrap.rmf.codegen.types.VrapEnumType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.types.StringInstance

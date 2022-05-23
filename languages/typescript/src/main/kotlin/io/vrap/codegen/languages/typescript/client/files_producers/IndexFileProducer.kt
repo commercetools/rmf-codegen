@@ -4,7 +4,7 @@ import io.vrap.codegen.languages.typescript.model.TsObjectTypeExtensions
 import io.vrap.codegen.languages.typescript.tsGeneratedComment
 import io.vrap.rmf.codegen.di.AllAnyTypes
 import io.vrap.rmf.codegen.io.TemplateFile
-import io.vrap.rmf.codegen.rendring.FileProducer
+import io.vrap.rmf.codegen.rendering.FileProducer
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.types.AnyType
 import io.vrap.rmf.raml.model.types.ObjectType

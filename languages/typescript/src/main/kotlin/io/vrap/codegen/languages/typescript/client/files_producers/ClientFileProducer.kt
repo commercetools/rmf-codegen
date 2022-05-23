@@ -2,7 +2,7 @@ package io.vrap.codegen.languages.typescript.client.files_producers
 
 import io.vrap.codegen.languages.typescript.tsGeneratedComment
 import io.vrap.rmf.codegen.io.TemplateFile
-import io.vrap.rmf.codegen.rendring.FileProducer
+import io.vrap.rmf.codegen.rendering.FileProducer
 
 class ClientFileProducer constructor(val clientConstants: ClientConstants) : FileProducer {
 

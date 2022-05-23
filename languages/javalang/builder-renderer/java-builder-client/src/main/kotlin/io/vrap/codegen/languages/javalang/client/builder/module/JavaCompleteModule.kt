@@ -8,12 +8,10 @@ import io.vrap.codegen.languages.javalang.client.builder.producers.JavaModelClas
 import io.vrap.codegen.languages.javalang.client.builder.producers.JavaModelDraftBuilderFileProducer
 import io.vrap.codegen.languages.javalang.client.builder.requests.JavaHttpRequestRenderer
 import io.vrap.codegen.languages.javalang.client.builder.requests.JavaRequestBuilderResourceRenderer
-import io.vrap.rmf.codegen.di.GeneratorModule
 import io.vrap.rmf.codegen.di.RamlGeneratorModule
 import io.vrap.rmf.codegen.di.Module
 
-import io.vrap.rmf.codegen.rendring.*
-import java.text.MessageFormat
+import io.vrap.rmf.codegen.rendering.*
 
 object JavaCompleteModule: Module {
 

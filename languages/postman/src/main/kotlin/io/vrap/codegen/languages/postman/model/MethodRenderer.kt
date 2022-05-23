@@ -2,9 +2,8 @@ package io.vrap.codegen.languages.postman.model
 
 import io.vrap.codegen.languages.extensions.resource
 import io.vrap.codegen.languages.extensions.toResourceName
-import io.vrap.rmf.codegen.rendring.utils.escapeAll
+import io.vrap.rmf.codegen.rendering.utils.escapeAll
 import io.vrap.rmf.raml.model.resources.Method
-import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.util.StringCaseFormat
 import org.apache.commons.text.StringEscapeUtils
 
