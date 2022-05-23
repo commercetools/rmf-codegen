@@ -58,27 +58,27 @@ interface JavaObjectTypeExtensions : ExtensionsBase {
                 .sortedBy { anyType -> anyType.name }
                 .first()
             return """
-            | Example to create a subtype instance using the builder pattern
-            | \<div class=code-example\>
-            | \<pre\>\<code class='java'\>
-            |   ${vrapType.simpleClassName} ${vrapType.simpleClassName.firstLowerCase()} = ${vrapType.simpleClassName}.${firstSubType.discriminatorValue.lowerCamelCase()}Builder()
-            |           <${firstSubType.allProperties.filter { property -> property.required }.filter { it.getAnnotation("deprecated") == null }.filter { it.name != this.discriminator() }.joinToString("\n") { it.builderComment()}}>
-            |           .build()
-            | \</code\>\</pre\>
-            | \</div\>
-        """.trimMargin().keepIndentation()
+            |Example to create a subtype instance using the builder pattern
+            |\<div class=code-example\>
+            |\<pre\>\<code class='java'\>
+            |    ${vrapType.simpleClassName} ${vrapType.simpleClassName.firstLowerCase()} = ${vrapType.simpleClassName}.${firstSubType.discriminatorValue.lowerCamelCase()}Builder()
+            |            <${firstSubType.allProperties.filter { property -> property.required }.filter { it.getAnnotation("deprecated") == null }.filter { it.name != this.discriminator() }.joinToString("\n") { it.builderComment()}}>
+            |            .build()
+            |\</code\>\</pre\>
+            |\</div\>
+        """.trimMargin().keepIndentation().split("\n").joinToString("\n", transform = { "* $it"})
         }
 
         return """
-            | Example to create an instance using the builder pattern
-            | \<div class=code-example\>
-            | \<pre\>\<code class='java'\>
-            |   ${vrapType.simpleClassName} ${vrapType.simpleClassName.firstLowerCase()} = ${vrapType.simpleClassName}.builder()
-            |           <${this.allProperties.filter { property -> property.required }.filter { it.getAnnotation("deprecated") == null }.filter { it.name != this.discriminator() }.map { it.builderComment() }.filterNot { it.isBlank() }.joinToString("\n", transform = { ".$it"})}>
-            |           .build()
-            | \</code\>\</pre\>
-            | \</div\>
-        """.trimMargin().keepIndentation()
+            |Example to create an instance using the builder pattern
+            |\<div class=code-example\>
+            |\<pre\>\<code class='java'\>
+            |    ${vrapType.simpleClassName} ${vrapType.simpleClassName.firstLowerCase()} = ${vrapType.simpleClassName}.builder()
+            |            <${this.allProperties.filter { property -> property.required }.filter { it.getAnnotation("deprecated") == null }.filter { it.name != this.discriminator() }.map { it.builderComment() }.filterNot { it.isBlank() }.joinToString("\n", transform = { ".$it"})}>
+            |            .build()
+            |\</code\>\</pre\>
+            |\</div\>
+        """.trimMargin().keepIndentation().split("\n").joinToString("\n", transform = { "* $it"})
     }
 
     private fun Property.builderComment(): String {

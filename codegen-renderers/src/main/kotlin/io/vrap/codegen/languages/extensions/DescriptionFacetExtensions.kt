@@ -24,16 +24,12 @@ private val outputSettings = OutputSettings()
  *
  * @return the description of this as a doc comment
  */
-fun DescriptionFacet.toComment(boundary: Boolean = true): String {
+fun DescriptionFacet.toComment(): String {
     val htmlString = this.toHtml()
     return if(htmlString.isNullOrBlank()){
         ""
     }else{
-        if (boundary) {
-            htmlString.filterLinks().let {"/**\n${it.lines().map { " *  $it" }.joinToString(separator = "\n")}\n */"}
-        } else {
-            htmlString.filterLinks().let {"${it.lines().map { " $it" }.joinToString(separator = "\n")}\n"}
-        }
+        htmlString.filterLinks().let { it.lines().map { "*  $it" }.joinToString(separator = "\n") }
     }
 }
 

@@ -32,6 +32,9 @@ class JavaApiRootFileProducer constructor(@ClientPackageName val clientPackage: 
             |import java.util.Arrays;
             |import io.vrap.rmf.base.client.utils.Generated;
             |
+            |/**
+            | * Entrypoint for building requests against the API
+            | */
             |<${JavaSubTemplates.generatedAnnotation}>
             |public class ApiRoot implements Closeable {
             |

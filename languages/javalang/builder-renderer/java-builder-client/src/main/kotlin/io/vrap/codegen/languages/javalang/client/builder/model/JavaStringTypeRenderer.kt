@@ -27,7 +27,9 @@ class JavaStringTypeRenderer constructor(override val vrapTypeProvider: VrapType
                 |import java.util.Optional;
                 |import io.vrap.rmf.base.client.utils.Generated;
                 |
-                |${type.toComment().escapeAll()}
+                |/**
+                | ${type.toComment().ifBlank { "* ${vrapType.simpleClassName}" }.escapeAll()}
+                | */
                 |${JavaSubTemplates.generatedAnnotation}
                 |public interface ${vrapType.simpleClassName} {
                 |

@@ -46,9 +46,10 @@ class JavaModelClassFileProducer constructor(override val vrapTypeProvider: Vrap
                 |import com.fasterxml.jackson.annotation.JsonProperty;
                 |import org.apache.commons.lang3.builder.EqualsBuilder;
                 |import org.apache.commons.lang3.builder.HashCodeBuilder;
-
                 |
-                |<${type.toComment().escapeAll()}>
+                |/**
+                | <${type.toComment().ifBlank { "* ${vrapType.simpleClassName}" }.escapeAll()}>
+                | */
                 |<${JavaSubTemplates.generatedAnnotation}>
                 |public class ${vrapType.simpleClassName}Impl implements ${vrapType.simpleClassName}, ModelBase {
                 |
@@ -210,7 +211,10 @@ class JavaModelClassFileProducer constructor(override val vrapTypeProvider: Vrap
         val vrapType = this.type.toVrapType()
         return if (this.isPatternProperty()) {
             """
-            |${this.type.toComment()}${this.deprecationAnnotation()}
+            |/**
+            | <${this.type.toComment()}>
+            | */
+            |${this.deprecationAnnotation()}
             |public Map<String,${vrapType.fullClassName()}> values() {
             |    return values;
             |}
@@ -224,7 +228,10 @@ class JavaModelClassFileProducer constructor(override val vrapTypeProvider: Vrap
             """.trimMargin()
         } else {
             """
-            |${this.type.toComment()}${this.deprecationAnnotation()}
+            |/**
+            | <${this.type.toComment()}>
+            | */
+            |${this.deprecationAnnotation()}
             |public ${vrapType.fullClassName()} get${this.name.upperCamelCase()}(){
             |    return this.${this.name.lowerCamelCase()};
             |}

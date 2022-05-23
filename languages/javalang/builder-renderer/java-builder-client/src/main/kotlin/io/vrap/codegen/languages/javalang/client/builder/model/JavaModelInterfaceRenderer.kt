@@ -54,8 +54,10 @@ class JavaModelInterfaceRenderer constructor(override val vrapTypeProvider: Vrap
             |import java.io.IOException;
             |
             |/**
-            |<${type.toComment(false).escapeAll()}>
-            |<${type.builderComment().escapeAll()}> 
+            | <${type.toComment().ifBlank { "* ${vrapType.simpleClassName}" }.escapeAll()}>
+            | *
+            | * \<hr\>
+            | <${type.builderComment().escapeAll()}> 
             | */
             |<${type.subTypesAnnotations()}>
             |<${JavaSubTemplates.generatedAnnotation}>
@@ -210,14 +212,18 @@ class JavaModelInterfaceRenderer constructor(override val vrapTypeProvider: Vrap
     private fun Property.getter(): String {
          return if(this.isPatternProperty()){
             """
-            |${this.type.toComment()}
+            |/**
+            | <${this.type.toComment()}>
+            | */
             |${this.validationAnnotations()}
             |@JsonAnyGetter
             |public Map<String, ${this.type.toVrapType().simpleName()}> values();
             """.trimMargin()
         }else {
             """
-            |${this.type.toComment()}
+            |/**
+            | <${this.type.toComment()}>
+            | */
             |${this.validationAnnotations()}
             |@JsonProperty("${this.name}")
             |public ${this.type.toVrapType().simpleName()} get${this.name.upperCamelCase()}();

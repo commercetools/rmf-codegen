@@ -31,7 +31,9 @@ class JavaTraitRenderer constructor(override val vrapTypeProvider: VrapTypeProvi
             |import io.vrap.rmf.base.client.utils.Generated;
             |import java.util.List;
             |
-            |<${type.toComment().escapeAll()}>
+            |/**
+            | <${type.toComment().ifBlank { "* ${vrapType.simpleClassName}" }.escapeAll()}>
+            | */
             |<${JavaSubTemplates.generatedAnnotation}>
             |public interface ${vrapType.simpleClassName}\<T extends ${vrapType.simpleClassName}\<T\>\> {
             |    <${type.queryParamsGetters()}>

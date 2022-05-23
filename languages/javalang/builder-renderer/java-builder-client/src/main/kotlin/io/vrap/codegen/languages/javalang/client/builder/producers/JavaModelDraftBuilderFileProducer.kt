@@ -45,7 +45,9 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
             |import io.vrap.rmf.base.client.utils.Generated;
             |
             |/**
-            |<${type.builderComment().escapeAll()}> 
+            | * ${vrapType.simpleClassName}Builder
+            | * \<hr\>
+            | <${type.builderComment().escapeAll()}> 
             | */
             |<${JavaSubTemplates.generatedAnnotation}>
             |public class ${vrapType.simpleClassName}Builder implements Builder\<${vrapType.simpleClassName}\> {
@@ -97,6 +99,9 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
             |import io.vrap.rmf.base.client.Builder;
             |import io.vrap.rmf.base.client.utils.Generated;
             |
+            |/**
+            | * ${vrapType.simpleClassName}Builder
+            | */
             |<${JavaSubTemplates.generatedAnnotation}>
             |public class ${vrapType.simpleClassName}Builder {
             |
@@ -175,14 +180,18 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
         val propType = propertyType.toVrapType()
         return if(property.isPatternProperty()) {
             """
-                |${propertyType.toComment()}
+                |/**
+                | <${propertyType.toComment()}>
+                | */
                 |${property.deprecationAnnotation()}
                 |public ${type.simpleClassName}Builder values(${if (!property.required) "@Nullable" else ""} final Map<String, ${propType.fullClassName()}> values){
                 |    this.values = values;
                 |    return this;
                 |}
                 |
-                |${propertyType.toComment()}
+                |/**
+                | <${propertyType.toComment()}>
+                | */
                 |${property.deprecationAnnotation()}
                 |public ${type.simpleClassName}Builder addValue(final String key, final ${propType.fullClassName()} value) {
                 |    if (this.values == null) {
@@ -200,21 +209,27 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
                 propertyName = "_$propertyName"
             }
             """
-                |${propertyType.toComment()}
+                |/**
+                | <${propertyType.toComment()}>
+                | */
                 |${property.deprecationAnnotation()}
                 |public ${type.simpleClassName}Builder $propertyName(${if (!property.required) "@Nullable" else ""} final ${propType.itemType.fullClassName()} ...$propertyName) {
                 |    this.$propertyName = new ArrayList<>(Arrays.asList($propertyName));
                 |    return this;
                 |}
                 |
-                |${propertyType.toComment()}
+                |/**
+                | <${propertyType.toComment()}>
+                | */
                 |${property.deprecationAnnotation()}
                 |public ${type.simpleClassName}Builder $propertyName(${if (!property.required) "@Nullable" else ""} final ${propType.fullClassName()} $propertyName) {
                 |    this.$propertyName = $propertyName;
                 |    return this;
                 |}
                 |
-                |${propertyType.toComment()}
+                |/**
+                | <${propertyType.toComment()}>
+                | */
                 |${property.deprecationAnnotation()}
                 |public ${type.simpleClassName}Builder plus${propertyName.firstUpperCase()}(${if (!property.required) "@Nullable" else ""} final ${propType.itemType.fullClassName()} ...$propertyName) {
                 |    if (this.$propertyName == null) {
@@ -225,7 +240,9 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
                 |}
                 |
                 |${if (propItemType is ObjectType && propItemType.isAbstract() && propItemType.discriminator != null) """
-                |${propertyType.toComment()}
+                |/**
+                | <${propertyType.toComment()}>
+                | */
                 |${property.deprecationAnnotation()}
                 |public ${type.simpleClassName}Builder plus${property.name.firstUpperCase()}(Function<${propType.itemType.fullClassName()}Builder, Builder<? extends ${propType.itemType.fullClassName()}>> builder) {
                 |    if (this.$propertyName == null) {
@@ -235,7 +252,9 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
                 |    return this;
                 |}
                 |
-                |${propertyType.toComment()}
+                |/**
+                | <${propertyType.toComment()}>
+                | */
                 |${property.deprecationAnnotation()}
                 |public ${type.simpleClassName}Builder with${property.name.firstUpperCase()}(Function<${propType.itemType.fullClassName()}Builder, Builder<? extends ${propType.itemType.fullClassName()}>> builder) {
                 |    this.$propertyName = new ArrayList<>();
@@ -244,7 +263,9 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
                 |}
                 """ else ""}
                 |${if (propItemType is ObjectType && !propItemType.isAbstract() && propType.simpleName() != JavaBaseTypes.objectType.simpleName()) """
-                |${propertyType.toComment()}
+                |/**
+                | <${propertyType.toComment()}>
+                | */
                 |${property.deprecationAnnotation()}
                 |public ${type.simpleClassName}Builder plus${property.name.firstUpperCase()}(Function<${propType.itemType.fullClassName()}Builder, ${propType.itemType.fullClassName()}Builder> builder) {
                 |    if (this.$propertyName == null) {
@@ -254,7 +275,9 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
                 |    return this;
                 |}
                 |
-                |${propertyType.toComment()}
+                |/**
+                | <${propertyType.toComment()}>
+                | */
                 |${property.deprecationAnnotation()}
                 |public ${type.simpleClassName}Builder with${property.name.firstUpperCase()}(Function<${propType.itemType.fullClassName()}Builder, ${propType.itemType.fullClassName()}Builder> builder) {
                 |    this.$propertyName = new ArrayList<>();
@@ -271,7 +294,9 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
             }
             """
                 |${if (checkedPropertyType is ObjectType && !checkedPropertyType.isAbstract() && propType.simpleName() != JavaBaseTypes.objectType.simpleName()) """
-                |${propertyType.toComment()}
+                |/**
+                | <${propertyType.toComment()}>
+                | */
                 |${property.deprecationAnnotation()}
                 |public ${type.simpleClassName}Builder $propertyName(Function<${propType.fullClassName()}Builder, ${propType.fullClassName()}Builder> builder) {
                 |    this.$propertyName = builder.apply(${propType.fullClassName()}Builder.of()).build();
@@ -279,7 +304,9 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
                 |}
                 |
                 """ else ""}
-                |${propertyType.toComment()}
+                |/**
+                | <${propertyType.toComment()}>
+                | */
                 |${property.deprecationAnnotation()}
                 |public ${type.simpleClassName}Builder $propertyName(${if (!property.required) "@Nullable" else ""} final ${propType.fullClassName()} $propertyName) {
                 |    this.$propertyName = $propertyName;
@@ -287,7 +314,9 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
                 |}
                 |
                 |${if (checkedPropertyType is ObjectType && checkedPropertyType.isAbstract() && checkedPropertyType.discriminator != null) """
-                |${propertyType.toComment()}
+                |/**
+                | <${propertyType.toComment()}>
+                | */
                 |${property.deprecationAnnotation()}
                 |public ${type.simpleClassName}Builder $propertyName(Function<${propType.fullClassName()}Builder, Builder<? extends ${propType.fullClassName()}>> builder) {
                 |    this.$propertyName = builder.apply(${propType.fullClassName()}Builder.of()).build();

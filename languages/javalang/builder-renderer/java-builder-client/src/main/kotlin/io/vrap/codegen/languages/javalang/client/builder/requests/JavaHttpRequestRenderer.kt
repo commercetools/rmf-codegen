@@ -90,8 +90,10 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
             |import static io.vrap.rmf.base.client.utils.ClientUtils.blockingWait;
             |
             |/**
-            |<${type.toComment(false).escapeAll()}>
-            |<${type.builderComment().escapeAll()}>
+            | <${type.toComment().escapeAll()}>
+            | *
+            | * \<hr\>
+            | <${type.builderComment().escapeAll()}>
             | */
             |<${JavaSubTemplates.generatedAnnotation}>
             |public class ${type.toRequestName()} extends $apiMethodClass\<${type.toRequestName()}, ${type.javaReturnType(vrapTypeProvider)}$bodyTypeClass\>${if (implements.isNotEmpty()) " implements ${implements.joinToString(", ")}" else ""} {
@@ -141,13 +143,13 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
     public fun Method.builderComment(): String {
         val resource = this.eContainer() as Resource
         return """
-            | \<div class=code-example\>
-            | \<pre\>\<code class='java'\>{@code
-            |   CompletableFuture\<ApiHttpResponse\<${this.javaReturnType(vrapTypeProvider)}\>\> result = apiRoot
+            |\<div class=code-example\>
+            |\<pre\>\<code class='java'\>{@code
+            |  CompletableFuture\<ApiHttpResponse\<${this.javaReturnType(vrapTypeProvider)}\>\> result = apiRoot
             |           <${builderComment(resource, this)}>
-            | }\</code\>\</pre\>
-            | \</div\>
-        """.trimMargin().keepIndentation()
+            |}\</code\>\</pre\>
+            |\</div\>
+        """.trimMargin().keepIndentation().split("\n").joinToString("\n", transform = { "* $it"})
     }
 
     private fun builderComment(resource: Resource, method: Method) : String {
