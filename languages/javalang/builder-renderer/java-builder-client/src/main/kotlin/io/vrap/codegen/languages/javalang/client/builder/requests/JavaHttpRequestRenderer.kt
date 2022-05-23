@@ -142,10 +142,10 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
         val resource = this.eContainer() as Resource
         return """
             | \<div class=code-example\>
-            | \<pre\>\<code class='java'\>
+            | \<pre\>\<code class='java'\>{@code
             |   CompletableFuture\<ApiHttpResponse\<${this.javaReturnType(vrapTypeProvider)}\>\> result = apiRoot
             |           <${builderComment(resource, this)}>
-            | \</code\>\</pre\>
+            | }\</code\>\</pre\>
             | \</div\>
         """.trimMargin().keepIndentation()
     }
