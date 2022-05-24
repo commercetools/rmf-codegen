@@ -4,9 +4,9 @@ import io.vrap.codegen.languages.extensions.*
 import io.vrap.codegen.languages.extensions.toResourceName
 import io.vrap.codegen.languages.oas.extensions.*
 import io.vrap.rmf.codegen.io.TemplateFile
-import io.vrap.rmf.codegen.rendring.ResourceRenderer
-import io.vrap.rmf.codegen.rendring.utils.escapeAll
-import io.vrap.rmf.codegen.rendring.utils.keepAngleIndent
+import io.vrap.rmf.codegen.rendering.ResourceRenderer
+import io.vrap.rmf.codegen.rendering.utils.escapeAll
+import io.vrap.rmf.codegen.rendering.utils.keepAngleIndent
 import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.modules.Api
@@ -42,9 +42,7 @@ class OasResourceRenderer constructor(val api: Api, val vrapTypeProvider: VrapTy
 
     private fun renderMethod(method: Method): String {
         return """
-            |${method.methodName}:
-            |  tags:
-            |    <<${method.resource().fullUri.template.split("/").filterNot(String::isEmpty).joinToString(separator = "\"\n- \"", prefix = "- \"", postfix = "\"") { s -> s.replace(Regex("[{}]"), "")}} >>${if (method.securedBy.isNotEmpty()) """
+            |${method.methodName}:${if (method.securedBy.isNotEmpty()) """
             |  security:
             |    <<${method.securedBy.joinToString("\n") { renderScheme(it)}}>>""" else ""}
             |  operationId: ${method.toRequestName()}${if (method.description != null) """

@@ -9,14 +9,15 @@ import io.vrap.codegen.languages.extensions.toRequestName
 import io.vrap.rmf.codegen.firstUpperCase
 import io.vrap.rmf.codegen.firstLowerCase
 import io.vrap.rmf.codegen.io.TemplateFile
-import io.vrap.rmf.codegen.rendring.MethodRenderer
-import io.vrap.rmf.codegen.rendring.utils.escapeAll
-import io.vrap.rmf.codegen.rendring.utils.keepIndentation
+import io.vrap.rmf.codegen.rendering.MethodRenderer
+import io.vrap.rmf.codegen.rendering.utils.escapeAll
+import io.vrap.rmf.codegen.rendering.utils.keepIndentation
 import io.vrap.rmf.codegen.types.VrapEnumType
 import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapScalarType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.resources.Method
+import io.vrap.rmf.raml.model.resources.Trait
 import io.vrap.rmf.raml.model.resources.impl.ResourceImpl
 import io.vrap.rmf.raml.model.types.Annotation
 import io.vrap.rmf.raml.model.types.ArrayType
@@ -47,6 +48,9 @@ class CsharpHttpRequestRenderer constructor(override val vrapTypeProvider: VrapT
                     else -> null
                 }
             )
+            .plus(
+                type.`is`.distinctBy { it.trait.name }.map { "${it.trait.className()}<${type.toRequestName()}>".escapeAll() }
+            )
             .filterNotNull()
 
         val content = """
@@ -65,7 +69,7 @@ class CsharpHttpRequestRenderer constructor(override val vrapTypeProvider: VrapT
             |
             |namespace ${cPackage}
             |{
-            |   public partial class ${type.toRequestName()} : ApiMethod\<${type.toRequestName()}\>${if (implements.isNotEmpty()) ", ${implements.joinToString(", ")}" else ""} {
+            |   public partial class ${type.toRequestName()} : ApiMethod\<${type.toRequestName()}\>, IApiMethod\<${type.toRequestName()}, ${type.csharpReturnType(vrapTypeProvider)}\>${if (implements.isNotEmpty()) ", ${implements.joinToString(", ")}" else ""} {
             |
             |       <${type.properties()}>
             |   
@@ -95,6 +99,11 @@ class CsharpHttpRequestRenderer constructor(override val vrapTypeProvider: VrapT
         )
     }
 
+    private fun Trait.className(): String {
+        val vrapType = vrapTypeProvider.doSwitch(this as EObject) as VrapObjectType
+
+        return "${vrapType.`package`.toCsharpPackage().replace("Clients", "Client")}.I${vrapType.simpleClassName}"
+    }
 
     private fun Method.properties(): String? {
 

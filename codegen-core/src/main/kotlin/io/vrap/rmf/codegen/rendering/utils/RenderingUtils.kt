@@ -1,4 +1,4 @@
-package io.vrap.rmf.codegen.rendring.utils
+package io.vrap.rmf.codegen.rendering.utils
 
 
 import java.util.*

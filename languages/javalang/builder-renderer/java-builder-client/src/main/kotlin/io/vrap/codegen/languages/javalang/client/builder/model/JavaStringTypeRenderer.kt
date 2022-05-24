@@ -4,9 +4,9 @@ import io.vrap.codegen.languages.extensions.toComment
 import io.vrap.codegen.languages.java.base.JavaSubTemplates
 import io.vrap.codegen.languages.java.base.extensions.*
 import io.vrap.rmf.codegen.io.TemplateFile
-import io.vrap.rmf.codegen.rendring.StringTypeRenderer
-import io.vrap.rmf.codegen.rendring.utils.escapeAll
-import io.vrap.rmf.codegen.rendring.utils.keepIndentation
+import io.vrap.rmf.codegen.rendering.StringTypeRenderer
+import io.vrap.rmf.codegen.rendering.utils.escapeAll
+import io.vrap.rmf.codegen.rendering.utils.keepIndentation
 import io.vrap.rmf.codegen.types.VrapEnumType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.types.StringInstance
@@ -27,7 +27,9 @@ class JavaStringTypeRenderer constructor(override val vrapTypeProvider: VrapType
                 |import java.util.Optional;
                 |import io.vrap.rmf.base.client.utils.Generated;
                 |
-                |${type.toComment().escapeAll()}
+                |/**
+                | ${type.toComment().ifBlank { "* ${vrapType.simpleClassName}" }.escapeAll()}
+                | */
                 |${JavaSubTemplates.generatedAnnotation}
                 |public interface ${vrapType.simpleClassName} {
                 |

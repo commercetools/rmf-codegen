@@ -1,0 +1,26 @@
+#%RAML 1.0
+title: MyAPI
+version: 1.0
+baseUri: http://com.foo.bar/api
+
+types:
+  Test: object
+/test:
+    get:
+       responses:
+         200:
+           body:
+             application/json:
+               type: Test
+    post:
+       body:
+         application/json:
+           type: Test
+           example: {
+            "foo": "bar"
+           }
+       responses:
+         200:
+           body:
+             application/json:
+               type: Test

@@ -7,9 +7,17 @@ import io.vrap.rmf.raml.model.types.ObjectInstance
 import io.vrap.rmf.raml.model.types.StringInstance
 import org.commonmark.parser.Parser
 import org.commonmark.renderer.html.HtmlRenderer
+import org.jsoup.Jsoup
+import org.jsoup.nodes.Document.OutputSettings
+import org.jsoup.nodes.Entities
+import org.jsoup.safety.Safelist
+import java.nio.charset.StandardCharsets
 
 private val HTML_RENDERER = HtmlRenderer.builder().build()
 private val PARSER = Parser.builder().build()
+private val outputSettings = OutputSettings()
+    .escapeMode(Entities.EscapeMode.extended)
+    .charset(StandardCharsets.UTF_8)
 
 /**
  * This extension method converts the description from markdown to html and wraps the result in doc comment.
@@ -21,8 +29,13 @@ fun DescriptionFacet.toComment(): String {
     return if(htmlString.isNullOrBlank()){
         ""
     }else{
-        htmlString.let {"/**\n${it.lines().map { "*  $it" }.joinToString(separator = "\n")}\n*/"}
+        htmlString.filterLinks().let { it.lines().map { "*  $it" }.joinToString(separator = "\n") }
     }
+}
+
+fun String.filterLinks(): String {
+    return Jsoup.clean(this, "", Safelist.basic().removeTags("a"), outputSettings)
+        .replace("€", "&euro;")
 }
 
 /**

@@ -2,21 +2,20 @@ package io.vrap.codegen.languages.javalang.client.builder.requests
 
 import com.google.common.collect.Lists
 import com.google.common.net.MediaType
-import io.vrap.codegen.languages.extensions.resource
-import io.vrap.codegen.languages.extensions.toComment
-import io.vrap.codegen.languages.extensions.toRequestName
+import io.vrap.codegen.languages.extensions.*
 import io.vrap.codegen.languages.java.base.JavaSubTemplates
 import io.vrap.codegen.languages.java.base.extensions.*
 import io.vrap.rmf.codegen.firstUpperCase
 import io.vrap.rmf.codegen.firstLowerCase
 import io.vrap.rmf.codegen.io.TemplateFile
-import io.vrap.rmf.codegen.rendring.MethodRenderer
-import io.vrap.rmf.codegen.rendring.utils.escapeAll
-import io.vrap.rmf.codegen.rendring.utils.keepIndentation
+import io.vrap.rmf.codegen.rendering.MethodRenderer
+import io.vrap.rmf.codegen.rendering.utils.escapeAll
+import io.vrap.rmf.codegen.rendering.utils.keepIndentation
 import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapScalarType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.resources.Method
+import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.resources.Trait
 import io.vrap.rmf.raml.model.types.*
 import io.vrap.rmf.raml.model.types.Annotation
@@ -43,7 +42,7 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
                         }
                 )
                 .plus(
-                        type.`is`.map { "${it.trait.className()}<${type.toRequestName()}>".escapeAll() }
+                        type.`is`.distinctBy { it.trait.name }.map { "${it.trait.className()}<${type.toRequestName()}>".escapeAll() }
                 )
                 .filterNotNull()
         val bodyType = if (type.bodies != null && type.bodies.isNotEmpty() && type.bodies[0].type.toVrapType() is VrapObjectType) {
@@ -90,8 +89,12 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
             |
             |import static io.vrap.rmf.base.client.utils.ClientUtils.blockingWait;
             |
-            |<${type.toComment().escapeAll()}>
-            |
+            |/**
+            | <${type.toComment().escapeAll()}>
+            | *
+            | * \<hr\>
+            | <${type.builderComment().escapeAll()}>
+            | */
             |<${JavaSubTemplates.generatedAnnotation}>${if (type.markDeprecated() ) """
             |@Deprecated""" else ""}
             |public class ${type.toRequestName()} extends $apiMethodClass\<${type.toRequestName()}, ${type.javaReturnType(vrapTypeProvider)}$bodyTypeClass\>${if (implements.isNotEmpty()) " implements ${implements.joinToString(", ")}" else ""} {
@@ -136,6 +139,38 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
                 relativePath = "${vrapType.`package`}.${type.toRequestName()}".replace(".", "/") + ".java",
                 content = content
         )
+    }
+
+    public fun Method.builderComment(): String {
+        val resource = this.eContainer() as Resource
+        return """
+            |\<div class=code-example\>
+            |\<pre\>\<code class='java'\>{@code
+            |  CompletableFuture\<ApiHttpResponse\<${this.javaReturnType(vrapTypeProvider)}\>\> result = apiRoot
+            |           <${builderComment(resource, this)}>
+            |}\</code\>\</pre\>
+            |\</div\>
+        """.trimMargin().keepIndentation().split("\n").joinToString("\n", transform = { "* $it"})
+    }
+
+    private fun builderComment(resource: Resource, method: Method) : String {
+        return resource.resourcePathList().map { r -> ".${r.getMethodName()}(${if (r.relativeUri.paramValues().isNotEmpty()) "\"${r.relativeUri.paramValues().joinToString("\", \"") { p -> "{$p}"} }\"" else ""})" }
+            .plus(".${method.method}(${bodyContent(method)})")
+            .plus(method.queryParameters.filter { it.required }.map { ".with${it.fieldName().firstUpperCase()}(${it.fieldName()})" })
+            .plus(".execute()")
+            .joinToString("\n")
+    }
+
+    private fun bodyContent(method: Method): String {
+        val bodyDef = method.firstBody()
+        return if (bodyDef != null) {
+            if (bodyDef.type.isFile()) {
+                "file"
+            }
+            else {
+                "null"
+            }
+        } else ""
     }
 
     private fun Method.equalsMethod() : String {

@@ -4,7 +4,7 @@ package io.vrap.codegen.languages.php.model
 import io.vrap.codegen.languages.php.ClientConstants
 import io.vrap.rmf.codegen.di.RamlGeneratorModule
 import io.vrap.rmf.codegen.di.Module
-import io.vrap.rmf.codegen.rendring.*
+import io.vrap.rmf.codegen.rendering.*
 
 object PhpModelModule: Module {
 

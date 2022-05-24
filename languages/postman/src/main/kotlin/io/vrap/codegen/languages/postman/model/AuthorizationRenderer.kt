@@ -1,7 +1,7 @@
 package io.vrap.codegen.languages.postman.model
 
-import io.vrap.rmf.codegen.rendring.utils.escapeAll
-import io.vrap.rmf.codegen.rendring.utils.keepAngleIndent
+import io.vrap.rmf.codegen.rendering.utils.escapeAll
+import io.vrap.rmf.codegen.rendering.utils.keepAngleIndent
 import io.vrap.rmf.raml.model.security.OAuth20Settings
 
 fun authorization(oauth: OAuth20Settings): String {

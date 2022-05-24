@@ -1,12 +1,11 @@
 package io.vrap.codegen.languages.php.base
 
-import io.vrap.codegen.languages.php.ClientConstants
 import io.vrap.codegen.languages.php.PhpSubTemplates
 import io.vrap.codegen.languages.php.extensions.*
 import io.vrap.rmf.codegen.di.BasePackageName
 import io.vrap.rmf.codegen.io.TemplateFile
-import io.vrap.rmf.codegen.rendring.FileProducer
-import io.vrap.rmf.codegen.rendring.utils.escapeAll
+import io.vrap.rmf.codegen.rendering.FileProducer
+import io.vrap.rmf.codegen.rendering.utils.escapeAll
 import io.vrap.rmf.raml.model.modules.Api
 import java.util.*
 

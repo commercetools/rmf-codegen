@@ -5,8 +5,8 @@ import io.vrap.codegen.languages.extensions.getMethodName
 import io.vrap.codegen.languages.extensions.toResourceName
 import io.vrap.rmf.codegen.firstUpperCase
 import io.vrap.rmf.codegen.io.TemplateFile
-import io.vrap.rmf.codegen.rendring.ResourceRenderer
-import io.vrap.rmf.codegen.rendring.utils.keepAngleIndent
+import io.vrap.rmf.codegen.rendering.ResourceRenderer
+import io.vrap.rmf.codegen.rendering.utils.keepAngleIndent
 import io.vrap.rmf.codegen.types.VrapEnumType
 import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapTypeProvider

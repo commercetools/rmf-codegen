@@ -3,7 +3,7 @@ package io.vrap.codegen.languages.typescript.server
 import io.vrap.codegen.languages.typescript.tsGeneratedComment
 import io.vrap.rmf.codegen.di.ClientPackageName
 import io.vrap.rmf.codegen.io.TemplateFile
-import io.vrap.rmf.codegen.rendring.FileProducer
+import io.vrap.rmf.codegen.rendering.FileProducer
 
 class ServerHelpers constructor(
         @ClientPackageName val client_package: String,

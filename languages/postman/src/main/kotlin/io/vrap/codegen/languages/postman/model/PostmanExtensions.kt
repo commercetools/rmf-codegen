@@ -1,9 +1,8 @@
 package io.vrap.codegen.languages.postman.model
 
 import com.hypertino.inflector.English
-import io.vrap.rmf.codegen.rendring.utils.escapeAll
+import io.vrap.rmf.codegen.rendering.utils.escapeAll
 import io.vrap.rmf.raml.model.modules.Api
-import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.security.OAuth20Settings
 import io.vrap.rmf.raml.model.types.StringInstance
 import org.apache.commons.text.StringEscapeUtils

@@ -4,7 +4,7 @@ import io.vrap.codegen.languages.php.ClientConstants
 import io.vrap.codegen.languages.php.PhpSubTemplates
 import io.vrap.codegen.languages.php.extensions.*
 import io.vrap.rmf.codegen.io.TemplateFile
-import io.vrap.rmf.codegen.rendring.UnionTypeRenderer
+import io.vrap.rmf.codegen.rendering.UnionTypeRenderer
 import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.types.UnionType

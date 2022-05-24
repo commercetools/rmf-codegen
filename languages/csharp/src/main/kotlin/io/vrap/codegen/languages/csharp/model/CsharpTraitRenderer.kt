@@ -1,9 +1,9 @@
-package io.vrap.codegen.languages.javalang.client.builder.model
+package io.vrap.codegen.languages.csharp.model
 
-import io.vrap.codegen.languages.extensions.toComment
-import io.vrap.codegen.languages.java.base.JavaSubTemplates
-import io.vrap.codegen.languages.java.base.extensions.*
-import io.vrap.codegen.languages.javalang.client.builder.requests.PLACEHOLDER_PARAM_ANNOTATION
+import io.vrap.codegen.languages.csharp.extensions.*
+import io.vrap.codegen.languages.csharp.requests.PLACEHOLDER_PARAM_ANNOTATION
+import io.vrap.codegen.languages.extensions.EObjectExtensions
+import io.vrap.rmf.codegen.di.BasePackageName
 import io.vrap.rmf.codegen.firstUpperCase
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendering.TraitRenderer
@@ -19,42 +19,38 @@ import io.vrap.rmf.raml.model.types.StringInstance
 import io.vrap.rmf.raml.model.util.StringCaseFormat
 import org.eclipse.emf.ecore.EObject
 
-class JavaTraitRenderer constructor(override val vrapTypeProvider: VrapTypeProvider) : JavaObjectTypeExtensions, JavaEObjectTypeExtensions, TraitRenderer {
+class CsharpTraitRenderer  constructor(override val vrapTypeProvider: VrapTypeProvider, @BasePackageName private val basePackagePrefix: String) : CsharpObjectTypeExtensions, EObjectExtensions, TraitRenderer {
 
     override fun render(type: Trait): TemplateFile {
         val vrapType = vrapTypeProvider.doSwitch(type as EObject) as VrapObjectType
-
-
+        val cPackage = vrapType.`package`.toCsharpPackage().replace("Clients", "Client");
         val content= """
-            |package ${vrapType.`package`.toJavaPackage()};
+            |using System.Collections.Generic;
             |
-            |import io.vrap.rmf.base.client.utils.Generated;
-            |import java.util.List;
+            |namespace ${cPackage}
+            |{
+            |    public interface I${vrapType.simpleClassName}\<T\> where T: I${vrapType.simpleClassName}\<T\> {
+            |        <${type.queryParamsGetters()}>
             |
-            |/**
-            | <${type.toComment().ifBlank { "* ${vrapType.simpleClassName}" }.escapeAll()}>
-            | */
-            |<${JavaSubTemplates.generatedAnnotation}>
-            |public interface ${vrapType.simpleClassName}\<T extends ${vrapType.simpleClassName}\<T\>\> {
-            |    <${type.queryParamsGetters()}>
+            |        <${type.queryParamsSetters(vrapType.simpleClassName)}>
             |
-            |    <${type.queryParamsSetters(vrapType.simpleClassName)}>
-            |
-            |    <${type.queryParamsTemplateSetters(vrapType.simpleClassName)}>
+            |        <${type.queryParamsTemplateSetters(vrapType.simpleClassName)}>
             |    
-            |    default ${vrapType.simpleClassName}\<T\> as${vrapType.simpleClassName.firstUpperCase()}() {
-            |        return this;
-            |    }
-            |    
-            |    @SuppressWarnings("unchecked")
-            |    default T as${vrapType.simpleClassName}ToBaseType() {
-            |        return (T)this;
+            |        I${vrapType.simpleClassName}\<T\> As${vrapType.simpleClassName.firstUpperCase()}() {
+            |            return this;
+            |        }
+            |
+            |        T As${vrapType.simpleClassName}ToBaseType() {
+            |            return (T)this;
+            |        }
             |    }
             |}
         """.trimMargin().keepIndentation()
 
+        val relativePath = vrapType.csharpClassRelativePath(true).replace("Clients","Client").replace(basePackagePrefix.replace(".", "/"), "").trimStart('/')
+
         return TemplateFile(
-                relativePath = "${vrapType.`package`}.${vrapType.simpleClassName}".replace(".", "/") + ".java",
+                relativePath = relativePath,
                 content = content
         )
     }
@@ -62,7 +58,7 @@ class JavaTraitRenderer constructor(override val vrapTypeProvider: VrapTypeProvi
     private fun Trait.queryParamsGetters() : String = this.queryParameters
             .filter { it.getAnnotation(PLACEHOLDER_PARAM_ANNOTATION, true) == null }
             .map { """
-                |List<String> get${it.fieldName().firstUpperCase()}();
+                |List<string> Get${it.fieldName().firstUpperCase()}();
                 """.trimMargin().escapeAll() }
             .joinToString(separator = "\n\n")
 
@@ -72,12 +68,7 @@ class JavaTraitRenderer constructor(override val vrapTypeProvider: VrapTypeProvi
                 |/**
                 | * set ${it.fieldName()} with the specificied value
                 | */
-                |<TValue> ${simpleClassName}<T> with${it.fieldName().firstUpperCase()}(final TValue ${it.fieldName()});
-                |
-                |/**
-                | * add additional ${it.fieldName()} query parameter
-                | */
-                |<TValue> ${simpleClassName}<T> add${it.fieldName().firstUpperCase()}(final TValue ${it.fieldName()});
+                |T With${it.fieldName().firstUpperCase()}(${it.witherType()} ${it.fieldName()});
             """.trimMargin().escapeAll() }
             .joinToString(separator = "\n\n")
 
@@ -90,18 +81,13 @@ class JavaTraitRenderer constructor(override val vrapTypeProvider: VrapTypeProvi
                 val placeholder = o.value.stream().filter { propertyValue -> propertyValue.name == "placeholder" }.findFirst().orElse(null).value as StringInstance
 
                 val methodName = StringCaseFormat.UPPER_CAMEL_CASE.apply(paramName.value)
-                val parameters =  "final String " + StringCaseFormat.LOWER_CAMEL_CASE.apply(placeholder.value) + ", final TValue " + paramName.value
+                val parameters =  "string " + StringCaseFormat.LOWER_CAMEL_CASE.apply(placeholder.value) + ", ${it.witherType()} " + paramName.value
 
                 return """
                 |/**
                 | * set ${paramName.value} with the specificied value
                 | */
-                |<TValue> ${simpleClassName}<T> with$methodName($parameters);
-                |
-                |/**
-                | * add additional ${paramName.value} query parameter
-                | */
-                |<TValue> ${simpleClassName}<T> add$methodName($parameters);
+                |T With$methodName($parameters);
             """.trimMargin().escapeAll()
 
             }
@@ -110,8 +96,8 @@ class JavaTraitRenderer constructor(override val vrapTypeProvider: VrapTypeProvi
     private fun QueryParameter.witherType() : String {
         val type = this.type;
         return when (type) {
-            is ArrayType -> type.items.toVrapType().simpleName().toScalarType()
-            else -> type.toVrapType().simpleName().toScalarType()
+            is ArrayType -> type.items.toVrapType().simpleName()
+            else -> type.toVrapType().simpleName()
         }
     }
 

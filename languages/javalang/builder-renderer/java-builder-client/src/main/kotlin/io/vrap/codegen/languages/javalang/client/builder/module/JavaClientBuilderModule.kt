@@ -3,11 +3,9 @@ package io.vrap.codegen.languages.javalang.client.builder.module
 import io.vrap.codegen.languages.javalang.client.builder.producers.JavaApiRootFileProducer
 import io.vrap.codegen.languages.javalang.client.builder.requests.JavaHttpRequestRenderer
 import io.vrap.codegen.languages.javalang.client.builder.requests.JavaRequestBuilderResourceRenderer
-import io.vrap.rmf.codegen.di.GeneratorModule
 import io.vrap.rmf.codegen.di.RamlGeneratorModule
 import io.vrap.rmf.codegen.di.Module
-import io.vrap.rmf.codegen.rendring.*
-import java.text.MessageFormat
+import io.vrap.rmf.codegen.rendering.*
 
 
 object JavaClientBuilderModule: Module {

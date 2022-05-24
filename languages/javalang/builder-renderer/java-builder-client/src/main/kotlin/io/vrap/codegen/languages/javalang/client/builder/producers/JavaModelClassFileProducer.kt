@@ -6,13 +6,12 @@ import io.vrap.codegen.languages.java.base.JavaSubTemplates
 import io.vrap.codegen.languages.java.base.extensions.*
 import io.vrap.rmf.codegen.di.AllObjectTypes
 import io.vrap.rmf.codegen.io.TemplateFile
-import io.vrap.rmf.codegen.rendring.FileProducer
-import io.vrap.rmf.codegen.rendring.utils.escapeAll
-import io.vrap.rmf.codegen.rendring.utils.keepIndentation
+import io.vrap.rmf.codegen.rendering.FileProducer
+import io.vrap.rmf.codegen.rendering.utils.escapeAll
+import io.vrap.rmf.codegen.rendering.utils.keepIndentation
 import io.vrap.rmf.codegen.types.VrapArrayType
 import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
-import io.vrap.rmf.raml.model.types.BooleanInstance
 import io.vrap.rmf.raml.model.types.ObjectType
 import io.vrap.rmf.raml.model.types.Property
 import io.vrap.rmf.raml.model.types.UnionType
@@ -47,9 +46,10 @@ class JavaModelClassFileProducer constructor(override val vrapTypeProvider: Vrap
                 |import com.fasterxml.jackson.annotation.JsonProperty;
                 |import org.apache.commons.lang3.builder.EqualsBuilder;
                 |import org.apache.commons.lang3.builder.HashCodeBuilder;
-
                 |
-                |<${type.toComment().escapeAll()}>
+                |/**
+                | <${type.toComment().ifBlank { "* ${vrapType.simpleClassName}" }.escapeAll()}>
+                | */
                 |<${JavaSubTemplates.generatedAnnotation}>${if (type.markDeprecated()) """
                 |@Deprecated""" else ""}
                 |public class ${vrapType.simpleClassName}Impl implements ${vrapType.simpleClassName}, ModelBase {
@@ -212,7 +212,10 @@ class JavaModelClassFileProducer constructor(override val vrapTypeProvider: Vrap
         val vrapType = this.type.toVrapType()
         return if (this.isPatternProperty()) {
             """
-            |${this.type.toComment()}${this.deprecationAnnotation()}
+            |/**
+            | <${this.type.toComment()}>
+            | */
+            |${this.deprecationAnnotation()}
             |public Map<String,${vrapType.fullClassName()}> values() {
             |    return values;
             |}
@@ -226,7 +229,10 @@ class JavaModelClassFileProducer constructor(override val vrapTypeProvider: Vrap
             """.trimMargin()
         } else {
             """
-            |${this.type.toComment()}${this.deprecationAnnotation()}
+            |/**
+            | <${this.type.toComment()}>
+            | */
+            |${this.deprecationAnnotation()}
             |public ${vrapType.fullClassName()} get${this.name.upperCamelCase()}(){
             |    return this.${this.name.lowerCamelCase()};
             |}

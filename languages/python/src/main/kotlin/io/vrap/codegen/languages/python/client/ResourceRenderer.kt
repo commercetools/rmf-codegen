@@ -6,8 +6,8 @@ package io.vrap.codegen.languages.python.client
 import io.vrap.codegen.languages.extensions.getMethodName
 import io.vrap.codegen.languages.python.snakeCase
 import io.vrap.codegen.languages.python.toDocString
-import io.vrap.rmf.codegen.rendring.utils.escapeAll
-import io.vrap.rmf.codegen.rendring.utils.keepIndentation
+import io.vrap.rmf.codegen.rendering.utils.escapeAll
+import io.vrap.rmf.codegen.rendering.utils.keepIndentation
 import io.vrap.rmf.raml.model.resources.ResourceContainer
 
 fun ResourceContainer.subResources(clientName: String): String {

@@ -1,6 +1,6 @@
 package io.vrap.rmf.codegen.di
 
-import io.vrap.rmf.codegen.rendring.CoreCodeGenerator
+import io.vrap.rmf.codegen.rendering.CoreCodeGenerator
 
 
 class RamlGeneratorComponent(generatorModule: RamlGeneratorModule, vararg modules:  Module): GeneratorComponent {

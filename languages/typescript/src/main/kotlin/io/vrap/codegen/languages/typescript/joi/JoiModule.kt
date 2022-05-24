@@ -2,7 +2,7 @@ package io.vrap.codegen.languages.typescript.joi
 
 import io.vrap.rmf.codegen.di.RamlGeneratorModule
 import io.vrap.rmf.codegen.di.Module
-import io.vrap.rmf.codegen.rendring.*
+import io.vrap.rmf.codegen.rendering.*
 
 object JoiModule : Module {
 

@@ -5,7 +5,7 @@ package io.vrap.codegen.languages.python.model
 
 import io.vrap.codegen.languages.python.pyGeneratedComment
 import io.vrap.rmf.codegen.io.TemplateFile
-import io.vrap.rmf.codegen.rendring.FileProducer
+import io.vrap.rmf.codegen.rendering.FileProducer
 
 class BaseFileProducer constructor() : FileProducer {
 

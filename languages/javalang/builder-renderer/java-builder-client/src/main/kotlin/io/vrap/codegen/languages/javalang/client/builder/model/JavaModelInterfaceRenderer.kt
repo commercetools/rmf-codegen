@@ -6,11 +6,14 @@ import io.vrap.codegen.languages.extensions.isPatternProperty
 import io.vrap.codegen.languages.extensions.toComment
 import io.vrap.codegen.languages.java.base.JavaSubTemplates
 import io.vrap.codegen.languages.java.base.extensions.*
+import io.vrap.rmf.codegen.firstLowerCase
+import io.vrap.rmf.codegen.firstUpperCase
 import io.vrap.rmf.codegen.io.TemplateFile
-import io.vrap.rmf.codegen.rendring.ObjectTypeRenderer
-import io.vrap.rmf.codegen.rendring.utils.escapeAll
-import io.vrap.rmf.codegen.rendring.utils.keepIndentation
+import io.vrap.rmf.codegen.rendering.ObjectTypeRenderer
+import io.vrap.rmf.codegen.rendering.utils.escapeAll
+import io.vrap.rmf.codegen.rendering.utils.keepIndentation
 import io.vrap.rmf.codegen.types.VrapArrayType
+import io.vrap.rmf.codegen.types.VrapEnumType
 import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.types.*
@@ -50,7 +53,12 @@ class JavaModelInterfaceRenderer constructor(override val vrapTypeProvider: Vrap
             |import java.util.function.Function;
             |import java.io.IOException;
             |
-            |<${type.toComment().escapeAll()}>
+            |/**
+            | <${type.toComment().ifBlank { "* ${vrapType.simpleClassName}" }.escapeAll()}>
+            | *
+            | * \<hr\>
+            | <${type.builderComment().escapeAll()}> 
+            | */
             |<${type.subTypesAnnotations()}>
             |<${JavaSubTemplates.generatedAnnotation}>
             |<${type.jsonDeserialize()}>
@@ -204,14 +212,18 @@ class JavaModelInterfaceRenderer constructor(override val vrapTypeProvider: Vrap
     private fun Property.getter(): String {
          return if(this.isPatternProperty()){
             """
-            |${this.type.toComment()}
+            |/**
+            | <${this.type.toComment()}>
+            | */
             |${this.validationAnnotations()}
             |@JsonAnyGetter
             |public Map<String, ${this.type.toVrapType().simpleName()}> values();
             """.trimMargin()
         }else {
             """
-            |${this.type.toComment()}
+            |/**
+            | <${this.type.toComment()}>
+            | */
             |${this.validationAnnotations()}
             |@JsonProperty("${this.name}")
             |public ${this.type.toVrapType().simpleName()} get${this.name.upperCamelCase()}();

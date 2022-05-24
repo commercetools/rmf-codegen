@@ -6,10 +6,9 @@ import io.vrap.codegen.languages.extensions.resource
 import io.vrap.codegen.languages.extensions.toRequestName
 import io.vrap.codegen.languages.ramldoc.extensions.*
 import io.vrap.rmf.codegen.io.TemplateFile
-import io.vrap.rmf.codegen.rendring.ResourceRenderer
-import io.vrap.rmf.codegen.rendring.utils.escapeAll
-import io.vrap.rmf.codegen.rendring.utils.keepAngleIndent
-import io.vrap.rmf.codegen.types.VrapObjectType
+import io.vrap.rmf.codegen.rendering.ResourceRenderer
+import io.vrap.rmf.codegen.rendering.utils.escapeAll
+import io.vrap.rmf.codegen.rendering.utils.keepAngleIndent
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.modules.Api
 import io.vrap.rmf.raml.model.resources.HttpMethod
@@ -20,7 +19,6 @@ import io.vrap.rmf.raml.model.responses.Body
 import io.vrap.rmf.raml.model.responses.Response
 import io.vrap.rmf.raml.model.security.SecuredBy
 import io.vrap.rmf.raml.model.types.*
-import org.eclipse.emf.ecore.EObject
 import java.util.*
 
 class RamlResourceRenderer constructor(val api: Api, val vrapTypeProvider: VrapTypeProvider) : ResourceRenderer {
@@ -68,6 +66,7 @@ class RamlResourceRenderer constructor(val api: Api, val vrapTypeProvider: VrapT
         val docsBaseUri = api.getAnnotation("docsBaseUri")
         val baseUri = if (docsBaseUri != null) { docsBaseUri.value.value as String} else { api.baseUri.template }
 
+        val addBearerToken = method.securedBy.isNullOrEmpty().not()
         val r = method.resource()
         val params = method.queryParameters.filter { p -> p.required }
         val queryParameters = "${if (params.isNotEmpty()) "?" else ""}${params.joinToString("&") { p -> "${p.name}={${p.name}}" }}"
@@ -76,8 +75,8 @@ class RamlResourceRenderer constructor(val api: Api, val vrapTypeProvider: VrapT
             HttpMethod.PUT,
             HttpMethod.POST ->
                 """
-                    |curl -X ${method.methodName.uppercase(Locale.getDefault())} ${baseUri}${r.fullUri.normalize().template}$queryParameters -i \\
-                    |--header 'Authorization: Bearer ${'$'}{BEARER_TOKEN}' \\
+                    |curl -X ${method.methodName.uppercase(Locale.getDefault())} ${baseUri}${r.fullUri.normalize().template}$queryParameters -i \\${if (addBearerToken) """
+                    |--header 'Authorization: Bearer ${'$'}{BEARER_TOKEN}' \\""" else ""}
                     |--header 'Content-Type: application/json' \\
                     |--data-binary @- \<< DATA 
                     |${
@@ -90,8 +89,8 @@ class RamlResourceRenderer constructor(val api: Api, val vrapTypeProvider: VrapT
                 """
             else ->
                 """
-                    |curl -X ${method.methodName.uppercase(Locale.getDefault())} ${baseUri}${r.fullUri.normalize().template}$queryParameters -i \\
-                    |--header 'Authorization: Bearer ${'$'}{BEARER_TOKEN}'
+                    |curl -X ${method.methodName.uppercase(Locale.getDefault())} ${baseUri}${r.fullUri.normalize().template}$queryParameters -i ${if (addBearerToken) """\\
+                    |--header 'Authorization: Bearer ${'$'}{BEARER_TOKEN}'""" else ""}
                 """
         }.trimMargin().escapeAll()
     }

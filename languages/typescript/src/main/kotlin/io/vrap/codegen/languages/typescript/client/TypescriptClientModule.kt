@@ -6,7 +6,7 @@ import io.vrap.codegen.languages.typescript.client.files_producers.ClientFilePro
 import io.vrap.codegen.languages.typescript.client.files_producers.IndexFileProducer
 import io.vrap.rmf.codegen.di.RamlGeneratorModule
 import io.vrap.rmf.codegen.di.Module
-import io.vrap.rmf.codegen.rendring.*
+import io.vrap.rmf.codegen.rendering.*
 
 object TypescriptClientModule : Module {
 

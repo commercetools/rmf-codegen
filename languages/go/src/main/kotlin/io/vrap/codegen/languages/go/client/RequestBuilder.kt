@@ -7,9 +7,9 @@ import io.vrap.codegen.languages.go.goName
 import io.vrap.codegen.languages.go.goTypeName
 import io.vrap.rmf.codegen.di.BasePackageName
 import io.vrap.rmf.codegen.io.TemplateFile
-import io.vrap.rmf.codegen.rendring.ResourceRenderer
-import io.vrap.rmf.codegen.rendring.utils.escapeAll
-import io.vrap.rmf.codegen.rendring.utils.keepIndentation
+import io.vrap.rmf.codegen.rendering.ResourceRenderer
+import io.vrap.rmf.codegen.rendering.utils.escapeAll
+import io.vrap.rmf.codegen.rendering.utils.keepIndentation
 import io.vrap.rmf.codegen.types.VrapNilType
 import io.vrap.rmf.codegen.types.VrapType
 import io.vrap.rmf.codegen.types.VrapTypeProvider

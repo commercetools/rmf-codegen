@@ -15,7 +15,8 @@ ext {
             rxjava: '3.1.2',
             slf4j: '1.7.25',
             spock: '2.0-groovy-3.0',
-            swaggerParser: '2.0.28'
+            swaggerParser: '2.0.28',
+            jsoup: '1.15.1'
     ]
 
     commons = [
@@ -86,5 +87,9 @@ ext {
     ]
     swagger = [
             swagger_parser: "io.swagger.parser.v3:swagger-parser:${versions.swaggerParser}"
+    ]
+
+    jsoup = [
+            jsoup: "org.jsoup:jsoup:${versions.jsoup}"
     ]
 }

@@ -6,7 +6,7 @@ import io.vrap.codegen.languages.java.base.extensions.JavaObjectTypeExtensions
 import io.vrap.codegen.languages.java.base.extensions.toJavaVType
 import io.vrap.rmf.codegen.firstLowerCase
 import io.vrap.rmf.codegen.io.TemplateFile
-import io.vrap.rmf.codegen.rendring.ObjectTypeRenderer
+import io.vrap.rmf.codegen.rendering.ObjectTypeRenderer
 import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.types.ObjectType

@@ -2,7 +2,7 @@ package io.vrap.codegen.languages.php
 
 import io.vrap.codegen.languages.extensions.getMethodName
 import io.vrap.codegen.languages.php.extensions.*
-import io.vrap.rmf.codegen.rendring.utils.escapeAll
+import io.vrap.rmf.codegen.rendering.utils.escapeAll
 import io.vrap.rmf.codegen.types.VrapArrayType
 import io.vrap.rmf.codegen.types.VrapNilType
 import io.vrap.rmf.codegen.types.VrapObjectType

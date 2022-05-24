@@ -8,10 +8,10 @@ import io.vrap.codegen.languages.php.PhpSubTemplates
 import io.vrap.codegen.languages.php.extensions.*
 import io.vrap.rmf.codegen.firstUpperCase
 import io.vrap.rmf.codegen.io.TemplateFile
-import io.vrap.rmf.codegen.rendring.ObjectTypeRenderer
-import io.vrap.rmf.codegen.rendring.utils.escapeAll
-import io.vrap.rmf.codegen.rendring.utils.keepAngleIndent
-import io.vrap.rmf.codegen.rendring.utils.keepCurlyIndent
+import io.vrap.rmf.codegen.rendering.ObjectTypeRenderer
+import io.vrap.rmf.codegen.rendering.utils.escapeAll
+import io.vrap.rmf.codegen.rendering.utils.keepAngleIndent
+import io.vrap.rmf.codegen.rendering.utils.keepCurlyIndent
 import io.vrap.rmf.codegen.types.*
 import io.vrap.rmf.raml.model.types.*
 import io.vrap.rmf.raml.model.types.Annotation
