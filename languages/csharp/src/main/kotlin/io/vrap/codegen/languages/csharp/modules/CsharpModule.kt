@@ -3,6 +3,7 @@ package io.vrap.codegen.languages.csharp.modules
 import io.vrap.codegen.languages.csharp.model.CsharpModelInterfaceRenderer
 import io.vrap.codegen.languages.csharp.model.CsharpObjectTypeRenderer
 import io.vrap.codegen.languages.csharp.model.CsharpStringTypeRenderer
+import io.vrap.codegen.languages.csharp.model.CsharpTraitRenderer
 import io.vrap.rmf.codegen.di.RamlGeneratorModule
 import io.vrap.rmf.codegen.di.Module
 import io.vrap.rmf.codegen.rendering.*
@@ -21,6 +22,10 @@ object CsharpModule: Module {
                             CsharpStringTypeRenderer(generatorModule.vrapTypeProvider(), generatorModule.providePackageName())
                         ),
                         generatorModule.allEnumStringTypes()
-                )
-        )
+                ),
+                TraitGenerator(setOf(
+                    CsharpTraitRenderer(generatorModule.vrapTypeProvider(), generatorModule.providePackageName())
+                ), generatorModule.allTraits())
+
+    )
 }
