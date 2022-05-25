@@ -49,7 +49,7 @@ class JavaModelClassFileProducer constructor(override val vrapTypeProvider: Vrap
                 |import org.apache.commons.lang3.builder.HashCodeBuilder;
                 |
                 |/**
-                | <${type.toComment().ifBlank { "* ${vrapType.simpleClassName}" }.escapeAll()}>
+                |${type.toComment(" * ${vrapType.simpleClassName}").escapeAll()}
                 | */
                 |<${JavaSubTemplates.generatedAnnotation}>${if (type.markDeprecated()) """
                 |@Deprecated""" else ""}
@@ -214,7 +214,7 @@ class JavaModelClassFileProducer constructor(override val vrapTypeProvider: Vrap
         return if (this.isPatternProperty()) {
             """
             |/**
-            | <${this.type.toComment()}>
+            |${this.type.toComment(" *")}
             | */
             |${this.deprecationAnnotation()}
             |public Map<String,${vrapType.fullClassName()}> values() {
@@ -223,6 +223,9 @@ class JavaModelClassFileProducer constructor(override val vrapTypeProvider: Vrap
             """.trimMargin()
         } else if(this.name.equals("interface")) {
             """
+                |/**
+                |${this.type.toComment(" *")}
+                | */
                 |${this.deprecationAnnotation()}
                 |public ${vrapType.fullClassName()} getInterface() {
                 |    return this._interface;
@@ -231,7 +234,7 @@ class JavaModelClassFileProducer constructor(override val vrapTypeProvider: Vrap
         } else {
             """
             |/**
-            | <${this.type.toComment()}>
+            |${this.type.toComment(" *")}
             | */
             |${this.deprecationAnnotation()}
             |public ${vrapType.fullClassName()} get${this.name.upperCamelCase()}(){

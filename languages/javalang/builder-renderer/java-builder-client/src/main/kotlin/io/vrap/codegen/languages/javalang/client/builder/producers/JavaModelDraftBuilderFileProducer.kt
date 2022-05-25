@@ -185,7 +185,7 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
         return if(property.isPatternProperty()) {
             """
                 |/**
-                | <${propertyType.toComment()}>
+                |${propertyType.toComment(" *")}
                 | */
                 |${property.deprecationAnnotation()}
                 |public ${type.simpleClassName}Builder values(${if (!property.required) "@Nullable" else ""} final Map<String, ${propType.fullClassName()}> values){
@@ -194,7 +194,7 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
                 |}
                 |
                 |/**
-                | <${propertyType.toComment()}>
+                |${propertyType.toComment(" *")}
                 | */
                 |${property.deprecationAnnotation()}
                 |public ${type.simpleClassName}Builder addValue(final String key, final ${propType.fullClassName()} value) {
@@ -214,7 +214,7 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
             }
             """
                 |/**
-                | <${propertyType.toComment()}>
+                |${propertyType.toComment(" *")}
                 | */
                 |${property.deprecationAnnotation()}
                 |public ${type.simpleClassName}Builder $propertyName(${if (!property.required) "@Nullable" else ""} final ${propType.itemType.fullClassName()} ...$propertyName) {
@@ -223,7 +223,7 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
                 |}
                 |
                 |/**
-                | <${propertyType.toComment()}>
+                |${propertyType.toComment(" *")}
                 | */
                 |${property.deprecationAnnotation()}
                 |public ${type.simpleClassName}Builder $propertyName(${if (!property.required) "@Nullable" else ""} final ${propType.fullClassName()} $propertyName) {
@@ -232,7 +232,7 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
                 |}
                 |
                 |/**
-                | <${propertyType.toComment()}>
+                |${propertyType.toComment(" *")}
                 | */
                 |${property.deprecationAnnotation()}
                 |public ${type.simpleClassName}Builder plus${propertyName.firstUpperCase()}(${if (!property.required) "@Nullable" else ""} final ${propType.itemType.fullClassName()} ...$propertyName) {
@@ -245,7 +245,7 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
                 |
                 |${if (propItemType is ObjectType && propItemType.isAbstract() && propItemType.discriminator != null) """
                 |/**
-                | <${propertyType.toComment()}>
+                |${propertyType.toComment(" *")}
                 | */
                 |${property.deprecationAnnotation()}
                 |public ${type.simpleClassName}Builder plus${property.name.firstUpperCase()}(Function<${propType.itemType.fullClassName()}Builder, Builder<? extends ${propType.itemType.fullClassName()}>> builder) {
@@ -257,7 +257,7 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
                 |}
                 |
                 |/**
-                | <${propertyType.toComment()}>
+                |${propertyType.toComment(" *")}
                 | */
                 |${property.deprecationAnnotation()}
                 |public ${type.simpleClassName}Builder with${property.name.firstUpperCase()}(Function<${propType.itemType.fullClassName()}Builder, Builder<? extends ${propType.itemType.fullClassName()}>> builder) {
@@ -268,7 +268,7 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
                 """ else ""}
                 |${if (propItemType is ObjectType && !propItemType.isAbstract() && propType.simpleName() != JavaBaseTypes.objectType.simpleName()) """
                 |/**
-                | <${propertyType.toComment()}>
+                |${propertyType.toComment(" *")}
                 | */
                 |${property.deprecationAnnotation()}
                 |public ${type.simpleClassName}Builder plus${property.name.firstUpperCase()}(Function<${propType.itemType.fullClassName()}Builder, ${propType.itemType.fullClassName()}Builder> builder) {
@@ -280,7 +280,7 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
                 |}
                 |
                 |/**
-                | <${propertyType.toComment()}>
+                |${propertyType.toComment(" *")}
                 | */
                 |${property.deprecationAnnotation()}
                 |public ${type.simpleClassName}Builder with${property.name.firstUpperCase()}(Function<${propType.itemType.fullClassName()}Builder, ${propType.itemType.fullClassName()}Builder> builder) {
@@ -299,7 +299,7 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
             """
                 |${if (checkedPropertyType is ObjectType && !checkedPropertyType.isAbstract() && propType.simpleName() != JavaBaseTypes.objectType.simpleName()) """
                 |/**
-                | <${propertyType.toComment()}>
+                |${propertyType.toComment(" *")}
                 | */
                 |${property.deprecationAnnotation()}
                 |public ${type.simpleClassName}Builder $propertyName(Function<${propType.fullClassName()}Builder, ${propType.fullClassName()}Builder> builder) {
@@ -309,7 +309,7 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
                 |
                 """ else ""}
                 |/**
-                | <${propertyType.toComment()}>
+                |${propertyType.toComment(" *")}
                 | */
                 |${property.deprecationAnnotation()}
                 |public ${type.simpleClassName}Builder $propertyName(${if (!property.required) "@Nullable" else ""} final ${propType.fullClassName()} $propertyName) {
@@ -319,7 +319,7 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
                 |
                 |${if (checkedPropertyType is ObjectType && checkedPropertyType.isAbstract() && checkedPropertyType.discriminator != null) """
                 |/**
-                | <${propertyType.toComment()}>
+                |${propertyType.toComment(" *")}
                 | */
                 |${property.deprecationAnnotation()}
                 |public ${type.simpleClassName}Builder $propertyName(Function<${propType.fullClassName()}Builder, Builder<? extends ${propType.fullClassName()}>> builder) {

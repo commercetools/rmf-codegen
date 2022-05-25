@@ -90,7 +90,7 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
             |import static io.vrap.rmf.base.client.utils.ClientUtils.blockingWait;
             |
             |/**
-            | <${type.toComment().escapeAll()}>
+            |${type.toComment(" *").escapeAll()}
             | *
             | * \<hr\>
             | <${type.builderComment().escapeAll()}>

@@ -32,7 +32,7 @@ class JavaTraitRenderer constructor(override val vrapTypeProvider: VrapTypeProvi
             |import java.util.List;
             |
             |/**
-            | <${type.toComment().ifBlank { "* ${vrapType.simpleClassName}" }.escapeAll()}>
+            |${type.toComment(" * ${vrapType.simpleClassName}").escapeAll()}
             | */
             |<${JavaSubTemplates.generatedAnnotation}>
             |public interface ${vrapType.simpleClassName}\<T extends ${vrapType.simpleClassName}\<T\>\> {

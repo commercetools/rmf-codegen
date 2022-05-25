@@ -39,7 +39,9 @@ class JavaObjectTypeRenderer constructor(override val vrapTypeProvider: VrapType
                 |import org.apache.commons.lang3.builder.ToStringBuilder;
                 |import org.apache.commons.lang3.builder.ToStringStyle;
                 |
-                |<${type.toComment().escapeAll()}>
+                |/**
+                |${type.toComment(" *").escapeAll()}
+                | */
                 |<${type.subTypesAnnotations()}>
                 |<${JavaSubTemplates.generatedAnnotation}>
                 |public class ${vrapType.simpleClassName} ${type.type?.toVrapType()?.simpleName()?.let { "extends $it" } ?: ""}{
@@ -213,8 +215,10 @@ class JavaObjectTypeRenderer constructor(override val vrapTypeProvider: VrapType
         return if (this.isPatternProperty()) {
 
             """
+            |/**
+            |${this.type.toComment(" *")}
+            | */
             |${this.validationAnnotations()}
-            |${this.type.toComment()}
             |@JsonAnyGetter
             |public Map<String, ${this.type.toVrapType().simpleName()}> values() {
             |    return values;
@@ -222,7 +226,9 @@ class JavaObjectTypeRenderer constructor(override val vrapTypeProvider: VrapType
             """.trimMargin()
         } else {
             """
-            |${this.type.toComment()}
+            |/**
+            |${this.type.toComment(" *")}
+            | */
             |${this.validationAnnotations()}
             |@JsonProperty("${this.name}")
             |public ${this.type.toVrapType().simpleName()} get${this.name.firstUpperCase()}(){
