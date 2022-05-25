@@ -90,12 +90,13 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
             |import static io.vrap.rmf.base.client.utils.ClientUtils.blockingWait;
             |
             |/**
-            | <${type.toComment().escapeAll()}>
+            |${type.toComment(" *").escapeAll()}
             | *
             | * \<hr\>
             | <${type.builderComment().escapeAll()}>
             | */
-            |<${JavaSubTemplates.generatedAnnotation}>
+            |<${JavaSubTemplates.generatedAnnotation}>${if (type.markDeprecated() ) """
+            |@Deprecated""" else ""}
             |public class ${type.toRequestName()} extends $apiMethodClass\<${type.toRequestName()}, ${type.javaReturnType(vrapTypeProvider)}$bodyTypeClass\>${if (implements.isNotEmpty()) " implements ${implements.joinToString(", ")}" else ""} {
             |
             |    <${type.fields()}>
@@ -637,5 +638,10 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
                 .map { "import ${it};" }
                 .joinToString(separator = "\n")
 
+    }
+
+    private fun Method.markDeprecated() : Boolean {
+        val anno = this.getAnnotation("markDeprecated")
+        return (anno != null && (anno.value as BooleanInstance).value)
     }
 }

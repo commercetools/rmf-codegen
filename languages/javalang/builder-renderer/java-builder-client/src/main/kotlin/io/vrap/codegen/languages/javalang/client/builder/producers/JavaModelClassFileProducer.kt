@@ -12,6 +12,7 @@ import io.vrap.rmf.codegen.rendering.utils.keepIndentation
 import io.vrap.rmf.codegen.types.VrapArrayType
 import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
+import io.vrap.rmf.raml.model.types.BooleanInstance
 import io.vrap.rmf.raml.model.types.ObjectType
 import io.vrap.rmf.raml.model.types.Property
 import io.vrap.rmf.raml.model.types.UnionType
@@ -20,7 +21,7 @@ import io.vrap.rmf.raml.model.types.UnionType
 class JavaModelClassFileProducer constructor(override val vrapTypeProvider: VrapTypeProvider, @AllObjectTypes private val allObjectTypes: List<ObjectType>) : JavaObjectTypeExtensions, JavaEObjectTypeExtensions, FileProducer {
 
     override fun produceFiles(): List<TemplateFile> {
-        return allObjectTypes.map { render(it) }
+        return allObjectTypes.filter{!it.deprecated()}.map { render(it) }
     }
 
     fun render(type: ObjectType): TemplateFile {
@@ -48,9 +49,10 @@ class JavaModelClassFileProducer constructor(override val vrapTypeProvider: Vrap
                 |import org.apache.commons.lang3.builder.HashCodeBuilder;
                 |
                 |/**
-                | <${type.toComment().ifBlank { "* ${vrapType.simpleClassName}" }.escapeAll()}>
+                |${type.toComment(" * ${vrapType.simpleClassName}").escapeAll()}
                 | */
-                |<${JavaSubTemplates.generatedAnnotation}>
+                |<${JavaSubTemplates.generatedAnnotation}>${if (type.markDeprecated()) """
+                |@Deprecated""" else ""}
                 |public class ${vrapType.simpleClassName}Impl implements ${vrapType.simpleClassName}, ModelBase {
                 |
                 |    <${type.beanFields().escapeAll()}>
@@ -212,7 +214,7 @@ class JavaModelClassFileProducer constructor(override val vrapTypeProvider: Vrap
         return if (this.isPatternProperty()) {
             """
             |/**
-            | <${this.type.toComment()}>
+            |${this.type.toComment(" *")}
             | */
             |${this.deprecationAnnotation()}
             |public Map<String,${vrapType.fullClassName()}> values() {
@@ -221,6 +223,9 @@ class JavaModelClassFileProducer constructor(override val vrapTypeProvider: Vrap
             """.trimMargin()
         } else if(this.name.equals("interface")) {
             """
+                |/**
+                |${this.type.toComment(" *")}
+                | */
                 |${this.deprecationAnnotation()}
                 |public ${vrapType.fullClassName()} getInterface() {
                 |    return this._interface;
@@ -229,7 +234,7 @@ class JavaModelClassFileProducer constructor(override val vrapTypeProvider: Vrap
         } else {
             """
             |/**
-            | <${this.type.toComment()}>
+            |${this.type.toComment(" *")}
             | */
             |${this.deprecationAnnotation()}
             |public ${vrapType.fullClassName()} get${this.name.upperCamelCase()}(){
@@ -295,5 +300,15 @@ class JavaModelClassFileProducer constructor(override val vrapTypeProvider: Vrap
             |}
             |${if(constructorArguments.isEmpty()) "" else emptyConstructor }
         """.trimMargin().keepIndentation()
+    }
+
+    private fun ObjectType.markDeprecated() : Boolean {
+        val anno = this.getAnnotation("markDeprecated")
+        return (anno != null && (anno.value as BooleanInstance).value)
+    }
+
+    private fun ObjectType.deprecated() : Boolean {
+        val anno = this.getAnnotation("deprecated")
+        return (anno != null && (anno.value as BooleanInstance).value)
     }
 }

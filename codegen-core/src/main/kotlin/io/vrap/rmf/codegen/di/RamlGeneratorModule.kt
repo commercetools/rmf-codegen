@@ -9,10 +9,7 @@ import io.vrap.rmf.raml.model.modules.Api
 import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.resources.Trait
-import io.vrap.rmf.raml.model.types.AnyType
-import io.vrap.rmf.raml.model.types.ObjectType
-import io.vrap.rmf.raml.model.types.StringType
-import io.vrap.rmf.raml.model.types.UnionType
+import io.vrap.rmf.raml.model.types.*
 import io.vrap.rmf.raml.model.types.util.TypesSwitch
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.util.ComposedSwitch
@@ -94,8 +91,7 @@ class RamlGeneratorModule constructor(
     }
 
     @AllObjectTypes
-    fun allObjectTypes(): List<ObjectType> = allAnyTypes().filter { it is ObjectType }.map { it as ObjectType }
-
+    fun allObjectTypes(): List<ObjectType> = allAnyTypes().filter { it is ObjectType && !it.deprecated() }.map { it as ObjectType }
     @AllUnionTypes
     fun allUnionTypes(): List<UnionType> = allAnyTypes().filter { it is UnionType }.map { it as UnionType }
 
@@ -152,5 +148,10 @@ class RamlGeneratorModule constructor(
             override fun caseStringType(stringType: StringType): Boolean = true
             override fun defaultCase(`object`: EObject?): Boolean? = false
         }
+    }
+
+    private fun ObjectType.deprecated() : Boolean {
+        val anno = this.getAnnotation("deprecated")
+        return (anno != null && (anno.value as BooleanInstance).value)
     }
 }

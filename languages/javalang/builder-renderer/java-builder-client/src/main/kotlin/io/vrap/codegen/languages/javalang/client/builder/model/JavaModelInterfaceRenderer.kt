@@ -54,7 +54,7 @@ class JavaModelInterfaceRenderer constructor(override val vrapTypeProvider: Vrap
             |import java.io.IOException;
             |
             |/**
-            | <${type.toComment().ifBlank { "* ${vrapType.simpleClassName}" }.escapeAll()}>
+            |${type.toComment(" * ${vrapType.simpleClassName}").escapeAll()}
             | *
             | * \<hr\>
             | <${type.builderComment().escapeAll()}> 
@@ -131,6 +131,7 @@ class JavaModelInterfaceRenderer constructor(override val vrapTypeProvider: Vrap
                 this.subTypes.plus(this.subTypes.flatMap { it.subTypes }).distinctBy { it.name }
                     .asSequence()
                     .filterIsInstance<ObjectType>()
+                    .filter { it.getAnnotation("deprecated") == null }
                     .filter { it.discriminatorValue != null }
                     .sortedBy { anyType -> anyType.name }
                     .map {
@@ -188,6 +189,7 @@ class JavaModelInterfaceRenderer constructor(override val vrapTypeProvider: Vrap
             return this.subTypes.plus(this.subTypes.flatMap { it.subTypes }).distinctBy { it.name }
                 .asSequence()
                 .filterIsInstance<ObjectType>()
+                .filter { it.getAnnotation("deprecated") == null }
                 .filter { it.discriminatorValue != null }
                 .sortedBy { anyType -> anyType.name }
                 .map {
@@ -213,7 +215,7 @@ class JavaModelInterfaceRenderer constructor(override val vrapTypeProvider: Vrap
          return if(this.isPatternProperty()){
             """
             |/**
-            | <${this.type.toComment()}>
+            |${this.type.toComment(" *")}
             | */
             |${this.validationAnnotations()}
             |@JsonAnyGetter
@@ -222,7 +224,7 @@ class JavaModelInterfaceRenderer constructor(override val vrapTypeProvider: Vrap
         }else {
             """
             |/**
-            | <${this.type.toComment()}>
+            |${this.type.toComment(" *")}
             | */
             |${this.validationAnnotations()}
             |@JsonProperty("${this.name}")

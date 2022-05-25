@@ -24,12 +24,12 @@ private val outputSettings = OutputSettings()
  *
  * @return the description of this as a doc comment
  */
-fun DescriptionFacet.toComment(): String {
+fun DescriptionFacet.toComment(empty: String = ""): String {
     val htmlString = this.toHtml()
     return if(htmlString.isNullOrBlank()){
-        ""
+        empty
     }else{
-        htmlString.filterLinks().let { it.lines().map { "*  $it" }.joinToString(separator = "\n") }
+        htmlString.filterLinks().let { it.lines().map { " *  $it" }.joinToString(separator = "\n") }
     }
 }
 

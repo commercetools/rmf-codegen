@@ -6,7 +6,8 @@ import io.vrap.rmf.raml.model.types.Property
 /**
  * Returns all non anymous sub types of this type.
  */
-fun ObjectType.namedSubTypes() = this.subTypes.asSequence().filter { !it.isInlineType }.toList()
+fun ObjectType.namedSubTypes() = this.subTypes.asSequence().filter { it.getAnnotation("deprecated") == null }
+    .filter { !it.isInlineType }.toList()
 
 fun ObjectType.hasSubtypes(): Boolean = this.discriminator?.isNotBlank()?:false && this.namedSubTypes().isNotEmpty()
 
