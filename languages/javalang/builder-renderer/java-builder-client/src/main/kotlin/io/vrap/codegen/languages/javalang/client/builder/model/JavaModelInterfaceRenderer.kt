@@ -131,6 +131,7 @@ class JavaModelInterfaceRenderer constructor(override val vrapTypeProvider: Vrap
                 this.subTypes.plus(this.subTypes.flatMap { it.subTypes }).distinctBy { it.name }
                     .asSequence()
                     .filterIsInstance<ObjectType>()
+                    .filter { it.getAnnotation("deprecated") == null }
                     .filter { it.discriminatorValue != null }
                     .sortedBy { anyType -> anyType.name }
                     .map {
@@ -188,6 +189,7 @@ class JavaModelInterfaceRenderer constructor(override val vrapTypeProvider: Vrap
             return this.subTypes.plus(this.subTypes.flatMap { it.subTypes }).distinctBy { it.name }
                 .asSequence()
                 .filterIsInstance<ObjectType>()
+                .filter { it.getAnnotation("deprecated") == null }
                 .filter { it.discriminatorValue != null }
                 .sortedBy { anyType -> anyType.name }
                 .map {
