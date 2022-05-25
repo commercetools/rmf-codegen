@@ -130,6 +130,7 @@ class CsharpModelInterfaceRenderer constructor(override val vrapTypeProvider: Vr
             |<${this.subTypes.plus(this.subTypes.flatMap { it.subTypes }).distinctBy { it.name }
                     .asSequence()
                     .filterIsInstance<ObjectType>()
+                    .filter { it.getAnnotation("deprecated") == null }
                     .filter { it.discriminatorValue != null }
                     .sortedBy { anyType -> anyType.discriminatorValue.lowercase(Locale.getDefault()) }
                     .map {
