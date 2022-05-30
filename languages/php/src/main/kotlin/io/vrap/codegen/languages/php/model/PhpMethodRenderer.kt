@@ -155,7 +155,7 @@ class PhpMethodRenderer constructor(override val vrapTypeProvider: VrapTypeProvi
             |     * @template T of JsonObject
             |     * @psalm-param ?class-string<T> $!resultType
             |     *
-            |     * @return ${returnTypes.joinToString("|")}|T|null
+            |     * @return null|T|${returnTypes.joinToString("|")}
             |     */
             |    public function execute(array $!options = [], string $!resultType = null)
             |    {
