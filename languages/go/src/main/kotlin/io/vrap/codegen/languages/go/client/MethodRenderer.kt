@@ -328,14 +328,7 @@ class GoMethodRenderer constructor(
                         |    return ${returnValue}nil
                         """.trimMargin()
                     } else {
-                        """
-                        |case ${statusCodes.joinToString(", ")}:
-                        |    result := GenericRequestError{
-                        |        StatusCode: resp.StatusCode,
-                        |        Content:    content,
-                        |    }
-                        |    return ${returnValue}result
-                        """.trimMargin()
+                        ""
                     }
                 } else {
                     if (it.key.success) {
@@ -370,7 +363,12 @@ class GoMethodRenderer constructor(
         |switch resp.StatusCode {
         |    <$switchStatements>
         |    default:
-        |        return ${returnValue}fmt.Errorf("unhandled StatusCode: %d", resp.StatusCode)
+        |        result := GenericRequestError{
+        |            StatusCode: resp.StatusCode,
+        |            Content:    content,
+        |            Response:   resp,
+        |        }
+        |        return ${returnValue}result
         |}
         """
     }
