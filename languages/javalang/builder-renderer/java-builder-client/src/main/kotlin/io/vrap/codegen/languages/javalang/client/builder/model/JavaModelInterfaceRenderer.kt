@@ -81,7 +81,7 @@ class JavaModelInterfaceRenderer constructor(override val vrapTypeProvider: Vrap
             |    default \<T\> T with${vrapType.simpleClassName}(Function\<${vrapType.simpleClassName}, T\> helper) {
             |        return helper.apply(this);
             |    }
-            |    <${type.getAnnotation("java-mixin")?.value?.value ?: ""}>
+            |    <${type.getAnnotation("java-mixin")?.value?.value?.let { (it as String).escapeAll()} ?: ""}>
             |    
             |    <${type.typeReference()}>
             |}
