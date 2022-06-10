@@ -156,6 +156,7 @@ class PhpObjectTypeRenderer constructor(override val vrapTypeProvider: VrapTypeP
         }
         return """
             |/**
+            |${this.deprecationAnnotation()}
             | * @var ?$typeName
             | */
             |protected $${this.name};
@@ -253,6 +254,7 @@ class PhpObjectTypeRenderer constructor(override val vrapTypeProvider: VrapTypeP
                     |/**${if (this.type.description?.value?.isNotBlank() == true) """
                     | {{${this.type.toPhpComment()}}}
                     | *""" else ""}
+                    |${this.deprecationAnnotation()}
                     | * @return ?mixed
                     | */
                     |public function get${this.name.firstUpperCase()}()
@@ -274,6 +276,7 @@ class PhpObjectTypeRenderer constructor(override val vrapTypeProvider: VrapTypeP
                     |/**${if (this.type.description?.value?.isNotBlank() == true) """
                     | {{${this.type.toPhpComment()}}}
                     | *""" else ""}
+                    |${this.deprecationAnnotation()}
                     | * @return null|${this.type.typeNames()}
                     | */
                     |public function get${this.name.firstUpperCase()}()
@@ -692,6 +695,15 @@ class PhpObjectTypeRenderer constructor(override val vrapTypeProvider: VrapTypeP
             |   return $!type;
             |}
         """.trimMargin()
+    }
+
+    fun Property.deprecationAnnotation(): String {
+        val anno = this.getAnnotation("markDeprecated", true)
+        if (anno != null && (anno.value as BooleanInstance).value == true) {
+            return """
+                | * @deprecated""".trimMargin()
+        }
+        return "";
     }
 }
 
