@@ -31,7 +31,8 @@ abstract class AbstractRequestBuilder constructor(
             """
                 |/**
                 | * @psalm-param ${it.bodyType() ?: "?object|array|string"} $!body
-                | * @psalm-param array<string, scalar|scalar[]> $!headers
+                | * @psalm-param array<string, scalar|scalar[]> $!headers ${if (it.markDeprecated()) """
+                | * @deprecated""" else ""}
                 | */
                 |public function ${it.methodName}(${it.bodyType()?.plus(" ") ?: ""}$!body = null, array $!headers = []): ${it.toRequestName()}
                 |{
@@ -70,6 +71,11 @@ abstract class AbstractRequestBuilder constructor(
     }
 
     protected fun Resource.markDeprecated() : Boolean {
+        val anno = this.getAnnotation("markDeprecated")
+        return (anno != null && (anno.value as BooleanInstance).value)
+    }
+
+    protected fun Method.markDeprecated() : Boolean {
         val anno = this.getAnnotation("markDeprecated")
         return (anno != null && (anno.value as BooleanInstance).value)
     }
