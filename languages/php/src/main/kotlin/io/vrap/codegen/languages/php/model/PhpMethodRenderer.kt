@@ -12,6 +12,7 @@ import io.vrap.rmf.codegen.rendering.utils.escapeAll
 import io.vrap.rmf.codegen.rendering.utils.keepAngleIndent
 import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
+import io.vrap.rmf.raml.model.modules.Api
 import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.responses.Body
 import io.vrap.rmf.raml.model.responses.Response
@@ -78,6 +79,7 @@ class PhpMethodRenderer constructor(override val vrapTypeProvider: VrapTypeProvi
             |use Psr\\Http\\Message\\ResponseInterface;
             |
             |/**
+            |${type.deprecationAnnotation()}
             | * @psalm-suppress PropertyNotSetInConstructor
             | <<${
             if (type.`is`.isNotEmpty()) """
@@ -292,6 +294,20 @@ class PhpMethodRenderer constructor(override val vrapTypeProvider: VrapTypeProvi
             is VrapObjectType -> vrapType.fullClassName() + "Model"
             else -> "${sharedPackageName.toNamespaceName()}\\Base\\JsonObjectModel"
         }
+    }
+
+//    private fun Method.markDeprecated() : Boolean {
+//        val anno = this.getAnnotation("markDeprecated")
+//        return (anno != null && (anno.value as BooleanInstance).value)
+//    }
+
+    fun Method.deprecationAnnotation(): String {
+        val anno = this.getAnnotation("markDeprecated")
+        if (anno != null && (anno.value as BooleanInstance).value == true) {
+            return """
+                | * @deprecated""".trimMargin()
+        }
+        return "";
     }
 
 //    fun getAllParamNames(): List<String>? {
