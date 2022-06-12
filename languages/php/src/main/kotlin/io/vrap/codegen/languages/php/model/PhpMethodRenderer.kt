@@ -296,11 +296,6 @@ class PhpMethodRenderer constructor(override val vrapTypeProvider: VrapTypeProvi
         }
     }
 
-//    private fun Method.markDeprecated() : Boolean {
-//        val anno = this.getAnnotation("markDeprecated")
-//        return (anno != null && (anno.value as BooleanInstance).value)
-//    }
-
     fun Method.deprecationAnnotation(): String {
         val anno = this.getAnnotation("markDeprecated")
         if (anno != null && (anno.value as BooleanInstance).value == true) {
