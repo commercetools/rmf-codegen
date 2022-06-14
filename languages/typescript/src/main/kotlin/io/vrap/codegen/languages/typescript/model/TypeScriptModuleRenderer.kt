@@ -3,6 +3,7 @@ package io.vrap.codegen.languages.typescript.model
 import io.vrap.codegen.languages.extensions.getSuperTypes
 import io.vrap.codegen.languages.extensions.isPatternProperty
 import io.vrap.codegen.languages.extensions.sortedByTopology
+import io.vrap.codegen.languages.typescript.deprecated
 import io.vrap.codegen.languages.typescript.tsGeneratedComment
 import io.vrap.codegen.languages.typescript.toTsComment
 import io.vrap.codegen.languages.typescript.toTsCommentList
@@ -29,7 +30,7 @@ class TypeScriptModuleRenderer constructor(override val vrapTypeProvider: VrapTy
     }
 
     private fun buildModule(moduleName: String, types: List<AnyType>): TemplateFile {
-        var sortedTypes = types.filter { it !is UnionType }.sortedByTopology(AnyType::getSuperTypes)
+        var sortedTypes = types.filter { it !is UnionType }.filterNot{it.deprecated()}.sortedByTopology(AnyType::getSuperTypes)
         val content = """
            |$tsGeneratedComment
            |
@@ -56,7 +57,7 @@ class TypeScriptModuleRenderer constructor(override val vrapTypeProvider: VrapTy
                 """
                 |<${toTsComment().escapeAll()}>
                 |export type ${name} =
-                |  <${subTypes.plus(subTypes.flatMap { it.subTypes }).distinctBy { it.name }.filter { !it.isInlineType }.map { it.renderTypeExpr() }.sorted().joinToString(" |\n")}>
+                |  <${subTypes.plus(subTypes.flatMap { it.subTypes }).distinctBy { it.name }.filter { !it.isInlineType }.filterNot { it.deprecated() }.map { it.renderTypeExpr() }.sorted().joinToString(" |\n")}>
                 |;
                 """.trimMargin()
             } else {
@@ -119,7 +120,6 @@ class TypeScriptModuleRenderer constructor(override val vrapTypeProvider: VrapTy
         }
         return "";
     }
-
 
     /**
      * Renders the typescript type expression for this types type.
