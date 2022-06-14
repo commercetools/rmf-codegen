@@ -43,8 +43,9 @@ class RequestBuilder constructor(
                 content = """|
                 |$tsGeneratedComment
                 |${type.imports(type.tsRequestModuleName(`package`))}
-                |${if (type.markDeprecated() ) """
+                |/**${if (type.markDeprecated() ) """
                 |@deprecated""" else ""}
+                |**/
                 |export class ${type.toRequestBuilderName()} {
                 |
                 |    <${type.constructor()}>
@@ -96,7 +97,10 @@ class RequestBuilder constructor(
                     """.trimMargin()
 
                     """
-                    |<${it.toTsComment()}>
+                    |<${it.toTsComment().plus(if (it.markDeprecated() ) """
+                    |/** 
+                    |* @deprecated
+                    |**/""" else "").escapeAll()}>
                     |public ${it.getMethodName()}($args): ${it.toRequestBuilderName()} {
                     |   return new ${it.toRequestBuilderName()}(
                     |         {
@@ -170,7 +174,10 @@ class RequestBuilder constructor(
 
 
                     """
-                    |<${it.toTsComment().escapeAll()}>
+                    |<${it.toTsComment().plus(if (it.markDeprecated() ) """
+                    |/** 
+                    |* @deprecated
+                    |**/""" else "").escapeAll()}>
                     |public ${it.methodName}(<$methodArgs>): $methodReturn {
                     |   return new $methodReturn(
                     |       <$bodyLiteral>,
@@ -244,10 +251,7 @@ class RequestBuilder constructor(
                 .getImportsForModuleVrapTypes(moduleName)
     }
 
-    private fun Resource.markDeprecated() : Boolean {
-        val anno = this.getAnnotation("markDeprecated")
-        return (anno != null && (anno.value as BooleanInstance).value)
-    }
+
 }
 
 

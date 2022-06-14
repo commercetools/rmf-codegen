@@ -103,6 +103,16 @@ fun ObjectType.markDeprecated(): String {
     return "";
 }
 
+fun Resource.markDeprecated() : Boolean {
+    val anno = this.getAnnotation("markDeprecated")
+    return (anno != null && (anno.value as BooleanInstance).value)
+}
+
+fun Method.markDeprecated() : Boolean {
+    val anno = this.getAnnotation("markDeprecated")
+    return (anno != null && (anno.value as BooleanInstance).value)
+}
+
 fun AnyType.deprecated() : Boolean {
     val anno = this.getAnnotation("deprecated")
     return (anno != null && (anno.value as BooleanInstance).value)
