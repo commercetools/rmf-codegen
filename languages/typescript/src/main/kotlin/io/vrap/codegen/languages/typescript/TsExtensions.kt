@@ -118,6 +118,11 @@ fun AnyType.deprecated() : Boolean {
     return (anno != null && (anno.value as BooleanInstance).value)
 }
 
+fun Property.deprecated() : Boolean {
+    val anno = this.getAnnotation("deprecated")
+    return (anno != null && (anno.value as BooleanInstance).value)
+}
+
 fun ResourceContainer.allMethods(): List<Method> = this
         .allContainedResources
         .flatMap {

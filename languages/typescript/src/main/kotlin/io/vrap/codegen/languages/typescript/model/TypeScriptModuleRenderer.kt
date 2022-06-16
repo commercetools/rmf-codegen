@@ -101,8 +101,9 @@ class TypeScriptModuleRenderer constructor(override val vrapTypeProvider: VrapTy
         val renderProperties = if (all) allProperties else properties
         return renderProperties
             .filter { !it.isPatternProperty() && it.name != discriminator() }
+            .filter { !it.deprecated() }
             .map {
-                val comments = it.type.toTsCommentList().plus(it.deprecated())
+                val comments = it.type.toTsCommentList().plus(it.markDeprecated())
                 val comment = if (comments.isEmpty()) "" else comments.joinToString("\n*\t", "/**\n*\t", "\n*/").escapeAll()
                 val optional = if (it.required) "" else "?"
                 """
@@ -113,7 +114,7 @@ class TypeScriptModuleRenderer constructor(override val vrapTypeProvider: VrapTy
             .joinToString(";\n")
     }
 
-    fun Property.deprecated(): String {
+    fun Property.markDeprecated(): String {
         val anno = this.getAnnotation("markDeprecated", true)
         if (anno != null && (anno.value as BooleanInstance).value == true) {
             return "@deprecated";
