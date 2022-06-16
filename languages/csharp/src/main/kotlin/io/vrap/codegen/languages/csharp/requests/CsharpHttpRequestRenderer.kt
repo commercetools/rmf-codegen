@@ -19,11 +19,8 @@ import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Trait
 import io.vrap.rmf.raml.model.resources.impl.ResourceImpl
+import io.vrap.rmf.raml.model.types.*
 import io.vrap.rmf.raml.model.types.Annotation
-import io.vrap.rmf.raml.model.types.ArrayType
-import io.vrap.rmf.raml.model.types.ObjectInstance
-import io.vrap.rmf.raml.model.types.QueryParameter
-import io.vrap.rmf.raml.model.types.StringInstance
 import io.vrap.rmf.raml.model.util.StringCaseFormat
 import org.eclipse.emf.ecore.EObject
 import java.util.*
@@ -69,6 +66,7 @@ class CsharpHttpRequestRenderer constructor(override val vrapTypeProvider: VrapT
             |
             |namespace ${cPackage}
             |{
+            |   ${if (type.markDeprecated()) "[Obsolete(\"usage of this endpoint has been deprecated.\", false)]" else ""}
             |   public partial class ${type.toRequestName()} : ApiMethod\<${type.toRequestName()}\>, IApiMethod\<${type.toRequestName()}, ${type.csharpReturnType(vrapTypeProvider)}\>${if (implements.isNotEmpty()) ", ${implements.joinToString(", ")}" else ""} {
             |
             |       <${type.properties()}>
@@ -375,6 +373,11 @@ class CsharpHttpRequestRenderer constructor(override val vrapTypeProvider: VrapT
                 .map { "using ${it};" }
                 .joinToString(separator = "\n")
 
+    }
+
+    private fun Method.markDeprecated() : Boolean {
+        val anno = this.getAnnotation("markDeprecated")
+        return (anno != null && (anno.value as BooleanInstance).value)
     }
 
     private fun Method.queryParamsTemplateSetters() : String = this.queryParameters

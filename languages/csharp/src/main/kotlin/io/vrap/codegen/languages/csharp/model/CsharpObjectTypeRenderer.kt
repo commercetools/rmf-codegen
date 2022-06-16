@@ -10,6 +10,8 @@ import io.vrap.rmf.codegen.rendering.ObjectTypeRenderer
 import io.vrap.rmf.codegen.rendering.utils.keepIndentation
 import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
+import io.vrap.rmf.raml.model.resources.Resource
+import io.vrap.rmf.raml.model.types.BooleanInstance
 import io.vrap.rmf.raml.model.types.ObjectType
 import io.vrap.rmf.raml.model.types.Property
 import io.vrap.rmf.raml.model.types.impl.ObjectTypeImpl
@@ -25,6 +27,7 @@ class CsharpObjectTypeRenderer constructor(override val vrapTypeProvider: VrapTy
             |
             |namespace ${vrapType.csharpPackage()}
             |{
+            |    ${if (type.markDeprecated()) "[Obsolete(\"usage of this endpoint has been deprecated.\", false)]" else ""}
             |    public partial class ${type.objectClassName()} : I${vrapType.simpleClassName}
             |    {
             |        <${if(type.isADictionaryType()) "" else type.toProperties()}>
@@ -57,6 +60,7 @@ class CsharpObjectTypeRenderer constructor(override val vrapTypeProvider: VrapTy
             |
             |namespace ${vrapType.csharpPackage()}
             |{
+            |    ${if (this.markDeprecated()) "[Obsolete(\"usage of this endpoint has been deprecated.\", false)]" else ""}
             |    public partial class ${vrapType.simpleClassName} : Dictionary\<string, ${property.type.toVrapType().simpleName()}\>, I${vrapType.simpleClassName}
             |    {
             |    }
@@ -119,5 +123,10 @@ class CsharpObjectTypeRenderer constructor(override val vrapTypeProvider: VrapTy
             content = ""
         }
         return content
+    }
+
+    private fun ObjectType.markDeprecated() : Boolean {
+        val anno = this.getAnnotation("markDeprecated")
+        return (anno != null && (anno.value as BooleanInstance).value)
     }
 }
