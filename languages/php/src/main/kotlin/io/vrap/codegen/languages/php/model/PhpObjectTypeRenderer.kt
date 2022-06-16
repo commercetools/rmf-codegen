@@ -658,7 +658,7 @@ class PhpObjectTypeRenderer constructor(override val vrapTypeProvider: VrapTypeP
             | * ${if (this.namedSubTypes().filterIsInstance<ObjectType>().count() > 50) "@psalm-suppress InvalidPropertyAssignmentValue" else ""}
             | */
             |private static $!discriminatorClasses = [
-            |   <<${this.namedSubTypes().filterIsInstance<ObjectType>().map { "'${it.discriminatorValue}' => ${it.toVrapType().simpleName()}Model::class," }.sorted().joinToString(separator = "\n")}>>
+            |   <<${this.namedSubTypes().filterIsInstance<ObjectType>().filter{!it.deprecated()}.map { "'${it.discriminatorValue}' => ${it.toVrapType().simpleName()}Model::class," }.sorted().joinToString(separator = "\n")}>>
             |];
         """.trimMargin()
     }
@@ -704,6 +704,11 @@ class PhpObjectTypeRenderer constructor(override val vrapTypeProvider: VrapTypeP
                 | * @deprecated""".trimMargin()
         }
         return "";
+    }
+
+    protected fun ObjectType.deprecated() : Boolean {
+        val anno = this.getAnnotation("deprecated")
+        return (anno != null && (anno.value as BooleanInstance).value)
     }
 }
 
