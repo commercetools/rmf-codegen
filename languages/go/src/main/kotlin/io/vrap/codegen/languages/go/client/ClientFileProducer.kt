@@ -44,12 +44,11 @@ class ClientFileProducer constructor(
                 |)
                 |
                 |// Version identifies the current library version. Should match the git tag
-                |const Version = "0.1.0"
+                |const Version = "1.0.1"
                 |
                 |type Client struct {
                 |    httpClient *http.Client
                 |    url        *url.URL
-                |    userAgent  string
                 |}
                 |
                 |type ClientConfig struct {
@@ -60,25 +59,34 @@ class ClientFileProducer constructor(
                 |    UserAgent   string
                 |}
                 |
+                |type SetUserAgentTransport struct {
+                |    T         http.RoundTripper
+                |    userAgent string
+                |}
+                |
+                |func (sat *SetUserAgentTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+                |    req.Header.Set("User-Agent", sat.userAgent)
+                |    return sat.T.RoundTrip(req)
+                |}
+                |
                 |// NewClient creates a new client based on the provided ClientConfig
                 |func NewClient(cfg *ClientConfig) (*Client, error) {
                 |
-                |    // If a custom httpClient is passed use that
-                |    var httpClient *http.Client
-                |    if cfg.HTTPClient != nil {
-                |        if (cfg.Credentials != nil) {
-                |            httpClient = cfg.Credentials.Client(
-                |                context.WithValue(context.TODO(), oauth2.HTTPClient, cfg.HTTPClient))
-                |        } else {
-                |            httpClient = cfg.HTTPClient
-                |        }
-                |    } else {
-                |        httpClient = cfg.Credentials.Client(context.TODO())
+                |    userAgent := cfg.UserAgent
+                |    if userAgent == "" {
+                |        userAgent = GetUserAgent()
                 |    }
                 |
-                |    var userAgent = cfg.UserAgent
-                |    if (userAgent == "") {
-                |        userAgent = GetUserAgent()
+                |    httpClient := cfg.HTTPClient
+                |    if httpClient == nil {
+                |        httpClient = &http.Client{}
+                |    }
+                |    httpClient.Transport = &SetUserAgentTransport{
+                |        T: httpClient.Transport, userAgent: userAgent}
+                |
+                |    if cfg.Credentials != nil {
+                |        httpClient = cfg.Credentials.Client(
+                |            context.WithValue(context.TODO(), oauth2.HTTPClient, httpClient))
                 |    }
                 |
                 |    url, err := url.Parse(cfg.URL)
@@ -88,7 +96,6 @@ class ClientFileProducer constructor(
                 |    client := &Client{
                 |        url:        url,
                 |        httpClient: httpClient,
-                |        userAgent:  userAgent,
                 |    }
                 |
                 |    return client, nil
@@ -142,7 +149,6 @@ class ClientFileProducer constructor(
                 |    }
                 |    req.Header.Set("Accept", "application/json; charset=utf-8")
                 |    req.Header.Set("Content-Type", "application/json; charset=utf-8")
-                |    req.Header.Set("User-Agent", c.userAgent)
                 |
                 |    resp, err := c.httpClient.Do(req)
                 |    if err != nil {
