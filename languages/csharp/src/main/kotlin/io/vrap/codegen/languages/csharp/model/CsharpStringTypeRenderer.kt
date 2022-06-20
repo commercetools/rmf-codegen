@@ -36,10 +36,20 @@ class CsharpStringTypeRenderer constructor(override val vrapTypeProvider: VrapTy
                 |        {
                 |            return JsonName;
                 |        }
+                |        
+                |        IEnumerator IEnumerable.GetEnumerator()
+                |        {
+                |            return GetEnumerator();
+                |        }
+                |
+                |        public new IEnumerator<char> GetEnumerator()
+                |        {
+                |            return JsonName.GetEnumerator();
+                |        }
                 |    }
                 |
                 |    [EnumInterfaceCreator(typeof(I${vrapType.simpleClassName}), "FindEnum")]
-                |    public interface I${vrapType.simpleClassName} : IJsonName
+                |    public interface I${vrapType.simpleClassName} : IJsonName, IEnumerable<char>
                 |    {
                 |         <${type.enumStaticFields("${vrapType.simpleClassName}")}>
                 |
