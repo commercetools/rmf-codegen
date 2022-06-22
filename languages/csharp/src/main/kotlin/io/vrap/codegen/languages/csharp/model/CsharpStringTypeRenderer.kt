@@ -44,14 +44,14 @@ class CsharpStringTypeRenderer constructor(override val vrapTypeProvider: VrapTy
                 |            return GetEnumerator();
                 |        }
                 |
-                |        public new IEnumerator<char> GetEnumerator()
+                |        public new IEnumerator\<char\> GetEnumerator()
                 |        {
                 |            return JsonName.GetEnumerator();
                 |        }
                 |    }
                 |
                 |    [EnumInterfaceCreator(typeof(I${vrapType.simpleClassName}), "FindEnum")]
-                |    public interface I${vrapType.simpleClassName} : IJsonName, IEnumerable<char>
+                |    public interface I${vrapType.simpleClassName} : IJsonName, IEnumerable\<char\>
                 |    {
                 |         <${type.enumStaticFields("${vrapType.simpleClassName}")}>
                 |
