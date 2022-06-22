@@ -17,6 +17,8 @@ class CsharpStringTypeRenderer constructor(override val vrapTypeProvider: VrapTy
         val vrapType = vrapTypeProvider.doSwitch(type) as VrapEnumType
 
         val content = """
+                |using System.Collections;
+                |using System.Collections.Generic;
                 |using System.ComponentModel;
                 |using System.Linq;
                 |using commercetools.Base.CustomAttributes;
