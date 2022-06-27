@@ -105,16 +105,16 @@ class RequestBuilder constructor(
             }
             .joinToString(separator = ", ")
 
-        val assignments =
-            this.relativeUri.variables
-                .map { it.goName() }
-                .map { "$it: rb.$it," }
-                .plus(
-                    (this.fullUri.variables.asList() - this.relativeUri.variables.asList())
-                        .map { it.goName() }
-                        .map { "$it: rb.$it," }
-                )
-                .joinToString(separator = "\n")
+        // val assignments =
+        //     this.relativeUri.variables
+        //         .map { it.goName() }
+        //         .map { "$it: rb.$it," }
+        //         .plus(
+        //             (this.fullUri.variables.asList() - this.relativeUri.variables.asList())
+        //                 .map { it.goName() }
+        //                 .map { "$it: rb.$it," }
+        //         )
+        //         .joinToString(separator = "\n")
 
         val endpoint = transformUriTemplate(this.fullUri.template)
         return """

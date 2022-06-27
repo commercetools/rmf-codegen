@@ -35,6 +35,9 @@ fun String.goClientFileName(): String {
 }
 
 fun String.exportName(): String {
+    if (this.contains("/")) {
+        throw Exception("Invalid identifier name: " + this)
+    }
     if (this[0].isUpperCase()) {
         return this
     }

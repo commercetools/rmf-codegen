@@ -177,17 +177,26 @@ class GoFileProducer constructor(
                             is ObjectType -> it.isDiscriminated()
                             else -> false
                         }
-                    }
+                    } ||
+                allProperties.any { it.isPatternProperty() }
             ) this.renderUnmarshalFunc() else ""
 
             val marshalFunc = this.renderMarshalFunc()
             val errorFunc = this.renderErrorFunc()
+
+            val decodeFunc = if (
+                this.discriminatorValue != null
+                && allProperties.any { it.isPatternProperty() }
+            ) {
+                this.renderDecodeFunc()
+            } else { "" }
 
             return """
             |$structField
             |
             |$unmarshalFunc
             |$marshalFunc
+            |$decodeFunc
             |$errorFunc
             """.trimMargin()
         }
@@ -215,6 +224,34 @@ class GoFileProducer constructor(
         """.trimMargin()
     }
 
+    fun ObjectType.renderMarshalFuncBody(returnStatement: Boolean): String {
+        // Use the alias approach to marshall the struct without causing and
+        // endless recursive loop. Add `Action` field if discriminated
+        var marshalStatement = if (this.discriminatorValue != null) {
+            """json.Marshal(struct {
+            |        Action string `json:"${this.discriminator()}"`
+            |        *Alias
+            |    }{Action: "$discriminatorValue", Alias: (*Alias)(&obj)})
+            """.trimMargin()
+        } else {
+            """json.Marshal(struct {
+            |        *Alias
+            |    }{Alias: (*Alias)(&obj)})
+            """.trimMargin()
+        }
+
+        return if (returnStatement) {
+            "return $marshalStatement"
+        } else {
+            """
+            |    data, err := $marshalStatement
+            |    if err != nil {
+            |        return nil, err
+            |    }
+            """.trimMargin()
+        }
+    }
+
     /**
      * Render MarshalJSON() func to customize the JSON serialization. This is
      * needed for two reasons:
@@ -223,55 +260,57 @@ class GoFileProducer constructor(
      *  are nil but not empty
      */
     fun ObjectType.renderMarshalFunc(): String {
-        // Check if there are optional slices
-        val optSlices = allProperties.any { it.type is ArrayType && !it.required }
-
-        if (this.discriminatorValue == null && !optSlices) {
+        if (
+            this.discriminatorValue == null &&
+            !allProperties.any { it.isPatternProperty() } &&
+            !allProperties.any { it.type is ArrayType && !it.required }
+        ) {
             return ""
         }
 
-        // Use the alias approach to marshall the struct without causing and
-        // endless recursive loop. Add `Action` field if discriminated
-        var marshalStatement = if (this.discriminatorValue != null)
-            """json.Marshal(struct {
-            |        Action string `json:"${this.discriminator()}"`
-            |        *Alias
-            |    }{Action: "$discriminatorValue", Alias: (*Alias)(&obj)})""".trimMargin()
-        else
-            """json.Marshal(struct {
-            |        *Alias
-            |    }{Alias: (*Alias)(&obj)})""".trimMargin()
-
-        val funcBody = if (!optSlices) {
-            "return $marshalStatement"
-        } else {
-            val deleteStatements = allProperties
+        // We need to alter the generated JSON before returning it. We do this
+        // by deserializing and serializing the result again.
+        val modifyJsonStmt = if (
+            allProperties.any { it.isPatternProperty() } ||
+            allProperties.any { it.type is ArrayType && !it.required }
+        ) {
+            val statements = allProperties
                 .filter { it.type is ArrayType && !it.required }
                 .map {
                     """
-                    |   if target["${it.name}"] == nil {
-                    |       delete(target, "${it.name}")
+                    |   if raw["${it.name}"] == nil {
+                    |       delete(raw, "${it.name}")
                     |   }
                     """
-                }.joinToString("\n")
+                }.plus(
+                    allProperties
+                        .filter { it.isPatternProperty() }
+                        .map {
+                            """
+                        for key, value := range obj.${it.patternName()} {
+                            raw[key] = value
+                        }
+                        """
+                        }
+                )
+                .joinToString("\n")
 
             """
-            |   data, err := $marshalStatement
-            |   if err != nil {
+            |   raw := make(map[string]interface{})
+            |   if err := json.Unmarshal(data, &raw); err != nil {
             |       return nil, err
             |   }
-            |
-            |   target := make(map[string]interface{})
-            |   if err := json.Unmarshal(data, &target); err != nil {
-            |       return nil, err
-            |   }
-            |
-            |   $deleteStatements
-            |
-            |   return json.Marshal(target)
-            """.trimMargin()
+            |   $statements
+            |   return json.Marshal(raw)
+            """
+        } else {
+            ""
         }
 
+        var funcBody = renderMarshalFuncBody(modifyJsonStmt == "")
+        if (modifyJsonStmt != "") {
+            funcBody += "\n$modifyJsonStmt"
+        }
         return """
         |// MarshalJSON override to set the discriminator value or remove
         |// optional nil slices
@@ -329,8 +368,30 @@ class GoFileProducer constructor(
             .joinToString("\n")
     }
 
+    fun ObjectType.renderUnmarshalFuncPatternHandlers(): String {
+        val deleteFields = allProperties.filter {it.isPatternProperty() } .flatMap {
+            val name = it.patternName()
+            allProperties.filter { !it.isPatternProperty() }.map {
+                """delete(obj.${name}, "${it.name}")"""
+            }
+        }.joinToString("\n")
+
+        return allProperties
+            .filter { it.isPatternProperty() }
+            .map {
+                """
+                if err := json.Unmarshal(data, &obj.${it.patternName()}); err != nil {
+                    return err
+                }
+                $deleteFields
+                """
+            }
+            .joinToString("\n")
+    }
+
     fun ObjectType.renderUnmarshalFunc(): String {
         val fieldHandlers = this.renderUnmarshalFuncFields()
+        val patternHandlers = this.renderUnmarshalFuncPatternHandlers()
         return """
         |// UnmarshalJSON override to deserialize correct attribute types based
         |// on the discriminator value
@@ -340,13 +401,47 @@ class GoFileProducer constructor(
         |        return err
         |    }
         |    $fieldHandlers
+        |    $patternHandlers
         |    return nil
         |}
         """.trimMargin()
     }
 
-    fun ObjectType.renderDiscriminatorMapper(): String {
+    fun ObjectType.renderDecodeFunc(): String {
+        val statements = allProperties.filter { it.isPatternProperty() } .map {
+            val patternStmt = if (it.name == "//") "// ${it.pattern }" else """
+                |match, err := regexp.MatchString("${it.pattern}", key)
+                |if (err != nil) {
+                |    panic(err)
+                |}
+                |if (!match) {
+                |    continue
+                |}
+            """
 
+            """
+                |   {
+                |       obj.${it.patternName()} = make(map[string]${it.type.renderTypeExpr()})
+                |       for key, value := range src {
+                |           $patternStmt
+                |           if (key != "${this.discriminator()}") {
+                |               obj.${it.patternName()}[key] = value
+                |           }
+                |       }
+                |   }
+            """.trimMargin()
+        }.joinToString("\n")
+
+        return """
+            |func (obj *${name.exportName()}) DecodeStruct(src map[string]interface{}) error {
+            |   ${statements}
+            |   return nil
+            |}
+        """
+    }
+
+
+    fun ObjectType.renderDiscriminatorMapper(): String {
         val caseStatements = allAnyTypes.getTypeInheritance(this)
             .filterIsInstance<ObjectType>()
             .filter { !it.discriminatorValue.isNullOrEmpty() }
@@ -360,7 +455,7 @@ class GoFileProducer constructor(
             |       }
             |       <$extraAttrs>
             |       return obj, nil
-            """.trimMargin()
+                """.trimMargin()
             }
             .joinToString("\n")
 
@@ -396,7 +491,12 @@ class GoFileProducer constructor(
                     name = "${name}Message"
                 }
 
-                if (it.required) {
+                if (it.isPatternProperty()) {
+                    """
+                    |<$comment>
+                    |${it.patternName()} map[string]${it.type.renderTypeExpr()} `json:"-"`
+                    """.trimMargin()
+                } else if (it.required) {
                     """
                     |<$comment>
                     |${name.exportName()} ${it.type.renderTypeExpr()} `json:"${it.name}"`
