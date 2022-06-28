@@ -155,6 +155,7 @@ class PhpBuilderObjectTypeRenderer constructor(override val vrapTypeProvider: Vr
         if (this.type.isScalar() || this.type is ArrayType || this.type.toVrapType().simpleName() == "stdClass") {
             return """
                 |/**
+                |${this.deprecationAnnotation()}
                 | * @var ?${if (this.type.toVrapType().simpleName() != "stdClass") this.type.toVrapType().simpleName() else "JsonObject" }
                 | */
                 |private $${this.name};
@@ -162,6 +163,7 @@ class PhpBuilderObjectTypeRenderer constructor(override val vrapTypeProvider: Vr
         }
         return """
             |/**
+            |${this.deprecationAnnotation()}
             | * @var null|${this.type.toVrapType().simpleName()}|${this.type.toVrapType().simpleBuilderName()}
             | */
             |private $${this.name};
@@ -269,6 +271,7 @@ class PhpBuilderObjectTypeRenderer constructor(override val vrapTypeProvider: Vr
                 |/**${if (this.type.description?.value?.isNotBlank() == true) """
                 | {{${this.type.toPhpComment()}}}
                 | *""" else ""}
+                |${this.deprecationAnnotation()}
                 | * @return null|${if (this.type.toVrapType().simpleName() != "stdClass") this.type.toVrapType().simpleName() else "JsonObject" }
                 | */
                 |public function get${this.name.firstUpperCase()}()
@@ -276,6 +279,15 @@ class PhpBuilderObjectTypeRenderer constructor(override val vrapTypeProvider: Vr
                 |    return ${this.buildProperty()};
                 |}
         """.trimMargin().keepCurlyIndent()
+    }
+
+    fun Property.deprecationAnnotation(): String {
+        val anno = this.getAnnotation("markDeprecated", true)
+        if (anno != null && (anno.value as BooleanInstance).value == true) {
+            return """
+                | * @deprecated""".trimMargin()
+        }
+        return "";
     }
 }
 

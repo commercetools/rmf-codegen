@@ -166,6 +166,7 @@ class PhpInterfaceObjectTypeRenderer constructor(override val vrapTypeProvider: 
             |/**${if (this.type.description?.value?.isNotBlank() == true) """
             | {{${this.type.toPhpComment()}}}
             | *""" else ""}
+            |${this.deprecationAnnotation()}
             | * @return null|$typeName
             | */
             |public function get${this.name.firstUpperCase()}();
@@ -184,4 +185,13 @@ class PhpInterfaceObjectTypeRenderer constructor(override val vrapTypeProvider: 
         else -> this.typeName()
     }
     private fun AnyType.typeName(): String = if (this.toVrapType().simpleName() != "stdClass") this.toVrapType().simpleName() else "mixed"
+
+    fun Property.deprecationAnnotation(): String {
+        val anno = this.getAnnotation("markDeprecated", true)
+        if (anno != null && (anno.value as BooleanInstance).value == true) {
+            return """
+                | * @deprecated""".trimMargin()
+        }
+        return "";
+    }
 }

@@ -10,8 +10,10 @@ import io.vrap.rmf.codegen.rendering.utils.escapeAll
 import io.vrap.rmf.codegen.rendering.utils.keepAngleIndent
 import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
+import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Trait
 import io.vrap.rmf.raml.model.types.ArrayType
+import io.vrap.rmf.raml.model.types.BooleanInstance
 import io.vrap.rmf.raml.model.types.QueryParameter
 import io.vrap.rmf.raml.model.util.StringCaseFormat
 import org.eclipse.emf.ecore.EObject
@@ -37,7 +39,8 @@ class PhpTraitRenderer constructor(override val vrapTypeProvider: VrapTypeProvid
             |
             |/**
             | * @template T of ApiRequestInterface
-            | * @template-extends ApiRequestInterface<T>
+            | * @template-extends ApiRequestInterface<T>${if (type.markDeprecated()) """
+            | * @deprecated""" else ""}
             | */
             |interface ${type.toTraitName()} extends ApiRequestInterface
             |{
@@ -75,5 +78,10 @@ class PhpTraitRenderer constructor(override val vrapTypeProvider: VrapTypeProvid
 
     private fun QueryParameter.fieldName(): String {
         return StringCaseFormat.LOWER_CAMEL_CASE.apply(this.name.replace(".", "-"))
+    }
+
+    private fun Trait.markDeprecated() : Boolean {
+        val anno = this.getAnnotation("markDeprecated")
+        return (anno != null && (anno.value as BooleanInstance).value)
     }
 }

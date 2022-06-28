@@ -156,6 +156,7 @@ class PhpObjectTypeRenderer constructor(override val vrapTypeProvider: VrapTypeP
         }
         return """
             |/**
+            |${this.deprecationAnnotation()}
             | * @var ?$typeName
             | */
             |protected $${this.name};
@@ -253,6 +254,7 @@ class PhpObjectTypeRenderer constructor(override val vrapTypeProvider: VrapTypeP
                     |/**${if (this.type.description?.value?.isNotBlank() == true) """
                     | {{${this.type.toPhpComment()}}}
                     | *""" else ""}
+                    |${this.deprecationAnnotation()}
                     | * @return ?mixed
                     | */
                     |public function get${this.name.firstUpperCase()}()
@@ -274,6 +276,7 @@ class PhpObjectTypeRenderer constructor(override val vrapTypeProvider: VrapTypeP
                     |/**${if (this.type.description?.value?.isNotBlank() == true) """
                     | {{${this.type.toPhpComment()}}}
                     | *""" else ""}
+                    |${this.deprecationAnnotation()}
                     | * @return null|${this.type.typeNames()}
                     | */
                     |public function get${this.name.firstUpperCase()}()
@@ -655,7 +658,7 @@ class PhpObjectTypeRenderer constructor(override val vrapTypeProvider: VrapTypeP
             | * ${if (this.namedSubTypes().filterIsInstance<ObjectType>().count() > 50) "@psalm-suppress InvalidPropertyAssignmentValue" else ""}
             | */
             |private static $!discriminatorClasses = [
-            |   <<${this.namedSubTypes().filterIsInstance<ObjectType>().map { "'${it.discriminatorValue}' => ${it.toVrapType().simpleName()}Model::class," }.sorted().joinToString(separator = "\n")}>>
+            |   <<${this.namedSubTypes().filterIsInstance<ObjectType>().filter{!it.deprecated()}.map { "'${it.discriminatorValue}' => ${it.toVrapType().simpleName()}Model::class," }.sorted().joinToString(separator = "\n")}>>
             |];
         """.trimMargin()
     }
@@ -692,6 +695,20 @@ class PhpObjectTypeRenderer constructor(override val vrapTypeProvider: VrapTypeP
             |   return $!type;
             |}
         """.trimMargin()
+    }
+
+    fun Property.deprecationAnnotation(): String {
+        val anno = this.getAnnotation("markDeprecated", true)
+        if (anno != null && (anno.value as BooleanInstance).value == true) {
+            return """
+                | * @deprecated""".trimMargin()
+        }
+        return "";
+    }
+
+    protected fun ObjectType.deprecated() : Boolean {
+        val anno = this.getAnnotation("deprecated")
+        return (anno != null && (anno.value as BooleanInstance).value)
     }
 }
 
