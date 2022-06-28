@@ -13,6 +13,7 @@ import io.vrap.rmf.codegen.rendering.utils.escapeAll
 import io.vrap.rmf.codegen.rendering.utils.keepIndentation
 import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
+import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.types.*
 import io.vrap.rmf.raml.model.types.Annotation
 import java.util.*
@@ -62,6 +63,7 @@ class CsharpModelInterfaceRenderer constructor(override val vrapTypeProvider: Vr
     }
 
     private fun ObjectType.toProperties() : String = this.properties
+            .filterNot { it.deprecated() }
             .filterNot { property -> property.isPatternProperty() }
             .map { it.toCsharpProperty(this) }.joinToString(separator = "\n\n")
 
@@ -143,6 +145,11 @@ class CsharpModelInterfaceRenderer constructor(override val vrapTypeProvider: Vr
             """
             |[DeserializeAs(typeof(${vrapType.`package`.toCsharpPackage()}.${this.objectClassName()}))]
             """.trimMargin()
+    }
+
+    private fun Property.deprecated() : Boolean {
+        val anno = this.getAnnotation("deprecated")
+        return (anno != null && (anno.value as BooleanInstance).value)
     }
 
 }
