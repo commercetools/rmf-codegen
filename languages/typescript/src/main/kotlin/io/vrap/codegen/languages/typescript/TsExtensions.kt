@@ -95,6 +95,34 @@ fun VrapType.toImportStatement(): String {
     }
 }
 
+fun ObjectType.markDeprecated(): String {
+    val anno = this.getAnnotation("markDeprecated", true)
+    if (anno != null && (anno.value as BooleanInstance).value == true) {
+        return "@deprecated";
+    }
+    return "";
+}
+
+fun Resource.markDeprecated() : Boolean {
+    val anno = this.getAnnotation("markDeprecated")
+    return (anno != null && (anno.value as BooleanInstance).value)
+}
+
+fun Method.markDeprecated() : Boolean {
+    val anno = this.getAnnotation("markDeprecated")
+    return (anno != null && (anno.value as BooleanInstance).value)
+}
+
+fun AnyType.deprecated() : Boolean {
+    val anno = this.getAnnotation("deprecated")
+    return (anno != null && (anno.value as BooleanInstance).value)
+}
+
+fun Property.deprecated() : Boolean {
+    val anno = this.getAnnotation("deprecated")
+    return (anno != null && (anno.value as BooleanInstance).value)
+}
+
 fun ResourceContainer.allMethods(): List<Method> = this
         .allContainedResources
         .flatMap {

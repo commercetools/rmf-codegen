@@ -21,6 +21,7 @@ import io.vrap.rmf.raml.model.modules.Api
 import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.resources.ResourceContainer
+import io.vrap.rmf.raml.model.types.BooleanInstance
 import io.vrap.rmf.raml.model.types.QueryParameter
 import io.vrap.rmf.raml.model.types.StringType
 import java.util.*
@@ -42,7 +43,9 @@ class RequestBuilder constructor(
                 content = """|
                 |$tsGeneratedComment
                 |${type.imports(type.tsRequestModuleName(`package`))}
-                |
+                |/**${if (type.markDeprecated() ) """
+                |@deprecated""" else ""}
+                |**/
                 |export class ${type.toRequestBuilderName()} {
                 |
                 |    <${type.constructor()}>
@@ -94,7 +97,10 @@ class RequestBuilder constructor(
                     """.trimMargin()
 
                     """
-                    |<${it.toTsComment()}>
+                    |<${it.toTsComment().plus(if (it.markDeprecated() ) """
+                    |/** 
+                    |* @deprecated
+                    |**/""" else "").escapeAll()}>
                     |public ${it.getMethodName()}($args): ${it.toRequestBuilderName()} {
                     |   return new ${it.toRequestBuilderName()}(
                     |         {
@@ -168,7 +174,10 @@ class RequestBuilder constructor(
 
 
                     """
-                    |<${it.toTsComment().escapeAll()}>
+                    |<${it.toTsComment().plus(if (it.markDeprecated() ) """
+                    |/** 
+                    |* @deprecated
+                    |**/""" else "").escapeAll()}>
                     |public ${it.methodName}(<$methodArgs>): $methodReturn {
                     |   return new $methodReturn(
                     |       <$bodyLiteral>,
