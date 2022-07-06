@@ -40,7 +40,7 @@ class OasScalarTypeRenderer constructor(override val vrapTypeProvider: VrapTypeP
         val content = """
             |type: "string"
             |enum:
-            |${type.enum.joinToString("\n") { "- ${it.value}" }}
+            |  ${type.enum.joinToString("\n") { "- ${it.value}" }}
             |<<${type.annotations.joinToString("\n") { it.renderAnnotation() }}>>
         """.trimMargin().keepAngleIndent()
         return TemplateFile(

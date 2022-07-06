@@ -38,7 +38,7 @@ class OasRenderer constructor(val api: Api, override val vrapTypeProvider: VrapT
             |openapi: "3.0.0"
             |info:
             |  title: ${api.title}
-            |  version: ${api.version}
+            |  version: "${api.version}"
             |
             |servers:
             |  - url: ${api.baseUri.template}${if (api.baseUriParameters.size > 0) """
@@ -48,8 +48,8 @@ class OasRenderer constructor(val api: Api, override val vrapTypeProvider: VrapT
             |paths:
             |  <<${api.allContainedResources.filterNot { it.methods.isEmpty() }.sortedWith(compareBy { it.resourcePath }).joinToString("\n") { resourceRenderer.render(it).content }}>>
             |
-            |${if (api.securitySchemes.any { it.type == SecuritySchemeType.OAUTH_20 }) """
             |components:
+            |${if (api.securitySchemes.any { it.type == SecuritySchemeType.OAUTH_20 }) """
             |  securitySchemes:
             |    <<${api.securitySchemes.joinToString("\n") { renderScheme(it)}}>>
             """ else ""}

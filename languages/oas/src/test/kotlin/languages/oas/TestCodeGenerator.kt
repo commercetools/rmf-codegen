@@ -6,6 +6,8 @@ import io.vrap.rmf.codegen.CodeGeneratorConfig
 import io.vrap.rmf.codegen.di.RamlApiProvider
 import io.vrap.rmf.codegen.di.RamlGeneratorComponent
 import io.vrap.rmf.codegen.di.RamlGeneratorModule
+import io.vrap.rmf.codegen.io.MemoryDataSink
+import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -30,6 +32,29 @@ class TestCodeGenerator {
         val generatorModule = RamlGeneratorModule(apiProvider, generatorConfig, OasBaseTypes)
         val generatorComponent = RamlGeneratorComponent(generatorModule, OasModelModule)
         generatorComponent.generateFiles()
+    }
+
+    @Test
+    fun oasRender() {
+        val generatorConfig = CodeGeneratorConfig(
+            basePackageName = "com/commercetools/importer",
+            outputFolder = Paths.get("build/gensrc")
+        )
+
+        val apiProvider = RamlApiProvider(Paths.get("src/test/resources/oauth.raml"))
+
+        val dataSink = MemoryDataSink()
+        val generatorModule = RamlGeneratorModule(apiProvider, generatorConfig, OasBaseTypes, dataSink = dataSink)
+        val generatorComponent = RamlGeneratorComponent(generatorModule, OasModelModule)
+        generatorComponent.generateFiles()
+
+        Assertions.assertThat(dataSink.files).hasSize(1)
+        Assertions.assertThat(dataSink.files.get("openapi.yaml")?.trim())
+            .isEqualTo("src/test/resources/fixtures/openapi.yaml".readFile())
+    }
+
+    private fun String.readFile(): String {
+        return Paths.get(this).toFile().readText().trim()
     }
 
     private fun cleanGenTestFolder() {

@@ -43,7 +43,7 @@ class OasObjectTypeRenderer constructor(override val vrapTypeProvider: VrapTypeP
             |  <<${properties.joinToString("\n") { renderProperty(type, it) }}>>""" else ""}${if (patternProperties.size > 1) """
             |additionalProperties:
             |  oneOf:
-            |  <<${patternProperties.joinToString("\n") { "- <<${renderPatternProperties(type, it)}>>".keepAngleIndent() }}>>""" else ""}${if (patternProperties.size == 1) """
+            |    <<${patternProperties.joinToString("\n") { "- <<${renderPatternProperties(type, it)}>>".keepAngleIndent() }}>>""" else ""}${if (patternProperties.size == 1) """
             |additionalProperties:
             |  <<${renderPatternProperties(type, patternProperties[0])}>>""" else ""}
             """.trimMargin().keepAngleIndent()
@@ -51,8 +51,8 @@ class OasObjectTypeRenderer constructor(override val vrapTypeProvider: VrapTypeP
         val content = if (type.type != null) {
             """
                 |allOf:
-                |- ${"$"}ref: '#/components/schemas/${type.type.name}'
-                |- <<$typeContent>>
+                |  - ${"$"}ref: '#/components/schemas/${type.type.name}'
+                |  - <<$typeContent>>
             """.trimMargin().keepAngleIndent()
         } else {
             typeContent
@@ -155,13 +155,7 @@ private fun renderBoolean(type: BooleanType): String {
 
 private fun renderAny(type: AnyType): String {
     return """
-            |anyOf:
-            |  - type: "string"
-            |  - type: "object"
-            |  - type: "array"
-            |  - type: "number"
-            |  - type: "integer"
-            |  - type: "boolean"
+            |{}
         """.trimMargin()
 }
 

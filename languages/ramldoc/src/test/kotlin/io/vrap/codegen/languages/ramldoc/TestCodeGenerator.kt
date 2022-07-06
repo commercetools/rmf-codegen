@@ -166,5 +166,36 @@ class TestCodeGenerator {
         val generatorComponent = RamlGeneratorComponent(generatorModule, RamldocModelModule)
         generatorComponent.generateFiles()
 
+        Assertions.assertThat(dataSink.files).hasSize(15)
+
+        Assertions.assertThat(dataSink.files.get("api.raml")?.trim())
+            .isEqualTo("src/test/resources/fixtures/api.raml".readFile())
+        Assertions.assertThat(dataSink.files.get("resources/Oauth.raml")?.trim())
+            .isEqualTo("src/test/resources/fixtures/resources/OAuth.raml".readFile())
+        Assertions.assertThat(dataSink.files.get("resources/OauthIntrospect.raml")?.trim())
+            .isEqualTo("src/test/resources/fixtures/resources/OauthIntrospect.raml".readFile())
+        Assertions.assertThat(dataSink.files.get("types/ClientCredentialsType.raml")?.trim())
+            .isEqualTo("src/test/resources/fixtures/types/ClientCredentialsType.raml".readFile())
+        Assertions.assertThat(dataSink.files.get("types/GrantType.raml")?.trim())
+            .isEqualTo("src/test/resources/fixtures/types/GrantType.raml".readFile())
+        Assertions.assertThat(dataSink.files.get("types/IntrospectResponse.raml")?.trim())
+            .isEqualTo("src/test/resources/fixtures/types/IntrospectResponse.raml".readFile())
+        Assertions.assertThat(dataSink.files.get("types/PasswordType.raml")?.trim())
+            .isEqualTo("src/test/resources/fixtures/types/PasswordType.raml".readFile())
+        Assertions.assertThat(dataSink.files.get("types/RefreshTokenResponse.raml")?.trim())
+            .isEqualTo("src/test/resources/fixtures/types/RefreshTokenResponse.raml".readFile())
+        Assertions.assertThat(dataSink.files.get("types/RefreshTokenType.raml")?.trim())
+            .isEqualTo("src/test/resources/fixtures/types/RefreshTokenType.raml".readFile())
+        Assertions.assertThat(dataSink.files.get("types/TokenType.raml")?.trim())
+            .isEqualTo("src/test/resources/fixtures/types/TokenType.raml".readFile())
+        Assertions.assertThat(dataSink.files.get("types/TokenResponse.raml")?.trim())
+            .isEqualTo("src/test/resources/fixtures/types/TokenResponse.raml".readFile())
+
+        val t = RamlApiProvider(Paths.get("src/test/resources/fixtures/api.raml"))
+        t.api
+    }
+
+    private fun String.readFile(): String {
+        return Paths.get(this).toFile().readText().trim()
     }
 }

@@ -95,7 +95,7 @@ class OasResourceRenderer constructor(val api: Api, val vrapTypeProvider: VrapTy
 
     private fun renderResponse(response: Response, method: Method): String {
         return """
-            |${response.statusCode}:
+            |\"${response.statusCode}\":
             |  description: |-
             |    <<${response.description?.value?.trim() ?: response.statusCode}>>
             |  content:${if (response.bodies.size > 0) """
@@ -130,8 +130,8 @@ class OasResourceRenderer constructor(val api: Api, val vrapTypeProvider: VrapTy
 //        val bodyExamples = body.inlineTypes.flatMap { inlineType -> inlineType.examples.map { example -> "${method.toRequestName()}-${response.statusCode}-${if (example.name.isNotEmpty()) example.name else "default"}" to example } }.toMap()
         return """
             |${body.contentType}:${if (body.type != null) """
-            |    schema:
-            |      ${"$"}ref: '#/components/schemas/${body.type.name}'
+            |  schema:
+            |    ${"$"}ref: '#/components/schemas/${body.type.name}'
             """ else ""}
         """.trimMargin().keepAngleIndent()
 //        |  <<${body.type.renderType(false)}>>${if (bodyExamples.isNotEmpty()) """
