@@ -160,7 +160,10 @@ private fun renderAny(type: AnyType): String {
 }
 
 private fun renderObject(type: ObjectType): String {
-    return "${"$"}ref: '#/components/schemas/${type.name}'"
+    if (type.name != "object") {
+        return "${"$"}ref: '#/components/schemas/${type.name}'"
+    }
+    return "type: \"object\""
 }
 
 private fun NumberType.numberType(): String {

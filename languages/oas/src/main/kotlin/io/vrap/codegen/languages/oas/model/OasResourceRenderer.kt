@@ -113,11 +113,17 @@ class OasResourceRenderer constructor(val api: Api, val vrapTypeProvider: VrapTy
 
     private fun renderBody(body: Body, method: Method): String {
 //        val bodyExamples = requestExamples(body, method)
+        if (body.type is FileType) {
+            return """
+                |content:
+                |  "*/*": {}
+            """.trimMargin().keepAngleIndent()
+        }
         return """
             |content:
             |  ${body.contentType}:${if (body.type != null) """
             |    schema:
-            |      ${"$"}ref: '#/components/schemas/${body.type.name}'
+            |      <<${body.type.renderAnyType()}>>
             """ else ""}
         """.trimMargin().keepAngleIndent()
 //        |  <<${body.type.renderType(false)}>>${if (bodyExamples.isNotEmpty()) """
