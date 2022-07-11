@@ -4,31 +4,35 @@ import com.damnhandy.uri.template.UriTemplate
 import io.swagger.v3.oas.models.OpenAPI
 import io.swagger.v3.oas.models.Operation
 import io.swagger.v3.oas.models.PathItem
-import io.vrap.codegen.languages.extensions.hasBody
+import io.swagger.v3.oas.models.PathItem.HttpMethod
+import io.swagger.v3.oas.models.media.MediaType
+import io.swagger.v3.oas.models.parameters.Parameter
+import io.swagger.v3.oas.models.parameters.RequestBody
+import io.swagger.v3.oas.models.responses.ApiResponse
+import io.swagger.v3.oas.models.security.SecurityRequirement
 import io.vrap.codegen.languages.extensions.toRequestName
 import io.vrap.codegen.languages.ramldoc.extensions.*
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendering.OasPathItemRenderer
-import io.vrap.rmf.codegen.rendering.utils.escapeAll
 import io.vrap.rmf.codegen.rendering.utils.keepAngleIndent
-import io.vrap.rmf.codegen.types.VrapTypeProvider
-import io.vrap.rmf.raml.model.resources.HttpMethod
 import io.vrap.rmf.raml.model.resources.Method
-import io.vrap.rmf.raml.model.resources.UriParameter
 import io.vrap.rmf.raml.model.responses.Body
-import io.vrap.rmf.raml.model.responses.Response
-import io.vrap.rmf.raml.model.security.SecuredBy
 import io.vrap.rmf.raml.model.types.*
 
-class OasResourceRenderer constructor(val api: OpenAPI, val vrapTypeProvider: VrapTypeProvider) : OasPathItemRenderer {
+class OasResourceRenderer constructor(val api: OpenAPI) : OasPathItemRenderer {
     override fun render(type: Map.Entry<String, PathItem>): TemplateFile {
         val uri = UriTemplate.fromTemplate(type.key)
         val value = type.value
-        val methods = mapOf<String, Operation>().plus(Pair("post", value.post))
         val content = """
             |# Resource
             |(resourceName): ${UriTemplate.fromTemplate(type.key).toResourceName()}
-            |(resourcePathUri): ${uri.normalize().template}
+            |(resourcePathUri): ${uri.normalize().template}${if (value.description != null) """
+            |description: |-
+            |  <<${value.description}>>""" else ""}
+            |${if (value.parameters != null && value.parameters.size > 0) """
+            |uriParameters:
+            |  <<${value.parameters.joinToString("\n") { renderUriParameter(it) }}>>""" else ""}
+            |${value.readOperationsMap().toMap().entries.joinToString("\n") { renderMethod(it) }}
         """.trimMargin().keepAngleIndent()
 //        |${value.methods.joinToString("\n") { renderMethod(it) }}
 //            |(resourcePathUri): ${uri.normalize().template}${if (type.displayName != null) """
@@ -39,32 +43,35 @@ class OasResourceRenderer constructor(val api: OpenAPI, val vrapTypeProvider: Vr
 //            |uriParameters:
 //            |  <<${type.fullUriParameters.joinToString("\n") { it.renderUriParameter() }}>>""" else ""}
 
-//        val relativePath = "resources/" + type.toResourceName()+ ".raml"
+        val relativePath = "resources/" + uri.toResourceName() + ".raml"
         return TemplateFile(
-                relativePath = "relativePath",
+                relativePath = relativePath,
                 content = content
         )
     }
 
-//    private fun renderMethod(method: Method): String {
-//        return """
-//            |${method.methodName}:${if (method.securedBy.isNotEmpty()) """
-//            |  securedBy:
-//            |  <<${method.securedBy.joinToString("\n") { renderScheme(it)}}>>""" else ""}${if (method.displayName != null) """
-//            |  displayName: ${method.displayName.value.trim()}""" else ""}${if (method.description != null) """
-//            |  description: |-
-//            |    <<${method.description.value.trim()}>>""" else ""}${if (method.queryParameters.isNotEmpty()) """
-//            |  queryParameters:
-//            |    <<${method.queryParameters.joinToString("\n") { renderQueryParameter(it) }}>>""" else ""}${if (method.bodies.any { it.type != null }) """
-//            |  body:
-//            |    <<${method.bodies.filter { it.type != null }.joinToString("\n") { renderBody(it, method) } }>>""" else ""}${if (method.responses.any { response -> response.isSuccessfull() }) """
-//            |  responses:
-//            |    <<${method.responses.filter { response -> response.isSuccessfull() }.joinToString("\n") { renderResponse(it, method) }}>>""" else ""}${if (method.hasExampleBody() || !method.sendsBody()) """
-//            |  (codeExamples):
-//            |    curl: |-
+    private fun renderMethod(method: Map.Entry<HttpMethod, Operation>): String {
+        val operation = method.value
+        return """
+            |${method.key.name.lowercase()}:${if (operation.security?.isNotEmpty() == true) """
+            |  securedBy:
+            |  <<${operation.security.joinToString("\n") { renderScheme(it)}}>>""" else ""}${if (operation.operationId != null) """
+            |  displayName: ${operation.operationId.trim()}""" else ""}${if (operation.description != null) """
+            |  description: |-
+            |    <<${operation.description.trim()}>>""" else ""}${if (operation.parameters?.isNotEmpty() == true) """
+            |  queryParameters:
+            |    <<${operation.parameters.joinToString("\n") { renderQueryParameter(it) }}>>""" else ""}${if (operation.requestBody?.content?.any { it.value.schema != null } == true) """
+            |  body:
+            |    <<${operation.requestBody.content.toMap().entries.joinToString("\n") { renderBody(operation.requestBody, it, method) } }>>""" else ""}${if (operation.responses.any { response -> response.isSuccessful() }) """
+            |  responses:
+            |    <<${operation.responses.filter { response -> response.isSuccessful() }.entries.joinToString("\n") { renderResponse(it, method) }}>>""" else ""}${if (operation.hasExampleBody() || !method.sendsBody()) """
+            |  (codeExamples):
+            |    curl: |-""" else ""}
+        """.trimMargin().keepAngleIndent()
 //            |      <<${renderCurlExample(method)}>>""" else ""}
-//        """.trimMargin().keepAngleIndent()
-//    }
+    }
+
+    fun Map.Entry<String, ApiResponse>.isSuccessful(): Boolean = this.key.toInt() in (200..299)
 
 //    private fun renderCurlExample(method: Method) : String {
 //        val docsBaseUri = api.getAnnotation("docsBaseUri")
@@ -98,72 +105,86 @@ class OasResourceRenderer constructor(val api: OpenAPI, val vrapTypeProvider: Vr
 //        }.trimMargin().escapeAll()
 //    }
 
-    private fun renderScheme(securedBy: SecuredBy): String {
-        return """
-            |- ${securedBy.scheme.name}:
-            |    <<${securedBy.parameters.toYaml()}>>
-        """.trimMargin().keepAngleIndent()
+    private fun renderScheme(securedBy: SecurityRequirement): String {
+        return ""
+//        return """
+//            |- ${securedBy.name}:
+//            |    <<${securedBy.parameters.toYaml()}>>
+//        """.trimMargin().keepAngleIndent()
     }
 
-    private fun renderResponse(response: Response, method: Method): String {
+    private fun renderResponse(apiResponse: Map.Entry<String, ApiResponse>, method: Map.Entry<HttpMethod, Operation>): String {
+        val response = apiResponse.value
+        val statusCode = apiResponse.key
         return """
-            |${response.statusCode}:${if (response.description != null) """
+            |${statusCode}:${if (response.description != null) """
             |  description: |-
-            |    <<${response.description.value.trim()}>>""" else ""}
+            |    <<${response.description.trim()}>>""" else ""}
             |  body:
-            |    <<${response.bodies.joinToString("\n") { renderBody(it, method, response) } }>>
+            |    <<${response.content.toMap().entries.joinToString("\n") { renderResponseBody(it, method, response) } }>>
         """.trimMargin().keepAngleIndent()
     }
 
-    private fun Method.hasExampleBody(): Boolean = this.hasBody() && requestExamples(this.bodies.filter { it.type != null }.first(), this).values.isNotEmpty()
+    private fun renderResponseBody(
+        mediaTypeEntry: Map.Entry<String, MediaType>,
+        method: Map.Entry<HttpMethod, Operation>,
+        response: ApiResponse
+    ): String {
+        return ""
+    }
 
-    private fun Method.sendsBody(): Boolean = listOf(HttpMethod.POST, HttpMethod.PUT, HttpMethod.PATCH).contains(this.method)
+    private fun Operation.hasExampleBody(): Boolean = false //this.hasBody() && requestExamples(this.bodies.filter { it.type != null }.first(), this).values.isNotEmpty()
+
+    private fun Map.Entry<HttpMethod, Operation>.sendsBody(): Boolean = listOf(HttpMethod.POST, HttpMethod.PUT, HttpMethod.PATCH).contains(this.key)
 
     private fun requestExamples(body: Body, method: Method): Map<String, Example> {
         return body.inlineTypes.flatMap { inlineType -> inlineType.examples.map { example -> "${method.toRequestName()}-${if (example.name.isNotEmpty()) example.name else "default"}" to example } }.toMap()
     }
 
-    private fun renderBody(body: Body, method: Method): String {
-        val bodyExamples = requestExamples(body, method)
-        return """
-            |${body.contentType}:
-            |  <<${body.type.renderType(false)}>>${if (bodyExamples.isNotEmpty()) """
-            |  examples:
-            |    <<${bodyExamples.map { it.value.renderExample(it.key) }.joinToString("\n")}>>""" else ""}
-            |
-        """.trimMargin().keepAngleIndent()
+    private fun renderBody(body: RequestBody, mediaType: Map.Entry<String, MediaType>, method: Map.Entry<HttpMethod, Operation>): String {
+        val bodyExamples = emptyList<Map.Entry<String, String>>() // requestExamples(body, method)
+        return ""
+//        return """
+//            |${mediaType.key}:
+//            |  ${if (bodyExamples.isNotEmpty()) """
+//            |  examples:
+//            |    <<${bodyExamples.map { it.value.renderExample(it.key) }.joinToString("\n")}>>""" else ""}
+//            |
+//        """.trimMargin().keepAngleIndent()
+        //<<${mediaType.value.schema.renderType(false)}>>
     }
 
-    private fun renderBody(body: Body, method: Method, response: Response): String {
-        val bodyExamples = body.inlineTypes.flatMap { inlineType -> inlineType.examples.map { example -> "${method.toRequestName()}-${response.statusCode}-${if (example.name.isNotEmpty()) example.name else "default"}" to example } }.toMap()
-        return """
-            |${body.contentType}:
-            |  <<${body.type.renderType(false)}>>${if (bodyExamples.isNotEmpty()) """
-            |  examples:
-            |    <<${bodyExamples.map { it.value.renderExample(it.key) }.joinToString("\n")}>>""" else ""}
-            |
-        """.trimMargin().keepAngleIndent()
-    }
+//    private fun renderBody(body: Body, method: Method, response: Response): String {
+//        val bodyExamples = body.inlineTypes.flatMap { inlineType -> inlineType.examples.map { example -> "${method.toRequestName()}-${response.statusCode}-${if (example.name.isNotEmpty()) example.name else "default"}" to example } }.toMap()
+//        return """
+//            |${body.contentType}:
+//            |  <<${body.type.renderType(false)}>>${if (bodyExamples.isNotEmpty()) """
+//            |  examples:
+//            |    <<${bodyExamples.map { it.value.renderExample(it.key) }.joinToString("\n")}>>""" else ""}
+//            |
+//        """.trimMargin().keepAngleIndent()
+//    }
 
-    public fun renderUriParameter(uriParameter: UriParameter): String {
+    public fun renderUriParameter(uriParameter: Parameter): String {
         return """
-            |${uriParameter.name}:${if (uriParameter.type.enum.size > 0) """
+            |${uriParameter.name}:${if (uriParameter.schema.enum.size > 0) """
             |  enum:
-            |  <<${uriParameter.type.enum.joinToString("\n") { "- ${it.value}"}}>>""" else ""}
-            |  <<${uriParameter.type.renderType()}>>
+            |  <<${uriParameter.schema.enum.joinToString("\n") { "- ${it}"}}>>""" else ""}
             |  required: ${uriParameter.required}
         """.trimMargin().keepAngleIndent()
+//        |  <<${uriParameter.schema.renderType()}>>
     }
 
-    private fun renderQueryParameter(queryParameter: QueryParameter): String {
-        val parameterExamples = queryParameter.inlineTypes.flatMap { inlineType -> inlineType.examples }
-        return """
-            |${queryParameter.name}:${if (queryParameter.type.default != null) """
-            |  default: ${queryParameter.type.default.toYaml()}""" else ""}
-            |  required: ${queryParameter.required}
-            |  <<${queryParameter.type.renderType()}>>${if (parameterExamples.isNotEmpty()) """
-            |  examples:
-            |    <<${parameterExamples.joinToString("\n") { it.renderSimpleExample().escapeAll() }}>>""" else ""}
-        """.trimMargin().keepAngleIndent()
+    private fun renderQueryParameter(queryParameter: Parameter): String {
+        return ""
+//        val parameterExamples = queryParameter.inlineTypes.flatMap { inlineType -> inlineType.examples }
+//        return """
+//            |${queryParameter.name}:${if (queryParameter.type.default != null) """
+//            |  default: ${queryParameter.type.default.toYaml()}""" else ""}
+//            |  required: ${queryParameter.required}
+//            |  <<${queryParameter.type.renderType()}>>${if (parameterExamples.isNotEmpty()) """
+//            |  examples:
+//            |    <<${parameterExamples.joinToString("\n") { it.renderSimpleExample().escapeAll() }}>>""" else ""}
+//        """.trimMargin().keepAngleIndent()
     }
 }

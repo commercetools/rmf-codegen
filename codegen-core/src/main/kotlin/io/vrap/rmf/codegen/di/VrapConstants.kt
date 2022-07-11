@@ -141,3 +141,38 @@ annotation class AllTraits
         AnnotationTarget.FUNCTION)
 @Retention(AnnotationRetention.RUNTIME)
 annotation class AllResourceCollections
+
+@Target(AnnotationTarget.FIELD,
+        AnnotationTarget.TYPE_PARAMETER,
+        AnnotationTarget.VALUE_PARAMETER,
+        AnnotationTarget.FUNCTION)
+@Retention(AnnotationRetention.RUNTIME)
+annotation class OasApi
+
+@Target(AnnotationTarget.FIELD,
+        AnnotationTarget.TYPE_PARAMETER,
+        AnnotationTarget.VALUE_PARAMETER,
+        AnnotationTarget.FUNCTION)
+@Retention(AnnotationRetention.RUNTIME)
+annotation class AllSchemaTypes
+
+@Target(AnnotationTarget.FIELD,
+        AnnotationTarget.TYPE_PARAMETER,
+        AnnotationTarget.VALUE_PARAMETER,
+        AnnotationTarget.FUNCTION)
+@Retention(AnnotationRetention.RUNTIME)
+annotation class AllObjectSchemaTypes
+
+@Target(AnnotationTarget.FIELD,
+        AnnotationTarget.TYPE_PARAMETER,
+        AnnotationTarget.VALUE_PARAMETER,
+        AnnotationTarget.FUNCTION)
+@Retention(AnnotationRetention.RUNTIME)
+annotation class AllComposedSchemaTypes
+
+@Target(AnnotationTarget.FIELD,
+        AnnotationTarget.TYPE_PARAMETER,
+        AnnotationTarget.VALUE_PARAMETER,
+        AnnotationTarget.FUNCTION)
+@Retention(AnnotationRetention.RUNTIME)
+annotation class AllPathItems

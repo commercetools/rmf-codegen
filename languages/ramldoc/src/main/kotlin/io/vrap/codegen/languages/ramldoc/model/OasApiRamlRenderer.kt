@@ -17,7 +17,7 @@ class OasApiRamlRenderer constructor(val api: OpenAPI): FileProducer {
     override fun produceFiles(): List<TemplateFile> {
         return listOf(
                 apiRaml(api)
-        ).plus(api.components.securitySchemes.map { it.renderScheme() })
+        ).plus(api.components?.securitySchemes?.map { it.renderScheme() } ?: emptyList())
     }
 
     private fun apiRaml(api: OpenAPI): TemplateFile {
@@ -50,9 +50,10 @@ class OasApiRamlRenderer constructor(val api: OpenAPI): FileProducer {
             |baseUriParameters:
             |  <<${api.servers[0].variables.entries.joinToString("\n") { it.renderUriParameter() }}>>""" else ""}${if (api.components?.securitySchemes != null) """
             |securitySchemes:
-            |  <<${api.components.securitySchemes.entries.joinToString("\n") { "${it.key}: !include ${it.key}.raml" }}>>""" else ""}
+            |  <<${api.components.securitySchemes.entries.joinToString("\n") { "${it.key}: !include ${it.key}.raml" }}>>""" else ""}${if (api.components?.securitySchemes != null) """
             |securedBy:
-            |  <<${api.components.securitySchemes.keys.joinToString("\n") { "- ${it}" }}>>
+            |  <<${api.components.securitySchemes.keys.joinToString("\n") { "- ${it}" }}>>""" else ""}
+            |
             |${api.paths.entries.sortedWith(compareBy { it.key }).joinToString("\n") { "${it.key}: !include resources/${UriTemplate.fromTemplate(it.key).toResourceName()}.raml" }}
         """.trimMargin().keepAngleIndent()
 //            |  <<${api.annotationTypes.plus(api.uses.flatMap { libraryUse -> libraryUse.library.annotationTypes }).joinToString("\n") { renderAnnotationType(it) }}>>

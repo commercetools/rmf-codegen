@@ -1,0 +1,39 @@
+# Resource
+(resourceName): OauthByProjectKeyCustomersToken
+(resourcePathUri): /oauth/{projectKey}/customers/token
+
+uriParameters:
+  projectKey:
+    type: string
+    (builtinType): string
+    required: true
+post:
+  description: |-
+    To obtain an access token through the password flow, you need to provide the email and unencrypted
+    password of the customer in addition to your OAuth client credentials.
+
+    In addition to the access token, a refresh token is issued. The refresh token may be used to get a
+    new access token without supplying email and password if the access token has expired.
+  queryParameters:
+    grant_type:
+      required: true
+      type: PasswordType
+      (builtinType): string
+    username:
+      required: true
+      type: string
+      (builtinType): string
+    password:
+      required: true
+      type: string
+      (builtinType): string
+    scope:
+      required: false
+      type: string
+      (builtinType): string
+  responses:
+    200:
+      body:
+        application/json:
+          type: RefreshTokenResponse
+          (builtinType): object

@@ -1,6 +1,11 @@
 package io.vrap.rmf.codegen.rendering
 
 import io.reactivex.rxjava3.core.Flowable
+import io.swagger.v3.oas.models.PathItem
+import io.swagger.v3.oas.models.media.ComposedSchema
+import io.swagger.v3.oas.models.media.ObjectSchema
+import io.swagger.v3.oas.models.media.Schema
+import io.swagger.v3.oas.models.media.StringSchema
 import io.vrap.rmf.codegen.di.*
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.raml.model.resources.Method
@@ -42,6 +47,11 @@ class FileGenerator constructor(val fileProducers: Set<FileProducer>): CodeGener
         return templateFiles;
     }
 }
+
+class PathItemGenerator constructor(generators: Set<Renderer<Map.Entry<String, PathItem>>>, allTypes: List<Map.Entry<String, PathItem>>) : CodeGeneratorImpl<Renderer<Map.Entry<String, PathItem>>, Map.Entry<String, PathItem>>(generators, allTypes)
+class ObjectSchemaGenerator constructor(generators: Set<Renderer<Map.Entry<String, ObjectSchema>>>, allTypes: List<Map.Entry<String, ObjectSchema>>) : CodeGeneratorImpl<Renderer<Map.Entry<String, ObjectSchema>>, Map.Entry<String, ObjectSchema>>(generators, allTypes)
+class ComposedSchemaGenerator constructor(generators: Set<Renderer<Map.Entry<String, ComposedSchema>>>, allTypes: List<Map.Entry<String, ComposedSchema>>) : CodeGeneratorImpl<Renderer<Map.Entry<String, ComposedSchema>>, Map.Entry<String, ComposedSchema>>(generators, allTypes)
+class StringSchemaGenerator constructor(generators: Set<Renderer<Map.Entry<String, StringSchema>>>, allTypes: List<Map.Entry<String, StringSchema>>) : CodeGeneratorImpl<Renderer<Map.Entry<String, StringSchema>>, Map.Entry<String, StringSchema>>(generators, allTypes)
 
 class ObjectTypeGenerator constructor(generators: Set<ObjectTypeRenderer>, @AllObjectTypes allTypes: List<ObjectType>) : CodeGeneratorImpl<ObjectTypeRenderer, ObjectType>(generators, allTypes)
 class StringTypeGenerator constructor(generators: Set<StringTypeRenderer>, @EnumStringTypes allTypes: List<StringType>) : CodeGeneratorImpl<StringTypeRenderer, StringType>(generators, allTypes)

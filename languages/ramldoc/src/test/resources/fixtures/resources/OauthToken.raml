@@ -1,0 +1,27 @@
+# Resource
+(resourceName): OauthToken
+(resourcePathUri): /oauth/token
+
+post:
+  queryParameters:
+    grant_type:
+      required: true
+      type: ClientCredentialsType | RefreshTokenType
+      (oneOf):
+      - ClientCredentialsType
+      - RefreshTokenType
+      (builtinType): any
+    refresh_token:
+      required: false
+      type: string
+      (builtinType): string
+    scope:
+      required: false
+      type: string
+      (builtinType): string
+  responses:
+    200:
+      body:
+        application/json:
+          type: TokenResponse
+          (builtinType): object
