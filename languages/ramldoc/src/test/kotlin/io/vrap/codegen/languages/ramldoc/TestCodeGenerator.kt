@@ -191,8 +191,8 @@ class TestCodeGenerator {
         Assertions.assertThat(dataSink.files.get("types/TokenResponse.raml")?.trim())
             .isEqualTo("src/test/resources/fixtures/types/TokenResponse.raml".readFile())
 
-        val t = RamlApiProvider(Paths.get("src/test/resources/fixtures/api.raml"))
-        t.api
+//        val t = RamlApiProvider(Paths.get("src/test/resources/fixtures/api.raml"))
+//        t.api
     }
 
     private fun String.readFile(): String {
