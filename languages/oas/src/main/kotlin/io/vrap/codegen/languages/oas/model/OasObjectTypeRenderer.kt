@@ -31,7 +31,7 @@ class OasObjectTypeRenderer constructor(override val vrapTypeProvider: VrapTypeP
         val examples = type.examples.plus(postmanExample).filterNotNull().sortedWith(compareBy { it.name })
         val properties = type.allProperties.filterNot { it.isPatternProperty() }
         val patternProperties = type.allProperties.filter { it.isPatternProperty() }
-        val discriminatorTypes = type.subTypes.filterNot { it.isInlineType }.filterIsInstance<ObjectType>().sortedWith(compareBy { it.name })
+        val discriminatorTypes = type.subTypes.filterNot { it.isInlineType }.filterIsInstance<ObjectType>().filter { it.discriminatorValue != null }.sortedWith(compareBy { it.name })
 
         val typeContent = """
             |type: "object"${if (type.discriminator != null) """
