@@ -73,9 +73,7 @@ class OasRenderer constructor(val api: Api, override val vrapTypeProvider: VrapT
             |  <<${when(type) {
                     is ObjectType -> objectTypeRenderer.render(type).content
                     is StringType -> scalarTypeRenderer.render(type).content
-                    else -> """
-                        |type: "any"
-                    """.trimMargin()
+                    else -> "{}"
                 }}>>
         """.trimMargin().keepAngleIndent()
     }
