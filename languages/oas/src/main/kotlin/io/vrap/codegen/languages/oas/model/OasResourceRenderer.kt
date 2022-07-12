@@ -116,7 +116,9 @@ class OasResourceRenderer constructor(val api: Api, val vrapTypeProvider: VrapTy
         if (body.type is FileType) {
             return """
                 |content:
-                |  "*/*": {}
+                |  "*/*":
+                |    schema:
+                |      type: string
             """.trimMargin().keepAngleIndent()
         }
         return """
