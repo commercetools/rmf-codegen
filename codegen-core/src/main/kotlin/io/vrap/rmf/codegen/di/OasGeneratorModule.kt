@@ -5,6 +5,7 @@ import io.swagger.v3.oas.models.PathItem
 import io.swagger.v3.oas.models.media.ComposedSchema
 import io.swagger.v3.oas.models.media.ObjectSchema
 import io.swagger.v3.oas.models.media.Schema
+import io.swagger.v3.oas.models.media.StringSchema
 import io.vrap.rmf.codegen.io.DataSink
 import io.vrap.rmf.codegen.io.FileDataSink
 import io.vrap.rmf.codegen.types.LanguageBaseTypes
@@ -37,6 +38,11 @@ class OasGeneratorModule constructor(
     fun allObjectTypes(): List<Map.Entry<String, ObjectSchema>> = allAnyTypes()
         .filter { it.value is ObjectSchema }
         .map { SimpleEntry(it.key, it.value as ObjectSchema) }
+
+    @AllStringSchemaTypes
+    fun allStringTypes(): List<Map.Entry<String, StringSchema>> = allAnyTypes()
+        .filter { it.value is StringSchema }
+        .map { SimpleEntry(it.key, it.value as StringSchema) }
 
     @AllComposedSchemaTypes
     fun allComposedTypes(): List<Map.Entry<String, ComposedSchema>> = allAnyTypes()

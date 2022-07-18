@@ -17,6 +17,8 @@ class OasObjectTypeRenderer constructor(override val modelPackageName: String) :
 
 sealed class OasTypeRenderer<T: Schema<Any>> constructor(open val modelPackageName: String) : Renderer<Map.Entry<String, T>> {
     override fun render(type: Map.Entry<String, T>): TemplateFile {
+        val typeName = type.key
+        val typeVal = type.value
 //        val vrapType = vrapTypeProvider.doSwitch(type) as VrapObjectType
 //        val properties = type.allProperties
 //
@@ -35,8 +37,8 @@ sealed class OasTypeRenderer<T: Schema<Any>> constructor(open val modelPackageNa
 //
 //        val content = """
 //            |#%RAML 1.0 DataType
-//            |displayName: ${type.displayName?.value ?: vrapType.simpleClassName}
-//            |type: ${type.type?.name ?: "object"}
+//            |displayName: ${typeName}
+//            |type: ${type.type ?: "object"}
 //            |(builtinType): object${if (type.discriminator != null) """
 //            |discriminator: ${type.discriminatorProperty()?.name}""" else ""}${if (type.discriminatorValue.isNullOrBlank().not()) """
 //            |discriminatorValue: ${type.discriminatorValue}""" else ""}${if (type.subTypes.filterNot { it.isInlineType }.isNotEmpty()) """
@@ -51,9 +53,16 @@ sealed class OasTypeRenderer<T: Schema<Any>> constructor(open val modelPackageNa
 //            |  <<${properties.joinToString("\n") { renderProperty(type, it) }}>>
 //            """.trimMargin().keepAngleIndent()
 
+        val content = """
+            |#%RAML 1.0 DataType
+            |displayName: $typeName
+            |type: object
+            |properties:
+            """.trimMargin().keepAngleIndent()
+
         return TemplateFile(
-                relativePath = "types/" + type.key + ".raml",
-                content = """"""
+                relativePath = "types/$typeName.raml",
+                content = content
         )
     }
 

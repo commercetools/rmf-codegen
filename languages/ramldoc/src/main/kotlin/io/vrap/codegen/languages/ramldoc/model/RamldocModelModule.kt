@@ -22,7 +22,7 @@ object RamldocModelModule : Module {
         ),
         ObjectSchemaGenerator(
             setOf(
-                OasObjectTypeRenderer(generatorModule.provideModelPackageName())
+                OasObjectTypeRenderer(generatorModule.provideModelPackageName()),
             ),
             generatorModule.allObjectTypes()
         ),
@@ -31,6 +31,12 @@ object RamldocModelModule : Module {
                 OasComposedTypeRenderer(generatorModule.provideModelPackageName())
             ),
             generatorModule.allComposedTypes()
+        ),
+        StringSchemaGenerator(
+            setOf(
+                OasStringTypeRenderer(generatorModule.provideModelPackageName())
+            ),
+            generatorModule.allStringTypes()
         )
     )
 

@@ -54,6 +54,9 @@ class OasApiRamlRenderer constructor(val api: OpenAPI): FileProducer {
             |securedBy:
             |  <<${api.components.securitySchemes.keys.joinToString("\n") { "- ${it}" }}>>""" else ""}
             |
+            |types:
+            |  <<${api.components.schemas.entries.sortedWith(compareBy { it.key }).joinToString("\n") { "${it.key}: !include types/${it.key}.raml" }}>>
+            |
             |${api.paths.entries.sortedWith(compareBy { it.key }).joinToString("\n") { "${it.key}: !include resources/${UriTemplate.fromTemplate(it.key).toResourceName()}.raml" }}
         """.trimMargin().keepAngleIndent()
 //            |  <<${api.annotationTypes.plus(api.uses.flatMap { libraryUse -> libraryUse.library.annotationTypes }).joinToString("\n") { renderAnnotationType(it) }}>>

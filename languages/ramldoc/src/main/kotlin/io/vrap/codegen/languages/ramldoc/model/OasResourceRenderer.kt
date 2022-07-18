@@ -5,7 +5,12 @@ import io.swagger.v3.oas.models.OpenAPI
 import io.swagger.v3.oas.models.Operation
 import io.swagger.v3.oas.models.PathItem
 import io.swagger.v3.oas.models.PathItem.HttpMethod
+import io.swagger.v3.oas.models.media.ArraySchema
+import io.swagger.v3.oas.models.media.ComposedSchema
 import io.swagger.v3.oas.models.media.MediaType
+import io.swagger.v3.oas.models.media.ObjectSchema
+import io.swagger.v3.oas.models.media.Schema
+import io.swagger.v3.oas.models.media.StringSchema
 import io.swagger.v3.oas.models.parameters.Parameter
 import io.swagger.v3.oas.models.parameters.RequestBody
 import io.swagger.v3.oas.models.responses.ApiResponse
@@ -130,7 +135,10 @@ class OasResourceRenderer constructor(val api: OpenAPI) : OasPathItemRenderer {
         method: Map.Entry<HttpMethod, Operation>,
         response: ApiResponse
     ): String {
-        return ""
+        return """
+            |${mediaTypeEntry.key}:
+            |  <<${mediaTypeEntry.value.schema.renderResponseType()}>>
+        """.trimMargin().keepAngleIndent()
     }
 
     private fun Operation.hasExampleBody(): Boolean = false //this.hasBody() && requestExamples(this.bodies.filter { it.type != null }.first(), this).values.isNotEmpty()
@@ -176,15 +184,82 @@ class OasResourceRenderer constructor(val api: OpenAPI) : OasPathItemRenderer {
     }
 
     private fun renderQueryParameter(queryParameter: Parameter): String {
-        return ""
+//        return ""
 //        val parameterExamples = queryParameter.inlineTypes.flatMap { inlineType -> inlineType.examples }
-//        return """
-//            |${queryParameter.name}:${if (queryParameter.type.default != null) """
-//            |  default: ${queryParameter.type.default.toYaml()}""" else ""}
-//            |  required: ${queryParameter.required}
-//            |  <<${queryParameter.type.renderType()}>>${if (parameterExamples.isNotEmpty()) """
+        return """
+            |${queryParameter.name}:${if (queryParameter.schema.default != null) """
+            |  default: ${queryParameter.schema.default.toYaml()}""" else ""}
+            |  required: ${queryParameter.required}
+            |  <<${queryParameter.schema.renderType()}>>
+        """.trimMargin().keepAngleIndent()
+
+//        ${if (parameterExamples.isNotEmpty()) """
 //            |  examples:
 //            |    <<${parameterExamples.joinToString("\n") { it.renderSimpleExample().escapeAll() }}>>""" else ""}
-//        """.trimMargin().keepAngleIndent()
+    }
+
+    private fun Schema<Any>.renderResponseType(): String {
+
+        if (this.`$ref`?.isNotEmpty() == true) {
+            val typeName = this.`$ref`.replace("#/components/schemas/", "")
+            val builtinType = "object"
+            return """
+                |type: ${typeName}
+                |(builtinType): ${builtinType}
+            """.trimMargin()
+        }
+        return this.renderType()
+    }
+
+    private fun Schema<Any>.renderType(): String {
+        if (this.`$ref`?.isNotEmpty() == true) {
+            val typeName = this.`$ref`.replace("#/components/schemas/", "")
+            return api.components?.schemas?.get(typeName)?.renderType() ?: ""
+        }
+        return when (this) {
+            is StringSchema -> this.renderStringType()
+            is ObjectSchema -> this.renderObjectType()
+            is ArraySchema -> this.renderArrayType()
+            is ComposedSchema -> this.renderComposedType()
+            else -> ""
+        }
+    }
+
+    private fun StringSchema.renderStringType(): String {
+        return """
+            |type: ${this.type}
+            |(builtinType): string
+            """.trimMargin();
+    }
+
+    private fun ObjectSchema.renderObjectType(): String {
+        return """
+            |type: ${this.type}
+            |(builtinType): object
+            """.trimMargin();
+    }
+
+    private fun ComposedSchema.renderComposedType(): String {
+
+        val type = if (this.anyOf?.isNotEmpty() == true) {
+            this.anyOf.joinToString(" | ")
+        } else if (this.allOf?.isNotEmpty() == true) {
+            this.allOf.joinToString("," , "[", "]")
+        } else if (this.oneOf?.isNotEmpty() == true) {
+            this.oneOf.joinToString(" | ")
+        } else {
+            "object"
+        }
+        return """
+            |type: $type
+            |(builtinType): object
+            """.trimMargin();
+    }
+
+    private fun ArraySchema.renderArrayType(): String {
+        return """
+            |type: ${this.type}
+            |(builtinType): array
+            """.trimMargin();
     }
 }
