@@ -28,15 +28,17 @@ class OasResourceRenderer constructor(val api: OpenAPI) : OasPathItemRenderer {
     override fun render(type: Map.Entry<String, PathItem>): TemplateFile {
         val uri = UriTemplate.fromTemplate(type.key)
         val value = type.value
+
+        val parameters = value.readOperationsMap().entries.filterNot { it.value.parameters.isNullOrEmpty() }.flatMap { entry -> entry.value.parameters.filter { it.`in` == "path" } }.plus(value.parameters ?: listOf()).distinctBy { parameter -> parameter.name }
         val content = """
             |# Resource
             |(resourceName): ${UriTemplate.fromTemplate(type.key).toResourceName()}
             |(resourcePathUri): ${uri.normalize().template}${if (value.description != null) """
             |description: |-
             |  <<${value.description}>>""" else ""}
-            |${if (value.parameters != null && value.parameters.size > 0) """
+            |${if (parameters.isNotEmpty()) """
             |uriParameters:
-            |  <<${value.parameters.joinToString("\n") { renderUriParameter(it) }}>>""" else ""}
+            |  <<${parameters.joinToString("\n") { renderUriParameter(it) }}>>""" else ""}
             |${value.readOperationsMap().toMap().entries.joinToString("\n") { renderMethod(it) }}
         """.trimMargin().keepAngleIndent()
 //        |${value.methods.joinToString("\n") { renderMethod(it) }}
@@ -57,15 +59,16 @@ class OasResourceRenderer constructor(val api: OpenAPI) : OasPathItemRenderer {
 
     private fun renderMethod(method: Map.Entry<HttpMethod, Operation>): String {
         val operation = method.value
+        val parameters = operation.parameters?.filter { it.`in` == "query" } ?: listOf()
         return """
             |${method.key.name.lowercase()}:${if (operation.security?.isNotEmpty() == true) """
             |  securedBy:
             |  <<${operation.security.joinToString("\n") { renderScheme(it)}}>>""" else ""}${if (operation.operationId != null) """
             |  displayName: ${operation.operationId.trim()}""" else ""}${if (operation.description != null) """
             |  description: |-
-            |    <<${operation.description.trim()}>>""" else ""}${if (operation.parameters?.isNotEmpty() == true) """
+            |    <<${operation.description.trim()}>>""" else ""}${if (parameters.isNotEmpty()) """
             |  queryParameters:
-            |    <<${operation.parameters.joinToString("\n") { renderQueryParameter(it) }}>>""" else ""}${if (operation.requestBody?.content?.any { it.value.schema != null } == true) """
+            |    <<${parameters.joinToString("\n") { renderQueryParameter(it) }}>>""" else ""}${if (operation.requestBody?.content?.any { it.value.schema != null } == true) """
             |  body:
             |    <<${operation.requestBody.content.toMap().entries.joinToString("\n") { renderBody(operation.requestBody, it, method) } }>>""" else ""}${if (operation.responses.any { response -> response.isSuccessful() }) """
             |  responses:
@@ -175,9 +178,8 @@ class OasResourceRenderer constructor(val api: OpenAPI) : OasPathItemRenderer {
 
     public fun renderUriParameter(uriParameter: Parameter): String {
         return """
-            |${uriParameter.name}:${if (uriParameter.schema.enum.size > 0) """
-            |  enum:
-            |  <<${uriParameter.schema.enum.joinToString("\n") { "- ${it}"}}>>""" else ""}
+            |${uriParameter.name}:
+            |  <<${uriParameter.schema.renderType()}>>
             |  required: ${uriParameter.required}
         """.trimMargin().keepAngleIndent()
 //        |  <<${uriParameter.schema.renderType()}>>
@@ -228,8 +230,10 @@ class OasResourceRenderer constructor(val api: OpenAPI) : OasPathItemRenderer {
     private fun StringSchema.renderStringType(): String {
         return """
             |type: ${this.type}
-            |(builtinType): string
-            """.trimMargin();
+            |(builtinType): string${if (this.enum != null && this.enum.size > 0) """
+            |enum:
+            |  <<${this.enum.joinToString("\n") { "- ${it}"}}>>""" else ""}
+            """.trimMargin().keepAngleIndent()
     }
 
     private fun ObjectSchema.renderObjectType(): String {
