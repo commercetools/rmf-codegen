@@ -36,7 +36,9 @@ paths:
           required: true
           style: form
           schema:
-            {}
+            oneOf:
+              - $ref: '#/components/schemas/ClientCredentialsType'
+              - $ref: '#/components/schemas/RefreshTokenType'
           explode: true
         - name: refresh_token
           in: query

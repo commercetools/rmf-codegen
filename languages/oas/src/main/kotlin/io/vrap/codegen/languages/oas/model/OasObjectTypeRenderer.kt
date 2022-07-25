@@ -131,6 +131,7 @@ public fun AnyType.renderAnyType(): String {
         is TimeOnlyType -> renderTimeOnly(this)
         is ObjectType -> renderObject(this)
         is ArrayType -> renderArray(this)
+        is UnionType -> renderUnionType(this)
         else -> renderAny(this)
     }
 }
@@ -240,4 +241,11 @@ private fun renderTimeOnly(type: TimeOnlyType): String {
             |type: "string"
             |format: "time-only"
         """.trimMargin()
+}
+
+private fun renderUnionType(type: UnionType): String {
+    return """
+        |oneOf:
+        |  <<${type.oneOf.sortedBy { it.name }.joinToString("\n") { "- \$ref: '#/components/schemas/${it.name}'" }}>>
+    """.trimMargin().keepAngleIndent()
 }

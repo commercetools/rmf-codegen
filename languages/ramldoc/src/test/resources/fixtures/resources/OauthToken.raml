@@ -8,10 +8,10 @@ post:
     grant_type:
       required: true
       type: ClientCredentialsType | RefreshTokenType
-      (oneOf):
-      - ClientCredentialsType
-      - RefreshTokenType
       (builtinType): any
+      (oneOf):
+        - ClientCredentialsType
+        - RefreshTokenType
     refresh_token:
       required: false
       type: string

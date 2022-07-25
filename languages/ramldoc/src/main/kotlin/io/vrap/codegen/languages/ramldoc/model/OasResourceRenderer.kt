@@ -201,69 +201,92 @@ class OasResourceRenderer constructor(val api: OpenAPI) : OasPathItemRenderer {
     }
 
     private fun Schema<Any>.renderResponseType(): String {
-
-        if (this.`$ref`?.isNotEmpty() == true) {
-            val typeName = this.`$ref`.replace("#/components/schemas/", "")
-            val builtinType = "object"
-            return """
-                |type: ${typeName}
-                |(builtinType): ${builtinType}
+        return """
+                |type: ${this.renderTypeName()}
+                |(builtinType): ${this.renderBuiltinType()}
             """.trimMargin()
-        }
-        return this.renderType()
     }
 
     private fun Schema<Any>.renderType(): String {
-        if (this.`$ref`?.isNotEmpty() == true) {
-            val typeName = this.`$ref`.replace("#/components/schemas/", "")
-            return api.components?.schemas?.get(typeName)?.renderType() ?: ""
-        }
-        return when (this) {
-            is StringSchema -> this.renderStringType()
-            is ObjectSchema -> this.renderObjectType()
-            is ArraySchema -> this.renderArrayType()
-            is ComposedSchema -> this.renderComposedType()
+        return """
+                |type: ${this.renderTypeName()}
+                |(builtinType): ${this.renderBuiltinType()}${this.renderExtras()}
+            """.trimMargin()
+    }
+
+    private fun Schema<Any>.renderExtras(): String {
+        return when(this) {
+            is StringSchema -> this.renderSchemaExtras()
+            is ComposedSchema -> this.renderSchemaExtras()
             else -> ""
         }
     }
 
-    private fun StringSchema.renderStringType(): String {
-        return """
-            |type: ${this.type}
-            |(builtinType): string${if (this.enum != null && this.enum.size > 0) """
-            |enum:
-            |  <<${this.enum.joinToString("\n") { "- ${it}"}}>>""" else ""}
-            """.trimMargin().keepAngleIndent()
+    private fun ComposedSchema.renderSchemaExtras(): String {
+        var subTypes = this.anyOf?.map { it.renderTypeName() } ?: listOf()
+        subTypes = subTypes.plus(this.oneOf?.map { it.renderTypeName() } ?: listOf())
+
+        return """${if (subTypes.isNotEmpty()) """
+                |
+                |(oneOf):
+                |  <<${subTypes.joinToString("\n") { "- $it"}}>>""" else ""}
+        """.trimMargin().keepAngleIndent()
     }
 
-    private fun ObjectSchema.renderObjectType(): String {
-        return """
-            |type: ${this.type}
-            |(builtinType): object
-            """.trimMargin();
+
+    private fun StringSchema.renderSchemaExtras(): String {
+        return """${if (this.enum != null && this.enum.size > 0) """
+                |enum:
+                |  <<${this.enum.joinToString("\n") { "- $it"}}>>""" else ""}
+        """.trimMargin().keepAngleIndent()
     }
 
-    private fun ComposedSchema.renderComposedType(): String {
-
-        val type = if (this.anyOf?.isNotEmpty() == true) {
-            this.anyOf.joinToString(" | ")
-        } else if (this.allOf?.isNotEmpty() == true) {
-            this.allOf.joinToString("," , "[", "]")
-        } else if (this.oneOf?.isNotEmpty() == true) {
-            this.oneOf.joinToString(" | ")
-        } else {
-            "object"
+    private fun Schema<Any>.renderTypeName(): String {
+        if (this.`$ref`?.isNotEmpty() == true) {
+            return this.`$ref`.replace("#/components/schemas/", "")
         }
-        return """
-            |type: $type
-            |(builtinType): object
-            """.trimMargin();
+        return when (this) {
+            is StringSchema -> this.type
+            is ObjectSchema -> this.type
+            is ArraySchema -> this.type
+            is ComposedSchema -> this.renderComposedTypeName()
+            else -> ""
+        }
     }
 
-    private fun ArraySchema.renderArrayType(): String {
-        return """
-            |type: ${this.type}
-            |(builtinType): array
-            """.trimMargin();
+    private fun Schema<Any>.renderBuiltinType(): String {
+        if (this.`$ref`?.isNotEmpty() == true) {
+            val typeName = this.`$ref`.replace("#/components/schemas/", "")
+            return api.components.schemas[typeName]?.renderBuiltinType() ?: "any"
+        }
+        return when (this) {
+            is StringSchema -> "string"
+            is ObjectSchema -> "object"
+            is ArraySchema -> "array"
+            is ComposedSchema -> if (this.isInheritedObject()) "object" else "any"
+            else -> "any"
+        }
+    }
+
+    private fun ComposedSchema.isInheritedObject(): Boolean {
+        if (this.allOf?.size == 2) {
+            if (this.allOf.any { it.`$ref`.isNullOrEmpty().not() } && this.allOf.any { it is ObjectSchema }) {
+                return true
+            }
+        }
+        return false
+    }
+
+    private fun ComposedSchema.renderComposedTypeName(): String {
+
+        return if (this.anyOf?.isNotEmpty() == true) {
+            this.anyOf.joinToString(" | ") { it.renderTypeName() }
+        } else if (this.allOf?.isNotEmpty() == true) {
+            this.allOf.joinToString("," , "[", "]") { it.renderTypeName() }
+        } else if (this.oneOf?.isNotEmpty() == true) {
+            this.oneOf.joinToString(" | ") { it.renderTypeName() }
+        } else {
+            "any"
+        }
     }
 }
