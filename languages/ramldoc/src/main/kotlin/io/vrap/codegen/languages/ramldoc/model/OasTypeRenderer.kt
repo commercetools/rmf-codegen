@@ -1,8 +1,7 @@
 package io.vrap.codegen.languages.ramldoc.model
 
-import io.swagger.v3.oas.models.media.ComposedSchema
-import io.swagger.v3.oas.models.media.ObjectSchema
-import io.swagger.v3.oas.models.media.Schema
+import io.swagger.v3.oas.models.OpenAPI
+import io.swagger.v3.oas.models.media.*
 import io.vrap.codegen.languages.extensions.discriminatorProperty
 import io.vrap.codegen.languages.ramldoc.extensions.*
 import io.vrap.rmf.codegen.io.TemplateFile
@@ -12,10 +11,10 @@ import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.raml.model.types.*
 
 
-class OasComposedTypeRenderer constructor(override val modelPackageName: String) : OasTypeRenderer<ComposedSchema>(modelPackageName)
-class OasObjectTypeRenderer constructor(override val modelPackageName: String) : OasTypeRenderer<ObjectSchema>(modelPackageName)
+class OasComposedTypeRenderer constructor(override val api: OpenAPI, override val modelPackageName: String) : OasTypeRenderer<ComposedSchema>(api, modelPackageName)
+class OasObjectTypeRenderer constructor(override val api: OpenAPI, override val modelPackageName: String) : OasTypeRenderer<ObjectSchema>(api, modelPackageName)
 
-sealed class OasTypeRenderer<T: Schema<Any>> constructor(open val modelPackageName: String) : Renderer<Map.Entry<String, T>> {
+sealed class OasTypeRenderer<T: Schema<Any>> constructor(open val api: OpenAPI, open val modelPackageName: String) : Renderer<Map.Entry<String, T>> {
     override fun render(type: Map.Entry<String, T>): TemplateFile {
         val typeName = type.key
         val typeVal = type.value
@@ -122,5 +121,88 @@ sealed class OasTypeRenderer<T: Schema<Any>> constructor(open val modelPackageNa
             |  required: ${property.required}
             |  (inherited): $inherited
         """.trimMargin().keepAngleIndent()
+    }
+
+    private fun Schema<Any>.renderType(): String {
+        return """
+                |type: ${this.renderTypeName()}
+                |(builtinType): ${this.renderBuiltinType()}${this.renderExtras()}
+            """.trimMargin()
+    }
+
+    private fun Schema<Any>.renderExtras(): String {
+        return when(this) {
+            is StringSchema -> this.renderSchemaExtras()
+            is ComposedSchema -> this.renderSchemaExtras()
+            else -> ""
+        }
+    }
+
+    private fun ComposedSchema.renderSchemaExtras(): String {
+        var subTypes = this.anyOf?.map { it.renderTypeName() } ?: listOf()
+        subTypes = subTypes.plus(this.oneOf?.map { it.renderTypeName() } ?: listOf())
+
+        return """${if (subTypes.isNotEmpty()) """
+                |
+                |(oneOf):
+                |  <<${subTypes.joinToString("\n") { "- $it"}}>>""" else ""}
+        """.trimMargin().keepAngleIndent()
+    }
+
+
+    private fun StringSchema.renderSchemaExtras(): String {
+        return """${if (this.enum != null && this.enum.size > 0) """
+                |enum:
+                |  <<${this.enum.joinToString("\n") { "- $it"}}>>""" else ""}
+        """.trimMargin().keepAngleIndent()
+    }
+
+    private fun Schema<Any>.renderTypeName(): String {
+        if (this.`$ref`?.isNotEmpty() == true) {
+            return this.`$ref`.replace("#/components/schemas/", "")
+        }
+        return when (this) {
+            is StringSchema -> this.type
+            is ObjectSchema -> this.type
+            is ArraySchema -> this.type
+            is ComposedSchema -> this.renderComposedTypeName()
+            else -> ""
+        }
+    }
+
+    private fun Schema<Any>.renderBuiltinType(): String {
+        if (this.`$ref`?.isNotEmpty() == true) {
+            val typeName = this.`$ref`.replace("#/components/schemas/", "")
+            return api.components.schemas[typeName]?.renderBuiltinType() ?: "any"
+        }
+        return when (this) {
+            is StringSchema -> "string"
+            is ObjectSchema -> "object"
+            is ArraySchema -> "array"
+            is ComposedSchema -> if (this.isInheritedObject()) "object" else "any"
+            else -> "any"
+        }
+    }
+
+    private fun ComposedSchema.isInheritedObject(): Boolean {
+        if (this.allOf?.size == 2) {
+            if (this.allOf.any { it.`$ref`.isNullOrEmpty().not() } && this.allOf.any { it is ObjectSchema }) {
+                return true
+            }
+        }
+        return false
+    }
+
+    private fun ComposedSchema.renderComposedTypeName(): String {
+
+        return if (this.anyOf?.isNotEmpty() == true) {
+            this.anyOf.joinToString(" | ") { it.renderTypeName() }
+        } else if (this.allOf?.isNotEmpty() == true) {
+            this.allOf.joinToString("," , "[", "]") { it.renderTypeName() }
+        } else if (this.oneOf?.isNotEmpty() == true) {
+            this.oneOf.joinToString(" | ") { it.renderTypeName() }
+        } else {
+            "any"
+        }
     }
 }

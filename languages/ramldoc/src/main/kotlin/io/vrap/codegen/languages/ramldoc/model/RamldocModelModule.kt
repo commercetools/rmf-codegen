@@ -22,13 +22,13 @@ object RamldocModelModule : Module {
         ),
         ObjectSchemaGenerator(
             setOf(
-                OasObjectTypeRenderer(generatorModule.provideModelPackageName()),
+                OasObjectTypeRenderer(generatorModule.apiProvider.api, generatorModule.provideModelPackageName()),
             ),
             generatorModule.allObjectTypes()
         ),
         ComposedSchemaGenerator(
             setOf(
-                OasComposedTypeRenderer(generatorModule.provideModelPackageName())
+                OasComposedTypeRenderer(generatorModule.apiProvider.api, generatorModule.provideModelPackageName())
             ),
             generatorModule.allComposedTypes()
         ),

@@ -205,6 +205,19 @@ class TestCodeGenerator {
     }
 
     @Test
+    fun oasRenderToRamlDocOutput() {
+        val generatorConfig = CodeGeneratorConfig(
+            basePackageName = "com/commercetools/importer",
+            outputFolder = Paths.get("build/gensrc")
+        )
+
+        val apiProvider = OasProvider(Paths.get(System.getenv("TEST_OAS_FILE")))
+        val generatorModule = OasGeneratorModule(apiProvider, generatorConfig, RamldocBaseTypes)
+        val generatorComponent = OasGeneratorComponent(generatorModule, RamldocModelModule)
+        generatorComponent.generateFiles()
+    }
+
+        @Test
     fun oasRenderToRamlDoc() {
         val generatorConfig = CodeGeneratorConfig(
             basePackageName = "com/commercetools/importer",

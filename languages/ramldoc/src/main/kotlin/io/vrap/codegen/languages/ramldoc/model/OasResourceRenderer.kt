@@ -129,7 +129,7 @@ class OasResourceRenderer constructor(val api: OpenAPI) : OasPathItemRenderer {
             |  description: |-
             |    <<${response.description.trim()}>>""" else ""}
             |  body:
-            |    <<${response.content.toMap().entries.joinToString("\n") { renderResponseBody(it, method, response) } }>>
+            |    <<${response.content?.toMap()?.entries?.joinToString("\n") { renderResponseBody(it, method, response) } ?: "{}"}>>
         """.trimMargin().keepAngleIndent()
     }
 
