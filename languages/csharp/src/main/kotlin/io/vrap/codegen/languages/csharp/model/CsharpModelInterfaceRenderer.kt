@@ -43,6 +43,8 @@ class CsharpModelInterfaceRenderer constructor(override val vrapTypeProvider: Vr
             |    public partial interface I${vrapType.simpleClassName} ${if (extends.isNotEmpty()) { ": ${extends.joinToString(separator = ", ")}" } else ""}
             |    {
             |        <${type.toProperties()}>
+            |        
+            |        <${type.subtypeFactories()}>
             |    }
             |}
             |
@@ -120,6 +122,33 @@ class CsharpModelInterfaceRenderer constructor(override val vrapTypeProvider: Vr
             |}
             |
         """
+    }
+
+    private fun ObjectType.subtypeFactories(): String {
+        return if (this.hasSubtypes())
+            """
+            |<${this.subTypes.plus(this.subTypes.flatMap { it.subTypes }).distinctBy { it.name }
+                .asSequence()
+                .filterIsInstance<ObjectType>()
+                .filter { it.getAnnotation("deprecated") == null }
+                .filter { it.discriminatorValue != null }
+                .sortedBy { anyType -> anyType.discriminatorValue.lowercase(Locale.getDefault()) }
+                .map { it.subtypeFactory() }
+                .joinToString(separator = "\n")}>
+            """.trimMargin()
+        else ""
+    }
+
+    private fun ObjectType.subtypeFactory(): String {
+        val vrapType = vrapTypeProvider.doSwitch(this) as VrapObjectType
+        val className = "${vrapType.`package`.toCsharpPackage()}.${this.objectClassName()}"
+        return """
+            |static $className ${this.discriminatorValue.firstUpperCase()}(Action\<$className\> init = null) {
+            |    var t = new $className();
+            |    init?.Invoke(t);
+            |    return t;
+            |}
+            """.trimMargin()
     }
 
     fun ObjectType.DeserializationAttributes(): String {
