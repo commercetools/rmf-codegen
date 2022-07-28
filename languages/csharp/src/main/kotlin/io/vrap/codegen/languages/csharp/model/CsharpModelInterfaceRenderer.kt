@@ -143,7 +143,7 @@ class CsharpModelInterfaceRenderer constructor(override val vrapTypeProvider: Vr
         val vrapType = vrapTypeProvider.doSwitch(this) as VrapObjectType
         val className = "${vrapType.`package`.toCsharpPackage()}.${this.objectClassName()}"
         return """
-            |static $className ${this.discriminatorValue.firstUpperCase()}(Action\<$className\> init = null) {
+            |static $className ${this.discriminatorValue.upperCamelCase()}(Action\<$className\> init = null) {
             |    var t = new $className();
             |    init?.Invoke(t);
             |    return t;
