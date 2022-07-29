@@ -47,33 +47,35 @@ class JsonSchemaRenderer constructor(
     }
 
     private fun createObjectSchema(type: ObjectType): TemplateFile {
-        val schema = LinkedHashMap<String, Any>()
+        val schema = linkedMapOf<String, Any>(
+            "${"$"}schema" to "https://json-schema.org/draft/2020-12/schema#",
+            "${"$"}id" to create_schema_id(type.filename()),
+            "title" to type.name,
+            "type" to "object",
+        )
 
-        schema.put("${"$"}schema", "http://json-schema.org/draft/2020-12/schema")
-        schema.put("${"$"}id", create_schema_id(type.filename()))
-        schema.put("title", type.name)
         if (type.description != null) {
             schema.put("description", type.description.value.trim())
         }
-        schema.put("type", "object")
 
         val obj = LinkedHashMap<String, Any>()
-        obj.put("properties", type.getObjectProperties())
+        schema.put("properties", type.getObjectProperties())
 
         val patterns = type.getPatternProperties()
         if (!patterns.isNullOrEmpty()) {
-            obj.put("patternProperties", patterns)
+            schema.put("patternProperties", patterns)
         }
 
         val required = type.getRequiredPropertyNames()
         if (!required.isNullOrEmpty()) {
-            obj.put("required", required)
+            schema.put("required", required)
         }
 
-        obj.put("additionalProperties", false)
+        schema.put("additionalProperties", false)
 
         val discriminatorProperty = type.discriminatorProperty()
         if (discriminatorProperty != null && type.discriminatorValue.isNullOrEmpty()) {
+
             schema.put(
                 "discriminator",
                 mapOf(
@@ -90,7 +92,7 @@ class JsonSchemaRenderer constructor(
             )
         }
 
-        obj.forEach { (key, value) -> schema.put(key, value) }
+        // obj.forEach { (key, value) -> schema.put(key, value) }
 
         return TemplateFile(JSONObject(schema).toString(2), type.filename())
     }
@@ -102,7 +104,7 @@ class JsonSchemaRenderer constructor(
         }
 
         val schema = mutableMapOf(
-            "${"$"}schema" to "http://json-schema.org/draft-07/schema#",
+            "${"$"}schema" to "https://json-schema.org/draft/2020-12/schema#",
             "${"$"}id" to create_schema_id(type.filename()),
             "title" to type.name,
             "type" to "string",
@@ -142,18 +144,32 @@ class JsonSchemaRenderer constructor(
     private fun ObjectType.getRequiredPropertyNames(): List<String> {
         return this.allProperties
             .filter {
-                !it.isPatternProperty() && it.required
+                !it.isPatternProperty() && (it.required || this.discriminatorProperty() == it)
             }
             .map {
                 it.name
             }
     }
 
-    private fun AnyType.toSchemaProperty(parent: ObjectType, property: Property?): Map<String, Any> {
+    private fun AnyType.toSchemaProperty(parent: ObjectType, property: Property): Map<String, Any> {
 
-        if (parent.discriminatorValue != null && parent.discriminatorProperty() == property) {
+        if ( parent.discriminatorProperty() == property) {
+            var subTypes = if (property.type != null) {
+                allAnyTypes.getTypeInheritance(parent)
+                    .filterIsInstance<ObjectType>()
+                    .map {
+                        it.discriminatorValue
+                    }
+                } else {
+                    listOf<String>()
+                }
+
+            if (parent.discriminatorValue != null) {
+                subTypes = subTypes.plus(parent.discriminatorValue)
+            }
+
             return mapOf(
-                "enum" to listOf(parent.discriminatorValue)
+                "enum" to subTypes
             )
         }
 
@@ -186,7 +202,7 @@ class JsonSchemaRenderer constructor(
         }
     }
 
-    private fun ObjectType.toSchemaProperty(parent: ObjectType, property: Property?): Map<String, Any> {
+    private fun ObjectType.toSchemaProperty(parent: ObjectType, property: Property): Map<String, Any> {
 
         val dProperty = this.discriminatorProperty()
         if (dProperty != null && !this.discriminatorValue.isNullOrEmpty()) {
@@ -196,7 +212,6 @@ class JsonSchemaRenderer constructor(
         }
 
         if (this.toVrapType() !is VrapObjectType) {
-            // println(this.properties)
             return mapOf(
                 "type" to "object"
             )
@@ -207,7 +222,7 @@ class JsonSchemaRenderer constructor(
         }
     }
 
-    private fun StringType.toSchemaProperty(parent: ObjectType, property: Property?): Map<String, Any> {
+    private fun StringType.toSchemaProperty(parent: ObjectType, property: Property): Map<String, Any> {
         val vrapType = this.toVrapType()
         if (vrapType !is VrapScalarType) {
             throw Exception("Expected scalar")
@@ -223,35 +238,35 @@ class JsonSchemaRenderer constructor(
         return result
     }
 
-    private fun IntegerType.toSchemaProperty(parent: ObjectType, property: Property?) = mapOf(
+    private fun IntegerType.toSchemaProperty(parent: ObjectType, property: Property) = mapOf(
         "type" to "number",
-        "format" to "integer"
+        // "format" to "integer"
     )
 
-    private fun BooleanType.toSchemaProperty(parent: ObjectType, property: Property?) = mapOf(
+    private fun BooleanType.toSchemaProperty(parent: ObjectType, property: Property) = mapOf(
         "type" to "boolean"
     )
 
-    private fun DateTimeType.toSchemaProperty(parent: ObjectType, property: Property?) = mapOf(
+    private fun DateTimeType.toSchemaProperty(parent: ObjectType, property: Property) = mapOf(
         "type" to "string",
         "format" to "date-time"
     )
 
-    private fun DateOnlyType.toSchemaProperty(parent: ObjectType, property: Property?) = mapOf(
+    private fun DateOnlyType.toSchemaProperty(parent: ObjectType, property: Property) = mapOf(
         "type" to "string",
         "format" to "date"
     )
 
-    private fun TimeOnlyType.toSchemaProperty(parent: ObjectType, property: Property?) = mapOf(
+    private fun TimeOnlyType.toSchemaProperty(parent: ObjectType, property: Property) = mapOf(
         "type" to "string",
         "format" to "time"
     )
 
-    private fun NumberType.toSchemaProperty(parent: ObjectType, property: Property?) = mapOf(
+    private fun NumberType.toSchemaProperty(parent: ObjectType, property: Property) = mapOf(
         "type" to "number"
     )
 
-    private fun ArrayType.toSchemaProperty(parent: ObjectType, property: Property?): Map<String, Any> {
+    private fun ArrayType.toSchemaProperty(parent: ObjectType, property: Property): Map<String, Any> {
         return mapOf(
             "type" to "array",
             "items" to this.items.toSchemaProperty(parent, property)
