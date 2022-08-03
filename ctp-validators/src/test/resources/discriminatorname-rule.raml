@@ -15,3 +15,11 @@ types:
   InvalidFoo:
     type: FooUpdateAction
     discriminatorValue: boz
+  FooDiscriminator:
+   (package): Discriminator
+   type: object
+   displayName: DiscriminatorFoo
+   properties:
+     type:
+       type: string
+       description: bla
