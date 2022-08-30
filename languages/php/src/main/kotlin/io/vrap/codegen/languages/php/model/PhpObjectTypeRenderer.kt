@@ -708,7 +708,7 @@ class PhpObjectTypeRenderer constructor(override val vrapTypeProvider: VrapTypeP
             return """
                 | * @deprecated""".trimMargin()
         }
-        return "";
+        return " *";
     }
 
     protected fun ObjectType.deprecated() : Boolean {
