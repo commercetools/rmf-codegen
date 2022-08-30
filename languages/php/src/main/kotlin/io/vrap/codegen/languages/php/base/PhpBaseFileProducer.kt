@@ -337,13 +337,13 @@ class PhpBaseFileProducer constructor(val api: Api, @BasePackageName val package
                     |    /**
                     |     * @return static|mixed
                     |     */
-                    |    public function with(callable $!callback = null)
+                    |    public function with(callable $!callable = null)
                     |    {
-                    |        if (is_null($!callback)) {
+                    |        if (is_null($!callable)) {
                     |            return $!this;
                     |        }
                     |
-                    |        return $!callback($!this);
+                    |        return $!callable($!this);
                     |    }
                     |}
                 """.trimMargin().forcedLiteralEscape()
