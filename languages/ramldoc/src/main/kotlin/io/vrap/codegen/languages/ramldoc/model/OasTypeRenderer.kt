@@ -57,12 +57,83 @@ sealed class OasTypeRenderer<T: Schema<Any>> constructor(open val api: OpenAPI, 
             |displayName: $typeName
             |type: object
             |properties:
+            |  <<${typeVal.properties.entries.joinToString("\n") { entry -> renderProperty(entry.key, entry.value) }}>>
             """.trimMargin().keepAngleIndent()
 
         return TemplateFile(
                 relativePath = "types/$typeName.raml",
                 content = content
         )
+    }
+
+    private fun renderProperty(name: String, type: Schema<Any>): String {
+        return """
+            |$name:
+            |  <<${renderSchemaType(type)}>>
+        """.trimMargin().keepAngleIndent()
+    }
+    private fun renderSchemaType(type: Schema<Any>): String {
+        return when (type) {
+            is ArraySchema -> """
+                |type: array
+                |items: 
+                |  <<${renderSchemaType(type.items as Schema<Any>)}>>
+                """.trimMargin().keepAngleIndent()
+            is BinarySchema -> """
+                |type: string
+                """.trimMargin()
+            is BooleanSchema -> """
+                |type: boolean
+                """.trimMargin()
+            is ByteArraySchema -> """
+                |type: string
+                """.trimMargin()
+            is ComposedSchema -> ""
+            is DateSchema -> """
+                |type: date-only
+                """.trimMargin()
+            is DateTimeSchema -> """
+                |type: datetime
+                """.trimMargin()
+            is EmailSchema -> """
+                |type: string
+                """.trimMargin()
+            is FileSchema -> """
+                |type: file
+                """.trimMargin()
+            is IntegerSchema -> """
+                |type: number
+                |format: ${type.format}
+                """.trimMargin()
+            is MapSchema -> """
+                |type: object
+                |properties:
+                |  <<${type.properties.entries.joinToString("\n") { entry -> renderProperty(entry.key, entry.value) }}>>
+                """.trimMargin().keepAngleIndent()
+            is NumberSchema -> """
+                |type: number
+                |format: ${type.format}
+                """.trimMargin()
+            is ObjectSchema -> """
+                |type: object
+                |properties:
+                |  <<${type.properties.entries.joinToString("\n") { entry -> renderProperty(entry.key, entry.value) }}>>
+                """.trimMargin().keepAngleIndent()
+            is PasswordSchema -> """
+                |type: string
+                """.trimMargin()
+            is StringSchema -> """
+                |type: string
+                """.trimMargin()
+            is UUIDSchema -> """
+                |type: string
+                """.trimMargin()
+            else -> {
+                if (type.`$ref` != null) {
+                    return "type: " + type.renderTypeName()
+                } else ""
+            }
+        }
     }
 
     private fun renderExample(type: VrapObjectType, example: Example): String {
