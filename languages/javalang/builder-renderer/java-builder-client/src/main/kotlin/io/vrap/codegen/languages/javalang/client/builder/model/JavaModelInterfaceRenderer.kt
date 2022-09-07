@@ -61,7 +61,8 @@ class JavaModelInterfaceRenderer constructor(override val vrapTypeProvider: Vrap
             | */
             |<${type.subTypesAnnotations()}>
             |<${JavaSubTemplates.generatedAnnotation}>
-            |<${type.jsonDeserialize()}>
+            |<${type.jsonDeserialize()}>${if (type.markDeprecated()) """
+            |@Deprecated""" else ""}
             |public interface ${vrapType.simpleClassName} ${if (extends.isNotEmpty()) { "extends ${extends.joinToString(separator = ", ")}" } else ""} {
             |
             |    <${type.discriminatorValueConst()}>
@@ -322,6 +323,11 @@ class JavaModelInterfaceRenderer constructor(override val vrapTypeProvider: Vrap
             |}
         """.trimMargin()
         }
+    }
+
+    private fun ObjectType.markDeprecated() : Boolean {
+        val anno = this.getAnnotation("markDeprecated")
+        return (anno != null && (anno.value as BooleanInstance).value)
     }
 
     private object CascadeValidationCheck : TypesSwitch<Boolean>() {
