@@ -17,7 +17,7 @@ fun VrapType.simpleName(): String {
         is VrapScalarType -> this.scalarType
         is VrapDateTimeType -> this.simpleClassName
         is VrapEnumType -> "I"+this.simpleClassName
-        is VrapObjectType -> if(this.simpleClassName == "DateTime" || this.simpleClassName == "TimeSpan" || this.simpleClassName == "Object") this.simpleClassName else "I${this.simpleClassName}"
+        is VrapObjectType -> if(this.simpleClassName == "Date" || this.simpleClassName == "DateTime" || this.simpleClassName == "TimeSpan" || this.simpleClassName == "Object") this.simpleClassName else "I${this.simpleClassName}"
         is VrapAnyType -> this.baseType
         is VrapArrayType -> """List\<${this.itemType.simpleName()}\>"""
         is VrapNilType -> throw IllegalStateException("$this has no simple class name.")

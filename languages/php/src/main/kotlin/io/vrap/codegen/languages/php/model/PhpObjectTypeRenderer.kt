@@ -120,15 +120,20 @@ class PhpObjectTypeRenderer constructor(override val vrapTypeProvider: VrapTypeP
 
     fun ObjectType.constructor(): String {
         val discriminator = this.discriminatorProperty()
+        val discriminatorValue = this.discriminatorValue
+        val objectProperties = this.allProperties.filter { it.getAnnotation("deprecated") == null }
+            .filter { property -> property != discriminator }.filter { !it.isPatternProperty() }
+        val constructorProperties = if (discriminator != null) objectProperties.plus(discriminator) else objectProperties
+        val assignProperties = if (discriminator != null && discriminatorValue == null ) objectProperties.plus(discriminator) else objectProperties
         return """
             |/**
             | * @psalm-suppress MissingParamType
             | */
             |public function __construct(
-            |    <<${this.allProperties.filter { it.getAnnotation("deprecated") == null }.filter { property -> property != discriminator }.filter { !it.isPatternProperty() }.joinToString(",\n") { it.toParam() }}>>
+            |    <<${constructorProperties.joinToString(",\n") { it.toParam() }}>>
             |) {
-            |    <<${this.allProperties.filter { it.getAnnotation("deprecated") == null }.filter { property -> property != discriminator }.filter { !it.isPatternProperty() }.joinToString("\n") { "$!this->${it.name} = $${it.name};" }}>>
-            |    ${if (discriminator != null) "$!this->${discriminator.name} = static::DISCRIMINATOR_VALUE;" else ""}
+            |    <<${assignProperties.joinToString("\n") { "$!this->${it.name} = $${it.name};" }}>>
+            |    ${if (discriminator != null && discriminatorValue != null ) "$!this->${discriminator.name} = $!${discriminator.name} ?? self::DISCRIMINATOR_VALUE;" else ""}
             |}
         """.trimMargin()
     }
@@ -703,7 +708,7 @@ class PhpObjectTypeRenderer constructor(override val vrapTypeProvider: VrapTypeP
             return """
                 | * @deprecated""".trimMargin()
         }
-        return "";
+        return " *";
     }
 
     protected fun ObjectType.deprecated() : Boolean {

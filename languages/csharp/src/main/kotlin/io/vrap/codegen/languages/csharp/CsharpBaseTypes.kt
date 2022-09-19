@@ -13,7 +13,7 @@ object CsharpBaseTypes : LanguageBaseTypes(
         stringType = fromScalarCsharpType("string"),
         booleanType = fromScalarCsharpType("bool"),
         dateTimeType = fromCsharpType("", "DateTime"),
-        dateOnlyType = fromCsharpType("", "DateTime"),
+        dateOnlyType = fromCsharpType("", "Date"),
         timeOnlyType = fromCsharpType("", "TimeSpan"),
         file = fromCsharpType("", "Stream")
 )
