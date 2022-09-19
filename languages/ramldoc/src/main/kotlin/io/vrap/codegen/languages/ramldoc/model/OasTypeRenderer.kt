@@ -1,5 +1,6 @@
 package io.vrap.codegen.languages.ramldoc.model
 
+import com.google.common.collect.Maps
 import io.swagger.v3.oas.models.OpenAPI
 import io.swagger.v3.oas.models.media.*
 import io.vrap.codegen.languages.extensions.discriminatorProperty
@@ -54,10 +55,11 @@ sealed class OasTypeRenderer<T: Schema<Any>> constructor(open val api: OpenAPI, 
 
         val content = """
             |#%RAML 1.0 DataType
-            |displayName: $typeName
-            |type: object
-            |properties:
-            |  <<${typeVal.properties.entries.joinToString("\n") { entry -> renderProperty(entry.key, entry.value) }}>>
+            |displayName: $typeName${if (typeVal.description.isNullOrEmpty().not()) """
+            |description: |-
+            |  <<${typeVal.description}>>
+            |""".trimMargin().keepAngleIndent() else ""}
+            |${renderSchemaType(typeVal)}
             """.trimMargin().keepAngleIndent()
 
         return TemplateFile(
@@ -66,9 +68,24 @@ sealed class OasTypeRenderer<T: Schema<Any>> constructor(open val api: OpenAPI, 
         )
     }
 
+    private fun Schema<Any>.renderSchemaTypeName(): String {
+        val typeVal = this
+
+        if (typeVal is ComposedSchema) {
+            if (typeVal.isInheritedObject()) {
+                return typeVal.allOf.find { it.`$ref`.isNullOrEmpty().not() }?.renderTypeName() ?: "object"
+            }
+            return typeVal.renderComposedTypeName()
+        }
+        return "object"
+    }
+
     private fun renderProperty(name: String, type: Schema<Any>): String {
         return """
             |$name:
+            |${if (type.description.isNullOrEmpty().not()) """
+            |  description: |-
+            |    <<${type.description}>>""".trimMargin().keepAngleIndent() else ""}
             |  <<${renderSchemaType(type)}>>
         """.trimMargin().keepAngleIndent()
     }
@@ -88,7 +105,16 @@ sealed class OasTypeRenderer<T: Schema<Any>> constructor(open val api: OpenAPI, 
             is ByteArraySchema -> """
                 |type: string
                 """.trimMargin()
-            is ComposedSchema -> ""
+            is ComposedSchema -> {
+                if (type.isInheritedObject()) {
+                    return """
+                        |type: ${type.renderSchemaTypeName()}
+                        |properties:
+                        |  <<${type.allOf.find { schema -> (schema is ObjectSchema || schema is MapSchema) }?.properties()?.joinToString("\n") { entry -> renderProperty(entry.key, entry.value) }}>>
+                    """.trimMargin().keepAngleIndent()
+                }
+                ""
+            }
             is DateSchema -> """
                 |type: date-only
                 """.trimMargin()
@@ -102,22 +128,22 @@ sealed class OasTypeRenderer<T: Schema<Any>> constructor(open val api: OpenAPI, 
                 |type: file
                 """.trimMargin()
             is IntegerSchema -> """
-                |type: number
-                |format: ${type.format}
+                |type: number${if (type.format != null) """
+                |format: ${type.format}""".trimIndent() else ""}
                 """.trimMargin()
             is MapSchema -> """
-                |type: object
+                |type: ${type.renderSchemaTypeName()}
                 |properties:
-                |  <<${type.properties.entries.joinToString("\n") { entry -> renderProperty(entry.key, entry.value) }}>>
+                |  <<${type.properties().joinToString("\n") { entry -> renderProperty(entry.key, entry.value) }}>>
                 """.trimMargin().keepAngleIndent()
             is NumberSchema -> """
-                |type: number
-                |format: ${type.format}
+                |type: number${if (type.format != null) """
+                |format: ${type.format}""".trimIndent() else ""}
                 """.trimMargin()
             is ObjectSchema -> """
-                |type: object
+                |type: ${type.renderSchemaTypeName()}
                 |properties:
-                |  <<${type.properties.entries.joinToString("\n") { entry -> renderProperty(entry.key, entry.value) }}>>
+                |  <<${type.properties().joinToString("\n") { entry -> renderProperty(entry.key, entry.value) }}>>
                 """.trimMargin().keepAngleIndent()
             is PasswordSchema -> """
                 |type: string
@@ -133,6 +159,15 @@ sealed class OasTypeRenderer<T: Schema<Any>> constructor(open val api: OpenAPI, 
                     return "type: " + type.renderTypeName()
                 } else ""
             }
+        }
+    }
+
+    private fun Schema<Any>.properties(): Set<MutableMap.MutableEntry<String, Schema<Any>>> {
+        val additionalProperties = this.additionalProperties
+        return if (this.additionalProperties is Schema<*>) {
+            (this.properties?.entries ?: emptySet()).plus(Maps.immutableEntry("//", additionalProperties as Schema<Any>))
+        } else {
+            this.properties?.entries ?: emptySet()
         }
     }
 
@@ -257,7 +292,7 @@ sealed class OasTypeRenderer<T: Schema<Any>> constructor(open val api: OpenAPI, 
 
     private fun ComposedSchema.isInheritedObject(): Boolean {
         if (this.allOf?.size == 2) {
-            if (this.allOf.any { it.`$ref`.isNullOrEmpty().not() } && this.allOf.any { it is ObjectSchema }) {
+            if (this.allOf.any { it.`$ref`.isNullOrEmpty().not() } && this.allOf.any { it is ObjectSchema || it is MapSchema }) {
                 return true
             }
         }
