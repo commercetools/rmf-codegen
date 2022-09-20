@@ -46,6 +46,9 @@ class OasApiRamlRenderer constructor(val api: OpenAPI): FileProducer {
             |  codeExamples:
             |    type: object
             |    allowedTargets: Method
+            |  package:
+            |    type: string
+            |    allowedTargets: TypeDeclaration
             |baseUri: ${baseUri}${if (api.servers[0].variables != null && api.servers[0].variables.size > 0) """
             |baseUriParameters:
             |  <<${api.servers[0].variables.entries.joinToString("\n") { it.renderUriParameter() }}>>""" else ""}${if (api.components?.securitySchemes != null) """

@@ -204,7 +204,7 @@ class TestCodeGenerator {
         t.api
     }
 
-    @Test
+//    @Test
     fun oasRenderToRamlDocOutput() {
         val generatorConfig = CodeGeneratorConfig(
             basePackageName = "com/commercetools/importer",
@@ -217,7 +217,7 @@ class TestCodeGenerator {
         generatorComponent.generateFiles()
     }
 
-        @Test
+    @Test
     fun oasRenderToRamlDoc() {
         val generatorConfig = CodeGeneratorConfig(
             basePackageName = "com/commercetools/importer",

@@ -53,12 +53,17 @@ sealed class OasTypeRenderer<T: Schema<Any>> constructor(open val api: OpenAPI, 
 //            |  <<${properties.joinToString("\n") { renderProperty(type, it) }}>>
 //            """.trimMargin().keepAngleIndent()
 
+        val packageName = typeVal.extensions?.get("x-annotation-package") ?: "Common"
         val content = """
             |#%RAML 1.0 DataType
+            |(package): $packageName
             |displayName: $typeName${if (typeVal.description.isNullOrEmpty().not()) """
             |description: |-
             |  <<${typeVal.description}>>
             |""".trimMargin().keepAngleIndent() else ""}
+            |${if (typeVal.example != null) """
+            |example:
+            |  <<${typeVal.example.toJson()}>>""".trimMargin().keepAngleIndent() else ""}
             |${renderSchemaType(typeVal)}
             """.trimMargin().keepAngleIndent()
 
@@ -80,79 +85,100 @@ sealed class OasTypeRenderer<T: Schema<Any>> constructor(open val api: OpenAPI, 
         return "object"
     }
 
-    private fun renderProperty(name: String, type: Schema<Any>): String {
+    private fun renderProperty(name: String, type: Schema<Any>, required: List<String>?): String {
+        val required = required?.contains(name) ?: false
         return """
             |$name:
             |${if (type.description.isNullOrEmpty().not()) """
             |  description: |-
-            |    <<${type.description}>>""".trimMargin().keepAngleIndent() else ""}
+            |    <<${type.description}>>""".trimMargin().keepAngleIndent() else ""}${if (type.example != null) """
+            |  example:
+            |    <<${type.example.toJson()}>>""".trimMargin().keepAngleIndent() else ""}
+            |  required: $required
             |  <<${renderSchemaType(type)}>>
         """.trimMargin().keepAngleIndent()
     }
     private fun renderSchemaType(type: Schema<Any>): String {
         return when (type) {
             is ArraySchema -> """
+                |(builtinType): array
                 |type: array
                 |items: 
                 |  <<${renderSchemaType(type.items as Schema<Any>)}>>
                 """.trimMargin().keepAngleIndent()
             is BinarySchema -> """
+                |(builtinType): string
                 |type: string
                 """.trimMargin()
             is BooleanSchema -> """
+                |(builtinType): boolean
                 |type: boolean
                 """.trimMargin()
             is ByteArraySchema -> """
+                |(builtinType): string
                 |type: string
                 """.trimMargin()
             is ComposedSchema -> {
                 if (type.isInheritedObject()) {
                     return """
+                        |(builtinType): object
                         |type: ${type.renderSchemaTypeName()}
                         |properties:
-                        |  <<${type.allOf.find { schema -> (schema is ObjectSchema || schema is MapSchema) }?.properties()?.joinToString("\n") { entry -> renderProperty(entry.key, entry.value) }}>>
+                        |  <<${type.allOf.find { schema -> (schema is ObjectSchema || schema is MapSchema) }?.properties()?.joinToString("\n") { entry -> renderProperty(entry.key, entry.value, type.required) }}>>
                     """.trimMargin().keepAngleIndent()
                 }
                 ""
             }
             is DateSchema -> """
+                |(builtinType): date-only
                 |type: date-only
                 """.trimMargin()
             is DateTimeSchema -> """
+                |(builtinType): datetime
                 |type: datetime
                 """.trimMargin()
             is EmailSchema -> """
+                |(builtinType): string
                 |type: string
                 """.trimMargin()
             is FileSchema -> """
                 |type: file
                 """.trimMargin()
             is IntegerSchema -> """
+                |(builtinType): number
                 |type: number${if (type.format != null) """
-                |format: ${type.format}""".trimIndent() else ""}
+                |
+                |format: ${type.format}""".trimMargin() else ""}
                 """.trimMargin()
             is MapSchema -> """
                 |type: ${type.renderSchemaTypeName()}
+                |(builtinType): object
                 |properties:
-                |  <<${type.properties().joinToString("\n") { entry -> renderProperty(entry.key, entry.value) }}>>
+                |  <<${type.properties().joinToString("\n") { entry -> renderProperty(entry.key, entry.value, type.required) }}>>
                 """.trimMargin().keepAngleIndent()
             is NumberSchema -> """
+                |(builtinType): number
                 |type: number${if (type.format != null) """
-                |format: ${type.format}""".trimIndent() else ""}
+                |
+                |format: ${type.format}""".trimMargin() else ""}
                 """.trimMargin()
             is ObjectSchema -> """
                 |type: ${type.renderSchemaTypeName()}
+                |(builtinType): object
                 |properties:
-                |  <<${type.properties().joinToString("\n") { entry -> renderProperty(entry.key, entry.value) }}>>
+                |  <<${type.properties().joinToString("\n") { entry -> renderProperty(entry.key, entry.value, type.required) }}>>
                 """.trimMargin().keepAngleIndent()
             is PasswordSchema -> """
                 |type: string
+                |(builtinType): string
                 """.trimMargin()
             is StringSchema -> """
                 |type: string
+                |(builtinType): string
                 """.trimMargin()
             is UUIDSchema -> """
                 |type: string
+                |(builtinType): string
                 """.trimMargin()
             else -> {
                 if (type.`$ref` != null) {

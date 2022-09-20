@@ -11,7 +11,7 @@ import com.fasterxml.jackson.module.kotlin.KotlinModule
 import io.vrap.rmf.raml.validation.RamlValidator
 import java.io.File
 import java.io.InputStream
-
+import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 
 class ValidatorSetup {
     companion object {
@@ -22,12 +22,12 @@ class ValidatorSetup {
 
         fun setup(config: InputStream): List<RamlValidator> {
             val mapper = XmlMapper.builder(XmlFactory(WstxInputFactory(), WstxOutputFactory())).defaultUseWrapper(false)
-                .addModule(KotlinModule())
                 .enable(SerializationFeature.INDENT_OUTPUT)
                 .enable(SerializationFeature.WRAP_ROOT_VALUE)
                 .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
                 .configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES, true)
                 .build()
+//                .registerKotlinModule()
 
             val ruleSet = mapper.readValue(config, RuleSet::class.java)
 

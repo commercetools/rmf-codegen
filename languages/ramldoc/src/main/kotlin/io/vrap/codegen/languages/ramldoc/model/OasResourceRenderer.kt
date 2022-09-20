@@ -11,6 +11,7 @@ import io.swagger.v3.oas.models.media.MediaType
 import io.swagger.v3.oas.models.media.ObjectSchema
 import io.swagger.v3.oas.models.media.Schema
 import io.swagger.v3.oas.models.media.StringSchema
+import io.swagger.v3.oas.models.media.UUIDSchema
 import io.swagger.v3.oas.models.parameters.Parameter
 import io.swagger.v3.oas.models.parameters.RequestBody
 import io.swagger.v3.oas.models.responses.ApiResponse
@@ -250,6 +251,7 @@ class OasResourceRenderer constructor(val api: OpenAPI) : OasPathItemRenderer {
             is ObjectSchema -> this.type
             is ArraySchema -> this.type
             is ComposedSchema -> this.renderComposedTypeName()
+            is UUIDSchema -> this.type
             else -> ""
         }
     }

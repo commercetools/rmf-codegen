@@ -54,7 +54,7 @@ class OasGeneratorModule constructor(
 
     fun providePackageName(): String {
         val defaultPackage = defaultPackage();
-        val api = provideOasModel();
+        val api = provideOasModel()
         if (generatorConfig.basePackageName == null && api.servers == null) {
             LOGGER.warn("Could not find proper package name configuration. Using default $defaultPackage")
             return defaultPackage

@@ -14,6 +14,7 @@ sealed class OasScalarTypeRenderer<T: Schema<V>, V: Any> constructor(open val mo
     override fun render(type: Map.Entry<String, T>): TemplateFile {
         val typeName = type.key
         val typeVal = type.value
+        val packageName = typeVal.extensions?.get("x-annotation-package") ?: "Common"
 
 //        return when (val vrapType = vrapTypeProvider.doSwitch(type)) {
 //            is VrapEnumType -> when (type) {
@@ -25,9 +26,14 @@ sealed class OasScalarTypeRenderer<T: Schema<V>, V: Any> constructor(open val mo
 //        }
         val content = """
             |#%RAML 1.0 DataType
+            |(package): $packageName
             |displayName: $typeName
             |type: string
+            |(builtinType): string
+            |${if (typeVal.enum != null && typeVal.enum.size > 0) """
             |enum:
+            |  <<${typeVal.enum.joinToString("\n") { "- $it" }}>>
+            """.trimMargin().keepAngleIndent() else ""}
             """.trimMargin().keepAngleIndent()
 
         return TemplateFile(

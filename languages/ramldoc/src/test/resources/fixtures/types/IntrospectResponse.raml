@@ -1,21 +1,23 @@
 #%RAML 1.0 DataType
+(package): Common
 displayName: IntrospectResponse
+
 type: object
 (builtinType): object
 properties:
   active:
-    type: boolean
-    (builtinType): boolean
+
     required: true
-    (inherited): false
+    (builtinType): boolean
+    type: boolean
   scope:
+
+    required: true
     type: string
     (builtinType): string
-    required: false
-    (inherited): false
   exp:
+
+    required: true
+    (builtinType): number
+    type: number
     format: int64
-    type: integer
-    (builtinType): integer
-    required: false
-    (inherited): false
