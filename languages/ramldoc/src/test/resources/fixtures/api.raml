@@ -21,9 +21,6 @@ annotationTypes:
   codeExamples:
     type: object
     allowedTargets: Method
-  package:
-    type: string
-    allowedTargets: TypeDeclaration
 baseUri: https://auth.europe-west1.gcp.commercetools.com
 
 types:
@@ -36,7 +33,9 @@ types:
   TokenResponse: !include types/TokenResponse.raml
   TokenType: !include types/TokenType.raml
 
+/oauth: !include resources/Oauth.raml
 /oauth/introspect: !include resources/OauthIntrospect.raml
 /oauth/token: !include resources/OauthToken.raml
+/oauth/{projectKey}: !include resources/OauthByProjectKey.raml
 /oauth/{projectKey}/anonymous/token: !include resources/OauthByProjectKeyAnonymousToken.raml
 /oauth/{projectKey}/customers/token: !include resources/OauthByProjectKeyCustomersToken.raml
