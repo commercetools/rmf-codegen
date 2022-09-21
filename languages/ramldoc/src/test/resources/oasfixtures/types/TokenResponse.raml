@@ -1,0 +1,27 @@
+#%RAML 1.0 DataType
+(package): Common
+displayName: TokenResponse
+
+type: object
+(builtinType): object
+properties:
+  access_token:
+
+    required: false
+    type: string
+    (builtinType): string
+  expires_in:
+
+    required: false
+    (builtinType): number
+    type: number
+    format: int64
+  scope:
+
+    required: false
+    type: string
+    (builtinType): string
+  token_type:
+
+    required: false
+    type: TokenType

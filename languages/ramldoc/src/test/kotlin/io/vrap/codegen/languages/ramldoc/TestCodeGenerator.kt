@@ -253,79 +253,79 @@ class TestCodeGenerator {
             },
             {
                 Assertions.assertThat(DiffUtils.diff(
-                    "src/test/resources/fixtures/api.raml".readFileLines(),
+                    "src/test/resources/oasfixtures/api.raml".readFileLines(),
                     dataSink.files.get("api.raml")?.trim()?.lines(),
                 ).deltas).`as`("api.raml").isEmpty()
             },
             {
                 Assertions.assertThat(DiffUtils.diff(
-                    "src/test/resources/fixtures/resources/OauthIntrospect.raml".readFileLines(),
+                    "src/test/resources/oasfixtures/resources/OauthIntrospect.raml".readFileLines(),
                     dataSink.files.get("resources/OauthIntrospect.raml")?.trim()?.lines()
                 ).deltas).`as`("resources/OauthIntrospect.raml").isEmpty()
             },
             {
                 Assertions.assertThat(DiffUtils.diff(
-                    "src/test/resources/fixtures/resources/OauthToken.raml".readFileLines(),
+                    "src/test/resources/oasfixtures/resources/OauthToken.raml".readFileLines(),
                     dataSink.files.get("resources/OauthToken.raml")?.trim()?.lines()
                 ).deltas).`as`("resources/OauthToken.raml").isEmpty()
             },
             {
                 Assertions.assertThat(DiffUtils.diff(
-                    "src/test/resources/fixtures/resources/OauthByProjectKeyCustomersToken.raml".readFileLines(),
+                    "src/test/resources/oasfixtures/resources/OauthByProjectKeyCustomersToken.raml".readFileLines(),
                     dataSink.files.get("resources/OauthByProjectKeyCustomersToken.raml")?.trim()?.lines()
                 ).deltas).`as`("resources/OauthByProjectKeyCustomersToken.raml").isEmpty()
             },
             {
                 Assertions.assertThat(DiffUtils.diff(
-                    "src/test/resources/fixtures/resources/OauthByProjectKeyAnonymousToken.raml".readFileLines(),
+                    "src/test/resources/oasfixtures/resources/OauthByProjectKeyAnonymousToken.raml".readFileLines(),
                     dataSink.files.get("resources/OauthByProjectKeyAnonymousToken.raml")?.trim()?.lines()
                 ).deltas).`as`("resources/OauthByProjectKeyAnonymousToken.raml").isEmpty()
             },
             {
                 Assertions.assertThat(DiffUtils.diff(
-                    "src/test/resources/fixtures/types/ClientCredentialsType.raml".readFileLines(),
+                    "src/test/resources/oasfixtures/types/ClientCredentialsType.raml".readFileLines(),
                     dataSink.files.get("types/ClientCredentialsType.raml")?.trim()?.lines()
                 ).deltas).`as`("types/ClientCredentialsType.raml").isEmpty()
             },
             {
                 Assertions.assertThat(DiffUtils.diff(
-                    "src/test/resources/fixtures/types/GrantType.raml".readFileLines(),
+                    "src/test/resources/oasfixtures/types/GrantType.raml".readFileLines(),
                     dataSink.files.get("types/GrantType.raml")?.trim()?.lines()
                 ).deltas).`as`("types/GrantType.raml").isEmpty()
             },
             {
                 Assertions.assertThat(DiffUtils.diff(
-                    "src/test/resources/fixtures/types/IntrospectResponse.raml".readFileLines(),
+                    "src/test/resources/oasfixtures/types/IntrospectResponse.raml".readFileLines(),
                     dataSink.files.get("types/IntrospectResponse.raml")?.trim()?.lines()
                 ).deltas).`as`("types/IntrospectResponse.raml").isEmpty()
             },
             {
                 Assertions.assertThat(DiffUtils.diff(
-                    "src/test/resources/fixtures/types/PasswordType.raml".readFileLines(),
+                    "src/test/resources/oasfixtures/types/PasswordType.raml".readFileLines(),
                     dataSink.files.get("types/PasswordType.raml")?.trim()?.lines()
                 ).deltas).`as`("types/PasswordType.raml").isEmpty()
             },
             {
                 Assertions.assertThat(DiffUtils.diff(
-                    "src/test/resources/fixtures/types/RefreshTokenResponse.raml".readFileLines(),
+                    "src/test/resources/oasfixtures/types/RefreshTokenResponse.raml".readFileLines(),
                     dataSink.files.get("types/RefreshTokenResponse.raml")?.trim()?.lines()
                 ).deltas).`as`("types/RefreshTokenResponse.raml").isEmpty()
             },
             {
                 Assertions.assertThat(DiffUtils.diff(
-                    "src/test/resources/fixtures/types/RefreshTokenType.raml".readFileLines(),
+                    "src/test/resources/oasfixtures/types/RefreshTokenType.raml".readFileLines(),
                     dataSink.files.get("types/RefreshTokenType.raml")?.trim()?.lines()
                 ).deltas).`as`("types/RefreshTokenType.raml").isEmpty()
             },
             {
                 Assertions.assertThat(DiffUtils.diff(
-                    "src/test/resources/fixtures/types/TokenType.raml".readFileLines(),
+                    "src/test/resources/oasfixtures/types/TokenType.raml".readFileLines(),
                     dataSink.files.get("types/TokenType.raml")?.trim()?.lines()
                 ).deltas).`as`("types/TokenType.raml").isEmpty()
             },
             {
                 Assertions.assertThat(DiffUtils.diff(
-                    "src/test/resources/fixtures/types/TokenResponse.raml".readFileLines(),
+                    "src/test/resources/oasfixtures/types/TokenResponse.raml".readFileLines(),
                     dataSink.files.get("types/TokenResponse.raml")?.trim()?.lines()
                 ).deltas).`as`("types/TokenResponse.raml").isEmpty()
             }

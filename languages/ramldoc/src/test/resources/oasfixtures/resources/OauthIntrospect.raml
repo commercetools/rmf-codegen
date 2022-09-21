@@ -1,0 +1,19 @@
+# Resource
+(resourceName): OauthIntrospect
+(resourcePathUri): /oauth/introspect
+
+post:
+  displayName: OauthIntrospectPost
+  queryParameters:
+    token:
+      required: true
+      type: string
+      (builtinType): string
+  responses:
+    200:
+      description: |-
+        200
+      body:
+        application/json:
+          type: IntrospectResponse
+          (builtinType): object
