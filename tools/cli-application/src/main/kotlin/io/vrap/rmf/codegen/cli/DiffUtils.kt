@@ -2,6 +2,7 @@ package io.vrap.rmf.codegen.cli
 
 import io.vrap.rmf.nodes.antlr.NodeTokenProvider
 import io.vrap.rmf.raml.model.modules.Api
+import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.types.AnyType
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.util.EcoreUtil
@@ -14,6 +15,10 @@ fun Api.allAnyTypes(): List<AnyType> {
 
 fun List<AnyType>.allAnyTypeMap(): Map<String, AnyType> {
     return this.associateBy { it.name }
+}
+
+fun List<Resource>.allResourcesMap(): Map<String, Resource> {
+    return this.associateBy { it.fullUri.template }
 }
 
 fun EObject.getSource(): Source? {

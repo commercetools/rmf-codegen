@@ -1,8 +1,16 @@
 package io.vrap.rmf.codegen.cli
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import org.eclipse.emf.ecore.EObject
 
-data class Diff<T>(val diffType: DiffType, val scope: Scope, val value: T, val message: String, val eObject: EObject, val source: Source? = null)
+data class Diff<T>(
+    val diffType: DiffType,
+    val scope: Scope,
+    val value: T,
+    val message: String,
+    @get:JsonIgnore val eObject: EObject,
+    val source: Source? = eObject.getSource()
+)
 
 data class Source(val location: String, val position: Position) {
     override fun toString(): String {

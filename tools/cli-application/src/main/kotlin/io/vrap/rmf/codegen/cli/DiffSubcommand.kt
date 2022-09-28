@@ -1,10 +1,12 @@
 package io.vrap.rmf.codegen.cli
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import io.vrap.rmf.raml.model.RamlModelBuilder
 import io.vrap.rmf.raml.model.modules.Api
-import org.apache.commons.lang3.NotImplementedException
 import org.eclipse.emf.common.util.URI
 import picocli.CommandLine
+import java.nio.charset.StandardCharsets
+import java.nio.file.Files
 import java.nio.file.Path
 import java.util.concurrent.Callable
 import java.util.stream.Collectors
@@ -13,13 +15,7 @@ enum class OutputFormat {
     CLI,
     JSON,
 }
-enum class OutputTarget {
-    PRINT,
-    FILE,
-}
-
 const val ValidFormats =  "CLI, JSON"
-const val ValidOutputTargets = "PRINT, FILE"
 
 @CommandLine.Command(name = "diff", description = ["Generates a diff between two specifications"])
 class DiffSubcommand : Callable<Int> {
@@ -36,8 +32,8 @@ class DiffSubcommand : Callable<Int> {
     @CommandLine.Option(names = ["-f", "--format"], description = ["Specifies the output format","Valid values: $ValidFormats"])
     var outputFormat: OutputFormat = OutputFormat.CLI
 
-    @CommandLine.Option(names = ["-t", "--target"], description = ["Specifies the output target","Valid values: $ValidOutputTargets"])
-    var outputTarget: OutputTarget = OutputTarget.PRINT
+    @CommandLine.Option(names = ["-t", "--target"], description = ["Specifies the file to write to"])
+    var outputTarget: Path? = null
 
     override fun call(): Int {
         return diff()
@@ -58,12 +54,12 @@ class DiffSubcommand : Callable<Int> {
             OutputFormat.JSON -> JsonFormatPrinter().print(diffResult)
         }
 
-        when(outputTarget) {
-            OutputTarget.PRINT -> println(output)
-            else -> throw NotImplementedException("target not implemented")
+        outputTarget?.let {
+            Files.write(it, output.toByteArray(StandardCharsets.UTF_8))
+        } ?: run {
+            println(output)
         }
-
-        return 1
+        return 0
     }
 
     class CliFormatPrinter {
@@ -74,7 +70,8 @@ class DiffSubcommand : Callable<Int> {
 
     class JsonFormatPrinter {
         fun print(diffResult: List<Diff<Any>>): String {
-            throw NotImplementedException("json format not implemented")
+            val mapper = ObjectMapper()
+            return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(diffResult)
         }
     }
 
