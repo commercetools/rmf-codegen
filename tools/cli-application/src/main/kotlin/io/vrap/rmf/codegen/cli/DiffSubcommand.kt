@@ -2,11 +2,24 @@ package io.vrap.rmf.codegen.cli
 
 import io.vrap.rmf.raml.model.RamlModelBuilder
 import io.vrap.rmf.raml.model.modules.Api
+import org.apache.commons.lang3.NotImplementedException
 import org.eclipse.emf.common.util.URI
 import picocli.CommandLine
 import java.nio.file.Path
 import java.util.concurrent.Callable
 import java.util.stream.Collectors
+
+enum class OutputFormat {
+    CLI,
+    JSON,
+}
+enum class OutputTarget {
+    PRINT,
+    FILE,
+}
+
+const val ValidFormats =  "CLI, JSON"
+const val ValidOutputTargets = "PRINT, FILE"
 
 @CommandLine.Command(name = "diff", description = ["Generates a diff between two specifications"])
 class DiffSubcommand : Callable<Int> {
@@ -19,6 +32,12 @@ class DiffSubcommand : Callable<Int> {
 
     @CommandLine.Parameters(index = "1", description = ["Changed api file location"])
     lateinit var changedFileLocation: Path
+
+    @CommandLine.Option(names = ["-f", "--format"], description = ["Specifies the output format","Valid values: $ValidFormats"])
+    var outputFormat: OutputFormat = OutputFormat.CLI
+
+    @CommandLine.Option(names = ["-t", "--target"], description = ["Specifies the output target","Valid values: $ValidOutputTargets"])
+    var outputTarget: OutputTarget = OutputTarget.PRINT
 
     override fun call(): Int {
         return diff()
@@ -33,8 +52,30 @@ class DiffSubcommand : Callable<Int> {
         if (diffResult.isEmpty()) {
             return 0
         }
-        println(diffResult.joinToString("\n") { "${it.message} (${it.source})" })
+
+        val output = when(outputFormat) {
+            OutputFormat.CLI -> CliFormatPrinter().print(diffResult)
+            OutputFormat.JSON -> JsonFormatPrinter().print(diffResult)
+        }
+
+        when(outputTarget) {
+            OutputTarget.PRINT -> println(output)
+            else -> throw NotImplementedException("target not implemented")
+        }
+
         return 1
+    }
+
+    class CliFormatPrinter {
+        fun print(diffResult: List<Diff<Any>>): String {
+            return diffResult.joinToString("\n") { "${it.message} (${it.source})" }
+        }
+    }
+
+    class JsonFormatPrinter {
+        fun print(diffResult: List<Diff<Any>>): String {
+            throw NotImplementedException("json format not implemented")
+        }
     }
 
     private fun readApi(fileLocation: Path): Api? {
