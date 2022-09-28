@@ -17,7 +17,9 @@ class OasProvider constructor(private val oasFileLocation: Path): ApiProvider {
     val api: OpenAPI by lazy {
         val parseOptions = ParseOptions()
         parseOptions.isResolve = true
-        parseOptions.isResolveFully = true
+        parseOptions.isResolveFully = false
+//        parseOptions.isFlattenComposedSchemas = true
+//        parseOptions.isResolveCombinators = false
         val result = OpenAPIParser().readLocation(oasFileLocation.toAbsolutePath().toString(), null, parseOptions)
 
         val openAPI = result.openAPI

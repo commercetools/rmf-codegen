@@ -5,13 +5,14 @@ import io.vrap.codegen.languages.ramldoc.extensions.toJson
 import io.vrap.codegen.languages.ramldoc.model.RamldocBaseTypes
 import io.vrap.codegen.languages.ramldoc.model.RamldocModelModule
 import io.vrap.rmf.codegen.CodeGeneratorConfig
-import io.vrap.rmf.codegen.di.RamlApiProvider
-import io.vrap.rmf.codegen.di.RamlGeneratorComponent
-import io.vrap.rmf.codegen.di.RamlGeneratorModule
+import io.vrap.rmf.codegen.di.*
 import io.vrap.rmf.codegen.io.MemoryDataSink
 import io.vrap.rmf.raml.model.types.ObjectInstance
 import org.assertj.core.api.Assertions
+import org.assertj.core.util.diff.DiffUtils
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertAll
+import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 
@@ -153,7 +154,7 @@ class TestCodeGenerator {
     }
 
     @Test
-    fun oasRenderToRamlDoc() {
+    fun ramlRenderToRamlDoc() {
         val generatorConfig = CodeGeneratorConfig(
             basePackageName = "com/commercetools/importer",
             outputFolder = Paths.get("build/gensrc")
@@ -174,6 +175,14 @@ class TestCodeGenerator {
             .isEqualTo("src/test/resources/fixtures/resources/OAuth.raml".readFile())
         Assertions.assertThat(dataSink.files.get("resources/OauthIntrospect.raml")?.trim())
             .isEqualTo("src/test/resources/fixtures/resources/OauthIntrospect.raml".readFile())
+        Assertions.assertThat(dataSink.files.get("resources/OauthToken.raml")?.trim())
+            .isEqualTo("src/test/resources/fixtures/resources/OauthToken.raml".readFile())
+        Assertions.assertThat(dataSink.files.get("resources/OauthByProjectKeyCustomersToken.raml")?.trim())
+            .isEqualTo("src/test/resources/fixtures/resources/OauthByProjectKeyCustomersToken.raml".readFile())
+        Assertions.assertThat(dataSink.files.get("resources/OauthByProjectKeyAnonymousToken.raml")?.trim())
+            .isEqualTo("src/test/resources/fixtures/resources/OauthByProjectKeyAnonymousToken.raml".readFile())
+        Assertions.assertThat(dataSink.files.get("resources/OauthByProjectKey.raml")?.trim())
+            .isEqualTo("src/test/resources/fixtures/resources/OauthByProjectKey.raml".readFile())
         Assertions.assertThat(dataSink.files.get("types/ClientCredentialsType.raml")?.trim())
             .isEqualTo("src/test/resources/fixtures/types/ClientCredentialsType.raml".readFile())
         Assertions.assertThat(dataSink.files.get("types/GrantType.raml")?.trim())
@@ -191,11 +200,146 @@ class TestCodeGenerator {
         Assertions.assertThat(dataSink.files.get("types/TokenResponse.raml")?.trim())
             .isEqualTo("src/test/resources/fixtures/types/TokenResponse.raml".readFile())
 
+        val t = RamlApiProvider(Paths.get("src/test/resources/fixtures/api.raml"))
+        t.api
+    }
+
+//    @Test
+    fun oasRenderToRamlDocOutput() {
+        val generatorConfig = CodeGeneratorConfig(
+            basePackageName = "com/commercetools/importer",
+            outputFolder = Paths.get("build/gensrc")
+        )
+
+        val apiProvider = OasProvider(Paths.get(System.getenv("TEST_OAS_FILE")))
+        val generatorModule = OasGeneratorModule(apiProvider, generatorConfig, RamldocBaseTypes)
+        val generatorComponent = OasGeneratorComponent(generatorModule, RamldocModelModule)
+        generatorComponent.generateFiles()
+    }
+
+    @Test
+    fun oasRenderToRamlDoc() {
+        val generatorConfig = CodeGeneratorConfig(
+            basePackageName = "com/commercetools/importer",
+            outputFolder = Paths.get("build/gensrc")
+        )
+
+        val apiProvider = OasProvider(Paths.get("src/test/resources/openapi.yaml"))
+
+        val dataSink = MemoryDataSink()
+        val generatorModule = OasGeneratorModule(apiProvider, generatorConfig, RamldocBaseTypes, dataSink = dataSink)
+        val generatorComponent = OasGeneratorComponent(generatorModule, RamldocModelModule)
+        generatorComponent.generateFiles()
+
+        assertAll(
+            {
+                Assertions.assertThat(dataSink.files).hasSize(13)
+            },
+            {
+                Assertions.assertThat(dataSink.files.keys.sorted()).isEqualTo(listOf("api.raml",
+                    "resources/OauthByProjectKeyAnonymousToken.raml",
+                    "resources/OauthByProjectKeyCustomersToken.raml",
+                    "resources/OauthIntrospect.raml",
+                    "resources/OauthToken.raml",
+                    "types/ClientCredentialsType.raml",
+                    "types/GrantType.raml",
+                    "types/IntrospectResponse.raml",
+                    "types/PasswordType.raml",
+                    "types/RefreshTokenResponse.raml",
+                    "types/RefreshTokenType.raml",
+                    "types/TokenResponse.raml",
+                    "types/TokenType.raml"
+                ))
+            },
+            {
+                Assertions.assertThat(DiffUtils.diff(
+                    "src/test/resources/oasfixtures/api.raml".readFileLines(),
+                    dataSink.files.get("api.raml")?.trim()?.lines(),
+                ).deltas).`as`("api.raml").isEmpty()
+            },
+            {
+                Assertions.assertThat(DiffUtils.diff(
+                    "src/test/resources/oasfixtures/resources/OauthIntrospect.raml".readFileLines(),
+                    dataSink.files.get("resources/OauthIntrospect.raml")?.trim()?.lines()
+                ).deltas).`as`("resources/OauthIntrospect.raml").isEmpty()
+            },
+            {
+                Assertions.assertThat(DiffUtils.diff(
+                    "src/test/resources/oasfixtures/resources/OauthToken.raml".readFileLines(),
+                    dataSink.files.get("resources/OauthToken.raml")?.trim()?.lines()
+                ).deltas).`as`("resources/OauthToken.raml").isEmpty()
+            },
+            {
+                Assertions.assertThat(DiffUtils.diff(
+                    "src/test/resources/oasfixtures/resources/OauthByProjectKeyCustomersToken.raml".readFileLines(),
+                    dataSink.files.get("resources/OauthByProjectKeyCustomersToken.raml")?.trim()?.lines()
+                ).deltas).`as`("resources/OauthByProjectKeyCustomersToken.raml").isEmpty()
+            },
+            {
+                Assertions.assertThat(DiffUtils.diff(
+                    "src/test/resources/oasfixtures/resources/OauthByProjectKeyAnonymousToken.raml".readFileLines(),
+                    dataSink.files.get("resources/OauthByProjectKeyAnonymousToken.raml")?.trim()?.lines()
+                ).deltas).`as`("resources/OauthByProjectKeyAnonymousToken.raml").isEmpty()
+            },
+            {
+                Assertions.assertThat(DiffUtils.diff(
+                    "src/test/resources/oasfixtures/types/ClientCredentialsType.raml".readFileLines(),
+                    dataSink.files.get("types/ClientCredentialsType.raml")?.trim()?.lines()
+                ).deltas).`as`("types/ClientCredentialsType.raml").isEmpty()
+            },
+            {
+                Assertions.assertThat(DiffUtils.diff(
+                    "src/test/resources/oasfixtures/types/GrantType.raml".readFileLines(),
+                    dataSink.files.get("types/GrantType.raml")?.trim()?.lines()
+                ).deltas).`as`("types/GrantType.raml").isEmpty()
+            },
+            {
+                Assertions.assertThat(DiffUtils.diff(
+                    "src/test/resources/oasfixtures/types/IntrospectResponse.raml".readFileLines(),
+                    dataSink.files.get("types/IntrospectResponse.raml")?.trim()?.lines()
+                ).deltas).`as`("types/IntrospectResponse.raml").isEmpty()
+            },
+            {
+                Assertions.assertThat(DiffUtils.diff(
+                    "src/test/resources/oasfixtures/types/PasswordType.raml".readFileLines(),
+                    dataSink.files.get("types/PasswordType.raml")?.trim()?.lines()
+                ).deltas).`as`("types/PasswordType.raml").isEmpty()
+            },
+            {
+                Assertions.assertThat(DiffUtils.diff(
+                    "src/test/resources/oasfixtures/types/RefreshTokenResponse.raml".readFileLines(),
+                    dataSink.files.get("types/RefreshTokenResponse.raml")?.trim()?.lines()
+                ).deltas).`as`("types/RefreshTokenResponse.raml").isEmpty()
+            },
+            {
+                Assertions.assertThat(DiffUtils.diff(
+                    "src/test/resources/oasfixtures/types/RefreshTokenType.raml".readFileLines(),
+                    dataSink.files.get("types/RefreshTokenType.raml")?.trim()?.lines()
+                ).deltas).`as`("types/RefreshTokenType.raml").isEmpty()
+            },
+            {
+                Assertions.assertThat(DiffUtils.diff(
+                    "src/test/resources/oasfixtures/types/TokenType.raml".readFileLines(),
+                    dataSink.files.get("types/TokenType.raml")?.trim()?.lines()
+                ).deltas).`as`("types/TokenType.raml").isEmpty()
+            },
+            {
+                Assertions.assertThat(DiffUtils.diff(
+                    "src/test/resources/oasfixtures/types/TokenResponse.raml".readFileLines(),
+                    dataSink.files.get("types/TokenResponse.raml")?.trim()?.lines()
+                ).deltas).`as`("types/TokenResponse.raml").isEmpty()
+            }
+        )
+
 //        val t = RamlApiProvider(Paths.get("src/test/resources/fixtures/api.raml"))
 //        t.api
     }
 
     private fun String.readFile(): String {
         return Paths.get(this).toFile().readText().trim()
+    }
+
+    private fun String.readFileLines(): List<String> {
+        return Paths.get(this).toFile().readLines()
     }
 }

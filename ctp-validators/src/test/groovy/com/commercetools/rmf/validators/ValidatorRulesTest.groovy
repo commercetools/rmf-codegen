@@ -299,7 +299,7 @@ class ValidatorRulesTest extends Specification implements ValidatorFixtures {
         def result = new RamlModelBuilder(validators).buildApi(uri)
         then:
         result.validationResults.size == 1
-        result.validationResults[0].message == "AsMapRule: Pattern property \"InvalidLocalizedString\" must define an asMap annotation"
+        result.validationResults[0].message == "AsMapRule: Pattern property of type \"InvalidLocalizedString\" must define an asMap annotation"
     }
 
     def "nested type rule"() {
