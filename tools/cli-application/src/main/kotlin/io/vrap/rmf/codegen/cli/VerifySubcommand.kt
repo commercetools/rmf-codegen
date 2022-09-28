@@ -29,7 +29,7 @@ class VerifySubcommand : Callable<Int> {
     override fun call(): Int {
         val res = safeRun { verify()}
         if (watch) {
-            val watchDir = ramlFileLocation.toAbsolutePath().parent
+            val watchDir = ramlFileLocation.toRealPath().toAbsolutePath().parent
 
             val source = Observable.create<DirectoryChangeEvent> { emitter ->
                 run {

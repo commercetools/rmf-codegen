@@ -41,7 +41,7 @@ class ValidateSubcommand : Callable<Int> {
         modelBuilder = setupValidators()
         val res = safeRun { validate()}
         if (watch) {
-            val watchDir = ramlFileLocation.toAbsolutePath().parent
+            val watchDir = ramlFileLocation.toRealPath().toAbsolutePath().parent
 
             val source = Observable.create<DirectoryChangeEvent> { emitter ->
                 run {
