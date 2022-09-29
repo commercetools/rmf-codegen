@@ -22,7 +22,7 @@ class DiffSetup {
 
         fun setup(config: InputStream): List<Differ<Any>> {
             val mapper = XmlMapper.builder(XmlFactory(WstxInputFactory(), WstxOutputFactory())).defaultUseWrapper(false)
-                .addModule(KotlinModule())
+                .addModule(KotlinModule.Builder().build())
                 .enable(SerializationFeature.INDENT_OUTPUT)
                 .enable(SerializationFeature.WRAP_ROOT_VALUE)
                 .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
