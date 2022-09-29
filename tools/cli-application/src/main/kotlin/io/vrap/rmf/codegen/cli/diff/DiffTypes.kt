@@ -1,4 +1,4 @@
-package io.vrap.rmf.codegen.cli
+package io.vrap.rmf.codegen.cli.diff
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import org.eclipse.emf.ecore.EObject
@@ -28,9 +28,28 @@ enum class DiffType(val type: String) {
 
 enum class Scope(val scope: String) {
     RESOURCE("resource"),
+    METHOD("method"),
     TYPE("type"),
     PROPERTY("property"),
     URI_PARAMETER("uriParameter"),
     QUERY_PARAMETER("queryParameter"),
     ENUM("enum")
+}
+
+data class DiffData<T>(
+    val original: T,
+    val changed: T,
+)
+
+enum class DiffDataType {
+    API,
+    RESOURCES,
+    RESOURCES_MAP,
+    TYPES,
+    TYPES_MAP,
+    METHODS,
+    METHODS_MAP,
+    OBJECT_TYPES,
+    OBJECT_TYPES_MAP,
+    PROPERTIES_MAP,
 }

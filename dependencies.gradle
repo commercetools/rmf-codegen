@@ -16,7 +16,8 @@ ext {
             slf4j: '1.7.25',
             spock: '2.0-groovy-3.0',
             swaggerParser: '2.0.28',
-            jsoup: '1.15.1'
+            jsoup: '1.15.1',
+            woodstox: '6.2.5'
     ]
 
     commons = [
@@ -91,5 +92,9 @@ ext {
 
     jsoup = [
             jsoup: "org.jsoup:jsoup:${versions.jsoup}"
+    ]
+
+    woodstox = [
+            core: "com.fasterxml.woodstox:woodstox-core:${versions.woodstox}"
     ]
 }

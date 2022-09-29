@@ -95,6 +95,10 @@ dependencies {
     kapt picocli.codegen
     implementation directory_watcher.watcher
     implementation rxjava.rxjava
+
+    implementation jackson_core.dataformat_xml
+    implementation jackson_core.kotlin
+    implementation woodstox.core
 }
 
 

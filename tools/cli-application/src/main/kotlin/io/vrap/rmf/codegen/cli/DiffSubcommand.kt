@@ -1,6 +1,7 @@
 package io.vrap.rmf.codegen.cli
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import io.vrap.rmf.codegen.cli.diff.*
 import io.vrap.rmf.raml.model.RamlModelBuilder
 import io.vrap.rmf.raml.model.modules.Api
 import org.eclipse.emf.common.util.URI
@@ -35,6 +36,9 @@ class DiffSubcommand : Callable<Int> {
     @CommandLine.Option(names = ["-t", "--target"], description = ["Specifies the file to write to"])
     var outputTarget: Path? = null
 
+    @CommandLine.Option(names = ["-d", "--diffs"], description = ["Diff configuration"], required = false)
+    var diffConfigurationFile: Path? = null
+
     override fun call(): Int {
         return diff()
     }
@@ -43,7 +47,14 @@ class DiffSubcommand : Callable<Int> {
         val originalApi = readApi(originalFileLocation.toRealPath().toAbsolutePath()) ?: return 1
         val changedApi = readApi(changedFileLocation.toRealPath().toAbsolutePath()) ?: return 1
 
-        val diffResult = ApiDiffer().diff(originalApi, changedApi)
+        val config = diffConfigurationFile?.toFile()?.inputStream() ?: ValidateSubcommand::class.java.getResourceAsStream("/diff.xml")
+
+        val differ = RamlDiff.Builder()
+            .original(originalApi)
+            .changed(changedApi)
+            .plus(DiffSetup.setup(config))
+            .build()
+        val diffResult = differ.diff()
 
         if (diffResult.isEmpty()) {
             return 0
