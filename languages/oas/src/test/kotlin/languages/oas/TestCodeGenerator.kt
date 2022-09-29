@@ -8,6 +8,7 @@ import io.vrap.rmf.codegen.di.RamlGeneratorComponent
 import io.vrap.rmf.codegen.di.RamlGeneratorModule
 import io.vrap.rmf.codegen.io.MemoryDataSink
 import org.assertj.core.api.Assertions
+import org.assertj.core.util.diff.DiffUtils
 import org.junit.jupiter.api.Test
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -49,6 +50,13 @@ class TestCodeGenerator {
         generatorComponent.generateFiles()
 
         Assertions.assertThat(dataSink.files).hasSize(1)
+
+        Assertions.assertThat(
+            DiffUtils.diff(
+            "src/test/resources/fixtures/openapi.yaml".readFileLines(),
+            dataSink.files.get("openapi.yaml")?.trim()?.lines(),
+        ).deltas).`as`("openapi.yaml").isEmpty()
+
         Assertions.assertThat(dataSink.files.get("openapi.yaml")?.trim())
             .isEqualTo("src/test/resources/fixtures/openapi.yaml".readFile())
     }
@@ -57,6 +65,9 @@ class TestCodeGenerator {
         return Paths.get(this).toFile().readText().trim()
     }
 
+    private fun String.readFileLines(): List<String> {
+        return Paths.get(this).toFile().readLines()
+    }
     private fun cleanGenTestFolder() {
         cleanFolder("build/gensrc")
     }

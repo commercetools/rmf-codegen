@@ -8,6 +8,7 @@ uriParameters:
     (builtinType): string
     required: true
 post:
+  displayName: OauthByProjectKeyCustomersTokenPost
   description: |-
     To obtain an access token through the password flow, you need to provide the email and unencrypted
     password of the customer in addition to your OAuth client credentials.
@@ -33,6 +34,8 @@ post:
       (builtinType): string
   responses:
     200:
+      description: |-
+        200
       body:
         application/json:
           type: RefreshTokenResponse

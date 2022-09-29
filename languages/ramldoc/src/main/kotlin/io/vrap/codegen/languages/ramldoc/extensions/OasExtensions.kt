@@ -1,6 +1,7 @@
 package io.vrap.codegen.languages.ramldoc.extensions
 
 import com.damnhandy.uri.template.UriTemplate
+import com.fasterxml.jackson.databind.json.JsonMapper
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
 import io.swagger.v3.oas.models.servers.ServerVariable
@@ -14,7 +15,7 @@ fun UriTemplate.toResourceName(): String {
 fun Map.Entry<String, ServerVariable>.renderUriParameter(): String {
     val examples = this.value.extensions?.get("x-annotation-examples")
     return """
-            |${this.key.replace("ID", "id", ignoreCase = true)}:${if (this.value.enum.size > 0) """
+            |${this.key.replace("ID", "id", ignoreCase = true)}:${if (this.value.enum != null && this.value.enum.size > 0) """
             |  required: true
             |  enum:
             |    <<${this.value.enum.joinToString("\n") { "- ${it}"}}>>""" else ""}${if (examples != null) """
@@ -27,4 +28,11 @@ fun Any.toYaml(): String {
     val mapper = YAMLMapper()
     mapper.disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER)
     return mapper.writeValueAsString(this).trim()
+}
+
+fun Any.toJson(pretty: Boolean = true): String {
+    val mapper = JsonMapper()
+    val writer = if (pretty) mapper.writerWithDefaultPrettyPrinter() else mapper.writer()
+
+    return writer.writeValueAsString(this).trim()
 }

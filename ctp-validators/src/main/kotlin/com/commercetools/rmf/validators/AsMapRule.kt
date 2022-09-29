@@ -16,7 +16,7 @@ class AsMapRule(severity: RuleSeverity, options: List<RuleOption>? = null) : Typ
         if (exclude.contains(type.name).not()) {
             if (type.properties.size == 1 && type.properties[0].isPatternProperty() && type.properties[0].type.isScalar()) {
                 if (type.getAnnotation("asMap") == null) {
-                    validationResults.add(create(type, "Pattern property \"{0}\" must define an asMap annotation", type.name))
+                    validationResults.add(create(type, "Pattern property of type \"{0}\" must define an asMap annotation", type.name))
                 }
             }
         }

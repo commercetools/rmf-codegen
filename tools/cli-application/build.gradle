@@ -88,6 +88,8 @@ dependencies {
     implementation project(':languages:ramldoc')
     implementation project(':languages:oas')
     api project(':ctp-validators')
+    api swagger.swagger_parser
+    api swagger.swagger_converter
 
     implementation orgkotlin.stdlib
     implementation google.guava

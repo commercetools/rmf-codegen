@@ -13,6 +13,30 @@ object RamldocModelModule : Module {
             setOf(
                 OasApiRamlRenderer(generatorModule.apiProvider.api)
             )
+        ),
+        PathItemGenerator(
+            setOf(
+                OasResourceRenderer(generatorModule.provideOasModel())
+            ),
+            generatorModule.allPathItems()
+        ),
+        ObjectSchemaGenerator(
+            setOf(
+                OasObjectTypeRenderer(generatorModule.apiProvider.api, generatorModule.provideModelPackageName()),
+            ),
+            generatorModule.allObjectTypes()
+        ),
+        ComposedSchemaGenerator(
+            setOf(
+                OasComposedTypeRenderer(generatorModule.apiProvider.api, generatorModule.provideModelPackageName())
+            ),
+            generatorModule.allComposedTypes()
+        ),
+        StringSchemaGenerator(
+            setOf(
+                OasStringTypeRenderer(generatorModule.provideModelPackageName())
+            ),
+            generatorModule.allStringTypes()
         )
     )
 

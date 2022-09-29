@@ -36,7 +36,9 @@ paths:
           required: true
           style: form
           schema:
-            {}
+            oneOf:
+              - $ref: '#/components/schemas/ClientCredentialsType'
+              - $ref: '#/components/schemas/RefreshTokenType'
           explode: true
         - name: refresh_token
           in: query
@@ -182,6 +184,10 @@ components:
   schemas:
     IntrospectResponse:
       type: "object"
+      required:
+        - active
+        - exp
+        - scope
       properties:
         active:
           type: "boolean"

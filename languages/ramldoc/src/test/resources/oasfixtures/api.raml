@@ -1,0 +1,42 @@
+#%RAML 1.0
+---
+title: Commercetools OAuth API
+annotationTypes:
+  resourceName:
+    type: string
+    allowedTargets: [Resource, Method]
+  resourcePathUri:
+    type: string
+    allowedTargets: [Resource, Method]
+  builtinType:
+    type: string
+    allowedTargets: TypeDeclaration
+  oneOf:
+    type: array
+    items: string
+    allowedTargets: TypeDeclaration
+  inherited:
+    type: boolean
+    allowedTargets: TypeDeclaration
+  codeExamples:
+    type: object
+    allowedTargets: Method
+  package:
+    type: string
+    allowedTargets: TypeDeclaration
+baseUri: https://auth.europe-west1.gcp.commercetools.com
+
+types:
+  ClientCredentialsType: !include types/ClientCredentialsType.raml
+  GrantType: !include types/GrantType.raml
+  IntrospectResponse: !include types/IntrospectResponse.raml
+  PasswordType: !include types/PasswordType.raml
+  RefreshTokenResponse: !include types/RefreshTokenResponse.raml
+  RefreshTokenType: !include types/RefreshTokenType.raml
+  TokenResponse: !include types/TokenResponse.raml
+  TokenType: !include types/TokenType.raml
+
+/oauth/introspect: !include resources/OauthIntrospect.raml
+/oauth/token: !include resources/OauthToken.raml
+/oauth/{projectKey}/anonymous/token: !include resources/OauthByProjectKeyAnonymousToken.raml
+/oauth/{projectKey}/customers/token: !include resources/OauthByProjectKeyCustomersToken.raml

@@ -3,14 +3,15 @@
 (resourcePathUri): /oauth/token
 
 post:
+  displayName: OauthTokenPost
   queryParameters:
     grant_type:
       required: true
       type: ClientCredentialsType | RefreshTokenType
-      (oneOf):
-      - ClientCredentialsType
-      - RefreshTokenType
       (builtinType): any
+      (oneOf):
+        - ClientCredentialsType
+        - RefreshTokenType
     refresh_token:
       required: false
       type: string
@@ -21,6 +22,8 @@ post:
       (builtinType): string
   responses:
     200:
+      description: |-
+        200
       body:
         application/json:
           type: TokenResponse
