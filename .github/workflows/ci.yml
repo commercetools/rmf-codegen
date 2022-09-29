@@ -22,7 +22,7 @@ jobs:
           java-version: '8'
 
       - name: Build and Release
-        run: ./gradlew clean check --stacktrace
+        run: ./gradlew clean check --info
   test_node:
     name: Build npm package
 
