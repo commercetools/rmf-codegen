@@ -172,7 +172,7 @@ class TestCodeGenerator {
         Assertions.assertThat(dataSink.files.get("api.raml")?.trim())
             .isEqualTo("src/test/resources/fixtures/api.raml".readFile())
         Assertions.assertThat(dataSink.files.get("resources/Oauth.raml")?.trim())
-            .isEqualTo("src/test/resources/fixtures/resources/OAuth.raml".readFile())
+            .isEqualTo("src/test/resources/fixtures/resources/Oauth.raml".readFile())
         Assertions.assertThat(dataSink.files.get("resources/OauthIntrospect.raml")?.trim())
             .isEqualTo("src/test/resources/fixtures/resources/OauthIntrospect.raml".readFile())
         Assertions.assertThat(dataSink.files.get("resources/OauthToken.raml")?.trim())
