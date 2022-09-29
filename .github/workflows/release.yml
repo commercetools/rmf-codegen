@@ -6,127 +6,127 @@ on:
 name: AutoRelease
 
 jobs:
-  build-native:
-    name: Build all native images
-    continue-on-error: true
-    strategy:
-      matrix:
-        include:
-          - os: ubuntu-latest
-            name: Linux
-            artifact: rmf-codegen.linux
-          - os: macos-latest
-            name: Mac OS X
-            artifact: rmf-codegen.darwin
-          # TODO windows fails, reason not known yet
-          # - os: windows-latest
-          #   name: Windows
-          #   artifact: rmf-codegen.win32
-    runs-on: ${{ matrix.os }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-
-      - name: Setup Java
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'temurin'
-          java-version: '11'
-
-      - name: Build ${{ matrix.name }} native image
-        uses: gradle/gradle-command-action@v1
-        with:
-          arguments: nativeImage
-          build-root-directory: tools/cli-application
-          gradle-executable: ./gradlew
-
-      - name: Upload ${{ matrix.name }} native image
-        uses: actions/upload-artifact@v1
-        with:
-          name: ${{ matrix.artifact }}
-          path: ./tools/cli-application/build/graal/rmf-codegen
-
-  release:
-    name: Build JAR and Release the artifacts
-    runs-on: ubuntu-latest
-    needs: build-native
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-
-      - name: Setup Java
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'temurin'
-          java-version: '11'
-
-      - name: Build JAR
-        uses: gradle/gradle-command-action@v1
-        with:
-          arguments: build
-          build-root-directory: tools/cli-application
-          gradle-executable: ./gradlew
-
-      - name: Get current date
-        id: date
-        run: echo "::set-output name=date::$(date +'%Y-%m-%d_%H-%M-%S')"
-
-      - name: Download native build artifacts
-        uses: actions/download-artifact@v2
-
-      - name: Commit new version to README and install script
-        uses: stefanzweifel/git-auto-commit-action@v4.6.0
-        with:
-          commit_message: "TASK: Updating version in README"
-          commit_user_name: Auto Mation
-          commit_user_email: automation@commercetools.com
-          commit_author: Auto Mation <automation@commercetools.com>
-
-      - name: Create GitHub Release
-        id: create_github_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.ref }}
-          release_name: ${{ github.ref }}
-          draft: false
-          prerelease: false
-
-      - name: Upload JAR
-        id: upload-release-asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_github_release.outputs.upload_url }}
-          asset_path: rmf-codegen.jar
-          asset_name: rmf-codegen.jar
-          asset_content_type: application/java-archive
-
-      - name: Upload Linux Binary
-        id: upload-linux-asset
-        uses: actions/upload-release-asset@v1
-        continue-on-error: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_github_release.outputs.upload_url }}
-          asset_path: rmf-codegen.linux/rmf-codegen
-          asset_name: rmf-codegen.linux
-          asset_content_type: application/octet-stream
-
-      - name: Upload Mac OS Binary
-        id: upload-mac-asset
-        continue-on-error: true
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_github_release.outputs.upload_url }}
-          asset_path: rmf-codegen.darwin/rmf-codegen
-          asset_name: rmf-codegen.darwin
-          asset_content_type: application/octet-stream
+#  build-native:
+#    name: Build all native images
+#    continue-on-error: true
+#    strategy:
+#      matrix:
+#        include:
+#          - os: ubuntu-latest
+#            name: Linux
+#            artifact: rmf-codegen.linux
+#          - os: macos-latest
+#            name: Mac OS X
+#            artifact: rmf-codegen.darwin
+#          # TODO windows fails, reason not known yet
+#          # - os: windows-latest
+#          #   name: Windows
+#          #   artifact: rmf-codegen.win32
+#    runs-on: ${{ matrix.os }}
+#    steps:
+#      - name: Checkout
+#        uses: actions/checkout@v3
+#
+#      - name: Setup Java
+#        uses: actions/setup-java@v3
+#        with:
+#          distribution: 'temurin'
+#          java-version: '11'
+#
+#      - name: Build ${{ matrix.name }} native image
+#        uses: gradle/gradle-command-action@v1
+#        with:
+#          arguments: nativeImage
+#          build-root-directory: tools/cli-application
+#          gradle-executable: ./gradlew
+#
+#      - name: Upload ${{ matrix.name }} native image
+#        uses: actions/upload-artifact@v1
+#        with:
+#          name: ${{ matrix.artifact }}
+#          path: ./tools/cli-application/build/graal/rmf-codegen
+#
+#  release:
+#    name: Build JAR and Release the artifacts
+#    runs-on: ubuntu-latest
+#    needs: build-native
+#    steps:
+#      - name: Checkout
+#        uses: actions/checkout@v3
+#
+#      - name: Setup Java
+#        uses: actions/setup-java@v3
+#        with:
+#          distribution: 'temurin'
+#          java-version: '11'
+#
+#      - name: Build JAR
+#        uses: gradle/gradle-command-action@v1
+#        with:
+#          arguments: build
+#          build-root-directory: tools/cli-application
+#          gradle-executable: ./gradlew
+#
+#      - name: Get current date
+#        id: date
+#        run: echo "::set-output name=date::$(date +'%Y-%m-%d_%H-%M-%S')"
+#
+#      - name: Download native build artifacts
+#        uses: actions/download-artifact@v2
+#
+#      - name: Commit new version to README and install script
+#        uses: stefanzweifel/git-auto-commit-action@v4.6.0
+#        with:
+#          commit_message: "TASK: Updating version in README"
+#          commit_user_name: Auto Mation
+#          commit_user_email: automation@commercetools.com
+#          commit_author: Auto Mation <automation@commercetools.com>
+#
+#      - name: Create GitHub Release
+#        id: create_github_release
+#        uses: actions/create-release@v1
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#        with:
+#          tag_name: ${{ github.ref }}
+#          release_name: ${{ github.ref }}
+#          draft: false
+#          prerelease: false
+#
+#      - name: Upload JAR
+#        id: upload-release-asset
+#        uses: actions/upload-release-asset@v1
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#        with:
+#          upload_url: ${{ steps.create_github_release.outputs.upload_url }}
+#          asset_path: rmf-codegen.jar
+#          asset_name: rmf-codegen.jar
+#          asset_content_type: application/java-archive
+#
+#      - name: Upload Linux Binary
+#        id: upload-linux-asset
+#        uses: actions/upload-release-asset@v1
+#        continue-on-error: true
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#        with:
+#          upload_url: ${{ steps.create_github_release.outputs.upload_url }}
+#          asset_path: rmf-codegen.linux/rmf-codegen
+#          asset_name: rmf-codegen.linux
+#          asset_content_type: application/octet-stream
+#
+#      - name: Upload Mac OS Binary
+#        id: upload-mac-asset
+#        continue-on-error: true
+#        uses: actions/upload-release-asset@v1
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#        with:
+#          upload_url: ${{ steps.create_github_release.outputs.upload_url }}
+#          asset_path: rmf-codegen.darwin/rmf-codegen
+#          asset_name: rmf-codegen.darwin
+#          asset_content_type: application/octet-stream
 
       # - name: Upload Windows Binary
       #   id: upload-windows-asset
