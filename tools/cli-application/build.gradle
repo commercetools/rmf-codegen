@@ -113,6 +113,9 @@ shadowJar {
     archiveFileName = 'rmf-codegen.jar'
     minimize()
     destinationDirectory = file("../..")
+    minimize {
+        exclude(dependency("org.jetbrains.kotlin:.*"))
+    }
 }
 
 artifacts {
