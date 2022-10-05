@@ -6,6 +6,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import io.vrap.rmf.codegen.cli.diff.Check;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @JacksonXmlRootElement(localName = "diff")
@@ -15,7 +16,7 @@ public class DiffConfiguration {
 
     @JacksonXmlElementWrapper(localName = "checks")
     @JacksonXmlProperty(localName = "check")
-    private List<Check> checks;
+    private List<Check> checks = new ArrayList<>();
 
     @JsonCreator
     public DiffConfiguration() {

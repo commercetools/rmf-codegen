@@ -31,7 +31,7 @@ class DiffSetup {
 
             val ruleSet = mapper.readValue(config, DiffConfiguration::class.java)
 
-            return ruleSet.checks.map { rule -> Class.forName(rule.name).getConstructor().newInstance() as Differ<Any> }
+            return ruleSet.checks.map { rule -> Class.forName(rule.name).getConstructor(CheckSeverity::class.java).newInstance(rule.severity) as Differ<Any> }
         }
     }
 }

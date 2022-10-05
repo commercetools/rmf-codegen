@@ -39,6 +39,9 @@ class DiffSubcommand : Callable<Int> {
     @CommandLine.Option(names = ["-d", "--diffs"], description = ["Diff configuration"], required = false)
     var diffConfigurationFile: Path? = null
 
+    @CommandLine.Option(names = ["-s", "--severity"], description = ["Check severity", "Valid values: ${CheckSeverity.VALID_VALUES}"])
+    var checkSeverity: CheckSeverity = CheckSeverity.FATAL
+
     override fun call(): Int {
         return diff()
     }
@@ -70,7 +73,7 @@ class DiffSubcommand : Callable<Int> {
         } ?: run {
             println(output)
         }
-        return 0
+        return diffResult.any { diff -> diff.severity >= checkSeverity }.let { b -> if(b) 1 else 0 }
     }
 
     class CliFormatPrinter {

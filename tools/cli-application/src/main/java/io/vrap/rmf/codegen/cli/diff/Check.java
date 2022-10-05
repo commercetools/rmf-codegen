@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class Check {
@@ -11,10 +13,10 @@ public class Check {
     private String name;
 
     @JacksonXmlElementWrapper(localName = "options")
-    private List<CheckOption> options;
+    private List<CheckOption> options = new ArrayList<>();
 
     @JacksonXmlProperty(localName = "severity")
-    private CheckSeverity severity;
+    private CheckSeverity severity = CheckSeverity.INFO;
 
     @JsonCreator
     public Check() {

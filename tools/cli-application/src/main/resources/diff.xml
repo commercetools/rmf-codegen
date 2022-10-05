@@ -1,30 +1,30 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <diff xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:noNamespaceSchemaLocation="diff.xsd">
+      xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/commercetools/rmf-codegen/main/tools/cli-application/src/main/resources/diff.xsd">
     <name>default</name>
     <checks>
         <check>
-            <name>io.vrap.rmf.codegen.cli.diff.PropertyRemovedCheck</name>
-        </check>
-        <check>
             <name>io.vrap.rmf.codegen.cli.diff.PropertyAddedCheck</name>
         </check>
-        <check>
-            <name>io.vrap.rmf.codegen.cli.diff.TypeRemovedCheck</name>
+        <check severity="error">
+            <name>io.vrap.rmf.codegen.cli.diff.PropertyRemovedCheck</name>
         </check>
         <check>
             <name>io.vrap.rmf.codegen.cli.diff.TypeAddedCheck</name>
         </check>
+        <check severity="error">
+            <name>io.vrap.rmf.codegen.cli.diff.TypeRemovedCheck</name>
+        </check>
         <check>
             <name>io.vrap.rmf.codegen.cli.diff.MethodAddedCheck</name>
         </check>
-        <check>
+        <check severity="error">
             <name>io.vrap.rmf.codegen.cli.diff.MethodRemovedCheck</name>
         </check>
         <check>
             <name>io.vrap.rmf.codegen.cli.diff.ResourceAddedCheck</name>
         </check>
-        <check>
+        <check severity="error">
             <name>io.vrap.rmf.codegen.cli.diff.ResourceRemovedCheck</name>
         </check>
     </checks>
