@@ -156,6 +156,7 @@ class TypeScriptModuleRenderer constructor(override val vrapTypeProvider: VrapTy
     private fun StringType.renderEnumValues(): String = enumValues()
         .map { "'${it}'" }
         .sorted()
+        .plus("string")
         .joinToString(" |\n")
 
 
