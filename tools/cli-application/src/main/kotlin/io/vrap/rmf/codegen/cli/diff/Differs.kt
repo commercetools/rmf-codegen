@@ -73,7 +73,7 @@ class PropertyRemovedCheck(override val severity: CheckSeverity): DiffCheck<Map<
     override fun diff(data: DiffData<Map<String, ObjectType>>): List<Diff<Any>> {
         return data.original.filter { data.changed.containsKey(it.key) }.flatMap { (typeName, objectType) ->
             objectType.allProperties.toPropertyMap().filter { data.changed[typeName]!!.allProperties.toPropertyMap().containsKey(it.key).not() }.map { (propertyName,property) -> Diff(
-                DiffType.REMOVED, Scope.PROPERTY, propertyName, "removed property `${propertyName}` to type `${typeName}`", property, severity) }
+                DiffType.REMOVED, Scope.PROPERTY, propertyName, "removed property `${propertyName}` from type `${typeName}`", property, severity) }
         }
     }
 }

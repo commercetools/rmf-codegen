@@ -2,6 +2,7 @@ package io.vrap.rmf.codegen.cli
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.vrap.rmf.codegen.cli.diff.*
+import io.vrap.rmf.codegen.firstUpperCase
 import io.vrap.rmf.raml.model.RamlModelBuilder
 import io.vrap.rmf.raml.model.modules.Api
 import org.eclipse.emf.common.util.URI
@@ -17,7 +18,7 @@ enum class OutputFormat {
     MARKDOWN,
     JSON,
 }
-const val ValidFormats =  "CLI, JSON"
+const val ValidFormats =  "CLI, JSON, MARKDOWN"
 
 @CommandLine.Command(name = "diff", description = ["Generates a diff between two specifications"])
 class DiffSubcommand : Callable<Int> {
@@ -87,7 +88,18 @@ class DiffSubcommand : Callable<Int> {
 
     class MarkdownFormatPrinter {
         fun print(diffResult: List<Diff<Any>>): String {
-            return diffResult.joinToString("\n") { "- ${it.message} (${it.source?.location}:${it.source?.position?.line}:${it.source?.position?.charPositionInLine})" }
+
+            val map = diffResult.groupBy { it.scope }.map { it.key to it.value.groupBy { it.diffType } }.toMap()
+
+            return map.entries.joinToString("\n\n") { scope -> """
+                |### ${scope.key.scope.firstUpperCase()}
+                |
+                |${scope.value.entries.joinToString("\n\n") { type -> """
+                |#### ${type.key.type.firstUpperCase()}
+                |
+                |${type.value.joinToString("\n") { "- ${it.message} (${it.source?.location}:${it.source?.position?.line}:${it.source?.position?.charPositionInLine})" }}
+                """.trimMargin() }}
+            """.trimMargin() }
         }
     }
 
