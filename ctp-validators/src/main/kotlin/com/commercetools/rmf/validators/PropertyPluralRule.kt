@@ -2,6 +2,7 @@ package com.commercetools.rmf.validators
 
 import com.hypertino.inflector.English
 import io.vrap.rmf.raml.model.types.ArrayType
+import io.vrap.rmf.raml.model.types.ObjectType
 import io.vrap.rmf.raml.model.types.Property
 import org.eclipse.emf.common.util.Diagnostic
 import java.util.*
@@ -17,8 +18,11 @@ class PropertyPluralRule(severity: RuleSeverity, options: List<RuleOption>? = nu
         val pluralName = English.plural(English.singular(propertyName))
 
         if (property.type is ArrayType && property.pattern == null && propertyName != pluralName && exclude.contains(propertyName).not()) {
-
-            validationResults.add(create(property, "Array property \"{0}\" must be plural", propertyName))
+            val containerName = when(val propertyContainer = property.eContainer()) {
+                is ObjectType -> propertyContainer.name
+                else -> "unknown"
+            }
+            validationResults.add(create(property, "Array property \"{0}\" of type \"{1}\" must be plural", propertyName, containerName))
         }
         return validationResults
     }

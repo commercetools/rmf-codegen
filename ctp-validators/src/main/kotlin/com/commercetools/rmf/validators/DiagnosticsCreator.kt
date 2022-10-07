@@ -20,10 +20,9 @@ interface DiagnosticsCreator {
         messagePattern: String,
         vararg messageArgs: Any?
     ): Diagnostic {
-        val message = MessageFormat.format("{0}: {1}", this.javaClass.simpleName, MessageFormat.format(messagePattern, *messageArgs))
-        return BasicDiagnostic(severity, null, -1, message, arrayOf<Any?>(eObject, this.javaClass.simpleName))
+        val violation = Violation(this.javaClass, eObject, messagePattern, messageArgs.asList(), severity)
+        return BasicDiagnostic(severity, null, -1, violation.message, arrayOf<Any?>(eObject, this.javaClass.simpleName, violation))
     }
-
 }
 
 interface DiagnosticsAware: DiagnosticsCreator {

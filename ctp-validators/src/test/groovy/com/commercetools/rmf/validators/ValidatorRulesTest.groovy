@@ -22,15 +22,15 @@ class ValidatorRulesTest extends Specification implements ValidatorFixtures {
         def result = new RamlModelBuilder(validators).buildApi(uri)
         then:
         result.validationResults.size == 9
-        result.validationResults[0].message == "DatetimeRule: Property \"fooDateTime\" must end with \"At\", \"From\" or \"To\""
-        result.validationResults[1].message == "DatetimeRule: Property \"fooDate\" must end with \"At\", \"From\" or \"To\""
-        result.validationResults[2].message == "DatetimeRule: Property \"fooTime\" must end with \"At\", \"From\" or \"To\""
-        result.validationResults[3].message == "DatetimeRule: Property \"fooDateTimeFrom\" indicates a range, property ending with \"To\" is missing"
-        result.validationResults[4].message == "DatetimeRule: Property \"fooDateTimeTo\" indicates a range, property ending with \"From\" is missing"
-        result.validationResults[5].message == "DatetimeRule: Property \"fooDateFrom\" indicates a range, property ending with \"To\" is missing"
-        result.validationResults[6].message == "DatetimeRule: Property \"fooDateTo\" indicates a range, property ending with \"From\" is missing"
-        result.validationResults[7].message == "DatetimeRule: Property \"fooTimeFrom\" indicates a range, property ending with \"To\" is missing"
-        result.validationResults[8].message == "DatetimeRule: Property \"fooTimeTo\" indicates a range, property ending with \"From\" is missing"
+        result.validationResults[0].message == "DatetimeRule: Property \"fooDateTime\" of type \"InvalidDateTime\" must end with \"At\", \"From\" or \"To\""
+        result.validationResults[1].message == "DatetimeRule: Property \"fooDate\" of type \"InvalidDate\" must end with \"At\", \"From\" or \"To\""
+        result.validationResults[2].message == "DatetimeRule: Property \"fooTime\" of type \"InvalidTime\" must end with \"At\", \"From\" or \"To\""
+        result.validationResults[3].message == "DatetimeRule: Property \"fooDateTimeFrom\" of type \"InvalidDateTimeRangeFrom\" indicates a range, property ending with \"To\" is missing"
+        result.validationResults[4].message == "DatetimeRule: Property \"fooDateTimeTo\" of type \"InvalidDateTimeRangeTo\" indicates a range, property ending with \"From\" is missing"
+        result.validationResults[5].message == "DatetimeRule: Property \"fooDateFrom\" of type \"InvalidDateRangeFrom\" indicates a range, property ending with \"To\" is missing"
+        result.validationResults[6].message == "DatetimeRule: Property \"fooDateTo\" of type \"InvalidDateRangeTo\" indicates a range, property ending with \"From\" is missing"
+        result.validationResults[7].message == "DatetimeRule: Property \"fooTimeFrom\" of type \"InvalidTimeRangeFrom\" indicates a range, property ending with \"To\" is missing"
+        result.validationResults[8].message == "DatetimeRule: Property \"fooTimeTo\" of type \"InvalidTimeRangeTo\" indicates a range, property ending with \"From\" is missing"
     }
 
     def "discriminator name rule"() {
@@ -131,8 +131,8 @@ class ValidatorRulesTest extends Specification implements ValidatorFixtures {
         def result = new RamlModelBuilder(validators).buildApi(uri)
         then:
         result.validationResults.size == 2
-        result.validationResults[0].message == "PropertyPluralRule: Array property \"invalidItem\" must be plural"
-        result.validationResults[1].message == "PropertyPluralRule: Array property \"invalidItemDesc\" must be plural"
+        result.validationResults[0].message == "PropertyPluralRule: Array property \"invalidItem\" of type \"Foo\" must be plural"
+        result.validationResults[1].message == "PropertyPluralRule: Array property \"invalidItemDesc\" of type \"Foo\" must be plural"
     }
 
     def "query parameter camel case rule"() {
