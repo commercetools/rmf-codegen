@@ -14,6 +14,7 @@ import java.util.stream.Collectors
 
 enum class OutputFormat {
     CLI,
+    MARKDOWN,
     JSON,
 }
 const val ValidFormats =  "CLI, JSON"
@@ -65,6 +66,7 @@ class DiffSubcommand : Callable<Int> {
 
         val output = when(outputFormat) {
             OutputFormat.CLI -> CliFormatPrinter().print(diffResult)
+            OutputFormat.MARKDOWN -> MarkdownFormatPrinter().print(diffResult)
             OutputFormat.JSON -> JsonFormatPrinter().print(diffResult)
         }
 
@@ -80,6 +82,12 @@ class DiffSubcommand : Callable<Int> {
     class CliFormatPrinter {
         fun print(diffResult: List<Diff<Any>>): String {
             return diffResult.joinToString("\n") { "${it.message} (${it.source})" }
+        }
+    }
+
+    class MarkdownFormatPrinter {
+        fun print(diffResult: List<Diff<Any>>): String {
+            return diffResult.joinToString("\n") { "- ${it.message} (${it.source?.location}:${it.source?.position?.line}:${it.source?.position?.charPositionInLine})" }
         }
     }
 
