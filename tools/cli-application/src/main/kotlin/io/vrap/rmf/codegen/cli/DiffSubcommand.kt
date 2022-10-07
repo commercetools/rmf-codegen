@@ -69,7 +69,8 @@ class DiffSubcommand : Callable<Int> {
         }
 
         outputTarget?.let {
-            Files.write(it, output.toByteArray(StandardCharsets.UTF_8))
+            InternalLogger.info("Writing to ${it.toRealPath().toAbsolutePath()}")
+            Files.write(it.toRealPath().toAbsolutePath(), output.toByteArray(StandardCharsets.UTF_8))
         } ?: run {
             println(output)
         }
