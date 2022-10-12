@@ -13,13 +13,6 @@ import java.nio.file.Path
 import java.util.concurrent.Callable
 import java.util.stream.Collectors
 
-enum class OutputFormat {
-    CLI,
-    MARKDOWN,
-    JSON,
-}
-const val ValidFormats =  "CLI, JSON, MARKDOWN"
-
 @CommandLine.Command(name = "diff", description = ["Generates a diff between two specifications"])
 class DiffSubcommand : Callable<Int> {
 
@@ -65,11 +58,7 @@ class DiffSubcommand : Callable<Int> {
             return 0
         }
 
-        val output = when(outputFormat) {
-            OutputFormat.CLI -> CliFormatPrinter().print(diffResult)
-            OutputFormat.MARKDOWN -> MarkdownFormatPrinter().print(diffResult)
-            OutputFormat.JSON -> JsonFormatPrinter().print(diffResult)
-        }
+        val output = diagnosticPrinter(outputFormat).print(diffResult)
 
         outputTarget?.let {
             InternalLogger.info("Writing to ${it.toAbsolutePath().normalize()}")
@@ -80,14 +69,28 @@ class DiffSubcommand : Callable<Int> {
         return diffResult.any { diff -> diff.severity >= checkSeverity }.let { b -> if(b) 1 else 0 }
     }
 
-    class CliFormatPrinter {
-        fun print(diffResult: List<Diff<Any>>): String {
+    companion object {
+        fun diagnosticPrinter(printer: OutputFormat): FormatPrinter {
+            return when (printer) {
+                OutputFormat.CLI -> CliFormatPrinter()
+                OutputFormat.MARKDOWN -> MarkdownFormatPrinter()
+                OutputFormat.JSON -> JsonFormatPrinter()
+            }
+        }
+    }
+
+    interface FormatPrinter {
+        fun print(diffResult: List<Diff<Any>>): String
+    }
+
+    class CliFormatPrinter: FormatPrinter {
+        override fun print(diffResult: List<Diff<Any>>): String {
             return diffResult.joinToString("\n") { "${it.message} (${it.source})" }
         }
     }
 
-    class MarkdownFormatPrinter {
-        fun print(diffResult: List<Diff<Any>>): String {
+    class MarkdownFormatPrinter: FormatPrinter {
+        override fun print(diffResult: List<Diff<Any>>): String {
 
             val map = diffResult.groupBy { it.scope }.map { it.key to it.value.groupBy { it.diffType } }.toMap()
 
@@ -103,8 +106,8 @@ class DiffSubcommand : Callable<Int> {
         }
     }
 
-    class JsonFormatPrinter {
-        fun print(diffResult: List<Diff<Any>>): String {
+    class JsonFormatPrinter: FormatPrinter {
+        override fun print(diffResult: List<Diff<Any>>): String {
             val mapper = ObjectMapper()
             return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(diffResult)
         }
