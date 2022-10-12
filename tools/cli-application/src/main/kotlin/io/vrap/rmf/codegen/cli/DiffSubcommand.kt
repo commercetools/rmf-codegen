@@ -25,13 +25,13 @@ class DiffSubcommand : Callable<Int> {
     @CommandLine.Parameters(index = "1", description = ["Changed api file location"])
     lateinit var changedFileLocation: Path
 
-    @CommandLine.Option(names = ["-f", "--format"], description = ["Specifies the output format","Valid values: $ValidFormats"])
+    @CommandLine.Option(names = ["-f", "--format"], description = ["Specifies the output format","Valid values: ${OutputFormat.VALID_VALUES}"])
     var outputFormat: OutputFormat = OutputFormat.CLI
 
     @CommandLine.Option(names = ["-t", "--target"], description = ["Specifies the file to write to"])
     var outputTarget: Path? = null
 
-    @CommandLine.Option(names = ["-d", "--diffs"], description = ["Diff configuration"], required = false)
+    @CommandLine.Option(names = ["-d", "--diffs"], description = ["Diff configuration"])
     var diffConfigurationFile: Path? = null
 
     @CommandLine.Option(names = ["-s", "--severity"], description = ["Check severity", "Valid values: ${CheckSeverity.VALID_VALUES}"])

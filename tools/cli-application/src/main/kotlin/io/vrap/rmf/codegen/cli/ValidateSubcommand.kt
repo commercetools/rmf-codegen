@@ -45,19 +45,19 @@ class ValidateSubcommand : Callable<Int> {
     @CommandLine.Parameters(index = "0", description = ["Api file location"])
     lateinit var ramlFileLocation: Path
 
-    @CommandLine.Option(names = ["-r", "--ruleset"], description = ["Ruleset configuration"], required = false)
+    @CommandLine.Option(names = ["-r", "--ruleset"], description = ["Ruleset configuration"])
     var rulesetFile: Path? = null
 
-    @CommandLine.Option(names = ["-t", "--temp"], description = ["Temporary folder"], required = false)
+    @CommandLine.Option(names = ["-t", "--temp"], description = ["Temporary folder"])
     var tempFile: Path? = null
 
-    @CommandLine.Option(names = ["-w", "--watch"], description = ["Watches the files for changes"], required = false)
+    @CommandLine.Option(names = ["-w", "--watch"], description = ["Watches the files for changes"])
     var watch: Boolean = false
 
-    @CommandLine.Option(names = ["-f", "--format"], required = false)
+    @CommandLine.Option(names = ["-f", "--format"], description = ["Specifies the output format","Valid values: ${OutputFormat.VALID_VALUES}"] )
     var formatter: OutputFormat = OutputFormat.CLI
 
-    @CommandLine.Option(names = ["-o", "--outputTarget"], required = false)
+    @CommandLine.Option(names = ["-o", "--outputTarget"])
     var outputTarget: Path? = null
 
     @CommandLine.Option(names = ["-s", "--severity"], description = ["Diagnostic severity", "Valid values: ${DiagnosticSeverity.VALID_VALUES}"])

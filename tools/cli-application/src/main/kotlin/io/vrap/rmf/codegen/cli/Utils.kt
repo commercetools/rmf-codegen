@@ -23,9 +23,12 @@ fun safeRun(block: () -> Int): Int {
 enum class OutputFormat {
     CLI,
     MARKDOWN,
-    JSON,
+    JSON;
+
+    companion object {
+        const val VALID_VALUES = "CLI, JSON, MARKDOWN"
+    }
 }
-const val ValidFormats =  "CLI, JSON, MARKDOWN"
 
 enum class LogLevel constructor(val level: Int) {
     DEBUG(0),
