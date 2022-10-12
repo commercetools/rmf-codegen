@@ -201,22 +201,25 @@ class ValidateSubcommand : Callable<Int> {
                         |<details>
                         |<summary>🛑  ${errors.size} Error(s) found validating ${fileURI.toFileString()}</summary>
                         |
-                        |${errors.joinToString("\n") { "${it.message} (${it.location}:${it.line}:${it.column})" }}
+                        |${errors.joinToString("\n") { "- ${it.message} (${it.location}:${it.line}:${it.column})" }}
                         |</details>
+                        |
                     """.trimMargin()
                 if (warnings.isNotEmpty()) output += """
                         |<details>
                         |<summary>⚠️  ${warnings.size} Warnings(s) found validating ${fileURI.toFileString()}</summary>
                         |
-                        |${warnings.joinToString("\n") { "${it.message} (${it.location}:${it.line}:${it.column})" }}
+                        |${warnings.joinToString("\n") { "- ${it.message} (${it.location}:${it.line}:${it.column})" }}
                         |</details>
+                        |
                     """.trimMargin()
                 if (infos.isNotEmpty()) output += """
                         |<details>
                         |<summary>✅  ${infos.size} Info(s) found validating ${fileURI.toFileString()}</summary>
                         |
-                        |${infos.joinToString("\n") { "${it.message} (${it.location}:${it.line}:${it.column})" }}
+                        |${infos.joinToString("\n") { "- ${it.message} (${it.location}:${it.line}:${it.column})" }}
                         |</details>
+                        |
                     """.trimMargin()
 
                 return output
