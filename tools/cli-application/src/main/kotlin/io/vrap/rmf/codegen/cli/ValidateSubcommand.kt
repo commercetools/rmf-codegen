@@ -15,6 +15,7 @@ import io.vrap.rmf.raml.model.RamlDiagnostic
 import io.vrap.rmf.raml.model.RamlModelBuilder
 import io.vrap.rmf.raml.model.RamlModelResult
 import io.vrap.rmf.raml.model.modules.Api
+import io.vrap.rmf.raml.validation.Violation
 import org.eclipse.emf.common.util.Diagnostic
 import org.eclipse.emf.common.util.URI
 import picocli.CommandLine
@@ -25,6 +26,10 @@ import java.nio.file.Paths
 import java.util.*
 import java.util.concurrent.Callable
 import java.util.concurrent.TimeUnit
+import kotlin.io.path.Path
+import kotlin.io.path.relativeTo
+import kotlin.io.path.relativeToOrSelf
+import kotlin.io.path.toPath
 
 enum class DiagnosticSeverity(val severity: String, val value: Int) {
     INFO("info", Diagnostic.INFO),
@@ -55,7 +60,13 @@ class ValidateSubcommand : Callable<Int> {
     var watch: Boolean = false
 
     @CommandLine.Option(names = ["-f", "--format"], description = ["Specifies the output format","Valid values: ${OutputFormat.VALID_VALUES}"] )
-    var formatter: OutputFormat = OutputFormat.CLI
+    var outputFormat: OutputFormat = OutputFormat.CLI
+
+    @CommandLine.Option(names = ["-l", "--link-base"])
+    var linkBase: java.net.URI? = null
+
+    @CommandLine.Option(names = ["-lf", "--link-format"], description = ["Specifies the link format","Valid values: ${LinkFormat.VALID_VALUES}"] )
+    var linkFormat: LinkFormat = LinkFormat.CLI
 
     @CommandLine.Option(names = ["-o", "--outputTarget"])
     var outputTarget: Path? = null
@@ -65,11 +76,16 @@ class ValidateSubcommand : Callable<Int> {
 
     lateinit var modelBuilder: RamlModelBuilder
 
-    lateinit var diagnosticFormatter: FormatPrinter
+    private fun linkURI(): java.net.URI {
+        var uri = linkBase ?: java.net.URI.create(".")
+        if (uri.toString().endsWith("/").not()) {
+            uri = java.net.URI.create("$uri/")
+        }
+        return uri
+    }
 
     override fun call(): Int {
-        val tmpDir = tempFile ?: Paths.get(".tmp")
-        diagnosticFormatter = diagnosticFormatter(formatter)
+        val tmpDir = tempFile?.toAbsolutePath()?.normalize() ?: Paths.get(".tmp")
         modelBuilder = setupValidators()
         val res = safeRun { validate(tmpDir)}
         if (watch) {
@@ -120,7 +136,7 @@ class ValidateSubcommand : Callable<Int> {
     }
 
     fun validate(tmpDir: Path): Int {
-        var fileLocation = ramlFileLocation
+        var fileLocation = ramlFileLocation.toAbsolutePath().normalize()
         if (ramlFileLocation.toString().endsWith(".raml").not()) {
             val apiProvider = OasProvider(ramlFileLocation)
 
@@ -134,10 +150,13 @@ class ValidateSubcommand : Callable<Int> {
             fileLocation = tmpDir.resolve("api.raml")
         }
         val fileURI = URI.createURI(fileLocation.toUri().toString())
+
         val modelResult = modelBuilder.buildApi(fileURI)
 //        if (tmpDir.exists()) {
 //            tmpDir.toFile().deleteRecursively()
 //        }
+        val filePath =  Path(fileURI.toFileString()).parent
+        val diagnosticFormatter = diagnosticFormatter(outputFormat, filePath, linkURI())
         val output = diagnosticFormatter.print(fileURI, modelResult)
 
         outputTarget?.let {
@@ -155,21 +174,60 @@ class ValidateSubcommand : Callable<Int> {
         return RamlModelBuilder(ValidatorSetup.setup(ruleset))
     }
 
-    companion object {
-        fun diagnosticFormatter(printer: OutputFormat): FormatPrinter {
-            return when (printer) {
-                OutputFormat.CLI -> CliFormatPrinter()
-                OutputFormat.MARKDOWN -> MarkdownFormatPrinter()
-                OutputFormat.JSON -> TODO()
-            }
+    private fun diagnosticFormatter(printer: OutputFormat, filePath: Path, linkUri: java.net.URI): FormatPrinter {
+        val linkFormatter = linkFormatter(linkFormat, filePath, linkUri)
+        return when (printer) {
+            OutputFormat.CLI -> CliFormatPrinter(linkFormatter)
+            OutputFormat.MARKDOWN -> MarkdownFormatPrinter(linkFormatter)
+            OutputFormat.JSON -> TODO()
+        }
+    }
+
+    private fun linkFormatter(formatter: LinkFormat, filePath: Path, linkBase: java.net.URI): LinkFormatter {
+        return when (formatter) {
+            LinkFormat.CLI -> CliLinkFormatter(filePath, linkBase)
+            LinkFormat.GITHUB -> GithubLinkFormatter(filePath, linkBase)
         }
     }
 
     interface FormatPrinter {
+        val linkFormatter: LinkFormatter
         fun print(fileURI: URI, result: RamlModelResult<Api>): String
     }
 
-    class CliFormatPrinter: FormatPrinter {
+    interface LinkFormatter {
+        val filePath: Path
+        val linkBase: java.net.URI
+
+        fun format(path: Path): String {
+            return path.relativeTo(filePath).toLink(linkBase).toString()
+        }
+
+        fun format(diagnostic: RamlDiagnostic): String
+
+        fun RamlDiagnostic.toLocation(filePath: Path): Path {
+            return java.net.URI.create(this.location).toPath().relativeToOrSelf(filePath)
+        }
+
+        fun Path.toLink(baseUri: java.net.URI): java.net.URI {
+            return baseUri.resolve(this.toString())
+        }
+    }
+
+    class CliLinkFormatter(override val filePath: Path, override val linkBase: java.net.URI): LinkFormatter {
+        override fun format(diagnostic: RamlDiagnostic): String {
+            return "${diagnostic.toLocation(filePath).toLink(linkBase)}:${diagnostic.line}:${diagnostic.column}"
+        }
+    }
+
+    class GithubLinkFormatter(override val filePath: Path, override val linkBase: java.net.URI): LinkFormatter {
+        override fun format(diagnostic: RamlDiagnostic): String {
+            return "${diagnostic.toLocation(filePath).toLink(linkBase)}#L${diagnostic.line}"
+        }
+    }
+
+    class CliFormatPrinter(override val linkFormatter: LinkFormatter): FormatPrinter {
+
         override fun print(fileURI: URI, result: RamlModelResult<Api>): String {
             val validationResults = result.validationResults
             var output = ""
@@ -178,9 +236,9 @@ class ValidateSubcommand : Callable<Int> {
                 val warnings = validationResults.filter { diagnostic -> diagnostic.severity == Diagnostic.WARNING }
                 val infos = validationResults.filter { diagnostic -> diagnostic.severity == Diagnostic.INFO }
 
-                if (errors.isNotEmpty()) output += "🛑 ${errors.size} Error(s) found validating ${fileURI.toFileString()}:\n${errors.joinToString("\n") { it.message }}"
-                if (warnings.isNotEmpty()) output += "⚠️ ${warnings.size} Warnings(s) found validating ${fileURI.toFileString()}:\n${warnings.joinToString("\n") { it.message }}"
-                if (infos.isNotEmpty()) output += "✅ ${infos.size} Info(s) found validating ${fileURI.toFileString()}:\n${infos.joinToString("\n") { it.message }}"
+                if (errors.isNotEmpty()) output += "🛑 ${errors.size} Error(s) found validating ${fileURI.toFileString()}:\n${errors.joinToString("\n") { it.detailMessage() }}"
+                if (warnings.isNotEmpty()) output += "⚠️ ${warnings.size} Warnings(s) found validating ${fileURI.toFileString()}:\n${warnings.joinToString("\n") { it.detailMessage() }}"
+                if (infos.isNotEmpty()) output += "✅ ${infos.size} Info(s) found validating ${fileURI.toFileString()}:\n${infos.joinToString("\n") { it.detailMessage() }}"
 
                 return output
             }
@@ -188,8 +246,9 @@ class ValidateSubcommand : Callable<Int> {
         }
     }
 
-    class MarkdownFormatPrinter: FormatPrinter {
+    class MarkdownFormatPrinter(override val linkFormatter: LinkFormatter): FormatPrinter {
         override fun print(fileURI: URI, result: RamlModelResult<Api>): String {
+            val relativeFileLink = linkFormatter.format(Path(fileURI.toFileString()))
             val validationResults = result.validationResults
             var output = ""
             if (validationResults.isNotEmpty()) {
@@ -199,25 +258,25 @@ class ValidateSubcommand : Callable<Int> {
 
                 if (errors.isNotEmpty()) output += """
                         |<details>
-                        |<summary>🛑  ${errors.size} Error(s) found validating ${fileURI.toFileString()}</summary>
+                        |<summary>🛑  ${errors.size} Error(s) found validating ${relativeFileLink}</summary>
                         |
-                        |${errors.joinToString("\n") { "- ${it.message} (${it.location}:${it.line}:${it.column})" }}
+                        |${errors.joinToString("\n") { "- ${it.detailMessage()} (${linkFormatter.format(it)})" }}
                         |</details>
                         |
                     """.trimMargin()
                 if (warnings.isNotEmpty()) output += """
                         |<details>
-                        |<summary>⚠️  ${warnings.size} Warnings(s) found validating ${fileURI.toFileString()}</summary>
+                        |<summary>⚠️  ${warnings.size} Warnings(s) found validating ${relativeFileLink}</summary>
                         |
-                        |${warnings.joinToString("\n") { "- ${it.message} (${it.location}:${it.line}:${it.column})" }}
+                        |${warnings.joinToString("\n") { "- ${it.detailMessage()} (${linkFormatter.format(it)})" }}
                         |</details>
                         |
                     """.trimMargin()
                 if (infos.isNotEmpty()) output += """
                         |<details>
-                        |<summary>✅  ${infos.size} Info(s) found validating ${fileURI.toFileString()}</summary>
+                        |<summary>✅  ${infos.size} Info(s) found validating ${relativeFileLink}</summary>
                         |
-                        |${infos.joinToString("\n") { "- ${it.message} (${it.location}:${it.line}:${it.column})" }}
+                        |${infos.joinToString("\n") { "- ${it.detailMessage()} (${linkFormatter.format(it)})" }}
                         |</details>
                         |
                     """.trimMargin()
