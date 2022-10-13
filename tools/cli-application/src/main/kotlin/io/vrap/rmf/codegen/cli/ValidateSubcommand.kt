@@ -248,7 +248,7 @@ class ValidateSubcommand : Callable<Int> {
 
     class MarkdownFormatPrinter(override val linkFormatter: LinkFormatter): FormatPrinter {
         override fun print(fileURI: URI, result: RamlModelResult<Api>): String {
-            val relativeFileLink = linkFormatter.format(Path(fileURI.toFileString()))
+            val relativeFileLink = Path(fileURI.toFileString()).relativeTo(linkFormatter.filePath)
             val validationResults = result.validationResults
             var output = ""
             if (validationResults.isNotEmpty()) {
@@ -260,7 +260,7 @@ class ValidateSubcommand : Callable<Int> {
                         |<details>
                         |<summary>🛑  ${errors.size} Error(s) found validating ${relativeFileLink}</summary>
                         |
-                        |${errors.joinToString("\n") { "- ${it.detailMessage()} (${linkFormatter.format(it)})" }}
+                        |${errors.joinToString("\n") { "- ${it.detailMessage()} ${linkFormatter.format(it)}" }}
                         |</details>
                         |
                     """.trimMargin()
@@ -268,7 +268,7 @@ class ValidateSubcommand : Callable<Int> {
                         |<details>
                         |<summary>⚠️  ${warnings.size} Warnings(s) found validating ${relativeFileLink}</summary>
                         |
-                        |${warnings.joinToString("\n") { "- ${it.detailMessage()} (${linkFormatter.format(it)})" }}
+                        |${warnings.joinToString("\n") { "- ${it.detailMessage()} ${linkFormatter.format(it)}" }}
                         |</details>
                         |
                     """.trimMargin()
@@ -276,7 +276,7 @@ class ValidateSubcommand : Callable<Int> {
                         |<details>
                         |<summary>✅  ${infos.size} Info(s) found validating ${relativeFileLink}</summary>
                         |
-                        |${infos.joinToString("\n") { "- ${it.detailMessage()} (${linkFormatter.format(it)})" }}
+                        |${infos.joinToString("\n") { "- ${it.detailMessage()} ${linkFormatter.format(it)}" }}
                         |</details>
                         |
                     """.trimMargin()
