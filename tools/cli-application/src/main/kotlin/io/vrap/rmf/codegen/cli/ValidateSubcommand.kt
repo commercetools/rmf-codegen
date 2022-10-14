@@ -237,7 +237,7 @@ class ValidateSubcommand : Callable<Int> {
                 val nodeTokenProvider = EcoreUtil.getExistingAdapter(violation.`object`, NodeTokenProvider::class.java) as NodeTokenProvider
                 val nodeToken = nodeTokenProvider.stop
                 val t = java.net.URI.create(nodeToken.location).toPath().relativeToOrSelf(filePath)
-                if (t == location) {
+                if (t == location && nodeToken.line > diagnostic.line) {
                     return "-L${nodeToken.line}"
                 }
             }
