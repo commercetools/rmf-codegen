@@ -29,7 +29,7 @@ class DiffSubcommand : Callable<Int> {
     @CommandLine.Option(names = ["-f", "--format"], description = ["Specifies the output format","Valid values: ${OutputFormat.VALID_VALUES}"])
     var outputFormat: OutputFormat = OutputFormat.CLI
 
-    @CommandLine.Option(names = ["-t", "--target"], description = ["Specifies the file to write to"])
+    @CommandLine.Option(names = ["-o", "--outputTarget"], description = ["Specifies the file to write to"])
     var outputTarget: Path? = null
 
     @CommandLine.Option(names = ["-d", "--diffs"], description = ["Diff configuration"])
