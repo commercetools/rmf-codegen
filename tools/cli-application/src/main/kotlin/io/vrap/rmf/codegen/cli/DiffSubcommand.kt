@@ -1,6 +1,7 @@
 package io.vrap.rmf.codegen.cli
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import io.vrap.codegen.languages.csharp.extensions.pluralize
 import io.vrap.rmf.codegen.cli.diff.*
 import io.vrap.rmf.codegen.firstUpperCase
 import io.vrap.rmf.raml.model.RamlModelBuilder
@@ -95,12 +96,13 @@ class DiffSubcommand : Callable<Int> {
             val map = diffResult.groupBy { it.scope }.map { it.key to it.value.groupBy { it.diffType } }.toMap()
 
             return map.entries.joinToString("\n\n") { scope -> """
-                |### ${scope.key.scope.firstUpperCase()}
-                |
                 |${scope.value.entries.joinToString("\n\n") { type -> """
-                |#### ${type.key.type.firstUpperCase()}
+                |<details>
+                |<summary>${type.key.type.firstUpperCase()} ${scope.key.scope.firstUpperCase()}(s)</summary>
                 |
                 |${type.value.joinToString("\n") { "- ${it.message} (${it.source?.location}:${it.source?.position?.line}:${it.source?.position?.charPositionInLine})" }}
+                |</details>
+                |
                 """.trimMargin() }}
             """.trimMargin() }
         }
