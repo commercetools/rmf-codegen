@@ -11,13 +11,16 @@ import io.vrap.rmf.codegen.CodeGeneratorConfig
 import io.vrap.rmf.codegen.di.OasGeneratorComponent
 import io.vrap.rmf.codegen.di.OasGeneratorModule
 import io.vrap.rmf.codegen.di.OasProvider
+import io.vrap.rmf.nodes.antlr.NodeTokenProvider
 import io.vrap.rmf.raml.model.RamlDiagnostic
 import io.vrap.rmf.raml.model.RamlModelBuilder
 import io.vrap.rmf.raml.model.RamlModelResult
 import io.vrap.rmf.raml.model.modules.Api
+import io.vrap.rmf.raml.validation.Source
 import io.vrap.rmf.raml.validation.Violation
 import org.eclipse.emf.common.util.Diagnostic
 import org.eclipse.emf.common.util.URI
+import org.eclipse.emf.ecore.util.EcoreUtil
 import picocli.CommandLine
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
@@ -160,8 +163,10 @@ class ValidateSubcommand : Callable<Int> {
         val output = diagnosticFormatter.print(fileURI, modelResult)
 
         outputTarget?.let {
-            InternalLogger.info("Writing to ${it.toAbsolutePath().normalize()}")
-            Files.write(it.toAbsolutePath().normalize(), output.toByteArray(StandardCharsets.UTF_8))
+            if (modelResult.validationResults.any()) {
+                InternalLogger.info("Writing to ${it.toAbsolutePath().normalize()}")
+                Files.write(it.toAbsolutePath().normalize(), output.toByteArray(StandardCharsets.UTF_8))
+            }
         } ?: run {
             println(output)
         }
@@ -222,7 +227,21 @@ class ValidateSubcommand : Callable<Int> {
 
     class GithubLinkFormatter(override val filePath: Path, override val linkBase: java.net.URI): LinkFormatter {
         override fun format(diagnostic: RamlDiagnostic): String {
-            return "${diagnostic.toLocation(filePath).toLink(linkBase)}#L${diagnostic.line}"
+            return "${diagnostic.toLocation(filePath).toLink(linkBase)}#L${diagnostic.line}${suffix(diagnostic)}"
+        }
+
+        private fun suffix(diagnostic: RamlDiagnostic): String {
+            val location = diagnostic.toLocation(filePath)
+            val violation = diagnostic.data.filterIsInstance<Violation>().find { true }
+            if (violation?.`object` != null) {
+                val nodeTokenProvider = EcoreUtil.getExistingAdapter(violation.`object`, NodeTokenProvider::class.java) as NodeTokenProvider
+                val nodeToken = nodeTokenProvider.stop
+                val t = java.net.URI.create(nodeToken.location).toPath().relativeToOrSelf(filePath)
+                if (t == location) {
+                    return "-L${nodeToken.line}"
+                }
+            }
+            return ""
         }
     }
 
