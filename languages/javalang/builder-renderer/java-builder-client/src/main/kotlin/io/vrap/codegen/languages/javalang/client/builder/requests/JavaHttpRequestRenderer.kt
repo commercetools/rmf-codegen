@@ -68,6 +68,7 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
             |
             |import java.time.Duration;
             |import java.util.ArrayList;
+            |import java.util.Collection;
             |import java.util.List;
             |import java.util.Map;
             |import java.util.HashMap;
@@ -433,7 +434,7 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
 
                 val methodName = StringCaseFormat.UPPER_CAMEL_CASE.apply(paramName.value)
                 val parameters =  "final String " + StringCaseFormat.LOWER_CAMEL_CASE.apply(placeholder.value) + ", final TValue " + paramName.value
-                val listParameters =  "final String " + StringCaseFormat.LOWER_CAMEL_CASE.apply(placeholder.value) + ", final List<TValue> " + paramName.value
+                val listParameters =  "final String " + StringCaseFormat.LOWER_CAMEL_CASE.apply(placeholder.value) + ", final Collection<TValue> " + paramName.value
 
                 return """
                 |/**
@@ -518,14 +519,14 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
                 |/**
                 | * set ${it.fieldName()} with the specified values
                 | */
-                |public <TValue> ${this.toRequestName()} with${it.fieldName().firstUpperCase()}(final List<TValue> ${it.fieldName()}) {
+                |public <TValue> ${this.toRequestName()} with${it.fieldName().firstUpperCase()}(final Collection<TValue> ${it.fieldName()}) {
                 |    return copy().withoutQueryParam("${it.name}").addQueryParams(${it.fieldName()}.stream().map(s -> new ParamEntry<>("${it.name}", s.toString())).collect(Collectors.toList())); 
                 |}
                 |
                 |/**
                 | * add additional ${it.fieldName()} query parameters
                 | */
-                |public <TValue> ${this.toRequestName()} add${it.fieldName().firstUpperCase()}(final List<TValue> ${it.fieldName()}) {
+                |public <TValue> ${this.toRequestName()} add${it.fieldName().firstUpperCase()}(final Collection<TValue> ${it.fieldName()}) {
                 |    return copy().addQueryParams(${it.fieldName()}.stream().map(s -> new ParamEntry<>("${it.name}", s.toString())).collect(Collectors.toList())); 
                 |}
             """.trimMargin().escapeAll() }
