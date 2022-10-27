@@ -46,11 +46,16 @@ enum class DiffDataType {
     API,
     RESOURCES,
     RESOURCES_MAP,
-    TYPES,
-    TYPES_MAP,
+    ANY_TYPES,
+    ANY_TYPES_MAP,
     METHODS,
     METHODS_MAP,
     OBJECT_TYPES,
     OBJECT_TYPES_MAP,
     PROPERTIES_MAP,
 }
+
+data class PropertyReference(
+    val objectType: String,
+    val property: String
+)

@@ -9,11 +9,23 @@
         <check severity="error">
             <name>io.vrap.rmf.codegen.cli.diff.PropertyRemovedCheck</name>
         </check>
+        <check severity="error">
+            <name>io.vrap.rmf.codegen.cli.diff.PropertyTypeChangedCheck</name>
+        </check>
+        <check severity="error">
+            <name>io.vrap.rmf.codegen.cli.diff.PropertyOptionalCheck</name>
+        </check>
+        <check severity="error">
+            <name>io.vrap.rmf.codegen.cli.diff.PropertyRequiredCheck</name>
+        </check>
         <check>
             <name>io.vrap.rmf.codegen.cli.diff.TypeAddedCheck</name>
         </check>
         <check severity="error">
             <name>io.vrap.rmf.codegen.cli.diff.TypeRemovedCheck</name>
+        </check>
+        <check severity="error">
+            <name>io.vrap.rmf.codegen.cli.diff.TypeChangedCheck</name>
         </check>
         <check>
             <name>io.vrap.rmf.codegen.cli.diff.MethodAddedCheck</name>

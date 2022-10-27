@@ -44,7 +44,7 @@ class DataProvider(private val original: Api, private val changed: Api) {
         DiffData(
             allObjectTypes.original.flatMap { objectType ->
                 objectType.allProperties.map {
-                    Pair(
+                    PropertyReference(
                         objectType.name,
                         it.name
                     ) to it
@@ -52,7 +52,7 @@ class DataProvider(private val original: Api, private val changed: Api) {
             }.toMap(),
             allObjectTypes.changed.flatMap { objectType ->
                 objectType.allProperties.map {
-                    Pair(
+                    PropertyReference(
                         objectType.name,
                         it.name
                     ) to it
@@ -66,8 +66,8 @@ class DataProvider(private val original: Api, private val changed: Api) {
             DiffDataType.API -> DiffData(original, changed)
             DiffDataType.RESOURCES -> allResources
             DiffDataType.RESOURCES_MAP -> allResourcesMap
-            DiffDataType.TYPES -> allAnyTypes
-            DiffDataType.TYPES_MAP -> allAnyTypesMap
+            DiffDataType.ANY_TYPES -> allAnyTypes
+            DiffDataType.ANY_TYPES_MAP -> allAnyTypesMap
             DiffDataType.OBJECT_TYPES -> allObjectTypes
             DiffDataType.OBJECT_TYPES_MAP -> allObjectTypesMap
             DiffDataType.METHODS -> allMethods
