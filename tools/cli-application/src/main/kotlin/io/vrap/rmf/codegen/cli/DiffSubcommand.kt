@@ -100,11 +100,21 @@ class DiffSubcommand : Callable<Int> {
                 |<details>
                 |<summary>${type.key.type.firstUpperCase()} ${scope.key.scope.firstUpperCase()}(s)</summary>
                 |
-                |${type.value.joinToString("\n") { "- ${it.message} (${it.source?.location}:${it.source?.position?.line}:${it.source?.position?.charPositionInLine})" }}
+                |${type.value.joinToString("\n") { "- ${it.severity.asSign()}${it.message} (${it.source?.location}:${it.source?.position?.line}:${it.source?.position?.charPositionInLine})" }}
                 |</details>
                 |
                 """.trimMargin() }}
             """.trimMargin() }
+        }
+
+        fun CheckSeverity.asSign(): String {
+            return when(this) {
+                CheckSeverity.FATAL -> ":red_circle: "
+                CheckSeverity.ERROR -> ":warning: "
+                CheckSeverity.WARN -> ":warning: "
+                else -> ""
+
+            }
         }
     }
 
