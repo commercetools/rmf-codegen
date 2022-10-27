@@ -1,6 +1,7 @@
 package io.vrap.codegen.languages.go
 
 import io.vrap.codegen.languages.extensions.ExtensionsBase
+import io.vrap.codegen.languages.extensions.isPatternProperty
 import io.vrap.rmf.codegen.types.*
 import io.vrap.rmf.raml.model.types.*
 import org.eclipse.emf.ecore.EObject
@@ -192,4 +193,18 @@ interface GoObjectTypeExtensions : ExtensionsBase {
         }
         return false
     }
+
+    fun Property.patternName(): String {
+        return if (this.isPatternProperty()) {
+            val otherProps = (this.eContainer() as ObjectType).properties
+            return if (otherProps.filter { it.isPatternProperty() }.count() > 1) {
+                throw Exception("Multiple pattern properties is not supported")
+            } else {
+                "ExtraValues"
+            }
+        }
+        else
+            this.name
+    }
+
 }
