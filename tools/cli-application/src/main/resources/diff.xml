@@ -39,5 +39,11 @@
         <check severity="error">
             <name>io.vrap.rmf.codegen.cli.diff.ResourceRemovedCheck</name>
         </check>
+        <check>
+            <name>io.vrap.rmf.codegen.cli.diff.QueryParameterAddedCheck</name>
+        </check>
+        <check severity="error">
+            <name>io.vrap.rmf.codegen.cli.diff.QueryParameterRemovedCheck</name>
+        </check>
     </checks>
 </diff>

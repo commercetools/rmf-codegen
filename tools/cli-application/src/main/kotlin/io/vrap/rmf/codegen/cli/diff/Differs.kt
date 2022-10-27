@@ -80,6 +80,48 @@ class PropertyRemovedCheck(override val severity: CheckSeverity): DiffCheck<Map<
     }
 }
 
+class QueryParameterAddedCheck(override val severity: CheckSeverity): DiffCheck<Map<String, Method>>(severity) {
+    override val diffDataType: DiffDataType = DiffDataType.METHODS_MAP
+
+    override fun diff(data: DiffData<Map<String, Method>>): List<Diff<Any>> {
+        return data.changed.filter { data.original.containsKey(it.key) }.flatMap { (uri, method) ->
+            method.queryParameters.toParameterMap()
+                .filter { data.original[uri]!!.queryParameters.toParameterMap().contains(it.key).not() }
+                .map { (parameterName, parameter) ->
+                    Diff(
+                        DiffType.ADDED,
+                        Scope.QUERY_PARAMETER,
+                        parameterName,
+                        "added query parameter `${parameterName}` to method `${uri}`",
+                        parameter,
+                        severity
+                    )
+                }
+        }
+    }
+}
+
+class QueryParameterRemovedCheck(override val severity: CheckSeverity): DiffCheck<Map<String, Method>>(severity) {
+    override val diffDataType: DiffDataType = DiffDataType.METHODS_MAP
+
+    override fun diff(data: DiffData<Map<String, Method>>): List<Diff<Any>> {
+        return data.original.filter { data.changed.containsKey(it.key) }.flatMap { (uri, method) ->
+            method.queryParameters.toParameterMap()
+                .filter { data.changed[uri]!!.queryParameters.toParameterMap().contains(it.key).not() }
+                .map { (parameterName, parameter) ->
+                    Diff(
+                        DiffType.REMOVED,
+                        Scope.QUERY_PARAMETER,
+                        parameterName,
+                        "removed query parameter `${parameterName}` from method `${uri}`",
+                        parameter,
+                        severity
+                    )
+                }
+        }
+    }
+}
+
 class PropertyTypeChangedCheck(override val severity: CheckSeverity): DiffCheck<Map<PropertyReference, Property>>(severity) {
     override val diffDataType: DiffDataType = DiffDataType.PROPERTIES_MAP
 
