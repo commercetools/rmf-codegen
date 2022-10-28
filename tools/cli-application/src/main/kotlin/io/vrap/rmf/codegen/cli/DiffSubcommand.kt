@@ -43,8 +43,8 @@ class DiffSubcommand : Callable<Int> {
     }
 
     private fun diff(): Int {
-        val originalApi = readApi(originalFileLocation.toRealPath().toAbsolutePath()) ?: return 1
-        val changedApi = readApi(changedFileLocation.toRealPath().toAbsolutePath()) ?: return 1
+        val originalApi = readApi(originalFileLocation.toRealPath().toAbsolutePath())
+        val changedApi = readApi(changedFileLocation.toRealPath().toAbsolutePath())
 
         val config = diffConfigurationFile?.toFile()?.inputStream() ?: ValidateSubcommand::class.java.getResourceAsStream("/diff.xml")
 
@@ -125,7 +125,7 @@ class DiffSubcommand : Callable<Int> {
         }
     }
 
-    private fun readApi(fileLocation: Path): Api? {
+    private fun readApi(fileLocation: Path): Api {
         val fileURI = URI.createURI(fileLocation.toUri().toString())
         InternalLogger.info("Reading ${fileURI.toFileString()} ...")
         val modelResult = RamlModelBuilder().buildApi(fileURI)
@@ -133,7 +133,7 @@ class DiffSubcommand : Callable<Int> {
         if (validationResults.isNotEmpty()) {
             val res = validationResults.stream().map { "$it" }.collect( Collectors.joining( "\n" ) );
             InternalLogger.error("Error(s) found validating ${fileURI.toFileString()}:\n$res")
-            return null
+            return modelResult.rootObject
         }
         InternalLogger.info("\tdone")
 
