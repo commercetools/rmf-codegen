@@ -45,5 +45,17 @@
         <check severity="error">
             <name>io.vrap.rmf.codegen.cli.diff.QueryParameterRemovedCheck</name>
         </check>
+        <check>
+            <name>io.vrap.rmf.codegen.cli.diff.MarkDeprecatedAddedTypeCheck</name>
+        </check>
+        <check>
+            <name>io.vrap.rmf.codegen.cli.diff.DeprecatedAddedTypeCheck</name>
+        </check>
+        <check severity="error">
+            <name>io.vrap.rmf.codegen.cli.diff.MarkDeprecatedRemovedTypeCheck</name>
+        </check>
+        <check severity="error">
+            <name>io.vrap.rmf.codegen.cli.diff.DeprecatedRemovedTypeCheck</name>
+        </check>
     </checks>
 </diff>
