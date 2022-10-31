@@ -3,6 +3,7 @@ package io.vrap.rmf.codegen.cli.diff
 import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.types.AnyType
+import io.vrap.rmf.raml.model.types.BooleanInstance
 import io.vrap.rmf.raml.model.types.BuiltinType
 import io.vrap.rmf.raml.model.types.ObjectType
 import io.vrap.rmf.raml.model.types.Property
@@ -127,7 +128,7 @@ class PropertyTypeChangedCheck(override val severity: CheckSeverity): DiffCheck<
 
     override fun diff(data: DiffData<Map<PropertyReference, Property>>): List<Diff<Any>> {
         return data.changed.filter { data.original.containsKey(it.key) }.filter { (key, property) -> property.type.name != data.original[key]!!.type.name }.map { (propertyRef, property) ->
-            Diff(DiffType.CHANGED, Scope.PROPERTY, DiffData(data.original[propertyRef]!!.type.name, property.type.name), "changed property `${propertyRef.property}` of type `${propertyRef.objectType}` from type `${data.original[propertyRef]!!.type.name}` to `${property.type.name}`", property)
+            Diff(DiffType.CHANGED, Scope.PROPERTY, DiffData(data.original[propertyRef]!!.type.name, property.type.name), "changed property `${propertyRef.property}` of type `${propertyRef.objectType}` from type `${data.original[propertyRef]!!.type.name}` to `${property.type.name}`", property, severity)
         }
     }
 }
@@ -137,7 +138,7 @@ class PropertyOptionalCheck(override val severity: CheckSeverity): DiffCheck<Map
 
     override fun diff(data: DiffData<Map<PropertyReference, Property>>): List<Diff<Any>> {
         return data.changed.filter { data.original.containsKey(it.key) && data.original[it.key]!!.required == true }.filter { (key, property) -> property.required != data.original[key]!!.required }.map { (propertyRef, property) ->
-            Diff(DiffType.CHANGED, Scope.PROPERTY, DiffData(data.original[propertyRef]!!.required, property.required), "changed property `${propertyRef.property}` of type `${propertyRef.objectType}` to be optional", property)
+            Diff(DiffType.CHANGED, Scope.PROPERTY, DiffData(data.original[propertyRef]!!.required, property.required), "changed property `${propertyRef.property}` of type `${propertyRef.objectType}` to be optional", property, severity)
         }
     }
 }
@@ -146,7 +147,7 @@ class PropertyRequiredCheck(override val severity: CheckSeverity): DiffCheck<Map
 
     override fun diff(data: DiffData<Map<PropertyReference, Property>>): List<Diff<Any>> {
         return data.changed.filter { data.original.containsKey(it.key) && data.original[it.key]!!.required == false }.filter { (key, property) -> property.required != data.original[key]!!.required }.map { (propertyRef, property) ->
-            Diff(DiffType.CHANGED, Scope.PROPERTY, DiffData(data.original[propertyRef]!!.required, property.required), "changed property `${propertyRef.property}` of type `${propertyRef.objectType}` to be required", property)
+            Diff(DiffType.CHANGED, Scope.PROPERTY, DiffData(data.original[propertyRef]!!.required, property.required), "changed property `${propertyRef.property}` of type `${propertyRef.objectType}` to be required", property, severity)
         }
     }
 }
@@ -164,9 +165,108 @@ class TypeChangedCheck(override val severity: CheckSeverity): DiffCheck<Map<Stri
                     Scope.TYPE,
                     DiffData(originalTypeName, changedTypeName),
                     "changed type `${typeName}` from type `${originalTypeName}` to `${changedTypeName}`",
-                    type
+                    type,
+                    severity
                 )
                 diff
         }
+    }
+}
+
+class MarkDeprecatedAddedTypeCheck(override val severity: CheckSeverity): DiffCheck<Map<String, AnyType>>(severity) {
+    override val diffDataType: DiffDataType = DiffDataType.ANY_TYPES_MAP
+
+    override fun diff(data: DiffData<Map<String, AnyType>>): List<Diff<Any>> {
+        return data.changed.filter { data.original.containsKey(it.key) }
+            .filter { (key, _) ->
+                data.original[key]!!.getAnnotation("markDeprecated", true)?.value?.value != true
+                    && data.original[key]!!.getAnnotation("deprecated")?.value?.value != true
+            }.filter { (_, type) ->
+                type.getAnnotation("markDeprecated", true)?.value?.value == true
+            }.map { (typeName, type) ->
+                val originalAnno = data.original[typeName]!!.getAnnotation("markDeprecated", true)
+                val changedAnno = type.getAnnotation("markDeprecated", true)
+                Diff(
+                    DiffType.CHANGED,
+                    Scope.TYPE,
+                    DiffData(originalAnno?.value?.value, changedAnno.value.value),
+                    "marked type `${typeName}` as deprecated",
+                    type,
+                    severity
+                )
+            }
+    }
+}
+
+class MarkDeprecatedRemovedTypeCheck(override val severity: CheckSeverity): DiffCheck<Map<String, AnyType>>(severity) {
+    override val diffDataType: DiffDataType = DiffDataType.ANY_TYPES_MAP
+
+    override fun diff(data: DiffData<Map<String, AnyType>>): List<Diff<Any>> {
+        return data.original.filter { data.changed.containsKey(it.key) }
+            .filter { (key, _) ->
+                data.changed[key]!!.getAnnotation("markDeprecated", true)?.value?.value != true
+                    && data.changed[key]!!.getAnnotation("deprecated")?.value?.value != true
+            }.filter { (_, type) ->
+                type.getAnnotation("markDeprecated", true)?.value?.value == true
+            }.map { (typeName, type) ->
+                val originalAnno = data.original[typeName]!!.getAnnotation("markDeprecated", true)
+                val changedAnno = type.getAnnotation("markDeprecated", true)
+                Diff(
+                    DiffType.CHANGED,
+                    Scope.TYPE,
+                    DiffData(originalAnno?.value?.value, changedAnno.value.value),
+                    "removed deprecation mark from type `${typeName}`",
+                    type,
+                    severity
+                )
+            }
+    }
+}
+
+class DeprecatedRemovedTypeCheck(override val severity: CheckSeverity): DiffCheck<Map<String, AnyType>>(severity) {
+    override val diffDataType: DiffDataType = DiffDataType.ANY_TYPES_MAP
+
+    override fun diff(data: DiffData<Map<String, AnyType>>): List<Diff<Any>> {
+        return data.original.filter { data.changed.containsKey(it.key) }
+            .filter { (key, _) ->
+                data.changed[key]!!.getAnnotation("deprecated", true)?.value?.value != true
+            }.filter { (_, type) ->
+                type.getAnnotation("deprecated", true)?.value?.value == true
+            }.map { (typeName, type) ->
+                val originalAnno = data.original[typeName]!!.getAnnotation("deprecated", true)
+                val changedAnno = type.getAnnotation("deprecated", true)
+                Diff(
+                    DiffType.CHANGED,
+                    Scope.TYPE,
+                    DiffData(originalAnno?.value?.value, changedAnno.value.value),
+                    "removed deprecation from type `${typeName}`",
+                    type,
+                    severity
+                )
+            }
+    }
+}
+
+class DeprecatedAddedTypeCheck(override val severity: CheckSeverity): DiffCheck<Map<String, AnyType>>(severity) {
+    override val diffDataType: DiffDataType = DiffDataType.ANY_TYPES_MAP
+
+    override fun diff(data: DiffData<Map<String, AnyType>>): List<Diff<Any>> {
+        return data.changed.filter { data.original.containsKey(it.key) }
+            .filter { (key, _) ->
+                data.original[key]!!.getAnnotation("deprecated", true)?.value?.value != true
+            }.filter { (_, type) ->
+                type.getAnnotation("markDeprecated", true)?.value?.value == true
+            }.map { (typeName, type) ->
+                val originalAnno = data.original[typeName]!!.getAnnotation("deprecated", true)
+                val changedAnno = type.getAnnotation("deprecated", true)
+                Diff(
+                    DiffType.CHANGED,
+                    Scope.TYPE,
+                    DiffData(originalAnno?.value?.value, changedAnno.value.value),
+                    "type `${typeName}` is deprecated",
+                    type,
+                    severity
+                )
+            }
     }
 }
