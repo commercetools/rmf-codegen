@@ -255,7 +255,7 @@ class DeprecatedAddedTypeCheck(override val severity: CheckSeverity): DiffCheck<
             .filter { (key, _) ->
                 data.original[key]!!.getAnnotation("deprecated", true)?.value?.value != true
             }.filter { (_, type) ->
-                type.getAnnotation("markDeprecated", true)?.value?.value == true
+                type.getAnnotation("deprecated", true)?.value?.value == true
             }.map { (typeName, type) ->
                 val originalAnno = data.original[typeName]!!.getAnnotation("deprecated", true)
                 val changedAnno = type.getAnnotation("deprecated", true)
