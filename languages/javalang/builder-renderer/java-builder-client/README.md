@@ -60,7 +60,7 @@ form `By<UriParameterName>`.
 
 ### JavaRequestTestRenderer
 
-Renders tests for testing the call chain of each resource and method with the query parameters. Implements a ResourceRenderer 
+Render tests for testing the call chain of each resource and method with the query parameters. Implements a ResourceRenderer 
 
 ## Modules
 
