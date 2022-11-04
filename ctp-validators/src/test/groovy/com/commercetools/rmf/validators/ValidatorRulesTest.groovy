@@ -87,6 +87,17 @@ class ValidatorRulesTest extends Specification implements ValidatorFixtures {
         result.validationResults[1].message == "Method \"POST /invalid-all\" must have body type defined"
     }
 
+    def "method head body rule"() {
+        when:
+        def validators = Arrays.asList(new ResourcesValidator(Arrays.asList(HeadBodyRule.create(emptyList()))))
+        def uri = uriFromClasspath("/method-head-body-rule.raml")
+        def result = new RamlModelBuilder(validators).buildApi(uri)
+        then:
+        result.validationResults.size == 2
+        result.validationResults[0].message == "Method \"HEAD /invalid\" must not have body type defined"
+        result.validationResults[1].message == "Method \"HEAD /invalid-all\" must not have body type defined"
+    }
+
 //    def "named body type rule"() {
 //        when:
 //        def validators = Arrays.asList(new ResourcesValidator(Arrays.asList(new NamedBodyTypeRule())))

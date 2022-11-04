@@ -76,6 +76,9 @@
             <name>com.commercetools.rmf.validators.PackageDefinedRule</name>
         </rule>
         <rule>
+            <name>com.commercetools.rmf.validators.HeadBodyRule</name>
+        </rule>
+        <rule>
             <name>com.commercetools.rmf.validators.PostBodyRule</name>
             <options>
                 <option type="exclude">POST /{projectKey}/me/password</option>
@@ -121,7 +124,7 @@
         </rule>
         <rule>
             <name>com.commercetools.rmf.validators.DatetimeRule</name>
-        </rule> 
+        </rule>
 <!--        <rule>-->
 <!--            <name>com.commercetools.rmf.validators.NamedBodyTypeRule</name>-->
 <!--        </rule>-->
