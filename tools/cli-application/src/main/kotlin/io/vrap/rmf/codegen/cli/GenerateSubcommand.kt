@@ -32,6 +32,8 @@ import io.vrap.codegen.languages.typescript.test.TypescriptTestModule
 import io.vrap.codegen.languages.go.GoBaseTypes
 import io.vrap.codegen.languages.go.model.GoModelModule
 import io.vrap.codegen.languages.go.client.GoClientModule
+import io.vrap.codegen.languages.jsonschema.model.JsonSchemaBaseTypes
+import io.vrap.codegen.languages.jsonschema.model.JsonSchemaModelModule
 import io.vrap.rmf.codegen.CodeGeneratorConfig
 import io.vrap.rmf.codegen.di.*
 import io.vrap.rmf.codegen.toSeconds
@@ -66,8 +68,9 @@ enum class GenerationTarget {
     CSHARP_TEST,
     OAS,
     PYTHON_CLIENT,
+    JSON_SCHEMA,
 }
-const val ValidTargets = "JAVA_CLIENT, JAVA_TEST, TYPESCRIPT_CLIENT, TYPESCRIPT_TEST, CSHARP_CLIENT, CSHARP_TEST, PHP_CLIENT, PHP_BASE, PHP_TEST, POSTMAN, RAML_DOC, OAS, PYTHON_CLIENT"
+const val ValidTargets = "JAVA_CLIENT, JAVA_TEST, TYPESCRIPT_CLIENT, TYPESCRIPT_TEST, CSHARP_CLIENT, CSHARP_TEST, PHP_CLIENT, PHP_BASE, PHP_TEST, POSTMAN, RAML_DOC, OAS, PYTHON_CLIENT, JSON_SCHEMA"
 
 @CommandLine.Command(name = "generate",description = ["Generate source code from a RAML specification."])
 class GenerateSubcommand : Callable<Int> {
@@ -267,6 +270,10 @@ class GenerateSubcommand : Callable<Int> {
                     GenerationTarget.GO_CLIENT -> {
                         val generatorModule = RamlGeneratorModule(apiProvider, generatorConfig, GoBaseTypes)
                         RamlGeneratorComponent(generatorModule, GoModelModule, GoClientModule)
+                    }
+                    GenerationTarget.JSON_SCHEMA -> {
+                        val generatorModule = RamlGeneratorModule(apiProvider, generatorConfig, JsonSchemaBaseTypes)
+                        RamlGeneratorComponent(generatorModule, JsonSchemaModelModule)
                     }
                 }
             } else {

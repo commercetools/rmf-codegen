@@ -1,0 +1,5 @@
+dependencies {
+    implementation 'org.json:json:20200518'
+    implementation project(':codegen-renderers')
+    implementation orgkotlin.stdlib
+}
