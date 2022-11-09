@@ -7,6 +7,7 @@ import io.vrap.codegen.languages.extensions.toParamName
 import io.vrap.codegen.languages.extensions.toRequestName
 import io.vrap.codegen.languages.java.base.JavaSubTemplates
 import io.vrap.codegen.languages.java.base.extensions.JavaEObjectTypeExtensions
+import io.vrap.codegen.languages.java.base.extensions.isFile
 import io.vrap.codegen.languages.java.base.extensions.simpleName
 import io.vrap.codegen.languages.java.base.extensions.toJavaVType
 import io.vrap.rmf.codegen.firstLowerCase
@@ -19,6 +20,7 @@ import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.resources.ResourceContainer
 import io.vrap.rmf.raml.model.types.BooleanInstance
+import io.vrap.rmf.raml.model.types.ObjectType
 import java.util.*
 
 class JavaRequestBuilderResourceRenderer constructor(override val vrapTypeProvider: VrapTypeProvider) : ResourceRenderer, JavaEObjectTypeExtensions {
@@ -34,9 +36,12 @@ class JavaRequestBuilderResourceRenderer constructor(override val vrapTypeProvid
             |
             |import java.util.ArrayList;
             |import java.util.List;
+            |import java.util.function.Function;
+            |import java.util.function.UnaryOperator;
             |
             |import io.vrap.rmf.base.client.ApiHttpClient;
             |import io.vrap.rmf.base.client.ApiMethod;
+            |import io.vrap.rmf.base.client.Builder;
             |import io.vrap.rmf.base.client.utils.Generated;
             |
             |<${JavaSubTemplates.generatedAnnotation}>${if (type.markDeprecated()) """
@@ -118,11 +123,27 @@ class JavaRequestBuilderResourceRenderer constructor(override val vrapTypeProvid
                 |}
             """.trimMargin()
         }
+        val methodBodyVrapType = if (this.bodies != null && this.bodies.isNotEmpty()) this.bodies[0].type.toVrapType() else null
         return """
             |public ${this.toRequestName()} ${this.method.name.lowercase(Locale.getDefault())}(${this.constructorArguments()}) {
             |    return new ${this.toRequestName()}(${this.requestArguments()});
             |}
+            |${if(this.methodName == "delete" && this.queryParameters.any { queryParameter ->  queryParameter.name == "version" }) """public \<TValue\> ${this.toRequestName()} ${this.method.name.lowercase(Locale.getDefault())}(TValue version) {
+            |    return delete().withVersion(version);
+            |}""" else ""}
+            |${if(methodBodyVrapType is VrapObjectType && this.bodies[0].type.isFile().not()) """
+            |public ${this.toRequestName()} ${this.method.name.lowercase(Locale.getDefault())}(${(this.bodies[0].type as ObjectType).builderOp()}) {
+            |    return ${this.method.name.lowercase(Locale.getDefault())}(op.apply(${methodBodyVrapType.`package`}.${methodBodyVrapType.simpleClassName}Builder.of()).build());
+            |}""" else ""}
         """.trimMargin()
+    }
+
+    private fun ObjectType.builderOp(): String {
+        val vrapType = this.toVrapType() as VrapObjectType
+        if (this.discriminator != null) {
+            return "Function<${vrapType.`package`}.${vrapType.simpleClassName}Builder, Builder<? extends ${vrapType.`package`}.${vrapType.simpleClassName}>> op".escapeAll()
+        }
+        return "UnaryOperator<${vrapType.`package`}.${vrapType.simpleClassName}Builder> op".escapeAll()
     }
 
     private fun Method.constructorArguments(): String? {

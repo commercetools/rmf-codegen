@@ -258,13 +258,16 @@ fun AnyAnnotationType.renderType(withDescription: Boolean = true): String {
 }
 
 fun VrapEnumType.packageDir(prefix: String): String {
-    val dir = this.`package`.replace(prefix, "").trim('/')
+    return this.`package`.packageDir(prefix)
+}
+
+fun String.packageDir(prefix: String): String {
+    val dir = this.replace(prefix, "").trim('/')
     return dir + if (dir.isNotEmpty()) "/" else ""
 }
 
 fun VrapObjectType.packageDir(prefix: String): String {
-    val dir = this.`package`.replace(prefix, "").trim('/')
-    return dir + if (dir.isNotEmpty()) "/" else ""
+    return this.`package`.packageDir(prefix)
 }
 
 fun Annotation.renderAnnotation(): String {

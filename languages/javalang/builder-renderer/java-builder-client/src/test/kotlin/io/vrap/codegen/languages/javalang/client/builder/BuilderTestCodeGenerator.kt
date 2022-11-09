@@ -82,7 +82,10 @@ class BuilderTestCodeGenerator {
 
     @Test
     fun generateJavaCompleteModule() {
-        val typeMapping = mapOf(Pair("LocalizedString", "com.commercetools.api.models.common.LocalizedString"))
+        val typeMapping = mapOf(
+            Pair("LocalizedString", "com.commercetools.api.models.common.LocalizedString"),
+            Pair("Money", "com.commercetools.api.models.common.Money")
+        )
         val customTypeMapping = typeMapping.map { it.key to mapStringClass(it.value)}.toMap()
         val generatorConfig = CodeGeneratorConfig(basePackageName = baseBackage, outputFolder = outputFolder, customTypeMapping = customTypeMapping)
         val generatorModule = RamlGeneratorModule(apiProvider, generatorConfig, JavaBaseTypes)
