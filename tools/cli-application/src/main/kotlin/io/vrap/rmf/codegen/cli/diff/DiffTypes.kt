@@ -24,7 +24,10 @@ data class Position(var line: Long, val charPositionInLine: Long)
 enum class DiffType(val type: String) {
     ADDED("added"),
     REMOVED("removed"),
-    CHANGED("changed")
+    CHANGED("changed"),
+    DEPRECATED("deprecated"),
+    MARK_DEPRECATED("markDeprecated"),
+    REQUIRED("required")
 }
 
 enum class Scope(val scope: String) {
@@ -48,6 +51,8 @@ enum class DiffDataType {
     RESOURCES_MAP,
     ANY_TYPES,
     ANY_TYPES_MAP,
+    STRING_TYPES,
+    STRING_TYPES_MAP,
     METHODS,
     METHODS_MAP,
     OBJECT_TYPES,

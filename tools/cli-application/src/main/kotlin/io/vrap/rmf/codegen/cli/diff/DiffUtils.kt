@@ -6,9 +6,11 @@ import io.vrap.rmf.raml.model.modules.Api
 import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.types.AnyType
+import io.vrap.rmf.raml.model.types.Instance
 import io.vrap.rmf.raml.model.types.ObjectType
 import io.vrap.rmf.raml.model.types.Property
 import io.vrap.rmf.raml.model.types.QueryParameter
+import io.vrap.rmf.raml.model.types.StringType
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.util.EcoreUtil
 
@@ -26,6 +28,10 @@ fun List<ObjectType>.toObjectTypeMap(): Map<String, ObjectType> {
     return this.associateBy { it.name }
 }
 
+fun List<StringType>.toStringTypeMap(): Map<String, StringType> {
+    return this.associateBy { it.name }
+}
+
 fun List<Resource>.toResourcesMap(): Map<String, Resource> {
     return this.associateBy { it.fullUri.template }
 }
@@ -36,6 +42,10 @@ fun List<Method>.toMethodMap(): Map<String, Method> {
 
 fun List<Property>.toPropertyMap(): Map<String, Property> {
     return this.associateBy { it.name }
+}
+
+fun List<Instance>.toInstanceMap(): Map<String, Instance> {
+    return this.associateBy { it.value as String }
 }
 
 fun List<QueryParameter>.toParameterMap(): Map<String, QueryParameter> {

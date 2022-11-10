@@ -2,6 +2,7 @@ package io.vrap.rmf.codegen.cli.diff
 
 import io.vrap.rmf.raml.model.modules.Api
 import io.vrap.rmf.raml.model.types.ObjectType
+import io.vrap.rmf.raml.model.types.StringType
 
 class DataProvider(private val original: Api, private val changed: Api) {
 
@@ -40,6 +41,17 @@ class DataProvider(private val original: Api, private val changed: Api) {
         DiffData(allObjectTypes.original.toObjectTypeMap(), allObjectTypes.changed.toObjectTypeMap())
     }
 
+    private val allStringTypes by lazy {
+        DiffData(
+            original.allAnyTypes().filterIsInstance<StringType>(),
+            changed.allAnyTypes().filterIsInstance<StringType>()
+        )
+    }
+
+    private val allStringTypesMap by lazy {
+        DiffData(allStringTypes.original.toStringTypeMap(), allStringTypes.changed.toStringTypeMap())
+    }
+
     private val allPropertiesMap by lazy {
         DiffData(
             allObjectTypes.original.flatMap { objectType ->
@@ -68,6 +80,8 @@ class DataProvider(private val original: Api, private val changed: Api) {
             DiffDataType.RESOURCES_MAP -> allResourcesMap
             DiffDataType.ANY_TYPES -> allAnyTypes
             DiffDataType.ANY_TYPES_MAP -> allAnyTypesMap
+            DiffDataType.STRING_TYPES -> allStringTypes
+            DiffDataType.STRING_TYPES_MAP -> allStringTypesMap
             DiffDataType.OBJECT_TYPES -> allObjectTypes
             DiffDataType.OBJECT_TYPES_MAP -> allObjectTypesMap
             DiffDataType.METHODS -> allMethods
