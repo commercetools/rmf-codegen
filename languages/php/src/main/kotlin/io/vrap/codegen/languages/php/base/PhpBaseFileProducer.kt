@@ -814,10 +814,7 @@ class PhpBaseFileProducer constructor(val api: Api, @BasePackageName val package
                     |namespace ${packagePrefix.toNamespaceName()}\Client;
                     |
                     |use ${packagePrefix.toNamespaceName()}\Exception\InvalidArgumentException;
-                    |use Cache\Adapter\Filesystem\FilesystemCachePool;
                     |use GuzzleHttp\Client;
-                    |use League\Flysystem\Adapter\Local;
-                    |use League\Flysystem\Filesystem;
                     |use Psr\Cache\CacheItemPoolInterface;
                     |use Psr\SimpleCache\CacheInterface;
                     |
