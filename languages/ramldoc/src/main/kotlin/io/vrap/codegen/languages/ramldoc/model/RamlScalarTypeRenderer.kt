@@ -92,7 +92,7 @@ sealed class RamlScalarTypeRenderer<T: AnyType> constructor(override val vrapTyp
         """.trimMargin().keepAngleIndent()
         val packageDir = type.getAnnotation("package")?.value?.value.toString().packageDir(modelPackageName)
         return TemplateFile(
-                relativePath = "types/" + packageDir + type.name + ".raml",
+                relativePath = "types/" + type.name + ".raml",
                 content = content
         )
     }
