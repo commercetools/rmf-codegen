@@ -32,13 +32,14 @@ let numErrors = 0;
 
 const run = async () => {
 
-    console.log("\n# RAML markdown lint\n");
+    console.log("\n**RAML markdown lint**\n");
 
     const pathArg = process.argv.slice(2)[0]
     if (pathArg == undefined) {
         throw new Error('No path given!')
     }
 
+    const outputFile = process.argv.slice(2)[1]
     const ramlDir = path.resolve(pathArg)
     if (!fs.existsSync(ramlDir)) {
         throw new Error('Directory doesn\'t exist: ' + ramlDir )
@@ -49,11 +50,9 @@ const run = async () => {
 
     const paths = await globby(ramlDir + '/**/*.raml');
 
-    console.log("\n## Description Markdown Check\n");
+    paths.forEach((file) => yamlLoad(file, outputFile))
 
-    paths.forEach(yamlLoad)
-
-    console.log("\n# done!\n");
+    console.log("\ndone!\n");
 
     if (numErrors > 0) {
         throw new Error('Found ' + numErrors + ' errors');
@@ -66,14 +65,14 @@ run().catch((error) => {
 });
 
 
-function yamlLoad(file) {
+function yamlLoad(file, outputFile) {
     const raml = yaml.load(fs.readFileSync(file, 'utf8'), {schema: jsYamlSchema})
 
-    validateMarkdown(file, raml);
+    validateMarkdown(file, raml, outputFile);
 }
 
 
-function validateMarkdown(file, rootNode){
+function validateMarkdown(file, rootNode, outputFile){
     traverse(rootNode).forEach(function (node) {
         if (this.key === "description" && typeof this.node === "string" ){
             if (this.path && this.path.indexOf('resourceTypes') === 0) {
@@ -86,18 +85,27 @@ function validateMarkdown(file, rootNode){
             if (mdLintResultString) {
                 // FYI: the markdown lint does currently not break the test, it's just for warning purpose.
                 numErrors++;
-                console.log("file: " + file)
-                console.log(" * **description markdown \x1b[31mNOT OK\x1b[0m: " + prettifyRamlPath(this).join(" -> ") + "**");
-                console.log("```");
-                console.log(mdLintResultString);
-                console.log("```");
-                console.log("```markdown");
-                console.log(this.node);
-                console.log("```");
-            }else{
-                // console.log(" * description markdown \x1b[32mOK\x1b[0m: " + prettifyRamlPath(this).join(" -> "));
+                let output = ""
+                output += "<details>\n"
+                output += "<summary>description markdown NOT OK: " + prettifyRamlPath(this).join(" -> ") + "</summary>\n";
+                output += "file: " + file + "\n\n"
+                output += "```\n";
+                output += mdLintResultString + "\n";
+                output += "```\n\n";
+                output += "```markdown\n";
+                output += this.node + "\n";
+                output += "```\n";
+                output += "</details>\n"
+                if (outputFile == undefined) {
+                    console.log(output)
+                } else {
+                    if (numErrors > 1) {
+                        fs.appendFileSync(outputFile, output)
+                    } else {
+                        fs.writeFileSync(outputFile, output)
+                    }
+                }
             }
-
         }
     });
 }
