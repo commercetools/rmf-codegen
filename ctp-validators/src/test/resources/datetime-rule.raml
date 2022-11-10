@@ -22,6 +22,10 @@ types:
     type: object
     properties:
       fooDateTimeTo: datetime
+  InvalidDateTimeRangeUntil:
+    type: object
+    properties:
+      fooDateTimeUntil: datetime
   InvalidDateRangeFrom:
     type: object
     properties:
@@ -30,6 +34,10 @@ types:
     type: object
     properties:
       fooDateTo: date-only
+  InvalidDateRangeUntil:
+    type: object
+    properties:
+      fooDateUntil: date-only
   InvalidTimeRangeFrom:
     type: object
     properties:
@@ -38,6 +46,10 @@ types:
     type: object
     properties:
       fooTimeTo: time-only
+  InvalidTimeRangeUntil:
+    type: object
+    properties:
+      fooTimeUntil: time-only
   FooAtDateTime:
     type: object
     properties:
@@ -47,6 +59,11 @@ types:
     properties:
       fooFrom: datetime
       fooTo: datetime
+  FooRangeUntilDateTime:
+    type: object
+    properties:
+      fooFrom: datetime
+      fooUntil: datetime
   FooAtDate:
     type: object
     properties:
@@ -56,6 +73,11 @@ types:
     properties:
       fooFrom: date-only
       fooTo: date-only
+  FooRangeUntilDate:
+    type: object
+    properties:
+      fooFrom: date-only
+      fooUntil: date-only
   FooAtTime:
     type: object
     properties:
@@ -65,3 +87,8 @@ types:
     properties:
       fooFrom: time-only
       fooTo: time-only
+  FooRangeUntilTime:
+    type: object
+    properties:
+      fooFrom: time-only
+      fooUntil: time-only

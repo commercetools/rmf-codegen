@@ -14,13 +14,16 @@ class DatetimeRule(severity: RuleSeverity, options: List<RuleOption>? = null) : 
 
         type.properties.filter { property -> property.type.isDateTime() }.forEach { property ->
             if (exclude.contains(property.name).not()) {
-                if (property.name.endsWith("At").not() && property.name.endsWith("From").not() && property.name.endsWith("To").not()) {
-                    validationResults.add(error(type, "Property \"{0}\" of type \"{1}\" must end with \"At\", \"From\" or \"To\"", property.name, type.name))
+                if (property.name.endsWith("At").not() && property.name.endsWith("From").not() && property.name.endsWith("To").not() && property.name.endsWith("Until").not()) {
+                    validationResults.add(error(type, "Property \"{0}\" of type \"{1}\" must end with \"At\", \"From\", \"To\" or \"Until\"", property.name, type.name))
                 }
-                if (property.name.endsWith("From") && type.properties.none { p -> p.name.endsWith("To") }) {
-                    validationResults.add(error(type, "Property \"{0}\" of type \"{1}\" indicates a range, property ending with \"To\" is missing", property.name, type.name))
+                if (property.name.endsWith("From") && type.properties.none { p -> p.name.endsWith("To") || p.name.endsWith("Until") }) {
+                    validationResults.add(error(type, "Property \"{0}\" of type \"{1}\" indicates a range, property ending with \"To\" or \"Until\" is missing", property.name, type.name))
                 }
                 if (property.name.endsWith("To") && type.properties.none { p -> p.name.endsWith("From") }) {
+                    validationResults.add(error(type, "Property \"{0}\" of type \"{1}\" indicates a range, property ending with \"From\" is missing", property.name, type.name))
+                }
+                if (property.name.endsWith("Until") && type.properties.none { p -> p.name.endsWith("From") }) {
                     validationResults.add(error(type, "Property \"{0}\" of type \"{1}\" indicates a range, property ending with \"From\" is missing", property.name, type.name))
                 }
             }

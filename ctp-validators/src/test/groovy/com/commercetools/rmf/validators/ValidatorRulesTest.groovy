@@ -21,16 +21,19 @@ class ValidatorRulesTest extends Specification implements ValidatorFixtures {
         def uri = uriFromClasspath("/datetime-rule.raml")
         def result = new RamlModelBuilder(validators).buildApi(uri)
         then:
-        result.validationResults.size == 9
-        result.validationResults[0].message == "Property \"fooDateTime\" of type \"InvalidDateTime\" must end with \"At\", \"From\" or \"To\""
-        result.validationResults[1].message == "Property \"fooDate\" of type \"InvalidDate\" must end with \"At\", \"From\" or \"To\""
-        result.validationResults[2].message == "Property \"fooTime\" of type \"InvalidTime\" must end with \"At\", \"From\" or \"To\""
-        result.validationResults[3].message == "Property \"fooDateTimeFrom\" of type \"InvalidDateTimeRangeFrom\" indicates a range, property ending with \"To\" is missing"
+        result.validationResults.size == 12
+        result.validationResults[0].message == "Property \"fooDateTime\" of type \"InvalidDateTime\" must end with \"At\", \"From\", \"To\" or \"Until\""
+        result.validationResults[1].message == "Property \"fooDate\" of type \"InvalidDate\" must end with \"At\", \"From\", \"To\" or \"Until\""
+        result.validationResults[2].message == "Property \"fooTime\" of type \"InvalidTime\" must end with \"At\", \"From\", \"To\" or \"Until\""
+        result.validationResults[3].message == "Property \"fooDateTimeFrom\" of type \"InvalidDateTimeRangeFrom\" indicates a range, property ending with \"To\" or \"Until\" is missing"
         result.validationResults[4].message == "Property \"fooDateTimeTo\" of type \"InvalidDateTimeRangeTo\" indicates a range, property ending with \"From\" is missing"
-        result.validationResults[5].message == "Property \"fooDateFrom\" of type \"InvalidDateRangeFrom\" indicates a range, property ending with \"To\" is missing"
-        result.validationResults[6].message == "Property \"fooDateTo\" of type \"InvalidDateRangeTo\" indicates a range, property ending with \"From\" is missing"
-        result.validationResults[7].message == "Property \"fooTimeFrom\" of type \"InvalidTimeRangeFrom\" indicates a range, property ending with \"To\" is missing"
-        result.validationResults[8].message == "Property \"fooTimeTo\" of type \"InvalidTimeRangeTo\" indicates a range, property ending with \"From\" is missing"
+        result.validationResults[5].message == "Property \"fooDateTimeUntil\" of type \"InvalidDateTimeRangeUntil\" indicates a range, property ending with \"From\" is missing"
+        result.validationResults[6].message == "Property \"fooDateFrom\" of type \"InvalidDateRangeFrom\" indicates a range, property ending with \"To\" or \"Until\" is missing"
+        result.validationResults[7].message == "Property \"fooDateTo\" of type \"InvalidDateRangeTo\" indicates a range, property ending with \"From\" is missing"
+        result.validationResults[8].message == "Property \"fooDateUntil\" of type \"InvalidDateRangeUntil\" indicates a range, property ending with \"From\" is missing"
+        result.validationResults[9].message == "Property \"fooTimeFrom\" of type \"InvalidTimeRangeFrom\" indicates a range, property ending with \"To\" or \"Until\" is missing"
+        result.validationResults[10].message == "Property \"fooTimeTo\" of type \"InvalidTimeRangeTo\" indicates a range, property ending with \"From\" is missing"
+        result.validationResults[11].message == "Property \"fooTimeUntil\" of type \"InvalidTimeRangeUntil\" indicates a range, property ending with \"From\" is missing"
     }
 
     def "discriminator name rule"() {
