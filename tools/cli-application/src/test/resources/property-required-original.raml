@@ -1,0 +1,37 @@
+#%RAML 1.0
+title: property optional
+
+types:
+  Foo:
+    type: object
+    properties:
+      foo?: string
+  Bar:
+    type: object
+    properties:
+      bar?: string
+  Baz:
+    type: object
+    properties:
+      baz:
+        type: string
+        required: false
+  FooBar:
+    type: object
+    properties:
+      fooBar:
+        type: string
+        required: false
+  FooBaz:
+    type: object
+    properties:
+      fooBaz?:
+        type: string
+        description: FooBaz
+  FooBarBaz:
+    type: object
+    properties:
+      fooBarBaz:
+        required: false
+        type: string
+        description: FooBarBaz
