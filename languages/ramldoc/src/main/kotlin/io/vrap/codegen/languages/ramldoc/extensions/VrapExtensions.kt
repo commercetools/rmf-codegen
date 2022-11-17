@@ -115,7 +115,7 @@ fun AnyType.renderTypeFacet(): String {
 fun UriParameter.renderUriParameter(): String {
     val parameterExamples = this.inlineTypes.flatMap { inlineType -> inlineType.examples }
     return """
-            |${this.name.replace("ID", "id", ignoreCase = true)}:${if (this.type.enum.size > 0) """
+            |${this.name.replace("^ID$".toRegex(RegexOption.IGNORE_CASE), "id")}:${if (this.type.enum.size > 0) """
             |  enum:
             |  <<${this.type.enum.joinToString("\n") { "- ${it.value}"}}>>""" else ""}
             |  <<${this.type.renderType()}>>
