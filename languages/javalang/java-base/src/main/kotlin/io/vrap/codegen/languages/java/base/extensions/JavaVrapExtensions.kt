@@ -9,6 +9,7 @@ import io.vrap.rmf.codegen.types.*
 import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.responses.Body
+import io.vrap.rmf.raml.model.responses.Response
 import io.vrap.rmf.raml.model.types.ArrayType
 import io.vrap.rmf.raml.model.types.ObjectInstance
 import io.vrap.rmf.raml.model.types.QueryParameter
@@ -102,6 +103,7 @@ fun UriTemplate.paramValues(): List<String> {
 }
 
 fun Method.firstBody(): Body? = this.bodies.stream().findFirst().orElse(null)
+fun Response.firstBody(): Body? = this.bodies.stream().findFirst().orElse(null)
 
 fun QueryParameter.methodName(): String {
     val anno = this.getAnnotation("placeholderParam", true)

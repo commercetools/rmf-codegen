@@ -42,7 +42,7 @@ class TestCodeGenerator {
 
     @Test
     fun generatePlantUmlDiagram() {
-        val generatorConfig = CodeGeneratorConfig(basePackageName = "com/commercetools/importer")
+        val generatorConfig = CodeGeneratorConfig(basePackageName = "")
         val generatorModule = RamlGeneratorModule(apiProvider, generatorConfig, JavaBaseTypes)
         val generatorComponent = RamlGeneratorComponent(generatorModule, PlantUmlModule)
         generatorComponent.generateFiles()

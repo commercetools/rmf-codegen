@@ -9,7 +9,7 @@ object PlantUmlModule : Module {
     override fun configure(generatorModule: RamlGeneratorModule) = setOf(
             FileGenerator(
                     setOf(
-                            PlantUmlDiagramProducer(generatorModule.vrapTypeProvider(), generatorModule.allObjectTypes(), generatorModule.allEnumStringTypes())
+                            PlantUmlDiagramProducer(generatorModule.vrapTypeProvider(), generatorModule.allObjectTypes(), generatorModule.allEnumStringTypes(), generatorModule.provideRamlModel())
                     )
             )
     )
