@@ -87,11 +87,26 @@ class PlantUmlDiagramProducer constructor(override val vrapTypeProvider: VrapTyp
     }
 
     private fun render(type: ObjectType): List<TemplateFile> {
+        val references = EcoreUtil.UsageCrossReferencer.find(type, type.eContainer())
+            .map { it.eObject }
+            .filter { it.eContainer() is Property }
+            .map { it.eContainer() as Property }
+            .sortedBy { it.type?.name }
+        val inlinedSubTypes = type.subTypes.plus(type.subTypes.flatMap { it.subTypes }).distinctBy { it.name }.sortedBy { it.name }
+        val subTypes = inlinedSubTypes
+            .filterIsInstance<ObjectType>()
+            .filter { it.discriminatorValue != null }
+            .distinctBy { it.name }
+        val childTypes = inlinedSubTypes
+            .filterIsInstance<ObjectType>()
+            .filter { it.discriminatorProperty() == null }
+            .filterNot { it.name == type.name }
+            .distinctBy { it.name }
         val puml = """
                 |@startuml
                 |!pragma layout elk
-                |hide fields
-                |hide methods
+                |hide empty fields
+                |hide empty methods
                 |legend
                 ||= |= line |
                 ||<back:black>   </back>| inheritance |
@@ -99,6 +114,12 @@ class PlantUmlDiagramProducer constructor(override val vrapTypeProvider: VrapTyp
                 ||<back:blue>   </back>| discriminated class |
                 |endlegend
                 |${ type.plantUmlClassDef() }
+                |${if (type.type is ObjectType) (type.type as ObjectType).plantUmlClassDef(false) else ""}
+                |${childTypes.joinToString("\n") { it.plantUmlClassDef() }}
+                |${type.plantUmlSubTypes(subTypes)}
+                |${type.plantUmlPropertyTypes(references)}
+                |${type.plantUmlSubTypeConnections(subTypes)}
+                |${type.plantUmlPropertyTypeConnections(references)}
                 |@enduml
             """.trimMargin()
         val reader = SourceStringReader(puml)
@@ -175,41 +196,14 @@ class PlantUmlDiagramProducer constructor(override val vrapTypeProvider: VrapTyp
     }
 
 
-    private fun ObjectType.plantUmlClassDef(): String {
+    private fun ObjectType.plantUmlClassDef(withExtends: Boolean = true): String {
         val vrapType = this.toVrapType() as VrapObjectType
-        val references = EcoreUtil.UsageCrossReferencer.find(this, this.eContainer())
-            .map { it.eObject }
-            .filter { it.eContainer() is Property }
-            .map { it.eContainer() as Property }
-        val inlinedSubTypes = this.subTypes.plus(this.subTypes.flatMap { it.subTypes }).distinctBy { it.name }
-        val subTypes = inlinedSubTypes
-            .filterIsInstance<ObjectType>()
-            .filter { it.discriminatorValue != null }
-            .distinctBy { it.name }
-        val childTypes = inlinedSubTypes
-            .filterIsInstance<ObjectType>()
-            .filter { it.discriminatorProperty() == null }
-            .filterNot { it.name == this.name }
-            .distinctBy { it.name }
+
         return """
-            |${if (this.type != null) this.type.plantUmlClassDefShort() else ""}
-            |interface ${vrapType.simpleClassName} ${if (this.type != null) "extends ${this.type.toVrapType().simpleName()}" else ""} {
+            |interface ${vrapType.simpleClassName} [[${vrapType.simpleName()}.svg]] ${if (withExtends && this.type != null) "extends ${this.type.toVrapType().simpleName()}" else ""} {
             |    <${this.plantUmlProperties().escapeAll()}>
             |}
-            |hide fields
-            |hide methods
-            |show ${vrapType.simpleClassName} fields
-            |${childTypes.joinToString("\n") { it.plantUmlClassDefShort(true) }.escapeAll()}
-            |${this.plantUmlSubTypes(subTypes).escapeAll()}
-            |${this.plantUmlPropertyTypes(references).escapeAll()}
-            |${this.plantUmlSubTypeConnections(subTypes).escapeAll()}
-            |${this.plantUmlPropertyTypeConnections(references).escapeAll()}
         """.trimMargin().keepIndentation()
-
-        /*
-
-
-         */
     }
 
     private fun AnyType.plantUmlClassDefShort(withExtends: Boolean = false): String {
@@ -242,7 +236,7 @@ class PlantUmlDiagramProducer constructor(override val vrapTypeProvider: VrapTyp
 
     private fun AnyType.plantUmlPropertyTypes(references: List<Property>): String {
         return references
-            .map { (it.eContainer() as ObjectType).plantUmlClassDefShort() }
+            .map { (it.eContainer() as ObjectType).plantUmlClassDef(false) }
             .distinct()
             .joinToString(separator = "\n")
     }
@@ -254,7 +248,7 @@ class PlantUmlDiagramProducer constructor(override val vrapTypeProvider: VrapTyp
 
     private fun ObjectType.plantUmlSubTypes(subTypes: List<ObjectType>): String {
         return subTypes
-            .map { it.plantUmlClassDefShort( ) }
+            .map { it.plantUmlClassDef(false) }
             .joinToString(separator = "\n")
     }
 
@@ -276,7 +270,7 @@ class PlantUmlDiagramProducer constructor(override val vrapTypeProvider: VrapTyp
     }
     fun Property.plantUmlAttribute(): String {
         val type = this.type
-        return "${type.plantUmlAttribute()} ${this.name}"
+        return "${this.name}: ${type.plantUmlAttribute()}"
     }
 
     fun AnyType.plantUmlAttribute(): String {

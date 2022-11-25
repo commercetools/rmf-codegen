@@ -28,11 +28,29 @@ object JavaBaseTypes : LanguageBaseTypes(
     dateOnlyType = fromJavaType(LocalDate::class),
     timeOnlyType = fromJavaType(LocalTime::class),
     file = fromJavaType(File::class)
+)
 
+object PlantUmlBaseTypes : LanguageBaseTypes(
+
+    anyType = fromJavaType(Object::class),
+    objectType = fromJavaType(Object::class),
+    integerType = fromDefaultJavaType(Integer::class),
+    longType = fromDefaultJavaType(Long::class),
+    doubleType = fromDefaultJavaType(Double::class),
+    stringType = fromDefaultJavaType(String::class),
+    booleanType = fromDefaultJavaType(Boolean::class),
+    dateTimeType = scalarType("DateTime", "date-time"),
+    dateOnlyType = scalarType("Date", "date-only"),
+    timeOnlyType = scalarType("Time", "time-only"),
+    file = fromJavaType(File::class)
 )
 
 fun fromJavaType(kClass: KClass<out Any>): VrapObjectType {
     return VrapObjectType(kClass.java.`package`.name, kClass.java.simpleName)
+}
+
+fun scalarType(simpleName: kotlin.String, primitiveName: kotlin.String): VrapScalarType {
+    return VrapScalarType(simpleName, primitiveName)
 }
 
 fun fromDefaultJavaType(kClass: KClass<out Any>): VrapScalarType = fromJavaType(kClass).let { VrapScalarType(it.simpleClassName, kClass.primitiveType()) }
