@@ -3,8 +3,9 @@ dependencies {
     api project(':languages:javalang:java-base')
     implementation orgkotlin.stdlib
 
-    implementation 'net.sourceforge.plantuml:plantuml:1.2022.13'
-    implementation 'org.eclipse.elk:org.eclipse.elk.core:0.8.1'
-    implementation 'org.eclipse.elk:org.eclipse.elk.alg.layered:0.8.1'
-    implementation 'org.eclipse.elk:org.eclipse.elk.alg.mrtree:0.8.1'
+    api 'net.sourceforge.plantuml:plantuml:1.2022.13'
+    api 'org.eclipse.elk:org.eclipse.elk.core:0.8.1'
+    api 'org.eclipse.elk:org.eclipse.elk.graph:0.8.1'
+    api 'org.eclipse.elk:org.eclipse.elk.alg.layered:0.8.1'
+    api 'org.eclipse.elk:org.eclipse.elk.alg.mrtree:0.8.1'
 }

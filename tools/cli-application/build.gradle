@@ -91,6 +91,11 @@ dependencies {
     api project(':ctp-validators')
     api swagger.swagger_parser
     api swagger.swagger_converter
+    api 'net.sourceforge.plantuml:plantuml:1.2022.13'
+    api 'org.eclipse.elk:org.eclipse.elk.core:0.8.1'
+    api 'org.eclipse.elk:org.eclipse.elk.graph:0.8.1'
+    api 'org.eclipse.elk:org.eclipse.elk.alg.layered:0.8.1'
+    api 'org.eclipse.elk:org.eclipse.elk.alg.mrtree:0.8.1'
 
     implementation orgkotlin.stdlib
     implementation google.guava
