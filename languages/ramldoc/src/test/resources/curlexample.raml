@@ -19,6 +19,21 @@ types:
            example: {
             "foo": "bar"
            }
+       headers:
+         FOO:
+           type: string
+           required: true
+       responses:
+         200:
+           body:
+             application/json:
+               type: Test
+/foo:
+    get:
+       headers:
+         FOO:
+           type: string
+           required: true
        responses:
          200:
            body:

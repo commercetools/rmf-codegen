@@ -58,7 +58,7 @@ class TestCodeGenerator {
         val generatorComponent = RamlGeneratorComponent(generatorModule, RamldocModelModule)
         generatorComponent.generateFiles()
 
-        Assertions.assertThat(dataSink.files).hasSize(4)
+        Assertions.assertThat(dataSink.files).hasSize(5)
         Assertions.assertThat(dataSink.files.get("resources/Test.raml")?.trim()).isEqualTo("""
             # Resource
             (resourceName): Test
@@ -96,12 +96,31 @@ class TestCodeGenerator {
                 curl: |-
                   curl -X POST http://com.foo.bar/api/test -i \
                   --header 'Content-Type: application/json' \
+                  --header 'FOO: ${'$'}{FOO}' \
                   --data-binary @- << DATA 
                   {
                     "foo" : "bar"
                   }
                   DATA
         """.trimIndent().trim())
+        Assertions.assertThat(dataSink.files.get("resources/Foo.raml")?.trim()).isEqualTo("""
+            # Resource
+            (resourceName): Foo
+            (resourcePathUri): /foo
+            
+            get:
+              responses:
+                200:
+                  body:
+                    application/json:
+                      type: Test
+                      (builtinType): object
+            
+              (codeExamples):
+                curl: |-
+                  curl -X GET http://com.foo.bar/api/foo -i \
+                  --header 'FOO: ${'$'}{FOO}'
+              """.trimIndent().trim())
     }
 
     @Test

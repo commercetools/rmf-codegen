@@ -25,7 +25,6 @@ import io.vrap.rmf.raml.model.util.StringCaseFormat
 import net.sourceforge.plantuml.FileFormat
 import net.sourceforge.plantuml.FileFormatOption
 import net.sourceforge.plantuml.SourceStringReader
-import org.eclipse.emf.ecore.EStructuralFeature
 import org.eclipse.emf.ecore.util.EcoreUtil
 import java.io.ByteArrayOutputStream
 import java.nio.charset.Charset

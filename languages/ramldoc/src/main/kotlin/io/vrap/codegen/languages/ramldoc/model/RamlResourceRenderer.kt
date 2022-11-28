@@ -19,6 +19,7 @@ import io.vrap.rmf.raml.model.responses.Body
 import io.vrap.rmf.raml.model.responses.Response
 import io.vrap.rmf.raml.model.security.SecuredBy
 import io.vrap.rmf.raml.model.types.*
+import io.vrap.rmf.raml.model.util.StringCaseFormat
 import java.util.*
 
 class RamlResourceRenderer constructor(val api: Api, val vrapTypeProvider: VrapTypeProvider) : ResourceRenderer {
@@ -70,6 +71,8 @@ class RamlResourceRenderer constructor(val api: Api, val vrapTypeProvider: VrapT
         val r = method.resource()
         val params = method.queryParameters.filter { p -> p.required }
         val queryParameters = "${if (params.isNotEmpty()) "?" else ""}${params.joinToString("&") { p -> "${p.name}={${p.name}}" }}"
+
+        val headers = method.headers.filter { it.required }.map { "--header '${it.name}: ${'$'}{${StringCaseFormat.UPPER_UNDERSCORE_CASE.apply(it.name)}}'" }
         return when (method.method) {
             HttpMethod.PATCH,
             HttpMethod.PUT,
@@ -78,6 +81,7 @@ class RamlResourceRenderer constructor(val api: Api, val vrapTypeProvider: VrapT
                     |curl -X ${method.methodName.uppercase(Locale.getDefault())} ${baseUri}${r.fullUri.normalize().template}$queryParameters -i \\${if (addBearerToken) """
                     |--header 'Authorization: Bearer ${'$'}{BEARER_TOKEN}' \\""" else ""}
                     |--header 'Content-Type: application/json' \\
+                    |${headers.joinToString("\\\\\n")} \\
                     |--data-binary @- \<< DATA 
                     |${
                     requestExamples(
@@ -90,7 +94,9 @@ class RamlResourceRenderer constructor(val api: Api, val vrapTypeProvider: VrapT
             else ->
                 """
                     |curl -X ${method.methodName.uppercase(Locale.getDefault())} ${baseUri}${r.fullUri.normalize().template}$queryParameters -i ${if (addBearerToken) """\\
-                    |--header 'Authorization: Bearer ${'$'}{BEARER_TOKEN}'""" else ""}
+                    |--header 'Authorization: Bearer ${'$'}{BEARER_TOKEN}'""" else ""}${if (headers.isNotEmpty()) """ \\
+                    |${headers.joinToString("\\\\\n")}
+                    """.trimIndent() else ""}
                 """
         }.trimMargin().escapeAll()
     }
