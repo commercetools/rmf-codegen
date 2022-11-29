@@ -28,6 +28,18 @@ types:
            body:
              application/json:
                type: Test
+    put:
+       body:
+         application/json:
+           type: Test
+           example: {
+            "foo": "bar"
+           }
+       responses:
+         200:
+           body:
+             application/json:
+               type: Test
 /foo:
     get:
        headers:

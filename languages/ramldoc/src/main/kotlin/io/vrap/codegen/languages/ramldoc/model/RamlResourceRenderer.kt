@@ -52,7 +52,9 @@ class RamlResourceRenderer constructor(val api: Api, val vrapTypeProvider: VrapT
             |  description: |-
             |    <<${method.description.value.trim()}>>""" else ""}${if (method.queryParameters.isNotEmpty()) """
             |  queryParameters:
-            |    <<${method.queryParameters.joinToString("\n") { renderQueryParameter(it) }}>>""" else ""}${if (method.bodies.any { it.type != null }) """
+            |    <<${method.queryParameters.joinToString("\n") { renderQueryParameter(it) }}>>""" else ""}${if (method.headers.isNotEmpty()) """
+            |  headers:
+            |    <<${method.headers.joinToString("\n") { renderHeader(it) } }>>""" else ""}${if (method.bodies.any { it.type != null }) """
             |  body:
             |    <<${method.bodies.filter { it.type != null }.joinToString("\n") { renderBody(it, method) } }>>""" else ""}${if (method.responses.any { response -> response.isSuccessfull() }) """
             |  responses:
@@ -60,6 +62,14 @@ class RamlResourceRenderer constructor(val api: Api, val vrapTypeProvider: VrapT
             |  (codeExamples):
             |    curl: |-
             |      <<${renderCurlExample(method)}>>""" else ""}
+        """.trimMargin().keepAngleIndent()
+    }
+
+    private fun renderHeader(header: Header): String {
+        return """
+            |${header.name}:
+            |  <<${header.type.renderType()}>>
+            |  required: ${header.required}
         """.trimMargin().keepAngleIndent()
     }
 
@@ -80,8 +90,8 @@ class RamlResourceRenderer constructor(val api: Api, val vrapTypeProvider: VrapT
                 """
                     |curl -X ${method.methodName.uppercase(Locale.getDefault())} ${baseUri}${r.fullUri.normalize().template}$queryParameters -i \\${if (addBearerToken) """
                     |--header 'Authorization: Bearer ${'$'}{BEARER_TOKEN}' \\""" else ""}
-                    |--header 'Content-Type: application/json' \\
-                    |${headers.joinToString("\\\\\n")} \\
+                    |--header 'Content-Type: application/json' \\${if (headers.isNotEmpty()) """
+                    |${headers.joinToString("\\\\\n")} \\""" else ""}
                     |--data-binary @- \<< DATA 
                     |${
                     requestExamples(

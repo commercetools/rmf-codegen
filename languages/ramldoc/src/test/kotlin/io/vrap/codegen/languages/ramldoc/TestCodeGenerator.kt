@@ -58,7 +58,7 @@ class TestCodeGenerator {
         val generatorComponent = RamlGeneratorComponent(generatorModule, RamldocModelModule)
         generatorComponent.generateFiles()
 
-        Assertions.assertThat(dataSink.files).hasSize(5)
+        Assertions.assertThat(dataSink.files).hasSize(6)
         Assertions.assertThat(dataSink.files.get("resources/Test.raml")?.trim()).isEqualTo("""
             # Resource
             (resourceName): Test
@@ -76,6 +76,11 @@ class TestCodeGenerator {
                 curl: |-
                   curl -X GET http://com.foo.bar/api/test -i 
             post:
+              headers:
+                FOO:
+                  type: string
+                  (builtinType): string
+                  required: true
               body:
                 application/json:
                   type: Test
@@ -102,6 +107,32 @@ class TestCodeGenerator {
                     "foo" : "bar"
                   }
                   DATA
+            put:
+              body:
+                application/json:
+                  type: Test
+                  (builtinType): object
+                  examples:
+                    default:
+                      strict: true
+                      value: !include ../examples/TestPut-default.json
+            
+              responses:
+                200:
+                  body:
+                    application/json:
+                      type: Test
+                      (builtinType): object
+            
+              (codeExamples):
+                curl: |-
+                  curl -X PUT http://com.foo.bar/api/test -i \
+                  --header 'Content-Type: application/json' \
+                  --data-binary @- << DATA 
+                  {
+                    "foo" : "bar"
+                  }
+                  DATA
         """.trimIndent().trim())
         Assertions.assertThat(dataSink.files.get("resources/Foo.raml")?.trim()).isEqualTo("""
             # Resource
@@ -109,6 +140,11 @@ class TestCodeGenerator {
             (resourcePathUri): /foo
             
             get:
+              headers:
+                FOO:
+                  type: string
+                  (builtinType): string
+                  required: true
               responses:
                 200:
                   body:
