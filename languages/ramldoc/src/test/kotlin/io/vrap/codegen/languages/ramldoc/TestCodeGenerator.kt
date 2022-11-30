@@ -74,7 +74,7 @@ class TestCodeGenerator {
             
               (codeExamples):
                 curl: |-
-                  curl -X GET http://com.foo.bar/api/test -i 
+                  curl --get http://com.foo.bar/api/test -i
             post:
               headers:
                 FOO:
@@ -99,7 +99,7 @@ class TestCodeGenerator {
             
               (codeExamples):
                 curl: |-
-                  curl -X POST http://com.foo.bar/api/test -i \
+                  curl http://com.foo.bar/api/test -i \
                   --header 'Content-Type: application/json' \
                   --header 'FOO: ${'$'}{FOO}' \
                   --data-binary @- << DATA 
@@ -154,7 +154,7 @@ class TestCodeGenerator {
             
               (codeExamples):
                 curl: |-
-                  curl -X GET http://com.foo.bar/api/foo -i \
+                  curl --get http://com.foo.bar/api/foo -i \
                   --header 'FOO: ${'$'}{FOO}'
               """.trimIndent().trim())
     }

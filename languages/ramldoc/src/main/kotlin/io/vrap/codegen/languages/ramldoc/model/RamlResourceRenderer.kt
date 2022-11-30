@@ -83,30 +83,33 @@ class RamlResourceRenderer constructor(val api: Api, val vrapTypeProvider: VrapT
         val queryParameters = "${if (params.isNotEmpty()) "?" else ""}${params.joinToString("&") { p -> "${p.name}={${p.name}}" }}"
 
         val headers = method.headers.filter { it.required }.map { "--header '${it.name}: ${'$'}{${StringCaseFormat.UPPER_UNDERSCORE_CASE.apply(it.name)}}'" }
+        val xParam = when (method.method) {
+            HttpMethod.POST -> ""
+            HttpMethod.GET -> " --get"
+            HttpMethod.HEAD -> " --head"
+            else -> " -X ${method.methodName.uppercase(Locale.getDefault())}"
+        }
         return when (method.method) {
             HttpMethod.PATCH,
             HttpMethod.PUT,
             HttpMethod.POST ->
                 """
-                    |curl -X ${method.methodName.uppercase(Locale.getDefault())} ${baseUri}${r.fullUri.normalize().template}$queryParameters -i \\${if (addBearerToken) """
+                    |curl$xParam ${baseUri}${r.fullUri.normalize().template}$queryParameters -i \\${if (addBearerToken) """
                     |--header 'Authorization: Bearer ${'$'}{BEARER_TOKEN}' \\""" else ""}
                     |--header 'Content-Type: application/json' \\${if (headers.isNotEmpty()) """
                     |${headers.joinToString("\\\\\n")} \\""" else ""}
                     |--data-binary @- \<< DATA 
-                    |${
-                    requestExamples(
+                    |${requestExamples(
                         method.bodies.filter { it.type != null }.first(),
-                        method
-                    ).values.firstOrNull()?.value?.toJson() ?: ""
-                }
+                        method).values.firstOrNull()?.value?.toJson() ?: ""}
                     |DATA
                 """
             else ->
                 """
-                    |curl -X ${method.methodName.uppercase(Locale.getDefault())} ${baseUri}${r.fullUri.normalize().template}$queryParameters -i ${if (addBearerToken) """\\
+                    |curl$xParam ${baseUri}${r.fullUri.normalize().template}$queryParameters -i${if (addBearerToken) """ \\
                     |--header 'Authorization: Bearer ${'$'}{BEARER_TOKEN}'""" else ""}${if (headers.isNotEmpty()) """ \\
                     |${headers.joinToString("\\\\\n")}
-                    """.trimIndent() else ""}
+                    """ else ""}
                 """
         }.trimMargin().escapeAll()
     }
