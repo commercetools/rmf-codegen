@@ -37,7 +37,9 @@ enum class Scope(val scope: String) {
     PROPERTY("property"),
     URI_PARAMETER("uriParameter"),
     QUERY_PARAMETER("queryParameter"),
-    ENUM("enum")
+    ENUM("enum"),
+    METHOD_BODY("methodBody"),
+    METHOD_RESPONSE_BODY("methodResponseBody"),
 }
 
 data class DiffData<T>(
@@ -58,9 +60,24 @@ enum class DiffDataType {
     OBJECT_TYPES,
     OBJECT_TYPES_MAP,
     PROPERTIES_MAP,
+    METHOD_TYPES_MAP,
+    METHOD_RESPONSE_TYPES_MAP,
 }
 
 data class PropertyReference(
     val objectType: String,
     val property: String
+)
+
+data class MethodBodyTypeReference(
+    val fullUri: String,
+    val method: String,
+    val mediaType: String
+)
+
+data class MethodResponseBodyTypeReference(
+    val fullUri: String,
+    val method: String,
+    val status: String,
+    val mediaType: String
 )

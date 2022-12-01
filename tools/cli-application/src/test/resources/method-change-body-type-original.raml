@@ -1,0 +1,18 @@
+#%RAML 1.0
+title: method type change
+
+types:
+  Foo:
+    type: object
+    properties:
+      foo: object
+  Bar:
+    type: Foo
+
+/foo:
+  get:
+    body:
+      application/json:
+        type: Bar
+      application/text:
+        type: Foo

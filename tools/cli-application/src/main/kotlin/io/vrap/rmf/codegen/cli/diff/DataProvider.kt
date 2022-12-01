@@ -1,5 +1,6 @@
 package io.vrap.rmf.codegen.cli.diff
 
+import io.vrap.codegen.languages.extensions.resource
 import io.vrap.rmf.raml.model.modules.Api
 import io.vrap.rmf.raml.model.types.ObjectType
 import io.vrap.rmf.raml.model.types.StringType
@@ -73,6 +74,58 @@ class DataProvider(private val original: Api, private val changed: Api) {
         )
     }
 
+    private val allMethodTypesMap by lazy {
+        DiffData(
+            allMethods.original.flatMap { method ->
+                method.bodies.map {
+                    MethodBodyTypeReference(
+                        method.resource().fullUri.template,
+                        method.methodName,
+                        it.contentType
+                    ) to it
+                }
+            }.toMap(),
+            allMethods.changed.flatMap { method ->
+                method.bodies.map {
+                    MethodBodyTypeReference(
+                        method.resource().fullUri.template,
+                        method.methodName,
+                        it.contentType
+                    ) to it
+                }
+            }.toMap()
+        )
+    }
+
+    private val allMethodResponseTypesMap by lazy {
+        DiffData(
+            allMethods.original.flatMap { method ->
+                method.responses.flatMap { response ->
+                    response.bodies.map {
+                        MethodResponseBodyTypeReference(
+                            method.resource().fullUri.template,
+                            method.methodName,
+                            response.statusCode,
+                            it.contentType
+                        ) to it
+                    }
+                }
+            }.toMap(),
+            allMethods.changed.flatMap { method ->
+                method.responses.flatMap { response ->
+                    response.bodies.map {
+                        MethodResponseBodyTypeReference(
+                            method.resource().fullUri.template,
+                            method.methodName,
+                            response.statusCode,
+                            it.contentType
+                        ) to it
+                    }
+                }
+            }.toMap()
+        )
+    }
+
     fun by(type: DiffDataType): DiffData<out Any> {
         return when (type) {
             DiffDataType.API -> DiffData(original, changed)
@@ -87,6 +140,8 @@ class DataProvider(private val original: Api, private val changed: Api) {
             DiffDataType.METHODS -> allMethods
             DiffDataType.METHODS_MAP -> allMethodsMap
             DiffDataType.PROPERTIES_MAP -> allPropertiesMap
+            DiffDataType.METHOD_TYPES_MAP -> allMethodTypesMap
+            DiffDataType.METHOD_RESPONSE_TYPES_MAP -> allMethodResponseTypesMap
         }
     }
 }

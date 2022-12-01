@@ -1,0 +1,27 @@
+#%RAML 1.0
+title: method response type change
+
+types:
+  Foo:
+    type: object
+    properties:
+      foo: object
+  Bar:
+    type: Foo
+
+/foo:
+  get:
+    responses:
+      200:
+        body:
+          application/json:
+            type: Foo
+          text/plain:
+            type: Foo
+            description: foo
+          text/html:
+            type: Foo
+      404:
+        body:
+          application/json:
+            type: Foo

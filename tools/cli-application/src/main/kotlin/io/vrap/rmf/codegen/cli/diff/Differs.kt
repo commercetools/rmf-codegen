@@ -1,7 +1,9 @@
 package io.vrap.rmf.codegen.cli.diff
 
+import io.vrap.codegen.languages.php.extensions.firstBody
 import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Resource
+import io.vrap.rmf.raml.model.responses.Body
 import io.vrap.rmf.raml.model.types.AnyType
 import io.vrap.rmf.raml.model.types.BooleanInstance
 import io.vrap.rmf.raml.model.types.BuiltinType
@@ -288,6 +290,26 @@ class EnumRemovedCheck(override val severity: CheckSeverity): DiffCheck<Map<Stri
         return data.original.filter { data.changed.containsKey(it.key) }.flatMap { (typeName, objectType) ->
             objectType.enum.toInstanceMap().filter { data.changed[typeName]!!.enum.toInstanceMap().containsKey(it.key).not() }.map { (enumValue, property) -> Diff(
                 DiffType.REMOVED, Scope.ENUM, enumValue, "removed enum `${enumValue}` from type `${typeName}`", property, severity) }
+        }
+    }
+}
+
+class MethodBodyTypeChangedCheck(override val severity: CheckSeverity): DiffCheck<Map<MethodBodyTypeReference, Body>>(severity) {
+    override val diffDataType: DiffDataType = DiffDataType.METHOD_TYPES_MAP
+
+    override fun diff(data: DiffData<Map<MethodBodyTypeReference, Body>>): List<Diff<Any>> {
+        return data.changed.filter { data.original.containsKey(it.key) }.filter { (key, body) -> body.type.name != data.original[key]!!.type.name }.map { (methodRef, body) ->
+            Diff(DiffType.CHANGED, Scope.METHOD_BODY, DiffData(data.original[methodRef]!!.type.name, body.type.name), "changed body for `${methodRef.mediaType}` of method `${methodRef.method} ${methodRef.fullUri}` from type `${data.original[methodRef]!!.type.name}` to `${body.type.name}`", body, severity)
+        }
+    }
+}
+
+class MethodResponseBodyTypeChangedCheck(override val severity: CheckSeverity): DiffCheck<Map<MethodResponseBodyTypeReference, Body>>(severity) {
+    override val diffDataType: DiffDataType = DiffDataType.METHOD_RESPONSE_TYPES_MAP
+
+    override fun diff(data: DiffData<Map<MethodResponseBodyTypeReference, Body>>): List<Diff<Any>> {
+        return data.changed.filter { data.original.containsKey(it.key) }.filter { (key, body) -> body.type.name != data.original[key]!!.type.name }.map { (methodRef, body) ->
+            Diff(DiffType.CHANGED, Scope.METHOD_RESPONSE_BODY, DiffData(data.original[methodRef]!!.type.name, body.type.name), "changed response body for `${methodRef.status}: ${methodRef.mediaType}` of method `${methodRef.method} ${methodRef.fullUri}` from type `${data.original[methodRef]!!.type.name}` to `${body.type.name}`", body, severity)
         }
     }
 }

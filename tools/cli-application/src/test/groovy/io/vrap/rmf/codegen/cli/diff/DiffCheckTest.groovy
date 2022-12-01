@@ -142,6 +142,42 @@ class DiffCheckTest extends Specification implements ValidatorFixtures {
         results[1].message == "changed type `Bar` from type `Foo` to `Baz`"
     }
 
+    def "added enum"() {
+        when:
+        def check = diff("/enum-added", new EnumAddedCheck(defaultSeverity))
+        def results = check.diff()
+        then:
+        results.size() == 1
+        results[0].message == "added enum `bar` to type `Foo`"
+    }
+
+    def "removed enum"() {
+        when:
+        def check = diff("/enum-removed", new EnumRemovedCheck(defaultSeverity))
+        def results = check.diff()
+        then:
+        results.size() == 1
+        results[0].message == "removed enum `bar` from type `Foo`"
+    }
+
+    def "method body type changed"() {
+        when:
+        def check = diff("/method-change-body-type", new MethodBodyTypeChangedCheck(defaultSeverity))
+        def results = check.diff()
+        then:
+        results.size() == 1
+        results[0].message == "changed body for `application/json` of method `get /foo` from type `Bar` to `Foo`"
+    }
+
+    def "method response body type changed"() {
+        when:
+        def check = diff("/method-change-response-body-type", new MethodResponseBodyTypeChangedCheck(defaultSeverity))
+        def results = check.diff()
+        then:
+        results.size() == 1
+        results[0].message == "changed response body for `200: application/json` of method `get /foo` from type `Bar` to `Foo`"
+    }
+
     private <T> RamlDiff diff(String fileLocation, Differ<T> check) {
         return new RamlDiff.Builder()
                     .original(readApi(fileLocation + "-original.raml"))
