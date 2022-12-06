@@ -11,6 +11,7 @@ import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendering.ObjectTypeRenderer
 import io.vrap.rmf.codegen.rendering.utils.escapeAll
 import io.vrap.rmf.codegen.rendering.utils.keepIndentation
+import io.vrap.rmf.codegen.types.VrapArrayType
 import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.resources.Resource
@@ -79,7 +80,9 @@ class CsharpModelInterfaceRenderer constructor(override val vrapTypeProvider: Vr
         val deprecationAttr = if(this.deprecationAnnotation() == "") "" else this.deprecationAnnotation()+"\n";
 
         return """
-            |${deprecationAttr}${newKeyword}${typeName}$nullableChar $propName { get; set;}
+            |${deprecationAttr}${newKeyword}${typeName}$nullableChar $propName { get; set;}${if (this.type.toVrapType() is VrapArrayType) """
+            |${deprecationAttr}${newKeyword}IEnumerable\<${(this.type.toVrapType() as VrapArrayType).itemType.simpleName()}\>$nullableChar ${propName}Enumerable { set =\> $propName = value$nullableChar.ToList(); }
+            |""" else ""}
             """.trimMargin()
     }
 

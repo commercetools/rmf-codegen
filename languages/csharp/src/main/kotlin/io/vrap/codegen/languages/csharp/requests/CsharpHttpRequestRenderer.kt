@@ -59,6 +59,7 @@ class CsharpHttpRequestRenderer constructor(override val vrapTypeProvider: VrapT
             |using System.Net.Http;
             |using System.Text;
             |using System.Threading.Tasks;
+            |using System.Threading;
             |using System.Text.Json;
             |using commercetools.Base.Client;
             |using commercetools.Base.Serialization;
@@ -228,10 +229,10 @@ class CsharpHttpRequestRenderer constructor(override val vrapTypeProvider: VrapT
     private fun Method.executeAndBuild() : String {
         var executeBlock =
                 """
-            |public async Task\<${this.csharpReturnType(vrapTypeProvider)}\> ExecuteAsync()
+            |public async Task\<${this.csharpReturnType(vrapTypeProvider)}\> ExecuteAsync(CancellationToken cancellationToken = default)
             |{
             |   var requestMessage = Build();
-            |   return await ApiHttpClient.ExecuteAsync\<${this.csharpReturnType(vrapTypeProvider)}\>(requestMessage);
+            |   return await ApiHttpClient.ExecuteAsync\<${this.csharpReturnType(vrapTypeProvider)}\>(requestMessage, cancellationToken);
             |}
         """.trimMargin()
 
