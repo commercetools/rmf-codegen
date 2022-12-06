@@ -10,7 +10,8 @@ data class Diff<T>(
     val message: String,
     @get:JsonIgnore val eObject: EObject,
     val severity: CheckSeverity = CheckSeverity.INFO,
-    val source: Source? = eObject.getSource()
+    @get:JsonIgnore val diffEObject: DiffData<EObject?>,
+    val source: Source? = eObject.getSource(),
 )
 
 data class Source(val location: String, val position: Position) {
