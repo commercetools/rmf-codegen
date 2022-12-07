@@ -58,16 +58,16 @@ fun EObject.getSource(): Source? {
     return null
 }
 
-fun Property.typeName(): String {
+fun Property.typeName(): String? {
     return when(this.type) {
-        is ArrayType -> "${(this.type as ArrayType).items.name}[]"
-        else -> this.type.name
+        is ArrayType -> "${(this.type as ArrayType).items?.name}[]"
+        else -> this.type?.name
     }
 }
 
 fun AnyType.typeName(): String? {
     return when(this) {
-        is ArrayType -> "${this.items.name}[]"
+        is ArrayType -> "${this.items?.name}[]"
         else -> this.type?.name
     }
 }
