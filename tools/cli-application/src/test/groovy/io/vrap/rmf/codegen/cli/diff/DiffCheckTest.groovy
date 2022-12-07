@@ -104,8 +104,9 @@ class DiffCheckTest extends Specification implements ValidatorFixtures {
         def check = diff("/property-change-type", new PropertyTypeChangedCheck(defaultSeverity))
         def results = check.diff()
         then:
-        results.size() == 1
+        results.size() == 2
         results[0].message == "changed property `bar` of type `Foo` from type `string` to `object`"
+        results[1].message == "changed property `barz` of type `Baz` from type `Bar[]` to `Foo[]`"
     }
 
     def "property optional"() {
@@ -137,9 +138,10 @@ class DiffCheckTest extends Specification implements ValidatorFixtures {
         def check = diff("/type-change", new TypeChangedCheck(defaultSeverity))
         def results = check.diff()
         then:
-        results.size() == 2
+        results.size() == 3
         results[0].message == "changed type `Foo` from type `object` to `string`"
         results[1].message == "changed type `Bar` from type `Foo` to `Baz`"
+        results[2].message == "changed type `FooBaz` from type `Foo[]` to `Bar[]`"
     }
 
     def "added enum"() {

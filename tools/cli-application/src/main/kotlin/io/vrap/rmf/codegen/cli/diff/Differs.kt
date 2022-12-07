@@ -1,11 +1,10 @@
 package io.vrap.rmf.codegen.cli.diff
 
-import io.vrap.codegen.languages.php.extensions.firstBody
 import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.responses.Body
 import io.vrap.rmf.raml.model.types.AnyType
-import io.vrap.rmf.raml.model.types.BooleanInstance
+import io.vrap.rmf.raml.model.types.ArrayType
 import io.vrap.rmf.raml.model.types.BuiltinType
 import io.vrap.rmf.raml.model.types.ObjectType
 import io.vrap.rmf.raml.model.types.Property
@@ -133,8 +132,8 @@ class PropertyTypeChangedCheck(override val severity: CheckSeverity): DiffCheck<
     override val diffDataType: DiffDataType = DiffDataType.PROPERTIES_MAP
 
     override fun diff(data: DiffData<Map<PropertyReference, Property>>): List<Diff<Any>> {
-        return data.changed.filter { data.original.containsKey(it.key) }.filter { (key, property) -> property.type.name != data.original[key]!!.type.name }.map { (propertyRef, property) ->
-            Diff(DiffType.CHANGED, Scope.PROPERTY, DiffData(data.original[propertyRef]!!.type.name, property.type.name), "changed property `${propertyRef.property}` of type `${propertyRef.objectType}` from type `${data.original[propertyRef]!!.type.name}` to `${property.type.name}`", property, severity, DiffData(data.original[propertyRef], property))
+        return data.changed.filter { data.original.containsKey(it.key) }.filter { (key, property) -> property.typeName() != data.original[key]!!.typeName() }.map { (propertyRef, property) ->
+            Diff(DiffType.CHANGED, Scope.PROPERTY, DiffData(data.original[propertyRef]!!.typeName(), property.typeName()), "changed property `${propertyRef.property}` of type `${propertyRef.objectType}` from type `${data.original[propertyRef]!!.typeName()}` to `${property.typeName()}`", property, severity, DiffData(data.original[propertyRef], property))
         }
     }
 }
@@ -163,9 +162,9 @@ class TypeChangedCheck(override val severity: CheckSeverity): DiffCheck<Map<Stri
 
     override fun diff(data: DiffData<Map<String, AnyType>>): List<Diff<Any>> {
         return data.changed.filter { data.original.containsKey(it.key) }.filter { (key, type) ->
-            type.eClass() != data.original[key]!!.eClass() || type.type?.name != data.original[key]!!.type?.name }.map { (typeName, type) ->
-                val originalTypeName = data.original[typeName]!!.type?.name ?: BuiltinType.of(data.original[typeName]!!.eClass()).map { it.getName() }.orElse(BuiltinType.ANY.getName())
-                val changedTypeName = type.type?.name ?: BuiltinType.of(type.eClass()).map { it.getName() }.orElse(BuiltinType.ANY.getName())
+            type.eClass() != data.original[key]!!.eClass() || type.typeName() != data.original[key]!!.typeName() }.map { (typeName, type) ->
+                val originalTypeName = data.original[typeName]!!.typeName() ?: BuiltinType.of(data.original[typeName]!!.eClass()).map { it.getName() }.orElse(BuiltinType.ANY.getName())
+                val changedTypeName = type.typeName() ?: BuiltinType.of(type.eClass()).map { it.getName() }.orElse(BuiltinType.ANY.getName())
                 val diff: Diff<Any> = Diff(
                     DiffType.CHANGED,
                     Scope.TYPE,

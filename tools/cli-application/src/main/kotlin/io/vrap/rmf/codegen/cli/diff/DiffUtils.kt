@@ -5,12 +5,7 @@ import io.vrap.rmf.nodes.antlr.NodeTokenProvider
 import io.vrap.rmf.raml.model.modules.Api
 import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Resource
-import io.vrap.rmf.raml.model.types.AnyType
-import io.vrap.rmf.raml.model.types.Instance
-import io.vrap.rmf.raml.model.types.ObjectType
-import io.vrap.rmf.raml.model.types.Property
-import io.vrap.rmf.raml.model.types.QueryParameter
-import io.vrap.rmf.raml.model.types.StringType
+import io.vrap.rmf.raml.model.types.*
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.util.EcoreUtil
 
@@ -62,3 +57,18 @@ fun EObject.getSource(): Source? {
     }
     return null
 }
+
+fun Property.typeName(): String {
+    return when(this.type) {
+        is ArrayType -> "${(this.type as ArrayType).items.name}[]"
+        else -> this.type.name
+    }
+}
+
+fun AnyType.typeName(): String? {
+    return when(this) {
+        is ArrayType -> "${this.items.name}[]"
+        else -> this.type?.name
+    }
+}
+
