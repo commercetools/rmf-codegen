@@ -57,5 +57,17 @@
         <check severity="error">
             <name>io.vrap.rmf.codegen.cli.diff.DeprecatedRemovedTypeCheck</name>
         </check>
+        <check>
+            <name>io.vrap.rmf.codegen.cli.diff.EnumAddedCheck</name>
+        </check>
+        <check severity="error">
+            <name>io.vrap.rmf.codegen.cli.diff.EnumRemovedCheck</name>
+        </check>
+        <check severity="error">
+            <name>io.vrap.rmf.codegen.cli.diff.MethodBodyTypeChangedCheck</name>
+        </check>
+        <check severity="error">
+            <name>io.vrap.rmf.codegen.cli.diff.MethodResponseBodyTypeChangedCheck</name>
+        </check>
     </checks>
 </diff>
