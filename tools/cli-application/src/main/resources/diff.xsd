@@ -24,10 +24,10 @@
     </xs:sequence>
   </xs:complexType>
   <xs:complexType name="diffType">
-    <xs:sequence>
+    <xs:all>
       <xs:element type="xs:string" name="name"/>
       <xs:element type="applyType" name="apply" minOccurs="0"/>
-      <xs:element type="checksType" name="checks"/>
-    </xs:sequence>
+      <xs:element type="checksType" name="checks" minOccurs="0"/>
+    </xs:all>
   </xs:complexType>
 </xs:schema>

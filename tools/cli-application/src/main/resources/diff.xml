@@ -2,5 +2,5 @@
 <diff xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/commercetools/rmf-codegen/main/tools/cli-application/src/main/resources/diff.xsd">
     <name>default</name>
-    <apply set="default" />
+    <apply set="default"/>
 </diff>
