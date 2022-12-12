@@ -24,6 +24,7 @@ fun safeRun(block: () -> Int): Int {
 enum class OutputFormat {
     CLI,
     MARKDOWN,
+    JAVA_MARKDOWN,
     JSON;
 
     companion object {
