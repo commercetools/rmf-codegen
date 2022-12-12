@@ -3,12 +3,7 @@ package io.vrap.rmf.codegen.cli.diff
 import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.responses.Body
-import io.vrap.rmf.raml.model.types.AnyType
-import io.vrap.rmf.raml.model.types.ArrayType
-import io.vrap.rmf.raml.model.types.BuiltinType
-import io.vrap.rmf.raml.model.types.ObjectType
-import io.vrap.rmf.raml.model.types.Property
-import io.vrap.rmf.raml.model.types.StringType
+import io.vrap.rmf.raml.model.types.*
 
 interface Differ<T>{
     val diffDataType: DiffDataType
@@ -17,8 +12,17 @@ interface Differ<T>{
     fun diff(data: DiffData<T>): List<Diff<Any>>
 }
 
+
+
+annotation class DiffSets(val value: Array<DiffSet>)
+
+@JvmRepeatable(DiffSets::class)
+annotation class DiffSet(val name: String = "default", val severity: CheckSeverity = CheckSeverity.INFO)
+
 abstract class DiffCheck<T>(override val severity: CheckSeverity): Differ<T> {}
 
+
+@DiffSet
 class TypeAddedCheck(override val severity: CheckSeverity): DiffCheck<Map<String, AnyType>>(severity) {
     override val diffDataType: DiffDataType = DiffDataType.ANY_TYPES_MAP
     override fun diff(data: DiffData<Map<String, AnyType>>): List<Diff<Any>> {
@@ -26,6 +30,7 @@ class TypeAddedCheck(override val severity: CheckSeverity): DiffCheck<Map<String
     }
 }
 
+@DiffSet(severity = CheckSeverity.ERROR)
 class TypeRemovedCheck(override val severity: CheckSeverity): DiffCheck<Map<String, AnyType>>(severity) {
     override val diffDataType: DiffDataType = DiffDataType.ANY_TYPES_MAP
     override fun diff(data: DiffData<Map<String, AnyType>>): List<Diff<Any>> {
@@ -33,6 +38,7 @@ class TypeRemovedCheck(override val severity: CheckSeverity): DiffCheck<Map<Stri
     }
 }
 
+@DiffSet
 class ResourceAddedCheck(override val severity: CheckSeverity): DiffCheck<Map<String, Resource>>(severity) {
     override val diffDataType: DiffDataType = DiffDataType.RESOURCES_MAP
 
@@ -41,6 +47,7 @@ class ResourceAddedCheck(override val severity: CheckSeverity): DiffCheck<Map<St
     }
 }
 
+@DiffSet(severity = CheckSeverity.ERROR)
 class ResourceRemovedCheck(override val severity: CheckSeverity): DiffCheck<Map<String, Resource>>(severity) {
     override val diffDataType: DiffDataType = DiffDataType.RESOURCES_MAP
 
@@ -49,6 +56,7 @@ class ResourceRemovedCheck(override val severity: CheckSeverity): DiffCheck<Map<
     }
 }
 
+@DiffSet
 class MethodAddedCheck(override val severity: CheckSeverity): DiffCheck<Map<String, Method>>(severity) {
     override val diffDataType: DiffDataType = DiffDataType.METHODS_MAP
     override fun diff(data: DiffData<Map<String, Method>>): List<Diff<Any>> {
@@ -56,6 +64,7 @@ class MethodAddedCheck(override val severity: CheckSeverity): DiffCheck<Map<Stri
     }
 }
 
+@DiffSet(severity = CheckSeverity.ERROR)
 class MethodRemovedCheck(override val severity: CheckSeverity): DiffCheck<Map<String, Method>>(severity) {
     override val diffDataType: DiffDataType = DiffDataType.METHODS_MAP
     override fun diff(data: DiffData<Map<String, Method>>): List<Diff<Any>> {
@@ -63,6 +72,7 @@ class MethodRemovedCheck(override val severity: CheckSeverity): DiffCheck<Map<St
     }
 }
 
+@DiffSet
 class PropertyAddedCheck(override val severity: CheckSeverity): DiffCheck<Map<String, ObjectType>>(severity) {
     override val diffDataType: DiffDataType = DiffDataType.OBJECT_TYPES_MAP
     override fun diff(data: DiffData<Map<String, ObjectType>>): List<Diff<Any>> {
@@ -73,6 +83,7 @@ class PropertyAddedCheck(override val severity: CheckSeverity): DiffCheck<Map<St
     }
 }
 
+@DiffSet(severity = CheckSeverity.ERROR)
 class PropertyRemovedCheck(override val severity: CheckSeverity): DiffCheck<Map<String, ObjectType>>(severity) {
     override val diffDataType: DiffDataType = DiffDataType.OBJECT_TYPES_MAP
     override fun diff(data: DiffData<Map<String, ObjectType>>): List<Diff<Any>> {
@@ -84,6 +95,7 @@ class PropertyRemovedCheck(override val severity: CheckSeverity): DiffCheck<Map<
     }
 }
 
+@DiffSet
 class QueryParameterAddedCheck(override val severity: CheckSeverity): DiffCheck<Map<String, Method>>(severity) {
     override val diffDataType: DiffDataType = DiffDataType.METHODS_MAP
 
@@ -106,6 +118,7 @@ class QueryParameterAddedCheck(override val severity: CheckSeverity): DiffCheck<
     }
 }
 
+@DiffSet(severity = CheckSeverity.ERROR)
 class QueryParameterRemovedCheck(override val severity: CheckSeverity): DiffCheck<Map<String, Method>>(severity) {
     override val diffDataType: DiffDataType = DiffDataType.METHODS_MAP
 
@@ -128,6 +141,7 @@ class QueryParameterRemovedCheck(override val severity: CheckSeverity): DiffChec
     }
 }
 
+@DiffSet(severity = CheckSeverity.ERROR)
 class PropertyTypeChangedCheck(override val severity: CheckSeverity): DiffCheck<Map<PropertyReference, Property>>(severity) {
     override val diffDataType: DiffDataType = DiffDataType.PROPERTIES_MAP
 
@@ -138,6 +152,7 @@ class PropertyTypeChangedCheck(override val severity: CheckSeverity): DiffCheck<
     }
 }
 
+@DiffSet
 class PropertyOptionalCheck(override val severity: CheckSeverity): DiffCheck<Map<PropertyReference, Property>>(severity) {
     override val diffDataType: DiffDataType = DiffDataType.PROPERTIES_MAP
 
@@ -147,6 +162,7 @@ class PropertyOptionalCheck(override val severity: CheckSeverity): DiffCheck<Map
         }
     }
 }
+@DiffSet(severity = CheckSeverity.ERROR)
 class PropertyRequiredCheck(override val severity: CheckSeverity): DiffCheck<Map<PropertyReference, Property>>(severity) {
     override val diffDataType: DiffDataType = DiffDataType.PROPERTIES_MAP
 
@@ -157,6 +173,7 @@ class PropertyRequiredCheck(override val severity: CheckSeverity): DiffCheck<Map
     }
 }
 
+@DiffSet(severity = CheckSeverity.ERROR)
 class TypeChangedCheck(override val severity: CheckSeverity): DiffCheck<Map<String, AnyType>>(severity) {
     override val diffDataType: DiffDataType = DiffDataType.ANY_TYPES_MAP
 
@@ -179,6 +196,7 @@ class TypeChangedCheck(override val severity: CheckSeverity): DiffCheck<Map<Stri
     }
 }
 
+@DiffSet
 class MarkDeprecatedAddedTypeCheck(override val severity: CheckSeverity): DiffCheck<Map<String, AnyType>>(severity) {
     override val diffDataType: DiffDataType = DiffDataType.ANY_TYPES_MAP
 
@@ -205,6 +223,7 @@ class MarkDeprecatedAddedTypeCheck(override val severity: CheckSeverity): DiffCh
     }
 }
 
+@DiffSet(severity = CheckSeverity.ERROR)
 class MarkDeprecatedRemovedTypeCheck(override val severity: CheckSeverity): DiffCheck<Map<String, AnyType>>(severity) {
     override val diffDataType: DiffDataType = DiffDataType.ANY_TYPES_MAP
 
@@ -231,6 +250,7 @@ class MarkDeprecatedRemovedTypeCheck(override val severity: CheckSeverity): Diff
     }
 }
 
+@DiffSet(severity = CheckSeverity.ERROR)
 class DeprecatedRemovedTypeCheck(override val severity: CheckSeverity): DiffCheck<Map<String, AnyType>>(severity) {
     override val diffDataType: DiffDataType = DiffDataType.ANY_TYPES_MAP
 
@@ -256,6 +276,7 @@ class DeprecatedRemovedTypeCheck(override val severity: CheckSeverity): DiffChec
     }
 }
 
+@DiffSet
 class DeprecatedAddedTypeCheck(override val severity: CheckSeverity): DiffCheck<Map<String, AnyType>>(severity) {
     override val diffDataType: DiffDataType = DiffDataType.ANY_TYPES_MAP
 
@@ -281,6 +302,7 @@ class DeprecatedAddedTypeCheck(override val severity: CheckSeverity): DiffCheck<
     }
 }
 
+@DiffSet
 class EnumAddedCheck(override val severity: CheckSeverity): DiffCheck<Map<String, StringType>>(severity) {
     override val diffDataType: DiffDataType = DiffDataType.STRING_TYPES_MAP
     override fun diff(data: DiffData<Map<String, StringType>>): List<Diff<Any>> {
@@ -291,6 +313,7 @@ class EnumAddedCheck(override val severity: CheckSeverity): DiffCheck<Map<String
     }
 }
 
+@DiffSet(severity = CheckSeverity.ERROR)
 class EnumRemovedCheck(override val severity: CheckSeverity): DiffCheck<Map<String, StringType>>(severity) {
     override val diffDataType: DiffDataType = DiffDataType.STRING_TYPES_MAP
     override fun diff(data: DiffData<Map<String, StringType>>): List<Diff<Any>> {
@@ -301,6 +324,7 @@ class EnumRemovedCheck(override val severity: CheckSeverity): DiffCheck<Map<Stri
     }
 }
 
+@DiffSet(severity = CheckSeverity.ERROR)
 class MethodBodyTypeChangedCheck(override val severity: CheckSeverity): DiffCheck<Map<MethodBodyTypeReference, Body>>(severity) {
     override val diffDataType: DiffDataType = DiffDataType.METHOD_TYPES_MAP
 
@@ -311,6 +335,7 @@ class MethodBodyTypeChangedCheck(override val severity: CheckSeverity): DiffChec
     }
 }
 
+@DiffSet(severity = CheckSeverity.ERROR)
 class MethodResponseBodyTypeChangedCheck(override val severity: CheckSeverity): DiffCheck<Map<MethodResponseBodyTypeReference, Body>>(severity) {
     override val diffDataType: DiffDataType = DiffDataType.METHOD_RESPONSE_TYPES_MAP
 

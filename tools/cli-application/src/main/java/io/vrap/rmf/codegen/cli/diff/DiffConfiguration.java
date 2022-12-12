@@ -14,6 +14,9 @@ public class DiffConfiguration {
     @JacksonXmlProperty(localName = "name")
     private String name;
 
+    @JacksonXmlProperty(localName = "apply")
+    private List<Apply> apply = new ArrayList<>();
+
     @JacksonXmlElementWrapper(localName = "checks")
     @JacksonXmlProperty(localName = "check")
     private List<Check> checks = new ArrayList<>();
@@ -25,6 +28,12 @@ public class DiffConfiguration {
     public DiffConfiguration(String name, List<Check> checks) {
         this.name = name;
         this.checks = checks;
+    }
+
+    public DiffConfiguration(String name, List<Check> checks, List<Apply> apply) {
+        this.name = name;
+        this.checks = checks;
+        this.apply = apply;
     }
 
     public String getName() {
@@ -41,6 +50,14 @@ public class DiffConfiguration {
 
     public void setChecks(List<Check> checks) {
         this.checks = checks;
+    }
+
+    public List<Apply> getApply() {
+        return apply;
+    }
+
+    public void setApply(List<Apply> apply) {
+        this.apply = apply;
     }
 }
 

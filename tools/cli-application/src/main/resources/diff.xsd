@@ -7,6 +7,9 @@
     </xs:sequence>
     <xs:attribute type="SeverityType" name="severity" use="optional"/>
   </xs:complexType>
+  <xs:complexType name="applyType">
+    <xs:attribute type="xs:string" name="set" use="required"/>
+  </xs:complexType>
   <xs:simpleType name="SeverityType">
     <xs:restriction base="xs:string">
       <xs:enumeration value="info"/>
@@ -23,6 +26,7 @@
   <xs:complexType name="diffType">
     <xs:sequence>
       <xs:element type="xs:string" name="name"/>
+      <xs:element type="applyType" name="apply" minOccurs="0"/>
       <xs:element type="checksType" name="checks"/>
     </xs:sequence>
   </xs:complexType>
