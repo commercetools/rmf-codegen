@@ -1,5 +1,6 @@
 package io.vrap.codegen.languages.javalang.client.builder.module
 
+import io.vrap.codegen.languages.extensions.deprecated
 import io.vrap.codegen.languages.javalang.client.builder.model.JavaModelInterfaceRenderer
 import io.vrap.codegen.languages.javalang.client.builder.model.JavaStringTypeRenderer
 import io.vrap.codegen.languages.javalang.client.builder.model.JavaTraitRenderer
@@ -29,10 +30,10 @@ object JavaCompleteModule: Module {
             )),
             ResourceGenerator(setOf(
                     JavaRequestBuilderResourceRenderer(generatorModule.vrapTypeProvider())
-            ), generatorModule.allResources()),
+            ), generatorModule.allResources().filterNot { it.deprecated() }),
             MethodGenerator(setOf(
                     JavaHttpRequestRenderer(generatorModule.vrapTypeProvider())
-            ), generatorModule.allResourceMethods()),
+            ), generatorModule.allResourceMethods().filterNot { it.deprecated() }),
             TraitGenerator(setOf(
                     JavaTraitRenderer(generatorModule.vrapTypeProvider())
             ), generatorModule.allTraits())

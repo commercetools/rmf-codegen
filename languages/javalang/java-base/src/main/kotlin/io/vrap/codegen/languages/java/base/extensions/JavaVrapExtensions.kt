@@ -10,10 +10,7 @@ import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.responses.Body
 import io.vrap.rmf.raml.model.responses.Response
-import io.vrap.rmf.raml.model.types.ArrayType
-import io.vrap.rmf.raml.model.types.ObjectInstance
-import io.vrap.rmf.raml.model.types.QueryParameter
-import io.vrap.rmf.raml.model.types.StringInstance
+import io.vrap.rmf.raml.model.types.*
 import io.vrap.rmf.raml.model.util.StringCaseFormat
 import kotlin.random.Random
 

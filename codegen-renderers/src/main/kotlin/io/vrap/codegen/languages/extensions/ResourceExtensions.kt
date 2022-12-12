@@ -2,7 +2,9 @@ package io.vrap.codegen.languages.extensions
 
 import com.damnhandy.uri.template.Expression
 import com.google.common.base.CaseFormat
+import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Resource
+import io.vrap.rmf.raml.model.types.BooleanInstance
 import io.vrap.rmf.raml.model.types.StringInstance
 import io.vrap.rmf.raml.model.util.StringCaseFormat
 
@@ -23,3 +25,13 @@ fun Resource.getMethodName(): String {
 }
 
 fun Resource.toResourceName(): String  = this.fullUri.toParamName("By")
+
+fun Resource.deprecated() : Boolean {
+    val anno = this.getAnnotation("deprecated")
+    return (anno != null && (anno.value as BooleanInstance).value)
+}
+
+fun Resource.markDeprecated() : Boolean {
+    val anno = this.getAnnotation("markDeprecated")
+    return (anno != null && (anno.value as BooleanInstance).value)
+}

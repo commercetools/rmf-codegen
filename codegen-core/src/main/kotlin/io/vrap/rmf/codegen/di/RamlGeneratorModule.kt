@@ -93,17 +93,17 @@ class RamlGeneratorModule constructor(
     @AllObjectTypes
     fun allObjectTypes(): List<ObjectType> = allAnyTypes().filter { it is ObjectType && !it.deprecated() }.map { it as ObjectType }
     @AllUnionTypes
-    fun allUnionTypes(): List<UnionType> = allAnyTypes().filter { it is UnionType }.map { it as UnionType }
+    fun allUnionTypes(): List<UnionType> = allAnyTypes().filter { it is UnionType && !it.deprecated() }.map { it as UnionType }
 
     @EnumStringTypes
-    fun allEnumStringTypes(): List<StringType> = allAnyTypes().filter { it is StringType && it.enum.isNotEmpty() }.map { it as StringType }
+    fun allEnumStringTypes(): List<StringType> = allAnyTypes().filter { it is StringType && !it.deprecated() && it.enum.isNotEmpty() }.map { it as StringType }
 
     @PatternStringTypes
-    fun allPatternStringTypes(): List<StringType> = allAnyTypes().filter { it is StringType && it.pattern != null }.map { it as StringType }
+    fun allPatternStringTypes(): List<StringType> = allAnyTypes().filter { it is StringType && !it.deprecated() && it.pattern != null }.map { it as StringType }
 
     @NamedScalarTypes
     fun allNamedScalarTypes(): List<StringType> = allAnyTypes().filter {
-        it is StringType && it.pattern == null && it.enum.isNullOrEmpty()
+        it is StringType && !it.deprecated() && it.pattern == null && it.enum.isNullOrEmpty()
     }.map { it as StringType }
 
     @AllResources
@@ -150,7 +150,7 @@ class RamlGeneratorModule constructor(
         }
     }
 
-    private fun ObjectType.deprecated() : Boolean {
+    private fun AnyType.deprecated() : Boolean {
         val anno = this.getAnnotation("deprecated")
         return (anno != null && (anno.value as BooleanInstance).value)
     }

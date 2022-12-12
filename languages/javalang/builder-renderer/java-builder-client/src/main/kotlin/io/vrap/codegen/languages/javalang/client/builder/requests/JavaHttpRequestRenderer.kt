@@ -640,9 +640,4 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
                 .joinToString(separator = "\n")
 
     }
-
-    private fun Method.markDeprecated() : Boolean {
-        val anno = this.getAnnotation("markDeprecated")
-        return (anno != null && (anno.value as BooleanInstance).value)
-    }
 }
