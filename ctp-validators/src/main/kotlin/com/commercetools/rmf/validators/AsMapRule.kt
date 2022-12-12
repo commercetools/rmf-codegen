@@ -5,6 +5,7 @@ import org.eclipse.emf.common.util.Diagnostic
 import java.util.*
 import javax.print.attribute.standard.Severity
 
+@RulesSet
 class AsMapRule(severity: RuleSeverity, options: List<RuleOption>? = null) : TypesRule(severity, options) {
 
     private val exclude: List<String> =

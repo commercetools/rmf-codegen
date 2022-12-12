@@ -5,6 +5,7 @@ import io.vrap.rmf.raml.model.resources.Resource
 import org.eclipse.emf.common.util.Diagnostic
 import java.util.*
 
+@RulesSet
 class ResourcePluralRule(severity: RuleSeverity, options: List<RuleOption>? = null) : ResourcesRule(severity, options) {
 
     private val exclude: List<String> =

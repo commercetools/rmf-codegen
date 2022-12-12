@@ -8,6 +8,7 @@ import io.vrap.rmf.raml.model.util.StringCaseFormat
 import org.eclipse.emf.common.util.Diagnostic
 import java.util.ArrayList
 
+@RulesSet
 class QueryParameterPlaceholderAnnotationRule(severity: RuleSeverity, options: List<RuleOption>? = null) : ResourcesRule(severity, options) {
 
     private val exclude: List<String> =

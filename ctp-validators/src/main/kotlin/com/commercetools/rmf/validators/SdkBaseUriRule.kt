@@ -6,6 +6,7 @@ import io.vrap.rmf.raml.model.types.StringInstance
 import org.eclipse.emf.common.util.Diagnostic
 import java.util.*
 
+@RulesSet
 class SdkBaseUriRule (severity: RuleSeverity, options: List<RuleOption>? = null) : ModulesRule(severity, options) {
     private val exclude: List<String> =
         (options?.filter { ruleOption -> ruleOption.type.lowercase(Locale.getDefault()) == RuleOptionType.EXCLUDE.toString() }

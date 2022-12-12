@@ -6,6 +6,7 @@ import io.vrap.rmf.raml.model.resources.ResourceContainer
 import org.eclipse.emf.common.util.Diagnostic
 import java.util.*
 
+@RulesSet
 class UriParameterDeclaredRule(severity: RuleSeverity, options: List<RuleOption>? = null) : ResolvedResourcesRule(severity, options) {
 
     private val exclude: List<String> =
