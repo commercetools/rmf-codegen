@@ -15,7 +15,7 @@ import java.util.concurrent.Callable
 import java.util.stream.Collectors
 
 @CommandLine.Command(name = "diff", description = ["Generates a diff between two specifications"])
-class DiffSubcommand : Callable<Int> {
+open class DiffSubcommand : Callable<Int> {
 
     @CommandLine.Option(names = ["-h", "--help"], usageHelp = true, description = ["display this help message"])
     var usageHelpRequested = false
@@ -75,7 +75,7 @@ class DiffSubcommand : Callable<Int> {
             return when (printer) {
                 OutputFormat.CLI -> CliFormatPrinter()
                 OutputFormat.MARKDOWN -> MarkdownFormatPrinter()
-                OutputFormat.JAVA_MARKDOWN -> JavaMarkdownFormatPrinter()
+                OutputFormat.JAVA_MARKDOWN -> DiffLanguagesSubcommand.JavaMarkdownFormatPrinter()
                 OutputFormat.JSON -> JsonFormatPrinter()
             }
         }
@@ -126,42 +126,42 @@ class DiffSubcommand : Callable<Int> {
         }
     }
 
-    public class JavaMarkdownFormatPrinter: FormatPrinter {
-
-        fun replaceMessage(diff: Diff<Any>): Diff<Any> {
-            val values: Array<String> = diff.value.toString().split(" /").toTypedArray()
-            return when (diff.scope) {
-                Scope.METHOD -> Diff(diff.diffType, diff.scope, diff.value, "${diff.diffType.toString().lowercase()} ${diff.scope.toString().lowercase()} `apiRoot.withProjectKey(\"\").${values[1]}().${values[0]}()`", diff.eObject, diff.severity, diff.diffEObject, diff.source)
-                else -> diff
-            }
-        }
-        override fun print(diffResult: List<Diff<Any>>): String {
-
-            val map = diffResult.map { replaceMessage(it) }.groupBy { it.scope }.map { it.key to it.value.groupBy { it.diffType } }.toMap()
-
-
-            return map.entries.joinToString("\n\n") { scope -> """
-                |${scope.value.entries.joinToString("\n\n") { type -> """
-                |<details>
-                |<summary>${type.key.type.firstUpperCase()} ${scope.key.scope.firstUpperCase()}(s)</summary>
-                |
-                |${type.value.joinToString("\n") { "- ${it.severity.asSign()}${it.message}" }}
-                |</details>
-                |
-                """.trimMargin() }}
-            """.trimMargin() }
-        }
-
-        fun CheckSeverity.asSign(): String {
-            return when(this) {
-                CheckSeverity.FATAL -> ":red_circle: "
-                CheckSeverity.ERROR -> ":warning: "
-                CheckSeverity.WARN -> ":warning: "
-                else -> ""
-
-            }
-        }
-    }
+//    public class JavaMarkdownFormatPrinter: FormatPrinter {
+//
+//        fun replaceMessage(diff: Diff<Any>): Diff<Any> {
+//            val values: Array<String> = diff.value.toString().split(" /").toTypedArray()
+//            return when (diff.scope) {
+//                Scope.METHOD -> Diff(diff.diffType, diff.scope, diff.value, "${diff.diffType.toString().lowercase()} ${diff.scope.toString().lowercase()} `apiRoot.withProjectKey(\"\").${values[1]}().${values[0]}()`", diff.eObject, diff.severity, diff.diffEObject, diff.source)
+//                else -> diff
+//            }
+//        }
+//        override fun print(diffResult: List<Diff<Any>>): String {
+//
+//            val map = diffResult.map { replaceMessage(it) }.groupBy { it.scope }.map { it.key to it.value.groupBy { it.diffType } }.toMap()
+//
+//
+//            return map.entries.joinToString("\n\n") { scope -> """
+//                |${scope.value.entries.joinToString("\n\n") { type -> """
+//                |<details>
+//                |<summary>${type.key.type.firstUpperCase()} ${scope.key.scope.firstUpperCase()}(s)</summary>
+//                |
+//                |${type.value.joinToString("\n") { "- ${it.severity.asSign()}${it.message}" }}
+//                |</details>
+//                |
+//                """.trimMargin() }}
+//            """.trimMargin() }
+//        }
+//
+//        fun CheckSeverity.asSign(): String {
+//            return when(this) {
+//                CheckSeverity.FATAL -> ":red_circle: "
+//                CheckSeverity.ERROR -> ":warning: "
+//                CheckSeverity.WARN -> ":warning: "
+//                else -> ""
+//
+//            }
+//        }
+//    }
 
     private fun readApi(fileLocation: Path): Api {
         val fileURI = URI.createURI(fileLocation.toUri().toString())
@@ -178,3 +178,4 @@ class DiffSubcommand : Callable<Int> {
         return modelResult.rootObject
     }
 }
+

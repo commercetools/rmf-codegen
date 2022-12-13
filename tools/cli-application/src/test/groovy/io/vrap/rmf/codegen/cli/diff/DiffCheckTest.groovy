@@ -1,5 +1,6 @@
 package io.vrap.rmf.codegen.cli.diff
 
+import io.vrap.rmf.codegen.cli.DiffLanguagesSubcommand
 import io.vrap.rmf.codegen.cli.DiffSubcommand
 import io.vrap.rmf.raml.model.RamlModelBuilder
 import io.vrap.rmf.raml.model.modules.Api
@@ -56,7 +57,7 @@ class DiffCheckTest extends Specification implements ValidatorFixtures {
 
     def "added method"() {
         when:
-        def printer = new DiffSubcommand.JavaMarkdownFormatPrinter()
+        def printer = new DiffLanguagesSubcommand.JavaMarkdownFormatPrinter()
         def check = diff("/method-added", new MethodAddedCheck(defaultSeverity))
         def results = check.diff().collect { printer.replaceMessage(it) }
         then:
@@ -67,7 +68,7 @@ class DiffCheckTest extends Specification implements ValidatorFixtures {
 
     def "added method get category"() {
         when:
-        def printer = new DiffSubcommand.JavaMarkdownFormatPrinter()
+        def printer = new DiffLanguagesSubcommand.JavaMarkdownFormatPrinter()
         def check = diff("/method-added-get-category", new MethodAddedCheck(defaultSeverity))
         def results = check.diff().collect { printer.replaceMessage(it) }
         then:
