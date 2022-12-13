@@ -19,6 +19,7 @@
       <xs:element type="optionsType" name="options" minOccurs="0"/>
     </xs:all>
     <xs:attribute type="severity" name="severity" use="optional" default="error"/>
+    <xs:attribute type="xs:boolean" name="enabled" use="optional" default="true"/>
   </xs:complexType>
   <xs:simpleType name="severity" final="restriction" >
     <xs:restriction base="xs:string">

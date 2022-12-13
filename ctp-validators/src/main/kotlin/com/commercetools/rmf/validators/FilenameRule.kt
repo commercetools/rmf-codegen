@@ -11,7 +11,7 @@ import org.eclipse.emf.common.util.Diagnostic
 import java.util.*
 import kotlin.collections.ArrayList
 
-@RulesSet
+@ValidatorSet
 class FilenameRule(severity: RuleSeverity, options: List<RuleOption>? = null) : ModulesRule(severity, options) {
     private val exclude: List<String> =
         (options?.filter { ruleOption -> ruleOption.type.lowercase(Locale.getDefault()) == RuleOptionType.EXCLUDE.toString() }?.map { ruleOption -> ruleOption.value }?.plus("") ?: defaultExcludes)

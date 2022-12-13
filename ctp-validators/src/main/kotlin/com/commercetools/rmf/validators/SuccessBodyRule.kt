@@ -1,12 +1,11 @@
 package com.commercetools.rmf.validators
 
-import io.vrap.rmf.raml.model.resources.HttpMethod
 import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Resource
 import org.eclipse.emf.common.util.Diagnostic
 import java.util.*
 
-@RulesSet
+@ValidatorSet
 class SuccessBodyRule(severity: RuleSeverity, options: List<RuleOption>? = null) : ResourcesRule(severity, options) {
 
     private val exclude: List<String> =

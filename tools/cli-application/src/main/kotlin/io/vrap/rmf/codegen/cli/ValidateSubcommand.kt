@@ -77,6 +77,9 @@ class ValidateSubcommand : Callable<Int> {
     @CommandLine.Option(names = ["-s", "--severity"], description = ["Diagnostic severity", "Valid values: ${DiagnosticSeverity.VALID_VALUES}"])
     var checkSeverity: DiagnosticSeverity = DiagnosticSeverity.ERROR
 
+    @CommandLine.Option(names = ["--list-rules"], description = ["Show all rules"])
+    var listRules: Boolean = false
+
     lateinit var modelBuilder: RamlModelBuilder
 
     private fun linkURI(): java.net.URI {
@@ -88,6 +91,11 @@ class ValidateSubcommand : Callable<Int> {
     }
 
     override fun call(): Int {
+        if (listRules) {
+            println("Available validators:")
+            println(ValidatorSetup.allValidatorRules().joinToString("\n"));
+            return 0
+        }
         val tmpDir = tempFile?.toAbsolutePath()?.normalize() ?: Paths.get(".tmp")
         modelBuilder = setupValidators()
         val res = safeRun { validate(tmpDir)}

@@ -7,7 +7,7 @@ import io.vrap.rmf.raml.model.types.Property
 import org.eclipse.emf.common.util.Diagnostic
 import java.util.*
 
-@RulesSet
+@ValidatorSet
 class PropertyPluralRule(severity: RuleSeverity, options: List<RuleOption>? = null) : TypesRule(severity, options) {
 
     private val exclude: List<String> =

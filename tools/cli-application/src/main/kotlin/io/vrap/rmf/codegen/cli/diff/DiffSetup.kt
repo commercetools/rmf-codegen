@@ -1,5 +1,6 @@
 package io.vrap.rmf.codegen.cli.diff
 
+import com.commercetools.rmf.validators.Validator
 import com.ctc.wstx.stax.WstxInputFactory
 import com.ctc.wstx.stax.WstxOutputFactory
 import com.fasterxml.jackson.databind.DeserializationFeature
@@ -65,6 +66,7 @@ class DiffSetup {
                 .filter { it.packageName.startsWith("io.vrap.rmf.codegen.cli.diff") }
                 .map { classInfo -> classInfo.load() }
                 .filterNot { it.getAnnotation(DiffSet::class.java) == null && it.getAnnotation(DiffSets::class.java) == null }
+                .filter { DiffCheck::class.java.isAssignableFrom(it) }
                 .flatMap { clazz ->
                     clazz.getAnnotationsByType(DiffSet::class.java)
                         .map { it.name to Check(clazz.name, it.severity, listOf()) }

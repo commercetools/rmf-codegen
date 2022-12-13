@@ -5,7 +5,7 @@ import io.vrap.rmf.raml.model.util.StringCaseFormat
 import org.eclipse.emf.common.util.Diagnostic
 import java.util.*
 
-@RulesSet
+@ValidatorSet
 class CamelCaseRule(severity: RuleSeverity, options: List<RuleOption>? = null) : TypesRule(severity, options) {
 
     private val exclude: List<String> =

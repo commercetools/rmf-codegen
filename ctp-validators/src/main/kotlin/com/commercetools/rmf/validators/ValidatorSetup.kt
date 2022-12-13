@@ -7,12 +7,11 @@ import com.fasterxml.jackson.databind.MapperFeature
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.dataformat.xml.XmlFactory
 import com.fasterxml.jackson.dataformat.xml.XmlMapper
-import com.fasterxml.jackson.module.kotlin.KotlinModule
 import io.vrap.rmf.raml.validation.RamlValidator
 import java.io.File
 import java.io.InputStream
-import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.google.common.reflect.ClassPath
+import java.lang.reflect.Modifier
 
 class ValidatorSetup {
     companion object {
@@ -36,13 +35,12 @@ class ValidatorSetup {
             var rules = mapOf<String, Rule>()
             ruleSet.apply.forEach { apply ->
                 run {
-                    rules = mergeCheck(rules, sets[apply.set]!!)
+                    rules = mergeRules(rules, sets[apply.set]!!)
                 }
             }
-            rules = mergeCheck(rules, ruleSet.rules.map { it.name to it }.toMap())
+            rules = mergeRules(rules, ruleSet.rules.map { it.name to it }.toMap())
 
-
-            val validators = rules.values.map { rule -> when(rule.severity != null) {
+            val validators = rules.values.filter { it.enabled }.map { rule -> when(rule.severity != null) {
                     true -> Class.forName(rule.name).getConstructor(RuleSeverity::class.java, List::class.java).newInstance(rule.severity, rule.options)
                     else -> Class.forName(rule.name).getConstructor(RuleSeverity::class.java, List::class.java).newInstance(RuleSeverity.ERROR, rule.options)
                 }
@@ -56,11 +54,11 @@ class ValidatorSetup {
             )
         }
 
-        private fun mergeCheck(setOne: Map<String, Rule>, setTwo: Map<String, Rule>): Map<String, Rule> {
+        private fun mergeRules(setOne: Map<String, Rule>, setTwo: Map<String, Rule>): Map<String, Rule> {
             var checks = setOne
             setTwo.forEach { (checkName, check) ->
                 if (checks.containsKey(checkName)) {
-                    checks = checks.plus(checkName to Rule(checkName, check.severity, checks[checkName]!!.options?.plus(check.options ?: listOf()) ?: check.options))
+                    checks = checks.plus(checkName to Rule(checkName, check.severity, checks[checkName]!!.options?.plus(check.options ?: listOf()) ?: check.options, check.enabled && checks[checkName]!!.enabled))
                 } else {
                     checks = checks.plus(checkName to check)
                 }
@@ -73,13 +71,23 @@ class ValidatorSetup {
             return ClassPath.from(ClassLoader.getSystemClassLoader()).allClasses
                 .filter { it.packageName.startsWith("com.commercetools.rmf.validators") }
                 .map { classInfo -> classInfo.load() }
-                .filterNot { it.getAnnotation(RulesSet::class.java) == null && it.getAnnotation(RulesSets::class.java) == null }
+                .filterNot { it.getAnnotation(ValidatorSet::class.java) == null && it.getAnnotation(ValidatorSets::class.java) == null }
+                .filter { Validator::class.java.isAssignableFrom(it) }
                 .flatMap { clazz ->
-                    clazz.getAnnotationsByType(RulesSet::class.java)
+                    clazz.getAnnotationsByType(ValidatorSet::class.java)
                         .map { it.name to Rule(clazz.name, it.severity, listOf()) }
                 }
                 .groupBy { it.first }
                 .mapValues { it.value.map { it.second.name to it.second }.toMap() };
+        }
+
+        public fun allValidatorRules(): List<String> {
+            return ClassPath.from(ClassLoader.getSystemClassLoader()).allClasses
+                .filter { it.packageName.startsWith("com.commercetools.rmf.validators") }
+                .map { classInfo -> classInfo.load() }
+                .filter { Validator::class.java.isAssignableFrom(it) }
+                .filterNot { Modifier.isAbstract(it.modifiers) }
+                .map { it.name }
         }
     }
 }

@@ -1,6 +1,6 @@
 package com.commercetools.rmf.validators
 
-annotation class RulesSets(val value: Array<RulesSet>)
+annotation class ValidatorSets(val value: Array<ValidatorSet>)
 
-@JvmRepeatable(RulesSets::class)
-annotation class RulesSet(val name: String = "default", val severity: RuleSeverity = RuleSeverity.INFO)
+@JvmRepeatable(ValidatorSets::class)
+annotation class ValidatorSet(val name: String = "default", val severity: RuleSeverity = RuleSeverity.INFO)

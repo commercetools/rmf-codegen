@@ -5,7 +5,7 @@ import io.vrap.rmf.raml.model.types.ObjectType
 import org.eclipse.emf.common.util.Diagnostic
 import java.util.*
 
-@RulesSet
+@ValidatorSet
 class DiscriminatorParentRule(severity: RuleSeverity, options: List<RuleOption>? = null) : TypesRule(severity, options) {
 
     private val exclude: List<String> =

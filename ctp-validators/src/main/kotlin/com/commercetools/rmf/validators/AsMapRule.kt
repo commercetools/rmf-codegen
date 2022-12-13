@@ -3,9 +3,8 @@ package com.commercetools.rmf.validators
 import io.vrap.rmf.raml.model.types.*
 import org.eclipse.emf.common.util.Diagnostic
 import java.util.*
-import javax.print.attribute.standard.Severity
 
-@RulesSet
+@ValidatorSet
 class AsMapRule(severity: RuleSeverity, options: List<RuleOption>? = null) : TypesRule(severity, options) {
 
     private val exclude: List<String> =
