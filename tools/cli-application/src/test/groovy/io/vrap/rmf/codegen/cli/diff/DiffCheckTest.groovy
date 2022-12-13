@@ -55,27 +55,6 @@ class DiffCheckTest extends Specification implements ValidatorFixtures {
         results[1].message == "added method `get /bar`"
     }
 
-    def "added method"() {
-        when:
-        def printer = new DiffLanguagesSubcommand.JavaMarkdownFormatPrinter()
-        def check = diff("/method-added", new MethodAddedCheck(defaultSeverity))
-        def results = check.diff().collect { printer.replaceMessage(it) }
-        then:
-        results.size() == 2
-        results[0].message == "added method `apiRoot.withProjectKey(\"\").foo().get()`"
-        results[1].message == "added method `apiRoot.withProjectKey(\"\").bar().get()`"
-    }
-
-    def "added method get category"() {
-        when:
-        def printer = new DiffLanguagesSubcommand.JavaMarkdownFormatPrinter()
-        def check = diff("/method-added-get-category", new MethodAddedCheck(defaultSeverity))
-        def results = check.diff().collect { printer.replaceMessage(it) }
-        then:
-        results.size() == 1
-        results[0].message == "added method `apiRoot.withProjectKey(\"\").categories().get()`"
-    }
-
     def "removed method"() {
         when:
         def check = diff("/method-removed", new MethodRemovedCheck(defaultSeverity))
@@ -201,7 +180,7 @@ class DiffCheckTest extends Specification implements ValidatorFixtures {
         results[0].message == "changed response body for `200: application/json` of method `get /foo` from type `Bar` to `Foo`"
     }
 
-    private <T> RamlDiff diff(String fileLocation, Differ<T> check) {
+    protected <T> RamlDiff diff(String fileLocation, Differ<T> check) {
         return new RamlDiff.Builder()
                     .original(readApi(fileLocation + "-original.raml"))
                     .changed(readApi(fileLocation + "-changed.raml"))

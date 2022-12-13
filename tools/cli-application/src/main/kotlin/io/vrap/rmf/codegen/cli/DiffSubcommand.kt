@@ -76,6 +76,7 @@ open class DiffSubcommand : Callable<Int> {
                 OutputFormat.CLI -> CliFormatPrinter()
                 OutputFormat.MARKDOWN -> MarkdownFormatPrinter()
                 OutputFormat.JAVA_MARKDOWN -> DiffLanguagesSubcommand.JavaMarkdownFormatPrinter()
+                OutputFormat.PHP_MARKDOWN -> DiffLanguagesSubcommand.PHPMarkdownFormatPrinter()
                 OutputFormat.JSON -> JsonFormatPrinter()
             }
         }

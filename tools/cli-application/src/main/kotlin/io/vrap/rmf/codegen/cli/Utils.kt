@@ -25,6 +25,7 @@ enum class OutputFormat {
     CLI,
     MARKDOWN,
     JAVA_MARKDOWN,
+    PHP_MARKDOWN,
     JSON;
 
     companion object {

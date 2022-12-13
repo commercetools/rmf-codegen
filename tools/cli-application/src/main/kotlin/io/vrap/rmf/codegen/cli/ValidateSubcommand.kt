@@ -185,6 +185,7 @@ class ValidateSubcommand : Callable<Int> {
             OutputFormat.CLI -> CliFormatPrinter(linkFormatter)
             OutputFormat.MARKDOWN -> MarkdownFormatPrinter(linkFormatter)
             OutputFormat.JAVA_MARKDOWN -> MarkdownFormatPrinter(linkFormatter)
+            OutputFormat.PHP_MARKDOWN -> MarkdownFormatPrinter(linkFormatter)
             OutputFormat.JSON -> TODO()
         }
     }
