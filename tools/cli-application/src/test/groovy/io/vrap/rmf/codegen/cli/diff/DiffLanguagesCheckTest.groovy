@@ -35,4 +35,14 @@ class DiffLanguagesCheckTest extends DiffCheckTest {
         results.size() == 1
         results[0].message == "added method `\$apiRoot->categories()->get()`"
     }
+
+    def "added method get category ts"() {
+        when:
+        def printer = new DiffLanguagesSubcommand.TSMarkdownFormatPrinter()
+        def check = diff("/method-added-get-category", new MethodAddedCheck(defaultSeverity))
+        def results = check.diff().collect { printer.replaceMessage(it) }
+        then:
+        results.size() == 1
+        results[0].message == "added method `apiRoot.withProjectKey({\"\"}).categories().get()`"
+    }
 }
