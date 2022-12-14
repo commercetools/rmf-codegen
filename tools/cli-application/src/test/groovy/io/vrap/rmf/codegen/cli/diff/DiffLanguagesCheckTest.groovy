@@ -16,7 +16,7 @@ class DiffLanguagesCheckTest extends DiffCheckTest {
         results[1].message == "added method `apiRoot.withProjectKey(\"\").bar().get()`"
     }
 
-    def "added method get category"() {
+    def "added method get category java"() {
         when:
         def printer = new DiffLanguagesSubcommand.JavaMarkdownFormatPrinter()
         def check = diff("/method-added-get-category", new MethodAddedCheck(defaultSeverity))
@@ -26,7 +26,7 @@ class DiffLanguagesCheckTest extends DiffCheckTest {
         results[0].message == "added method `apiRoot.withProjectKey(\"\").categories().get()`"
     }
 
-    def "added method get category"() {
+    def "added method get category php"() {
         when:
         def printer = new DiffLanguagesSubcommand.PHPMarkdownFormatPrinter()
         def check = diff("/method-added-get-category", new MethodAddedCheck(defaultSeverity))
