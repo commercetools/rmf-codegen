@@ -19,8 +19,8 @@ class TestCodeGenerator {
     companion object {
         private val generatedCodePath = System.getenv("GENERATED_CODE_PATH")
         private val userProvidedPath = System.getenv("TEST_RAML_FILE")
-        private val apiPath : Path = Paths.get(if (userProvidedPath == null) "../../api-spec/api.raml" else userProvidedPath)
-        private val outputFolder : Path = Paths.get(if (generatedCodePath == null) "build/gensrc/dotnet-generated" else generatedCodePath)
+        private val apiPath : Path = Paths.get(userProvidedPath ?: "../../api-spec/api.raml")
+        private val outputFolder : Path = Paths.get(generatedCodePath ?: "build/gensrc/dotnet-generated")
         val apiProvider: RamlApiProvider = RamlApiProvider(apiPath)
     }
 
