@@ -11,7 +11,7 @@ object CsharpTestModule: Module {
         ResourceGenerator(
                 setOf(
                         CsharpRequestTestRenderer(generatorModule.vrapTypeProvider(), generatorModule.providePackageName())
-                ), generatorModule.allResources().filter { it.deprecated() }
+                ), generatorModule.allResources().filterNot { it.deprecated() }
         )
     )
 }

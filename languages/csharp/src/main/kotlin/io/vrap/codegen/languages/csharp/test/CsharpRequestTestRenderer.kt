@@ -40,7 +40,7 @@ class CsharpRequestTestRenderer constructor(override val vrapTypeProvider: VrapT
             |{
             |   public class ${type.toResourceName()}Test:RequestBuilderParentTests 
             |   { 
-            |       ${if (type.methods.any { it.deprecated() }) 
+            |       ${if (type.methods.any { !it.deprecated() }) 
                  """[Theory]
             |       [MemberData(nameof(GetData))]
             |       public void WithMethods(HttpRequestMessage request, string httpMethod, string uri) {
@@ -50,7 +50,7 @@ class CsharpRequestTestRenderer constructor(override val vrapTypeProvider: VrapT
             |       
             |       public static IEnumerable<object[]> GetData() {
             |       return new List<object[]> {
-            |               <<${type.methods.filter { it.deprecated() }.flatMap { method -> method.queryParameters.map { parameterTestProvider(type, method, it) }.plus(parameterTestProvider(type, method)) }.joinToString(",\n")}>>
+            |               <<${type.methods.filterNot { it.deprecated() }.flatMap { method -> method.queryParameters.map { parameterTestProvider(type, method, it) }.plus(parameterTestProvider(type, method)) }.joinToString(",\n")}>>
             |       };
             |    }
             |   }

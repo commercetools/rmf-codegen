@@ -14,7 +14,7 @@ object PhpTestModule: Module {
                 setOf(
                      PhpRequestTestRenderer(generatorModule.provideRamlModel(), generatorModule.vrapTypeProvider(), generatorModule.clientConstants())
                 ),
-                generatorModule.allResources().filter { it.deprecated() }
+                generatorModule.allResources().filterNot { it.deprecated() }
         ),
         FileGenerator(
                 setOf(
