@@ -1,6 +1,7 @@
 
 package io.vrap.codegen.languages.php.test
 
+import io.vrap.codegen.languages.extensions.deprecated
 import io.vrap.codegen.languages.php.ClientConstants
 import io.vrap.rmf.codegen.di.RamlGeneratorModule
 import io.vrap.rmf.codegen.di.Module
@@ -13,7 +14,7 @@ object PhpTestModule: Module {
                 setOf(
                      PhpRequestTestRenderer(generatorModule.provideRamlModel(), generatorModule.vrapTypeProvider(), generatorModule.clientConstants())
                 ),
-                generatorModule.allResources()
+                generatorModule.allResources().filter { it.deprecated() }
         ),
         FileGenerator(
                 setOf(

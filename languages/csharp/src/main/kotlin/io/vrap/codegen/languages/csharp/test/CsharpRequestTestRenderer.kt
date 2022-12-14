@@ -1,6 +1,7 @@
 package io.vrap.codegen.languages.csharp.client.builder.test
 
 import io.vrap.codegen.languages.csharp.extensions.*
+import io.vrap.codegen.languages.extensions.deprecated
 import io.vrap.codegen.languages.extensions.getMethodName
 import io.vrap.codegen.languages.extensions.toResourceName
 import io.vrap.rmf.codegen.firstUpperCase
@@ -39,7 +40,7 @@ class CsharpRequestTestRenderer constructor(override val vrapTypeProvider: VrapT
             |{
             |   public class ${type.toResourceName()}Test:RequestBuilderParentTests 
             |   { 
-            |       ${if (type.methods.size > 0) 
+            |       ${if (type.methods.any { it.deprecated() }) 
                  """[Theory]
             |       [MemberData(nameof(GetData))]
             |       public void WithMethods(HttpRequestMessage request, string httpMethod, string uri) {
@@ -49,7 +50,7 @@ class CsharpRequestTestRenderer constructor(override val vrapTypeProvider: VrapT
             |       
             |       public static IEnumerable<object[]> GetData() {
             |       return new List<object[]> {
-            |               <<${type.methods.flatMap { method -> method.queryParameters.map { parameterTestProvider(type, method, it) }.plus(parameterTestProvider(type, method)) }.joinToString(",\n")}>>
+            |               <<${type.methods.filter { it.deprecated() }.flatMap { method -> method.queryParameters.map { parameterTestProvider(type, method, it) }.plus(parameterTestProvider(type, method)) }.joinToString(",\n")}>>
             |       };
             |    }
             |   }

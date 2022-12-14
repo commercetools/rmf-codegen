@@ -85,6 +85,7 @@ class RequestBuilder constructor(
 
     protected fun ResourceContainer.subResources(): String {
         return this.resources
+                .filter { it.deprecated() }
                 .map {
 
                     val args = if (it.relativeUri.variables.isNullOrEmpty()) "" else """|
@@ -120,6 +121,7 @@ class RequestBuilder constructor(
     protected fun Resource.methods(): String {
 
         return this.methods
+                .filter { it.deprecated() }
                 .map {
 
                     var queryParamsArg = ""
