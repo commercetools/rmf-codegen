@@ -2,19 +2,17 @@
 
 set -e
 
-CODEGEN_VERSION=${VRAP_VERSION:-"1.0.0-20221215092406"}
 CLI_HOME=~/.rmf-cli
 LIB_FOLDER=$CLI_HOME/lib
-JAR_FILE_PATH=$LIB_FOLDER/codegen-cli-${CODEGEN_VERSION}.jar
-SCRIPT_PATH=$CLI_HOME/codegen.sh
-DOWNLOAD_LINK=https://repo1.maven.org/maven2/com/commercetools/rmf/cli-application/${CODEGEN_VERSION}/cli-application-${CODEGEN_VERSION}-all.jar
+JAR_FILE_PATH=$LIB_FOLDER/codegen-cli.jar
+SCRIPT_PATH=$CLI_HOME/rmf-cli.sh
 COMMAND_SYM_LINK=/usr/local/bin/rmf-codegen
 
-installVrapCli(){
-    uninstallVrapCli
+installRmfCli(){
+    uninstallRmfCli
     mkdir -p $LIB_FOLDER
-    echo 'Downloading artifacts...'
-    curl -# -L $DOWNLOAD_LINK -o $JAR_FILE_PATH --fail
+    echo 'Copying codegen...'
+    cp rmf-codegen.jar $JAR_FILE_PATH
     cat >$SCRIPT_PATH <<EOL
 #!/bin/sh
 
@@ -25,16 +23,16 @@ EOL
     echo 'RMF codegen cli installed successfully'
 }
 
-uninstallVrapCli(){
+uninstallRmfCli(){
     rm -rf $CLI_HOME
     rm -f $COMMAND_SYM_LINK
 }
 
 if ! [[ -f $JAR_FILE_PATH ]] || ! codegen_loc="$(type -p "rmf-codegen")" || [[ -z $codegen_loc ]] ; then
-  installVrapCli
+  installRmfCli
 else
   INSTALLED_VERSION=`rmf-codegen -v`
   if [ "$CODEGEN_VERSION" != "$INSTALLED_VERSION" ]; then
-    installVrapCli
+    installRmfCli
   fi
 fi

@@ -22,7 +22,7 @@ object TypescriptClientModule : Module {
                     setOf(
                             ApiRootFileProducer(generatorModule.provideClientPackageName(), generatorModule.clientConstants(), generatorModule.provideRamlModel(), generatorModule.vrapTypeProvider()),
                             ClientFileProducer(generatorModule.clientConstants()),
-                            IndexFileProducer(generatorModule.clientConstants(), generatorModule.vrapTypeProvider(), generatorModule.allAnyTypes())
+                            IndexFileProducer(generatorModule.clientConstants(), generatorModule.vrapTypeProvider(), generatorModule.allAnyTypes().filterNot { it.deprecated() })
                     )
             )
     )

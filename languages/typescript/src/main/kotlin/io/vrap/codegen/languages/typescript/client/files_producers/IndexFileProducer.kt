@@ -1,5 +1,6 @@
 package io.vrap.codegen.languages.typescript.client.files_producers
 
+import io.vrap.codegen.languages.typescript.deprecated
 import io.vrap.codegen.languages.typescript.model.TsObjectTypeExtensions
 import io.vrap.codegen.languages.typescript.tsGeneratedComment
 import io.vrap.rmf.codegen.di.AllAnyTypes
@@ -34,7 +35,9 @@ class IndexFileProducer constructor(
     ))
 
     fun List<AnyType>.exportModels() =
-        this.filter { it is ObjectType || (it is StringType && it.pattern == null) }
+        this.asSequence()
+                .filterNot { it.deprecated() }
+                .filter { it is ObjectType || (it is StringType && it.pattern == null) }
                 .map {
                     "export * from '${it.moduleName()}'"
                 }
