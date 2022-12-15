@@ -45,4 +45,14 @@ class DiffLanguagesCheckTest extends DiffCheckTest {
         results.size() == 1
         results[0].message == "added method `apiRoot.withProjectKey({\"\"}).categories().get()`"
     }
+
+    def "added method get category dotnet"() {
+        when:
+        def printer = new DiffLanguagesSubcommand.DotNetMarkdownFormatPrinter()
+        def check = diff("/method-added-get-category", new MethodAddedCheck(defaultSeverity))
+        def results = check.diff().collect { printer.replaceMessage(it) }
+        then:
+        results.size() == 1
+        results[0].message == "added method `apiRoot.withProject(\"\").Categories().Get()`"
+    }
 }

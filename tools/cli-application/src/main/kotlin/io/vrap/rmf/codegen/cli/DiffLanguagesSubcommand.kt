@@ -124,4 +124,42 @@ class DiffLanguagesSubcommand : DiffSubcommand() {
             }
         }
     }
+
+    class DotNetMarkdownFormatPrinter: FormatPrinter {
+
+        fun replaceMessage(diff: Diff<Any>): Diff<Any> {
+            val values: Array<String> = diff.value.toString().split(" /").toTypedArray()
+            val message = "${diff.diffType.toString().lowercase()} ${diff.scope.toString().lowercase()} `apiRoot.withProject(\"\").${values[1].firstUpperCase()}().${values[0].firstUpperCase()}()`"
+            return when (diff.scope) {
+                Scope.METHOD -> Diff(diff.diffType, diff.scope, diff.value, message, diff.eObject, diff.severity, diff.diffEObject, diff.source)
+                else -> diff
+            }
+        }
+        override fun print(diffResult: List<Diff<Any>>): String {
+
+            val map = diffResult.map { replaceMessage(it) }.groupBy { it.scope }.map { it.key to it.value.groupBy { it.diffType } }.toMap()
+
+
+            return map.entries.joinToString("\n\n") { scope -> """
+                |${scope.value.entries.joinToString("\n\n") { type -> """
+                    |<details>
+                    |<summary>${type.key.type.firstUpperCase()} ${scope.key.scope.firstUpperCase()}(s)</summary>
+                    |
+                |${type.value.joinToString("\n") { "- ${it.severity.asSign()}${it.message}" }}
+                |</details>
+                        |
+                        """.trimMargin() }}
+                    """.trimMargin() }
+        }
+
+        fun CheckSeverity.asSign(): String {
+            return when(this) {
+                CheckSeverity.FATAL -> ":red_circle: "
+                CheckSeverity.ERROR -> ":warning: "
+                CheckSeverity.WARN -> ":warning: "
+                else -> ""
+
+            }
+        }
+    }
 }
