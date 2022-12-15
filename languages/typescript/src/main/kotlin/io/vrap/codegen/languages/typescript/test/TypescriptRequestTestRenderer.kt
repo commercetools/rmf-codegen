@@ -39,7 +39,7 @@ class TypescriptRequestTestRenderer constructor(override val vrapTypeProvider: V
     }
 
     protected fun Resource.getTests(type:Resource): String {
-        if(type.methods.filterNot { it.deprecated() }.isEmpty())
+        if(type.methods == null || type.methods.filterNot { it.deprecated() }.isEmpty())
             return  ""
         val groupRequests = type.toRequestBuilderName()
         val methodAndUrl = "\${rm.method} and url: \${rm.uri}"
@@ -57,7 +57,7 @@ class TypescriptRequestTestRenderer constructor(override val vrapTypeProvider: V
     }
 
     protected fun Resource.getRequestsWithMethodParameters(type:Resource): String {
-        if(type.methods.any { !it.deprecated() })
+        if(type.methods == null || type.methods.filterNot { it.deprecated() }.isEmpty())
             return  ""
         return """|
                     |  export function getRequestsWithMethodParameters(): RequestWithMethod[]  {
