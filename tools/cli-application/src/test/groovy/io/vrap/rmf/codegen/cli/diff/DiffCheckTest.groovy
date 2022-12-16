@@ -180,6 +180,82 @@ class DiffCheckTest extends Specification implements ValidatorFixtures {
         results[0].message == "changed response body for `200: application/json` of method `get /foo` from type `Bar` to `Foo`"
     }
 
+    def "deprecated resource"() {
+        when:
+        def check = diff("/resource-deprecated", new DeprecatedAddedResourceCheck(defaultSeverity))
+        def results = check.diff()
+        then:
+        results.size() == 2
+        results[0].message == "resource `/foo` is deprecated"
+        results[1].message == "resource `/bar` is deprecated"
+    }
+
+    def "deprecated method"() {
+        when:
+        def check = diff("/method-deprecated", new DeprecatedAddedMethodCheck(defaultSeverity))
+        def results = check.diff()
+        then:
+        results.size() == 2
+        results[0].message == "method `get /foo` is deprecated"
+        results[1].message == "method `get /bar` is deprecated"
+    }
+
+    def "mark deprecated resource"() {
+        when:
+        def check = diff("/resource-mark-deprecated", new MarkDeprecatedAddedResourceCheck(defaultSeverity))
+        def results = check.diff()
+        then:
+        results.size() == 1
+        results[0].message == "marked resource `/foo` as deprecated"
+    }
+
+    def "mark deprecated method"() {
+        when:
+        def check = diff("/method-mark-deprecated", new MarkDeprecatedAddedMethodCheck(defaultSeverity))
+        def results = check.diff()
+        then:
+        results.size() == 1
+        results[0].message == "marked method `get /foo` as deprecated"
+    }
+
+    def "deprecated removed resource"() {
+        when:
+        def check = diff("/resource-deprecated-removed", new DeprecatedRemovedResourceCheck(defaultSeverity))
+        def results = check.diff()
+        then:
+        results.size() == 2
+        results[0].message == "removed deprecation from resource `/foo`"
+        results[1].message == "removed deprecation from resource `/bar`"
+    }
+
+    def "deprecated removed method"() {
+        when:
+        def check = diff("/method-deprecated-removed", new DeprecatedRemovedMethodCheck(defaultSeverity))
+        def results = check.diff()
+        then:
+        results.size() == 2
+        results[0].message == "removed deprecation from method `get /foo`"
+        results[1].message == "removed deprecation from method `get /bar`"
+    }
+
+    def "mark deprecated removed resource"() {
+        when:
+        def check = diff("/resource-mark-deprecated-removed", new MarkDeprecatedRemovedResourceCheck(defaultSeverity))
+        def results = check.diff()
+        then:
+        results.size() == 1
+        results[0].message == "removed deprecation mark from resource `/foo`"
+    }
+
+    def "mark deprecated removed method"() {
+        when:
+        def check = diff("/method-mark-deprecated-removed", new MarkDeprecatedRemovedMethodCheck(defaultSeverity))
+        def results = check.diff()
+        then:
+        results.size() == 1
+        results[0].message == "removed deprecation mark from method `get /foo`"
+    }
+
     private <T> RamlDiff diff(String fileLocation, Differ<T> check) {
         return new RamlDiff.Builder()
                     .original(readApi(fileLocation + "-original.raml"))

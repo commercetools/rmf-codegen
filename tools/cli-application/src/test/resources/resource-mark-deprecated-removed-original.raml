@@ -1,0 +1,14 @@
+#%RAML 1.0
+title: resource mark deprecated
+annotationTypes:
+  deprecated: boolean
+  markDeprecated: boolean
+
+/foo:
+  (markDeprecated): true
+/bar:
+  (deprecated): true
+/baz:
+  (markDeprecated): true
+/foobar:
+  (markDeprecated): true

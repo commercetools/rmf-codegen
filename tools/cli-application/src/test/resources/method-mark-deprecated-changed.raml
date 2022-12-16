@@ -1,0 +1,15 @@
+#%RAML 1.0
+title: method mark deprecated
+annotationTypes:
+  deprecated: boolean
+  markDeprecated: boolean
+
+/foo:
+  get:
+    (markDeprecated): true
+/bar:
+  get:
+    (deprecated): true
+/baz:
+  get:
+    (markDeprecated): true

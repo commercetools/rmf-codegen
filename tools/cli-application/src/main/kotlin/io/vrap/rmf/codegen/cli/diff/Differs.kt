@@ -303,6 +303,131 @@ class DeprecatedAddedTypeCheck(override val severity: CheckSeverity): DiffCheck<
 }
 
 @DiffSet
+class DeprecatedAddedMethodCheck(override val severity: CheckSeverity):
+    DeprecatedAddedCheck<Method>("method", DiffDataType.METHODS_MAP, severity)
+
+@DiffSet(severity = CheckSeverity.ERROR)
+class DeprecatedRemovedMethodCheck(override val severity: CheckSeverity):
+    DeprecatedRemovedCheck<Method>("method", DiffDataType.METHODS_MAP, severity)
+
+@DiffSet
+class MarkDeprecatedAddedMethodCheck(override val severity: CheckSeverity):
+    MarkDeprecatedAddedCheck<Method>("method", DiffDataType.METHODS_MAP, severity)
+
+@DiffSet(severity = CheckSeverity.ERROR)
+class MarkDeprecatedRemovedMethodCheck(override val severity: CheckSeverity):
+    MarkDeprecatedRemovedCheck<Method>("method", DiffDataType.METHODS_MAP, severity)
+
+@DiffSet
+class DeprecatedAddedResourceCheck(override val severity: CheckSeverity):
+    DeprecatedAddedCheck<Resource>("resource", DiffDataType.RESOURCES_MAP, severity)
+
+@DiffSet(severity = CheckSeverity.ERROR)
+class DeprecatedRemovedResourceCheck(override val severity: CheckSeverity):
+    DeprecatedRemovedCheck<Resource>("resource", DiffDataType.RESOURCES_MAP, severity)
+
+@DiffSet
+class MarkDeprecatedAddedResourceCheck(override val severity: CheckSeverity):
+    MarkDeprecatedAddedCheck<Resource>("resource", DiffDataType.RESOURCES_MAP, severity)
+
+@DiffSet(severity = CheckSeverity.ERROR)
+class MarkDeprecatedRemovedResourceCheck(override val severity: CheckSeverity):
+    MarkDeprecatedRemovedCheck<Resource>("resource", DiffDataType.RESOURCES_MAP, severity)
+
+open class DeprecatedAddedCheck<T: AnnotationsFacet>(private val checkType: String, override val diffDataType: DiffDataType, override val severity: CheckSeverity): DiffCheck<Map<String, T>>(severity) {
+    override fun diff(data: DiffData<Map<String, T>>): List<Diff<Any>> {
+        return data.changed.filter { data.original.containsKey(it.key) }
+            .filter { (key, _) ->
+                data.original[key]!!.getAnnotation("deprecated")?.value?.value != true
+            }.filter { (_, method) ->
+                method.getAnnotation("deprecated")?.value?.value == true
+            }.map { (methodName, method) ->
+                val originalAnno = data.original[methodName]!!.getAnnotation("deprecated")
+                val changedAnno = method.getAnnotation("deprecated")
+                Diff(
+                    DiffType.DEPRECATED,
+                    Scope.METHOD,
+                    DiffData(originalAnno?.value?.value, changedAnno.value.value),
+                    "$checkType `${methodName}` is deprecated",
+                    method,
+                    severity,
+                    DiffData(data.original[methodName], method)
+                )
+            }
+    }
+}
+
+open class DeprecatedRemovedCheck<T: AnnotationsFacet>(private val checkType: String, override val diffDataType: DiffDataType, override val severity: CheckSeverity): DiffCheck<Map<String, T>>(severity) {
+
+    override fun diff(data: DiffData<Map<String, T>>): List<Diff<Any>> {
+        return data.original.filter { data.changed.containsKey(it.key) }
+            .filter { (key, _) ->
+                data.changed[key]!!.getAnnotation("deprecated")?.value?.value != true
+            }.filter { (_, resource) ->
+                resource.getAnnotation("deprecated")?.value?.value == true
+            }.map { (resourceName, resource) ->
+                val originalAnno = data.original[resourceName]!!.getAnnotation("deprecated")
+                val changedAnno = resource.getAnnotation("deprecated")
+                Diff(
+                    DiffType.DEPRECATED,
+                    Scope.METHOD,
+                    DiffData(originalAnno?.value?.value, changedAnno.value.value),
+                    "removed deprecation from $checkType `${resourceName}`",
+                    resource,
+                    severity,
+                    DiffData(resource, data.changed[resourceName])
+                )
+            }
+    }
+}
+open class MarkDeprecatedAddedCheck<T: AnnotationsFacet>(private val checkType: String, override val diffDataType: DiffDataType, override val severity: CheckSeverity): DiffCheck<Map<String, T>>(severity) {
+    override fun diff(data: DiffData<Map<String, T>>): List<Diff<Any>> {
+        return data.changed.filter { data.original.containsKey(it.key) }
+            .filter { (key, _) ->
+                data.original[key]!!.getAnnotation("markDeprecated")?.value?.value != true
+                        && data.original[key]!!.getAnnotation("deprecated")?.value?.value != true
+            }.filter { (_, resource) ->
+                resource.getAnnotation("markDeprecated")?.value?.value == true
+            }.map { (resourceName, resource) ->
+                val originalAnno = data.original[resourceName]!!.getAnnotation("markDeprecated")
+                val changedAnno = resource.getAnnotation("markDeprecated")
+                Diff(
+                    DiffType.MARK_DEPRECATED,
+                    Scope.TYPE,
+                    DiffData(originalAnno?.value?.value, changedAnno.value.value),
+                    "marked $checkType `${resourceName}` as deprecated",
+                    resource,
+                    severity,
+                    DiffData(data.original[resourceName], resource)
+                )
+            }
+    }
+}
+open class MarkDeprecatedRemovedCheck<T: AnnotationsFacet>(private val checkType: String, override val diffDataType: DiffDataType, override val severity: CheckSeverity): DiffCheck<Map<String, T>>(severity) {
+    override fun diff(data: DiffData<Map<String, T>>): List<Diff<Any>> {
+        return data.original.filter { data.changed.containsKey(it.key) }
+            .filter { (key, _) ->
+                data.changed[key]!!.getAnnotation("markDeprecated")?.value?.value != true
+                        && data.changed[key]!!.getAnnotation("deprecated")?.value?.value != true
+            }.filter { (_, type) ->
+                type.getAnnotation("markDeprecated")?.value?.value == true
+            }.map { (typeName, type) ->
+                val originalAnno = data.original[typeName]!!.getAnnotation("markDeprecated")
+                val changedAnno = type.getAnnotation("markDeprecated")
+                Diff(
+                    DiffType.MARK_DEPRECATED,
+                    Scope.TYPE,
+                    DiffData(originalAnno?.value?.value, changedAnno.value.value),
+                    "removed deprecation mark from $checkType `${typeName}`",
+                    type,
+                    severity,
+                    DiffData(type, data.changed[typeName])
+                )
+            }
+    }
+}
+
+@DiffSet
 class EnumAddedCheck(override val severity: CheckSeverity): DiffCheck<Map<String, StringType>>(severity) {
     override val diffDataType: DiffDataType = DiffDataType.STRING_TYPES_MAP
     override fun diff(data: DiffData<Map<String, StringType>>): List<Diff<Any>> {
