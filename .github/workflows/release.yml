@@ -163,7 +163,7 @@ jobs:
           GRADLE_PUBLISH_SECRET: ${{ secrets.GRADLE_PUBLISH_SECRET }}
 
       - name: Build and Release
-        run: ./gradlew -Pversion=${{ github.ref_name }} clean check publishMavenPublicationToSonatype closeAndReleaseSonatypeStagingRepository :tools:codegen-gradle-plugin:publishPlugins
+        run: ./gradlew -Pversion=${{ github.ref_name }} clean check publishMavenPublicationToSonatype closeAndReleaseSonatypeStagingRepository
         env:
           CTP_OSS_USER: ${{ secrets.OSS_USER }}
           CTP_OSS_SECRET: ${{ secrets.OSS_SECRET }}
