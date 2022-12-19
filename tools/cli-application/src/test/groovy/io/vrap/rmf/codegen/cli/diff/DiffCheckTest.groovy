@@ -200,13 +200,80 @@ class DiffCheckTest extends Specification implements ValidatorFixtures {
         results[1].message == "method `get /bar` is deprecated"
     }
 
-    def "mark deprecated resource"() {
+    def "deprecated type"() {
         when:
-        def check = diff("/resource-mark-deprecated", new MarkDeprecatedAddedResourceCheck(defaultSeverity))
+        def check = diff("/type-deprecated", new DeprecatedAddedTypeCheck(defaultSeverity))
+        def results = check.diff()
+        then:
+        results.size() == 2
+        results[0].message == "type `foo` is deprecated"
+        results[1].message == "type `bar` is deprecated"
+    }
+
+    def "deprecated remove type"() {
+        when:
+        def check = diff("/type-deprecated-removed", new DeprecatedRemovedTypeCheck(defaultSeverity))
+        def results = check.diff()
+        then:
+        results.size() == 2
+        results[0].message == "removed deprecation from type `foo`"
+        results[1].message == "removed deprecation from type `bar`"
+    }
+
+    def "mark deprecated type"() {
+        when:
+        def check = diff("/type-mark-deprecated", new MarkDeprecatedAddedTypeCheck(defaultSeverity))
         def results = check.diff()
         then:
         results.size() == 1
-        results[0].message == "marked resource `/foo` as deprecated"
+        results[0].message == "marked type `foo` as deprecated"
+    }
+
+    def "mark deprecated removed type"() {
+        when:
+        def check = diff("/type-mark-deprecated-removed", new MarkDeprecatedRemovedTypeCheck(defaultSeverity))
+        def results = check.diff()
+        then:
+        results.size() == 1
+        results[0].message == "removed deprecation mark from type `foo`"
+    }
+
+    def "deprecated property"() {
+        when:
+        def check = diff("/property-deprecated", new DeprecatedAddedPropertyCheck(defaultSeverity))
+        def results = check.diff()
+        then:
+        results.size() == 2
+        results[0].message == "property `foo::foo` is deprecated"
+        results[1].message == "property `bar::bar` is deprecated"
+    }
+
+    def "deprecated remove property"() {
+        when:
+        def check = diff("/property-deprecated-removed", new DeprecatedRemovedPropertyCheck(defaultSeverity))
+        def results = check.diff()
+        then:
+        results.size() == 2
+        results[0].message == "removed deprecation from property `foo::foo`"
+        results[1].message == "removed deprecation from property `bar::bar`"
+    }
+
+    def "mark deprecated property"() {
+        when:
+        def check = diff("/property-mark-deprecated", new MarkDeprecatedAddedPropertyCheck(defaultSeverity))
+        def results = check.diff()
+        then:
+        results.size() == 1
+        results[0].message == "marked property `foo::foo` as deprecated"
+    }
+
+    def "mark deprecated remove property"() {
+        when:
+        def check = diff("/property-mark-deprecated-removed", new MarkDeprecatedRemovedPropertyCheck(defaultSeverity))
+        def results = check.diff()
+        then:
+        results.size() == 1
+        results[0].message == "removed deprecation mark from property `foo::foo`"
     }
 
     def "mark deprecated method"() {

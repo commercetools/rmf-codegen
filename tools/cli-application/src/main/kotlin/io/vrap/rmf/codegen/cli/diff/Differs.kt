@@ -199,73 +199,73 @@ class TypeChangedCheck(override val severity: CheckSeverity): DiffCheck<Map<Stri
 
 @DiffSet
 class MarkDeprecatedAddedPropertyCheck(override val severity: CheckSeverity):
-    DeprecatedAddedCheck<Property>("property", DiffDataType.PROPERTIES_MAP, severity, Scope.PROPERTY, { t, name -> t.getAnnotation(name, true) } )
+    MarkDeprecatedAddedCheck<Property, PropertyReference>("property", DiffDataType.PROPERTIES_MAP, severity, Scope.PROPERTY, { t, name -> t.getAnnotation(name, true) } )
 
 @DiffSet(severity = CheckSeverity.ERROR)
 class MarkDeprecatedRemovedPropertyCheck(override val severity: CheckSeverity):
-    MarkDeprecatedRemovedCheck<Property>("property", DiffDataType.PROPERTIES_MAP, severity, Scope.PROPERTY, { t, name -> t.getAnnotation(name, true) } )
+    MarkDeprecatedRemovedCheck<Property, PropertyReference>("property", DiffDataType.PROPERTIES_MAP, severity, Scope.PROPERTY, { t, name -> t.getAnnotation(name, true) } )
 
 
 @DiffSet(severity = CheckSeverity.ERROR)
 class DeprecatedRemovedPropertyCheck(override val severity: CheckSeverity):
-    DeprecatedRemovedCheck<Property>("property", DiffDataType.PROPERTIES_MAP, severity, Scope.PROPERTY, { t, name -> t.getAnnotation(name, true) } )
+    DeprecatedRemovedCheck<Property, PropertyReference>("property", DiffDataType.PROPERTIES_MAP, severity, Scope.PROPERTY, { t, name -> t.getAnnotation(name, true) } )
 
 @DiffSet
 class DeprecatedAddedPropertyCheck(override val severity: CheckSeverity):
-    DeprecatedAddedCheck<Property>("property", DiffDataType.PROPERTIES_MAP, severity, Scope.PROPERTY, { t, name -> t.getAnnotation(name, true) } )
+    DeprecatedAddedCheck<Property, PropertyReference>("property", DiffDataType.PROPERTIES_MAP, severity, Scope.PROPERTY, { t, name -> t.getAnnotation(name, true) } )
 
 
 @DiffSet
 class MarkDeprecatedAddedTypeCheck(override val severity: CheckSeverity):
-    DeprecatedAddedCheck<AnyType>("type", DiffDataType.ANY_TYPES_MAP, severity, Scope.TYPE, { t, name -> t.getAnnotation(name, true) } )
+    MarkDeprecatedAddedCheck<AnyType, String>("type", DiffDataType.ANY_TYPES_MAP, severity, Scope.TYPE, { t, name -> t.getAnnotation(name, true) } )
 
 @DiffSet(severity = CheckSeverity.ERROR)
 class MarkDeprecatedRemovedTypeCheck(override val severity: CheckSeverity):
-    MarkDeprecatedRemovedCheck<AnyType>("type", DiffDataType.ANY_TYPES_MAP, severity, Scope.TYPE, { t, name -> t.getAnnotation(name, true) } )
+    MarkDeprecatedRemovedCheck<AnyType, String>("type", DiffDataType.ANY_TYPES_MAP, severity, Scope.TYPE, { t, name -> t.getAnnotation(name, true) } )
 
 
 @DiffSet(severity = CheckSeverity.ERROR)
 class DeprecatedRemovedTypeCheck(override val severity: CheckSeverity):
-    DeprecatedRemovedCheck<AnyType>("type", DiffDataType.ANY_TYPES_MAP, severity, Scope.TYPE, { t, name -> t.getAnnotation(name, true) } )
+    DeprecatedRemovedCheck<AnyType, String>("type", DiffDataType.ANY_TYPES_MAP, severity, Scope.TYPE, { t, name -> t.getAnnotation(name, true) } )
 
 @DiffSet
 class DeprecatedAddedTypeCheck(override val severity: CheckSeverity):
-    DeprecatedAddedCheck<AnyType>("type", DiffDataType.ANY_TYPES_MAP, severity, Scope.TYPE, { t, name -> t.getAnnotation(name, true) } )
+    DeprecatedAddedCheck<AnyType, String>("type", DiffDataType.ANY_TYPES_MAP, severity, Scope.TYPE, { t, name -> t.getAnnotation(name, true) } )
 
 @DiffSet
 class DeprecatedAddedMethodCheck(override val severity: CheckSeverity):
-    DeprecatedAddedCheck<Method>("method", DiffDataType.METHODS_MAP, severity, Scope.METHOD )
+    DeprecatedAddedCheck<Method, String>("method", DiffDataType.METHODS_MAP, severity, Scope.METHOD )
 
 @DiffSet(severity = CheckSeverity.ERROR)
 class DeprecatedRemovedMethodCheck(override val severity: CheckSeverity):
-    DeprecatedRemovedCheck<Method>("method", DiffDataType.METHODS_MAP, severity, Scope.METHOD)
+    DeprecatedRemovedCheck<Method, String>("method", DiffDataType.METHODS_MAP, severity, Scope.METHOD)
 
 @DiffSet
 class MarkDeprecatedAddedMethodCheck(override val severity: CheckSeverity):
-    MarkDeprecatedAddedCheck<Method>("method", DiffDataType.METHODS_MAP, severity, Scope.METHOD)
+    MarkDeprecatedAddedCheck<Method, String>("method", DiffDataType.METHODS_MAP, severity, Scope.METHOD)
 
 @DiffSet(severity = CheckSeverity.ERROR)
 class MarkDeprecatedRemovedMethodCheck(override val severity: CheckSeverity):
-    MarkDeprecatedRemovedCheck<Method>("method", DiffDataType.METHODS_MAP, severity, Scope.METHOD)
+    MarkDeprecatedRemovedCheck<Method, String>("method", DiffDataType.METHODS_MAP, severity, Scope.METHOD)
 
 @DiffSet
 class DeprecatedAddedResourceCheck(override val severity: CheckSeverity):
-    DeprecatedAddedCheck<Resource>("resource", DiffDataType.RESOURCES_MAP, severity, Scope.RESOURCE)
+    DeprecatedAddedCheck<Resource, String>("resource", DiffDataType.RESOURCES_MAP, severity, Scope.RESOURCE)
 
 @DiffSet(severity = CheckSeverity.ERROR)
 class DeprecatedRemovedResourceCheck(override val severity: CheckSeverity):
-    DeprecatedRemovedCheck<Resource>("resource", DiffDataType.RESOURCES_MAP, severity, Scope.RESOURCE)
+    DeprecatedRemovedCheck<Resource, String>("resource", DiffDataType.RESOURCES_MAP, severity, Scope.RESOURCE)
 
 @DiffSet
 class MarkDeprecatedAddedResourceCheck(override val severity: CheckSeverity):
-    MarkDeprecatedAddedCheck<Resource>("resource", DiffDataType.RESOURCES_MAP, severity, Scope.RESOURCE)
+    MarkDeprecatedAddedCheck<Resource, String>("resource", DiffDataType.RESOURCES_MAP, severity, Scope.RESOURCE)
 
 @DiffSet(severity = CheckSeverity.ERROR)
 class MarkDeprecatedRemovedResourceCheck(override val severity: CheckSeverity):
-    MarkDeprecatedRemovedCheck<Resource>("resource", DiffDataType.RESOURCES_MAP, severity, Scope.RESOURCE)
+    MarkDeprecatedRemovedCheck<Resource, String>("resource", DiffDataType.RESOURCES_MAP, severity, Scope.RESOURCE)
 
-open class DeprecatedAddedCheck<T: AnnotationsFacet>(private val checkType: String, override val diffDataType: DiffDataType, override val severity: CheckSeverity, val scope: Scope, val getAnnoFn: (t: T, name: String) -> Annotation? = { t, name -> t.getAnnotation(name) }): DiffCheck<Map<String, T>>(severity) {
-    override fun diff(data: DiffData<Map<String, T>>): List<Diff<Any>> {
+open class DeprecatedAddedCheck<T: AnnotationsFacet, TKey>(private val checkType: String, override val diffDataType: DiffDataType, override val severity: CheckSeverity, val scope: Scope, val getAnnoFn: (t: T, name: String) -> Annotation? = { t, name -> t.getAnnotation(name) }): DiffCheck<Map<TKey, T>>(severity) {
+    override fun diff(data: DiffData<Map<TKey, T>>): List<Diff<Any>> {
         return data.changed.filter { data.original.containsKey(it.key) }
             .filter { (key, _) ->
                 getAnnoFn(data.original[key]!!, "deprecated")?.value?.value != true
@@ -287,9 +287,9 @@ open class DeprecatedAddedCheck<T: AnnotationsFacet>(private val checkType: Stri
     }
 }
 
-open class DeprecatedRemovedCheck<T: AnnotationsFacet>(private val checkType: String, override val diffDataType: DiffDataType, override val severity: CheckSeverity, val scope: Scope, val getAnnoFn: (t: T, name: String) -> Annotation? = { t, name -> t.getAnnotation(name) }): DiffCheck<Map<String, T>>(severity) {
+open class DeprecatedRemovedCheck<T: AnnotationsFacet, TKey>(private val checkType: String, override val diffDataType: DiffDataType, override val severity: CheckSeverity, val scope: Scope, val getAnnoFn: (t: T, name: String) -> Annotation? = { t, name -> t.getAnnotation(name) }): DiffCheck<Map<TKey, T>>(severity) {
 
-    override fun diff(data: DiffData<Map<String, T>>): List<Diff<Any>> {
+    override fun diff(data: DiffData<Map<TKey, T>>): List<Diff<Any>> {
         return data.original.filter { data.changed.containsKey(it.key) }
             .filter { (key, _) ->
                 getAnnoFn(data.changed[key]!!, "deprecated")?.value?.value != true
@@ -311,8 +311,8 @@ open class DeprecatedRemovedCheck<T: AnnotationsFacet>(private val checkType: St
     }
 }
 
-open class MarkDeprecatedAddedCheck<T: AnnotationsFacet>(private val checkType: String, override val diffDataType: DiffDataType, override val severity: CheckSeverity, val scope: Scope, val getAnnoFn: (t: T, name: String) -> Annotation? = { t, name -> t.getAnnotation(name) }): DiffCheck<Map<String, T>>(severity) {
-    override fun diff(data: DiffData<Map<String, T>>): List<Diff<Any>> {
+open class MarkDeprecatedAddedCheck<T: AnnotationsFacet, TKey>(private val checkType: String, override val diffDataType: DiffDataType, override val severity: CheckSeverity, val scope: Scope, val getAnnoFn: (t: T, name: String) -> Annotation? = { t, name -> t.getAnnotation(name) }): DiffCheck<Map<TKey, T>>(severity) {
+    override fun diff(data: DiffData<Map<TKey, T>>): List<Diff<Any>> {
         return data.changed.filter { data.original.containsKey(it.key) }
             .filter { (key, _) ->
                 getAnnoFn(data.original[key]!!, "markDeprecated")?.value?.value != true
@@ -334,8 +334,8 @@ open class MarkDeprecatedAddedCheck<T: AnnotationsFacet>(private val checkType: 
             }
     }
 }
-open class MarkDeprecatedRemovedCheck<T: AnnotationsFacet>(private val checkType: String, override val diffDataType: DiffDataType, override val severity: CheckSeverity, val scope: Scope, val getAnnoFn: (t: T, name: String) -> Annotation? = { t, name -> t.getAnnotation(name) }): DiffCheck<Map<String, T>>(severity) {
-    override fun diff(data: DiffData<Map<String, T>>): List<Diff<Any>> {
+open class MarkDeprecatedRemovedCheck<T: AnnotationsFacet, TKey>(private val checkType: String, override val diffDataType: DiffDataType, override val severity: CheckSeverity, val scope: Scope, val getAnnoFn: (t: T, name: String) -> Annotation? = { t, name -> t.getAnnotation(name) }): DiffCheck<Map<TKey, T>>(severity) {
+    override fun diff(data: DiffData<Map<TKey, T>>): List<Diff<Any>> {
         return data.original.filter { data.changed.containsKey(it.key) }
             .filter { (key, _) ->
                 getAnnoFn(data.changed[key]!!,"markDeprecated")?.value?.value != true
