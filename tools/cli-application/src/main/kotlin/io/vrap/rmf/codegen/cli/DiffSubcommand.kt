@@ -1,11 +1,15 @@
 package io.vrap.rmf.codegen.cli
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import io.vrap.codegen.languages.csharp.extensions.pluralize
+import io.vrap.codegen.languages.extensions.getMethodName
+import io.vrap.codegen.languages.extensions.resource
+import io.vrap.codegen.languages.java.base.extensions.resourcePathList
 import io.vrap.rmf.codegen.cli.diff.*
 import io.vrap.rmf.codegen.firstUpperCase
 import io.vrap.rmf.raml.model.RamlModelBuilder
 import io.vrap.rmf.raml.model.modules.Api
+import io.vrap.rmf.raml.model.resources.Method
+import io.vrap.rmf.raml.model.resources.Resource
 import org.eclipse.emf.common.util.URI
 import picocli.CommandLine
 import java.nio.charset.StandardCharsets
@@ -75,10 +79,10 @@ open class DiffSubcommand : Callable<Int> {
             return when (printer) {
                 OutputFormat.CLI -> CliFormatPrinter()
                 OutputFormat.MARKDOWN -> MarkdownFormatPrinter()
-                OutputFormat.JAVA_MARKDOWN -> DiffLanguagesSubcommand.JavaMarkdownFormatPrinter()
-                OutputFormat.PHP_MARKDOWN -> DiffLanguagesSubcommand.PHPMarkdownFormatPrinter()
-                OutputFormat.TS_MARKDOWN -> DiffLanguagesSubcommand.TSMarkdownFormatPrinter()
-                OutputFormat.DOTNET_MARKDOWN -> DiffLanguagesSubcommand.DotNetMarkdownFormatPrinter()
+                OutputFormat.JAVA_MARKDOWN -> JavaMarkdownFormatPrinter()
+                OutputFormat.PHP_MARKDOWN -> PHPMarkdownFormatPrinter()
+                OutputFormat.TS_MARKDOWN -> TSMarkdownFormatPrinter()
+                OutputFormat.DOTNET_MARKDOWN -> DotNetMarkdownFormatPrinter()
                 OutputFormat.JSON -> JsonFormatPrinter()
             }
         }
@@ -143,5 +147,68 @@ open class DiffSubcommand : Callable<Int> {
 
         return modelResult.rootObject
     }
+
+    sealed class LanguageMarkdownFormatPrinter(val separator: String = ".", val prefix: String = "apiRoot"): FormatPrinter {
+        private fun replaceMessage(diff: Diff<Any>, separator: String): Diff<Any> {
+            return when (diff.eObject) {
+                is Method -> if (diff.scope == Scope.METHOD && (diff.diffType == DiffType.REMOVED || diff.diffType == DiffType.ADDED)) {
+                    val message = "${diff.diffType.toString().lowercase()} ${diff.scope.toString().lowercase()} `${requestChain(diff.eObject.resource(), diff.eObject, separator, prefix)}`"
+                    Diff(
+                        diff.diffType,
+                        diff.scope,
+                        diff.value,
+                        message,
+                        diff.eObject,
+                        diff.severity,
+                        diff.diffEObject,
+                        diff.source
+                    )
+                } else
+                    diff
+                else -> diff
+            }
+        }
+
+        override fun print(diffResult: List<Diff<Any>>): String {
+
+            val map = diffResult.map { replaceMessage(it, separator) }.groupBy { it.scope }.map { it.key to it.value.groupBy { it.diffType } }.toMap()
+
+
+            return map.entries.joinToString("\n\n") { scope -> """
+                |${scope.value.entries.joinToString("\n\n") { type -> """
+                    |<details>
+                    |<summary>${type.key.type.firstUpperCase()} ${scope.key.scope.firstUpperCase()}(s)</summary>
+                    |
+                |${type.value.joinToString("\n") { "- ${it.severity.asSign()}${it.message}" }}
+                |</details>
+                        |
+                        """.trimMargin() }}
+                    """.trimMargin() }
+        }
+
+        fun CheckSeverity.asSign(): String {
+            return when(this) {
+                CheckSeverity.FATAL -> ":red_circle: "
+                CheckSeverity.ERROR -> ":warning: "
+                CheckSeverity.WARN -> ":warning: "
+                else -> ""
+
+            }
+        }
+    }
+
+    class JavaMarkdownFormatPrinter: LanguageMarkdownFormatPrinter()
+
+    class PHPMarkdownFormatPrinter: LanguageMarkdownFormatPrinter("->", "${"$"}apiRoot")
+
+    class TSMarkdownFormatPrinter: LanguageMarkdownFormatPrinter()
+
+    class DotNetMarkdownFormatPrinter: LanguageMarkdownFormatPrinter()
+}
+
+fun requestChain(resource: Resource, method: Method, separator: String = ".", prefix: String = "apiRoot"): String {
+    val builderChain = resource.resourcePathList().map { r -> "${r.getMethodName()}()" }
+        .plus("${method.method}()")
+    return builderChain.joinToString(separator, prefix = "$prefix$separator")
 }
 

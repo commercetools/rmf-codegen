@@ -1,7 +1,5 @@
 package io.vrap.rmf.codegen.cli.diff
 
-import io.vrap.rmf.codegen.cli.DiffLanguagesSubcommand
-import io.vrap.rmf.codegen.cli.DiffSubcommand
 import io.vrap.rmf.raml.model.RamlModelBuilder
 import io.vrap.rmf.raml.model.modules.Api
 import spock.lang.Specification
