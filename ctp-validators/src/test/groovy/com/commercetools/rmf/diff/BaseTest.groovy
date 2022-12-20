@@ -8,8 +8,8 @@ import spock.lang.Specification;
 abstract class BaseTest extends Specification implements ValidatorFixtures {
     def <T> RamlDiff diff(String fileLocation, Differ<T> check) {
         return new RamlDiff.Builder()
-                .original(readApi(fileLocation + "-original.raml"))
-                .changed(readApi(fileLocation + "-changed.raml"))
+                .original(readApi("/diff" + fileLocation + "-original.raml"))
+                .changed(readApi("/diff" + fileLocation + "-changed.raml"))
                 .plus(check)
                 .build()
     }
