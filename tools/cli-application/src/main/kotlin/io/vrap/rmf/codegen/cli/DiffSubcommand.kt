@@ -19,7 +19,7 @@ import java.util.concurrent.Callable
 import java.util.stream.Collectors
 
 @CommandLine.Command(name = "diff", description = ["Generates a diff between two specifications"])
-open class DiffSubcommand : Callable<Int> {
+class DiffSubcommand : Callable<Int> {
 
     @CommandLine.Option(names = ["-h", "--help"], usageHelp = true, description = ["display this help message"])
     var usageHelpRequested = false
