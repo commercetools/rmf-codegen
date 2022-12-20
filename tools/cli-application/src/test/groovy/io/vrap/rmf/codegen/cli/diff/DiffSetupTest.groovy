@@ -1,5 +1,6 @@
 package io.vrap.rmf.codegen.cli.diff
 
+import com.commercetools.rmf.diff.DiffSetup
 import io.vrap.rmf.codegen.cli.ValidateSubcommand
 import spock.lang.Specification
 
