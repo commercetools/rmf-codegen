@@ -1,5 +1,6 @@
 package io.vrap.rmf.codegen.cli.diff
 
+import com.commercetools.rmf.diff.DiffSetup
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test
 

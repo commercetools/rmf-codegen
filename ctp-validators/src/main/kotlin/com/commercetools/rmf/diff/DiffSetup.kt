@@ -1,4 +1,4 @@
-package io.vrap.rmf.codegen.cli.diff
+package com.commercetools.rmf.diff
 
 import com.ctc.wstx.stax.WstxInputFactory
 import com.ctc.wstx.stax.WstxOutputFactory
@@ -8,7 +8,6 @@ import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.dataformat.xml.XmlFactory
 import com.fasterxml.jackson.dataformat.xml.XmlMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
-import io.vrap.rmf.raml.validation.RamlValidator
 import java.io.File
 import java.io.InputStream
 

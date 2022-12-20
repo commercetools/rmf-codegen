@@ -1,11 +1,10 @@
-package io.vrap.rmf.codegen.cli.diff;
+package com.commercetools.rmf.diff;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 public class Check {

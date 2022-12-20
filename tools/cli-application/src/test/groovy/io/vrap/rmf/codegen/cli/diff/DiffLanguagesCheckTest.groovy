@@ -1,5 +1,7 @@
 package io.vrap.rmf.codegen.cli.diff
 
+import com.commercetools.rmf.diff.CheckSeverity
+import com.commercetools.rmf.diff.MethodAddedCheck
 import io.vrap.rmf.codegen.cli.DiffSubcommand
 
 class DiffLanguagesCheckTest extends DiffCheckTest {

@@ -1,7 +1,8 @@
-package io.vrap.rmf.codegen.cli.diff
+package com.commercetools.rmf.diff
 
-import io.vrap.codegen.languages.extensions.resource
 import io.vrap.rmf.raml.model.modules.Api
+import io.vrap.rmf.raml.model.resources.Method
+import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.types.ObjectType
 import io.vrap.rmf.raml.model.types.StringType
 
@@ -145,3 +146,5 @@ class DataProvider(private val original: Api, private val changed: Api) {
         }
     }
 }
+
+fun Method.resource(): Resource = this.eContainer() as Resource

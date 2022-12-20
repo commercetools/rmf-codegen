@@ -1,5 +1,26 @@
 package io.vrap.rmf.codegen.cli.diff
 
+import com.commercetools.rmf.diff.CheckSeverity
+import com.commercetools.rmf.diff.Differ
+import com.commercetools.rmf.diff.EnumAddedCheck
+import com.commercetools.rmf.diff.EnumRemovedCheck
+import com.commercetools.rmf.diff.MethodAddedCheck
+import com.commercetools.rmf.diff.MethodBodyTypeChangedCheck
+import com.commercetools.rmf.diff.MethodRemovedCheck
+import com.commercetools.rmf.diff.MethodResponseBodyTypeChangedCheck
+import com.commercetools.rmf.diff.PropertyAddedCheck
+import com.commercetools.rmf.diff.PropertyOptionalCheck
+import com.commercetools.rmf.diff.PropertyRemovedCheck
+import com.commercetools.rmf.diff.PropertyRequiredCheck
+import com.commercetools.rmf.diff.PropertyTypeChangedCheck
+import com.commercetools.rmf.diff.QueryParameterAddedCheck
+import com.commercetools.rmf.diff.QueryParameterRemovedCheck
+import com.commercetools.rmf.diff.RamlDiff
+import com.commercetools.rmf.diff.ResourceAddedCheck
+import com.commercetools.rmf.diff.ResourceRemovedCheck
+import com.commercetools.rmf.diff.TypeAddedCheck
+import com.commercetools.rmf.diff.TypeChangedCheck
+import com.commercetools.rmf.diff.TypeRemovedCheck
 import io.vrap.rmf.raml.model.RamlModelBuilder
 import io.vrap.rmf.raml.model.modules.Api
 import spock.lang.Specification

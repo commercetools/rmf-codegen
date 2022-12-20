@@ -1,4 +1,4 @@
-package io.vrap.rmf.codegen.cli.diff
+package com.commercetools.rmf.diff
 
 import io.vrap.rmf.raml.model.modules.Api
 

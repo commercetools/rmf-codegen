@@ -1,10 +1,10 @@
 package io.vrap.rmf.codegen.cli
 
+import com.commercetools.rmf.diff.*
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.vrap.codegen.languages.extensions.getMethodName
 import io.vrap.codegen.languages.extensions.resource
 import io.vrap.codegen.languages.java.base.extensions.resourcePathList
-import io.vrap.rmf.codegen.cli.diff.*
 import io.vrap.rmf.codegen.firstUpperCase
 import io.vrap.rmf.raml.model.RamlModelBuilder
 import io.vrap.rmf.raml.model.modules.Api
@@ -152,7 +152,8 @@ open class DiffSubcommand : Callable<Int> {
         private fun replaceMessage(diff: Diff<Any>, separator: String): Diff<Any> {
             return when (diff.eObject) {
                 is Method -> if (diff.scope == Scope.METHOD && (diff.diffType == DiffType.REMOVED || diff.diffType == DiffType.ADDED)) {
-                    val message = "${diff.diffType.toString().lowercase()} ${diff.scope.toString().lowercase()} `${requestChain(diff.eObject.resource(), diff.eObject, separator, prefix)}`"
+                    val message = "${diff.diffType.toString().lowercase()} ${diff.scope.toString().lowercase()} `${requestChain(
+                        (diff.eObject as Method).resource(), diff.eObject as Method, separator, prefix)}`"
                     Diff(
                         diff.diffType,
                         diff.scope,
