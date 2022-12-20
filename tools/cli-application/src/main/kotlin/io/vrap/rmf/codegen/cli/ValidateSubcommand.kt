@@ -192,6 +192,10 @@ class ValidateSubcommand : Callable<Int> {
         return when (printer) {
             OutputFormat.CLI -> CliFormatPrinter(linkFormatter)
             OutputFormat.MARKDOWN -> MarkdownFormatPrinter(linkFormatter)
+            OutputFormat.JAVA_MARKDOWN -> MarkdownFormatPrinter(linkFormatter)
+            OutputFormat.PHP_MARKDOWN -> MarkdownFormatPrinter(linkFormatter)
+            OutputFormat.TS_MARKDOWN -> MarkdownFormatPrinter(linkFormatter)
+            OutputFormat.DOTNET_MARKDOWN -> MarkdownFormatPrinter(linkFormatter)
             OutputFormat.JSON -> TODO()
         }
     }

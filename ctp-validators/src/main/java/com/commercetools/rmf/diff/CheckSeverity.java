@@ -1,4 +1,4 @@
-package io.vrap.rmf.codegen.cli.diff;
+package com.commercetools.rmf.diff;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.jetbrains.annotations.NotNull;

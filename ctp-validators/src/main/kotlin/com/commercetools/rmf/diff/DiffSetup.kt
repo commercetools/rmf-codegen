@@ -1,4 +1,4 @@
-package io.vrap.rmf.codegen.cli.diff
+package com.commercetools.rmf.diff
 
 import com.commercetools.rmf.validators.Validator
 import com.ctc.wstx.stax.WstxInputFactory
@@ -63,7 +63,7 @@ class DiffSetup {
 
         private fun readSets(): Map<String, Map<String, Check>> {
             return ClassPath.from(ClassLoader.getSystemClassLoader()).allClasses
-                .filter { it.packageName.startsWith("io.vrap.rmf.codegen.cli.diff") }
+                .filter { it.packageName.startsWith("com.commercetools.rmf.diff") }
                 .map { classInfo -> classInfo.load() }
                 .filterNot { it.getAnnotation(DiffSet::class.java) == null && it.getAnnotation(DiffSets::class.java) == null }
                 .filter { DiffCheck::class.java.isAssignableFrom(it) }

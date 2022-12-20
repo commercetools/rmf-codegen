@@ -1,8 +1,13 @@
-package io.vrap.rmf.codegen.cli.diff
+package com.commercetools.rmf.diff
 
 import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.responses.Body
+import io.vrap.rmf.raml.model.types.AnyType
+import io.vrap.rmf.raml.model.types.BuiltinType
+import io.vrap.rmf.raml.model.types.ObjectType
+import io.vrap.rmf.raml.model.types.Property
+import io.vrap.rmf.raml.model.types.StringType
 import io.vrap.rmf.raml.model.types.*
 import io.vrap.rmf.raml.model.types.Annotation
 
@@ -79,7 +84,8 @@ class PropertyAddedCheck(override val severity: CheckSeverity): DiffCheck<Map<St
     override fun diff(data: DiffData<Map<String, ObjectType>>): List<Diff<Any>> {
         return data.changed.filter { data.original.containsKey(it.key) }.flatMap { (typeName, objectType) ->
                 objectType.allProperties.toPropertyMap().filter { data.original[typeName]!!.allProperties.toPropertyMap().containsKey(it.key).not() }.map { (propertyName,property) -> Diff(
-                    DiffType.ADDED, Scope.PROPERTY, propertyName, "added property `${propertyName}` to type `${typeName}`", property, severity, DiffData(null, property)) }
+                    DiffType.ADDED, Scope.PROPERTY, propertyName, "added property `${propertyName}` to type `${typeName}`", property, severity, DiffData(null, property)
+                ) }
         }
     }
 }
@@ -364,7 +370,8 @@ class EnumAddedCheck(override val severity: CheckSeverity): DiffCheck<Map<String
     override fun diff(data: DiffData<Map<String, StringType>>): List<Diff<Any>> {
         return data.changed.filter { data.original.containsKey(it.key) }.flatMap { (typeName, stringType) ->
             stringType.enum.toInstanceMap().filter { data.original[typeName]!!.enum.toInstanceMap().containsKey(it.key).not() }.map { (enumValue, instance) -> Diff(
-                DiffType.ADDED, Scope.ENUM, enumValue, "added enum `${enumValue}` to type `${typeName}`", instance, severity, DiffData(data.original[typeName], stringType)) }
+                DiffType.ADDED, Scope.ENUM, enumValue, "added enum `${enumValue}` to type `${typeName}`", instance, severity, DiffData(data.original[typeName], stringType)
+            ) }
         }
     }
 }
@@ -375,7 +382,8 @@ class EnumRemovedCheck(override val severity: CheckSeverity): DiffCheck<Map<Stri
     override fun diff(data: DiffData<Map<String, StringType>>): List<Diff<Any>> {
         return data.original.filter { data.changed.containsKey(it.key) }.flatMap { (typeName, stringType) ->
             stringType.enum.toInstanceMap().filter { data.changed[typeName]!!.enum.toInstanceMap().containsKey(it.key).not() }.map { (enumValue, instance) -> Diff(
-                DiffType.REMOVED, Scope.ENUM, enumValue, "removed enum `${enumValue}` from type `${typeName}`", instance, severity, DiffData(stringType, data.changed[typeName])) }
+                DiffType.REMOVED, Scope.ENUM, enumValue, "removed enum `${enumValue}` from type `${typeName}`", instance, severity, DiffData(stringType, data.changed[typeName])
+            ) }
         }
     }
 }

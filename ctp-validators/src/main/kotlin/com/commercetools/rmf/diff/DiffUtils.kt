@@ -1,6 +1,5 @@
-package io.vrap.rmf.codegen.cli.diff
+package com.commercetools.rmf.diff
 
-import io.vrap.codegen.languages.extensions.resource
 import io.vrap.rmf.nodes.antlr.NodeTokenProvider
 import io.vrap.rmf.raml.model.modules.Api
 import io.vrap.rmf.raml.model.resources.Method
