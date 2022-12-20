@@ -4,7 +4,7 @@ import com.commercetools.rmf.diff.CheckSeverity
 import com.commercetools.rmf.diff.MethodAddedCheck
 import io.vrap.rmf.codegen.cli.DiffSubcommand
 
-class DiffLanguagesCheckTest extends DiffCheckTest {
+class DiffLanguagesCheckTest extends BaseTest {
     def defaultSeverity = CheckSeverity.INFO
 
     def "added method"() {
