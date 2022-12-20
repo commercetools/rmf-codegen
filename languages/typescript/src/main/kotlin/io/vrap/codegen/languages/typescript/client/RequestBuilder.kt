@@ -1,11 +1,9 @@
 package io.vrap.codegen.languages.typescript.client
 
-import io.vrap.codegen.languages.extensions.getMethodName
-import io.vrap.codegen.languages.extensions.isPatternProperty
-import io.vrap.codegen.languages.extensions.resource
-import io.vrap.codegen.languages.extensions.returnType
+import io.vrap.codegen.languages.extensions.*
 import io.vrap.codegen.languages.typescript.*
 import io.vrap.codegen.languages.typescript.client.files_producers.ClientConstants
+import io.vrap.codegen.languages.typescript.markDeprecated
 import io.vrap.codegen.languages.typescript.model.TsObjectTypeExtensions
 import io.vrap.codegen.languages.typescript.model.simpleTSName
 import io.vrap.rmf.codegen.di.ClientPackageName
@@ -87,6 +85,7 @@ class RequestBuilder constructor(
 
     protected fun ResourceContainer.subResources(): String {
         return this.resources
+                .filterNot { it.deprecated() }
                 .map {
 
                     val args = if (it.relativeUri.variables.isNullOrEmpty()) "" else """|
@@ -122,6 +121,7 @@ class RequestBuilder constructor(
     protected fun Resource.methods(): String {
 
         return this.methods
+                .filterNot { it.deprecated() }
                 .map {
 
                     var queryParamsArg = ""
@@ -221,33 +221,38 @@ class RequestBuilder constructor(
 
     fun Resource.imports(moduleName: String): String {
         return this.resources
-                .map {
-                    it.tsRequestVrapType(client_package)
-                }.plus(
-                        this.methods
-                                .flatMap { method ->
-                                    method.bodies
-                                            .plus(
-                                                    method.queryParameters
-                                            )
-                                }
-                                .filter { it.type != null }
-                                .map { it.type.toVrapType() }
-                                .filter { it is VrapEnumType || it is VrapObjectType || (it is VrapArrayType && (it.itemType is VrapObjectType || it.itemType is VrapEnumType ) ) }
-                )
-                .plus(
-                        this.methods
-                                .map { it.returnType().toVrapType() }
-                                .filter { it is VrapObjectType || (it is VrapArrayType && it.itemType is VrapObjectType) }
+            .asSequence()
+            .filterNot { it.deprecated() }
+            .map {
+                it.tsRequestVrapType(client_package)
+            }.plus(
+                this.methods
+                    .filterNot { it.deprecated() }
+                    .flatMap { method ->
+                        method.bodies
+                            .plus(
+                                method.queryParameters
+                            )
+                    }
+                    .filter { it.type != null }
+                    .map { it.type.toVrapType() }
+                    .filter { it is VrapEnumType || it is VrapObjectType || (it is VrapArrayType && (it.itemType is VrapObjectType || it.itemType is VrapEnumType ) ) }
+            )
+            .plus(
+                this.methods
+                    .filterNot { it.deprecated() }
+                    .map { it.returnType().toVrapType() }
+                    .filter { it is VrapObjectType || (it is VrapArrayType && it.itemType is VrapObjectType) }
 
+            )
+            .plus(
+                listOf(
+                    VrapObjectType(clientConstants.commonTypesPackage, "QueryParam"),
+                    VrapObjectType(clientConstants.commonTypesPackage, "executeRequest"),
+                    VrapObjectType(clientConstants.requestUtilsPackage, "ApiRequest")
                 )
-                .plus(
-                        listOf(
-                                VrapObjectType(clientConstants.commonTypesPackage, "QueryParam"),
-                                VrapObjectType(clientConstants.commonTypesPackage, "executeRequest"),
-                                VrapObjectType(clientConstants.requestUtilsPackage, "ApiRequest")
-                        )
-                )
+            )
+            .toList()
                 .getImportsForModuleVrapTypes(moduleName)
     }
 

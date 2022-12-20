@@ -1,0 +1,31 @@
+#%RAML 1.0
+title: property mark deprecated removed
+annotationTypes:
+  deprecated: boolean
+  markDeprecated: boolean
+
+types:
+  foo:
+    type: object
+    properties:
+      foo:
+        (markDeprecated): true
+        type: string
+  bar:
+    type: object
+    properties:
+      bar:
+        (deprecated): true
+        type: string
+  baz:
+    type: object
+    properties:
+      baz:
+        (markDeprecated): true
+        type: string
+  foobar:
+    type: object
+    properties:
+      foobar:
+        (markDeprecated): true
+        type: string

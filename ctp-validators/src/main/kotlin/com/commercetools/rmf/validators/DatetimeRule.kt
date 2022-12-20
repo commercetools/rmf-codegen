@@ -4,6 +4,7 @@ import io.vrap.rmf.raml.model.types.*
 import org.eclipse.emf.common.util.Diagnostic
 import java.util.*
 
+@ValidatorSet
 class DatetimeRule(severity: RuleSeverity, options: List<RuleOption>? = null) : TypesRule(severity, options) {
 
     private val exclude: List<String> =

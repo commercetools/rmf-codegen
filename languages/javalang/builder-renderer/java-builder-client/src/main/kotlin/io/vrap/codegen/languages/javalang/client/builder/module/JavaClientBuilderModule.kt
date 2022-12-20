@@ -1,5 +1,6 @@
 package io.vrap.codegen.languages.javalang.client.builder.module
 
+import io.vrap.codegen.languages.extensions.deprecated
 import io.vrap.codegen.languages.javalang.client.builder.producers.JavaApiRootFileProducer
 import io.vrap.codegen.languages.javalang.client.builder.requests.JavaHttpRequestRenderer
 import io.vrap.codegen.languages.javalang.client.builder.requests.JavaRequestBuilderResourceRenderer
@@ -15,9 +16,9 @@ object JavaClientBuilderModule: Module {
             )),
             ResourceGenerator(setOf(
                     JavaRequestBuilderResourceRenderer(generatorModule.vrapTypeProvider())
-            ), generatorModule.allResources()),
+            ), generatorModule.allResources().filterNot { it.deprecated() }),
             MethodGenerator(setOf(
                     JavaHttpRequestRenderer(generatorModule.vrapTypeProvider())
-            ), generatorModule.allResourceMethods())
+            ), generatorModule.allResourceMethods().filterNot { it.deprecated() })
     )
 }

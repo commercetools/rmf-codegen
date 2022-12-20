@@ -1,10 +1,10 @@
 package com.commercetools.rmf.validators
 
 import io.vrap.rmf.raml.model.types.AnyType
-import io.vrap.rmf.raml.model.types.StringInstance
 import org.eclipse.emf.common.util.Diagnostic
 import java.util.*
 
+@ValidatorSet
 class DomainTypeNameRule(severity: RuleSeverity, options: List<RuleOption>? = null) : TypesRule(severity, options) {
 
     private val exclude: List<String> =

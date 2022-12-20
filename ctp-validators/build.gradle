@@ -6,4 +6,5 @@ dependencies {
     implementation jackson_core.dataformat_xml
     implementation jackson_core.kotlin
     implementation woodstox.core
+    implementation google.guava
 }

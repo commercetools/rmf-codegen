@@ -3,11 +3,11 @@ package com.commercetools.rmf.validators
 import io.vrap.rmf.raml.model.modules.Library
 import io.vrap.rmf.raml.model.types.AnyType
 import io.vrap.rmf.raml.model.types.BuiltinType
-import io.vrap.rmf.raml.model.types.ObjectType
 import io.vrap.rmf.raml.model.types.TypeTemplate
 import org.eclipse.emf.common.util.Diagnostic
 import java.util.*
 
+@ValidatorSet
 class PackageDefinedRule(severity: RuleSeverity, options: List<RuleOption>? = null) : TypesRule(severity, options) {
 
     private val exclude: List<String> =

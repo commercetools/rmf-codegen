@@ -1,6 +1,8 @@
 package io.vrap.codegen.languages.extensions
 
+import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.types.AnyType
+import io.vrap.rmf.raml.model.types.BooleanInstance
 import io.vrap.rmf.raml.model.types.IntersectionType
 import io.vrap.rmf.raml.model.types.UnionType
 
@@ -16,4 +18,9 @@ fun AnyType.getSuperTypes() : List<AnyType> {
         is UnionType -> oneOf
         else -> listOf(type)
     }
+}
+
+fun AnyType.deprecated() : Boolean {
+    val anno = this.getAnnotation("deprecated")
+    return (anno != null && (anno.value as BooleanInstance).value)
 }

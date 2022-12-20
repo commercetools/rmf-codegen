@@ -9,6 +9,7 @@ import org.eclipse.emf.common.util.Diagnostic
 import org.eclipse.emf.ecore.EObject
 import java.util.*
 
+//@RulesSet
 class NamedBodyTypeRule(severity: RuleSeverity, options: List<RuleOption>? = null) : ResourcesRule(severity, options) {
 
     private val exclude: List<String> =

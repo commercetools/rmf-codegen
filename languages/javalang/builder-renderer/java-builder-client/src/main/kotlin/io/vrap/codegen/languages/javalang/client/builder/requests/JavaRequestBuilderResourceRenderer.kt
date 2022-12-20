@@ -1,15 +1,9 @@
 package io.vrap.codegen.languages.javalang.client.builder.requests
 
 import com.google.common.net.MediaType
-import io.vrap.codegen.languages.extensions.getMethodName
-import io.vrap.codegen.languages.extensions.resource
-import io.vrap.codegen.languages.extensions.toParamName
-import io.vrap.codegen.languages.extensions.toRequestName
+import io.vrap.codegen.languages.extensions.*
 import io.vrap.codegen.languages.java.base.JavaSubTemplates
-import io.vrap.codegen.languages.java.base.extensions.JavaEObjectTypeExtensions
-import io.vrap.codegen.languages.java.base.extensions.isFile
-import io.vrap.codegen.languages.java.base.extensions.simpleName
-import io.vrap.codegen.languages.java.base.extensions.toJavaVType
+import io.vrap.codegen.languages.java.base.extensions.*
 import io.vrap.rmf.codegen.firstLowerCase
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendering.ResourceRenderer
@@ -19,7 +13,6 @@ import io.vrap.rmf.codegen.types.*
 import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.resources.ResourceContainer
-import io.vrap.rmf.raml.model.types.BooleanInstance
 import io.vrap.rmf.raml.model.types.ObjectType
 import java.util.*
 
@@ -55,6 +48,8 @@ class JavaRequestBuilderResourceRenderer constructor(override val vrapTypeProvid
             |    <${type.methods()}>
             |
             |    <${type.subResources()}>
+            |    
+            |    <${type.getAnnotation("java-mixin")?.value?.value?.let { (it as String).escapeAll()} ?: ""}>
             |}
             |
         """.trimMargin().keepIndentation()
@@ -205,16 +200,6 @@ class JavaRequestBuilderResourceRenderer constructor(override val vrapTypeProvid
             |}
         """.trimMargin()
         }.joinToString(separator = "\n")
-    }
-
-    private fun Resource.deprecated() : Boolean {
-        val anno = this.getAnnotation("deprecated")
-        return (anno != null && (anno.value as BooleanInstance).value)
-    }
-
-    private fun Resource.markDeprecated() : Boolean {
-        val anno = this.getAnnotation("markDeprecated")
-        return (anno != null && (anno.value as BooleanInstance).value)
     }
 
     private fun Method.pathArguments() : List<String> = this.resource().pathArguments()

@@ -2,11 +2,11 @@
 
 set -e
 
-CODEGEN_VERSION=${VRAP_VERSION:-"1.0.0-20221206101158"}
-CLI_HOME=~/.vrap-cli
+CODEGEN_VERSION=${VRAP_VERSION:-"1.0.0-20221219121042"}
+CLI_HOME=~/.rmf-cli
 LIB_FOLDER=$CLI_HOME/lib
 JAR_FILE_PATH=$LIB_FOLDER/codegen-cli-${CODEGEN_VERSION}.jar
-SCRIPT_PATH=$CLI_HOME/vrap.sh
+SCRIPT_PATH=$CLI_HOME/codegen.sh
 DOWNLOAD_LINK=https://repo1.maven.org/maven2/com/commercetools/rmf/cli-application/${CODEGEN_VERSION}/cli-application-${CODEGEN_VERSION}-all.jar
 COMMAND_SYM_LINK=/usr/local/bin/rmf-codegen
 
@@ -22,7 +22,7 @@ java -jar $JAR_FILE_PATH \$@
 EOL
     chmod +x $SCRIPT_PATH
     ln -f $SCRIPT_PATH $COMMAND_SYM_LINK
-    echo 'Vrap cli installed successfully'
+    echo 'RMF codegen cli installed successfully'
 }
 
 uninstallVrapCli(){

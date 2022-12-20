@@ -1,6 +1,7 @@
 
 package io.vrap.codegen.languages.php.model
 
+import io.vrap.codegen.languages.extensions.deprecated
 import io.vrap.codegen.languages.php.ClientConstants
 import io.vrap.rmf.codegen.di.RamlGeneratorModule
 import io.vrap.rmf.codegen.di.Module
@@ -37,13 +38,13 @@ object PhpModelModule: Module {
                 setOf(
                         PhpMethodRenderer(generatorModule.vrapTypeProvider(), generatorModule.clientConstants())
                 ),
-                generatorModule.allResourceMethods()
+                generatorModule.allResourceMethods().filterNot { it.deprecated() }
         ),
         ResourceGenerator(
                 setOf(
                         PhpMethodBuilderRenderer(generatorModule.provideRamlModel(), generatorModule.vrapTypeProvider(), generatorModule.clientConstants())
                 ),
-                generatorModule.allResources()
+                generatorModule.allResources().filterNot { it.deprecated() }
         ),
         TraitGenerator(setOf(
                 PhpTraitRenderer(generatorModule.vrapTypeProvider(), generatorModule.clientConstants())

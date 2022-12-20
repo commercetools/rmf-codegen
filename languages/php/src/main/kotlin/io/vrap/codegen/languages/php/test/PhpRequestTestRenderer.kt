@@ -1,5 +1,6 @@
 package io.vrap.codegen.languages.php.test
 
+import io.vrap.codegen.languages.extensions.deprecated
 import io.vrap.codegen.languages.extensions.getMethodName
 import io.vrap.codegen.languages.php.PhpSubTemplates
 import io.vrap.codegen.languages.php.extensions.*
@@ -49,7 +50,7 @@ class PhpRequestTestRenderer constructor(api: Api, vrapTypeProvider: VrapTypePro
             | */
             |class ${type.resourceBuilderName()}Test extends TestCase
             |{
-            |    ${if (type.methods.size > 0) """/**
+            |    ${if (type.methods.any { !it.deprecated() }) """/**
             |     * @dataProvider getRequests()
             |     */
             |    public function testBuilder(callable $!builderFunction, string $!method, string $!relativeUri, string $!body = null)
@@ -65,7 +66,7 @@ class PhpRequestTestRenderer constructor(api: Api, vrapTypeProvider: VrapTypePro
             |        }
             |    }""".trimMargin() else ""}
             |
-            |    ${if (type.resources.size > 0) """/**
+            |    ${if (type.resources.any { !it.deprecated() }) """/**
             |     * @dataProvider getResources()
             |     */
             |    public function testResources(callable $!builderFunction, string $!class, array $!expectedArgs)
@@ -76,7 +77,7 @@ class PhpRequestTestRenderer constructor(api: Api, vrapTypeProvider: VrapTypePro
             |        $!this->assertEquals($!expectedArgs, $!resource->getArgs());
             |    }""".trimMargin() else ""}
             |
-            |    ${if (type.methods.size > 0) """/**
+            |    ${if (type.methods.any { !it.deprecated() }) """/**
             |     * @dataProvider getRequestBuilderResponses()
             |     */
             |    public function testMapFromResponse(callable $!builderFunction, $!statusCode)
@@ -89,7 +90,7 @@ class PhpRequestTestRenderer constructor(api: Api, vrapTypeProvider: VrapTypePro
             |        $!this->assertInstanceOf(JsonObject::class, $!request->mapFromResponse($!response));
             |    }""".trimMargin() else ""}
             |
-            |    ${if (type.methods.size > 0) """/**
+            |    ${if (type.methods.any { !it.deprecated() }) """/**
             |     * @dataProvider getRequestBuilders()
             |     */
             |    public function testExecuteClientException(callable $!builderFunction)
@@ -104,7 +105,7 @@ class PhpRequestTestRenderer constructor(api: Api, vrapTypeProvider: VrapTypePro
             |        $!request->execute();
             |    }""".trimMargin() else ""}
             |
-            |    ${if (type.methods.size > 0) """/**
+            |    ${if (type.methods.any { !it.deprecated() }) """/**
             |     * @dataProvider getRequestBuilders()
             |     */
             |    public function testExecuteServerException(callable $!builderFunction)
@@ -122,28 +123,28 @@ class PhpRequestTestRenderer constructor(api: Api, vrapTypeProvider: VrapTypePro
             |    public function getRequests()
             |    {
             |        return [
-            |            <<${type.methods.flatMap { method -> method.queryParameters.map { parameterTestProvider(type, method, it) }.plus(parameterTestProvider(type, method)) }.joinToString(",\n")}>>
+            |            <<${type.methods.filterNot { it.deprecated() }.flatMap { method -> method.queryParameters.map { parameterTestProvider(type, method, it) }.plus(parameterTestProvider(type, method)) }.joinToString(",\n")}>>
             |        ];
             |    }
             |    
             |    public function getResources()
             |    {
             |        return [
-            |            <<${type.resources.map { resourceTestProvider(it) }.joinToString(",\n")}>>
+            |            <<${type.resources.filterNot { it.deprecated() }.joinToString(",\n") { resourceTestProvider(it) }}>>
             |        ];
             |    }
             |    
             |    public function getRequestBuilders()
             |    {
             |        return [
-            |            <<${type.methods.joinToString(",\n") { method -> requestTestProvider(type, method) }}>>
+            |            <<${type.methods.filterNot { it.deprecated() }.joinToString(",\n") { method -> requestTestProvider(type, method) }}>>
             |        ];
             |    }
             |
             |    public function getRequestBuilderResponses()
             |    {
             |        return [
-            |            <<${type.methods.flatMap { m -> m.responses.map { r -> requestTestProvider(type, m, r.statusCode) }.plus(requestTestProvider(type, m, "599")) }.joinToString(",\n")}>>
+            |            <<${type.methods.filterNot { it.deprecated() }.flatMap { m -> m.responses.map { r -> requestTestProvider(type, m, r.statusCode) }.plus(requestTestProvider(type, m, "599")) }.joinToString(",\n")}>>
             |        ];
             |    }
             |}

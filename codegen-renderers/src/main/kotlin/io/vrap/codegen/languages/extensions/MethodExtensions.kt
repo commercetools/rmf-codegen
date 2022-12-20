@@ -7,6 +7,7 @@ import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.responses.Response
 import io.vrap.rmf.raml.model.types.AnyType
+import io.vrap.rmf.raml.model.types.BooleanInstance
 import io.vrap.rmf.raml.model.types.NilType
 import io.vrap.rmf.raml.model.types.impl.TypesFactoryImpl
 import io.vrap.rmf.raml.model.util.StringCaseFormat
@@ -52,4 +53,12 @@ fun Method.hasPathParams() = this.resource().fullUri.variables.isNotEmpty()
 
 fun Response.isSuccessfull(): Boolean = this.statusCode.toInt() in (200..299)
 
+fun Method.markDeprecated() : Boolean {
+    val anno = this.getAnnotation("markDeprecated")
+    return (anno != null && (anno.value as BooleanInstance).value)
+}
 
+fun Method.deprecated() : Boolean {
+    val anno = this.getAnnotation("deprecated")
+    return (anno != null && (anno.value as BooleanInstance).value)
+}

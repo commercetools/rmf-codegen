@@ -19,6 +19,9 @@ public class Rule {
     @JacksonXmlProperty(localName = "severity")
     private RuleSeverity severity;
 
+    @JacksonXmlProperty(localName = "enabled")
+    private Boolean enabled = true;
+
     @JsonCreator
     public Rule() {
     }
@@ -27,6 +30,13 @@ public class Rule {
         this.name = name;
         this.options = options;
         this.severity = severity;
+    }
+
+    public Rule(String name, RuleSeverity severity, List<RuleOption> options, Boolean enabled) {
+        this.name = name;
+        this.options = options;
+        this.severity = severity;
+        this.enabled = enabled;
     }
 
     public String getName() {
@@ -51,5 +61,13 @@ public class Rule {
 
     public void setSeverity(RuleSeverity severity) {
         this.severity = severity;
+    }
+
+    public Boolean getEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(Boolean enabled) {
+        this.enabled = enabled;
     }
 }

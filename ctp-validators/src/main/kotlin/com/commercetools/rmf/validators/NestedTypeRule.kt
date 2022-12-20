@@ -3,10 +3,10 @@ package com.commercetools.rmf.validators
 import io.vrap.rmf.raml.model.types.ArrayType
 import io.vrap.rmf.raml.model.types.BuiltinType
 import io.vrap.rmf.raml.model.types.ObjectType
-import io.vrap.rmf.raml.model.types.Property
 import org.eclipse.emf.common.util.Diagnostic
 import java.util.*
 
+@ValidatorSet
 class NestedTypeRule(severity: RuleSeverity, options: List<RuleOption>? = null) : TypesRule(severity, options) {
 
     private val exclude: List<String> =

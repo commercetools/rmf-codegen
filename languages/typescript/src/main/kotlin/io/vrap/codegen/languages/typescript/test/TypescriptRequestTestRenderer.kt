@@ -1,5 +1,6 @@
 package io.vrap.codegen.languages.typescript.test
 
+import io.vrap.codegen.languages.extensions.deprecated
 import io.vrap.codegen.languages.extensions.getMethodName
 import io.vrap.codegen.languages.typescript.model.*
 import io.vrap.codegen.languages.typescript.toRequestBuilderName
@@ -38,7 +39,7 @@ class TypescriptRequestTestRenderer constructor(override val vrapTypeProvider: V
     }
 
     protected fun Resource.getTests(type:Resource): String {
-        if(type.methods.size == 0)
+        if(type.methods == null || type.methods.filterNot { it.deprecated() }.isEmpty())
             return  ""
         val groupRequests = type.toRequestBuilderName()
         val methodAndUrl = "\${rm.method} and url: \${rm.uri}"
@@ -56,12 +57,12 @@ class TypescriptRequestTestRenderer constructor(override val vrapTypeProvider: V
     }
 
     protected fun Resource.getRequestsWithMethodParameters(type:Resource): String {
-        if(type.methods.size == 0)
+        if(type.methods == null || type.methods.filterNot { it.deprecated() }.isEmpty())
             return  ""
         return """|
                     |  export function getRequestsWithMethodParameters(): RequestWithMethod[]  {
                     |  return [
-                    |           <<${type.methods.flatMap { method -> method.queryParameters.map { parameterTestProvider(type, method, it) }
+                    |           <<${type.methods.filterNot { it.deprecated() }.flatMap { method -> method.queryParameters.map { parameterTestProvider(type, method, it) }
                                                     .plus(parameterTestProvider(type, method)) }.filterNotNull().joinToString(",\n")}>>  
                     |  ]
                     |}      
@@ -69,7 +70,7 @@ class TypescriptRequestTestRenderer constructor(override val vrapTypeProvider: V
     }
 
     protected fun Resource.dummyTests(type:Resource): String {
-        if(type.methods == null ||type.methods.size == 0)
+        if(type.methods == null || type.methods.filterNot { it.deprecated() }.isEmpty())
         {
             return """|
                     |  test('test', () =\> {

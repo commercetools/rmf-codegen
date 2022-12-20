@@ -1,13 +1,12 @@
 package com.commercetools.rmf.validators
 
 import io.vrap.rmf.raml.model.elements.NamedElement
-import io.vrap.rmf.raml.model.resources.HttpMethod
 import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.types.ObjectInstance
-import io.vrap.rmf.raml.model.util.StringCaseFormat
 import org.eclipse.emf.common.util.Diagnostic
 import java.util.ArrayList
 
+@ValidatorSet
 class QueryParameterPlaceholderAnnotationRule(severity: RuleSeverity, options: List<RuleOption>? = null) : ResourcesRule(severity, options) {
 
     private val exclude: List<String> =

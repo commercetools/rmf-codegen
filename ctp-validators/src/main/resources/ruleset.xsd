@@ -19,6 +19,7 @@
       <xs:element type="optionsType" name="options" minOccurs="0"/>
     </xs:all>
     <xs:attribute type="severity" name="severity" use="optional" default="error"/>
+    <xs:attribute type="xs:boolean" name="enabled" use="optional" default="true"/>
   </xs:complexType>
   <xs:simpleType name="severity" final="restriction" >
     <xs:restriction base="xs:string">
@@ -32,9 +33,13 @@
       <xs:element type="ruleType" name="rule" maxOccurs="unbounded" minOccurs="0"/>
     </xs:sequence>
   </xs:complexType>
+  <xs:complexType name="applyType">
+    <xs:attribute type="xs:string" name="set" use="required"/>
+  </xs:complexType>
   <xs:complexType name="rulesetType">
     <xs:all>
       <xs:element type="xs:string" name="name"/>
+      <xs:element type="applyType" name="apply" minOccurs="0"/>
       <xs:element type="rulesType" name="rules"  minOccurs="0"/>
     </xs:all>
   </xs:complexType>

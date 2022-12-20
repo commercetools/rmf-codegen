@@ -68,7 +68,11 @@ enum class DiffDataType {
 data class PropertyReference(
     val objectType: String,
     val property: String
-)
+) {
+    override fun toString(): String {
+        return "$objectType::$property"
+    }
+}
 
 data class MethodBodyTypeReference(
     val fullUri: String,

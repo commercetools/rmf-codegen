@@ -1,5 +1,6 @@
 package io.vrap.codegen.languages.typescript.client
 
+import io.vrap.codegen.languages.extensions.deprecated
 import io.vrap.codegen.languages.typescript.client.files_producers.ApiRootFileProducer
 import io.vrap.codegen.languages.typescript.client.files_producers.ClientConstants
 import io.vrap.codegen.languages.typescript.client.files_producers.ClientFileProducer
@@ -15,13 +16,13 @@ object TypescriptClientModule : Module {
                     setOf(
                             RequestBuilder(generatorModule.provideClientPackageName(), generatorModule.clientConstants(), generatorModule.provideRamlModel(), generatorModule.vrapTypeProvider())
                     ),
-                    generatorModule.allResources()
+                    generatorModule.allResources().filterNot { it.deprecated() }
             ),
             FileGenerator(
                     setOf(
                             ApiRootFileProducer(generatorModule.provideClientPackageName(), generatorModule.clientConstants(), generatorModule.provideRamlModel(), generatorModule.vrapTypeProvider()),
                             ClientFileProducer(generatorModule.clientConstants()),
-                            IndexFileProducer(generatorModule.clientConstants(), generatorModule.vrapTypeProvider(), generatorModule.allAnyTypes())
+                            IndexFileProducer(generatorModule.clientConstants(), generatorModule.vrapTypeProvider(), generatorModule.allAnyTypes().filterNot { it.deprecated() })
                     )
             )
     )
