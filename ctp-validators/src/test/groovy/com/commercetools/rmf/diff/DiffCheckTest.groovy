@@ -1,40 +1,4 @@
-package io.vrap.rmf.codegen.cli.diff
-
-import com.commercetools.rmf.diff.CheckSeverity
-import com.commercetools.rmf.diff.DeprecatedAddedMethodCheck
-import com.commercetools.rmf.diff.DeprecatedAddedPropertyCheck
-import com.commercetools.rmf.diff.DeprecatedAddedResourceCheck
-import com.commercetools.rmf.diff.DeprecatedAddedTypeCheck
-import com.commercetools.rmf.diff.DeprecatedRemovedMethodCheck
-import com.commercetools.rmf.diff.DeprecatedRemovedPropertyCheck
-import com.commercetools.rmf.diff.DeprecatedRemovedResourceCheck
-import com.commercetools.rmf.diff.DeprecatedRemovedTypeCheck
-import com.commercetools.rmf.diff.Differ
-import com.commercetools.rmf.diff.EnumAddedCheck
-import com.commercetools.rmf.diff.EnumRemovedCheck
-import com.commercetools.rmf.diff.MarkDeprecatedAddedMethodCheck
-import com.commercetools.rmf.diff.MarkDeprecatedAddedPropertyCheck
-import com.commercetools.rmf.diff.MarkDeprecatedAddedTypeCheck
-import com.commercetools.rmf.diff.MarkDeprecatedRemovedMethodCheck
-import com.commercetools.rmf.diff.MarkDeprecatedRemovedPropertyCheck
-import com.commercetools.rmf.diff.MarkDeprecatedRemovedResourceCheck
-import com.commercetools.rmf.diff.MarkDeprecatedRemovedTypeCheck
-import com.commercetools.rmf.diff.MethodAddedCheck
-import com.commercetools.rmf.diff.MethodBodyTypeChangedCheck
-import com.commercetools.rmf.diff.MethodRemovedCheck
-import com.commercetools.rmf.diff.MethodResponseBodyTypeChangedCheck
-import com.commercetools.rmf.diff.PropertyAddedCheck
-import com.commercetools.rmf.diff.PropertyOptionalCheck
-import com.commercetools.rmf.diff.PropertyRemovedCheck
-import com.commercetools.rmf.diff.PropertyRequiredCheck
-import com.commercetools.rmf.diff.PropertyTypeChangedCheck
-import com.commercetools.rmf.diff.QueryParameterAddedCheck
-import com.commercetools.rmf.diff.QueryParameterRemovedCheck
-import com.commercetools.rmf.diff.ResourceAddedCheck
-import com.commercetools.rmf.diff.ResourceRemovedCheck
-import com.commercetools.rmf.diff.TypeAddedCheck
-import com.commercetools.rmf.diff.TypeChangedCheck
-import com.commercetools.rmf.diff.TypeRemovedCheck
+package com.commercetools.rmf.diff
 
 class DiffCheckTest extends BaseTest {
     def defaultSeverity = CheckSeverity.INFO

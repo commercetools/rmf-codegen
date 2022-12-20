@@ -1,7 +1,6 @@
-package io.vrap.rmf.codegen.cli.diff;
+package com.commercetools.rmf.diff;
 
-import com.commercetools.rmf.diff.Differ;
-import com.commercetools.rmf.diff.RamlDiff
+import com.commercetools.rmf.validators.ValidatorFixtures
 import io.vrap.rmf.raml.model.RamlModelBuilder
 import io.vrap.rmf.raml.model.modules.Api;
 import spock.lang.Specification;

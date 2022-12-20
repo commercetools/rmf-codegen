@@ -1,15 +1,11 @@
-package io.vrap.rmf.codegen.cli.diff
-
-import com.commercetools.rmf.diff.CheckSeverity
-import com.commercetools.rmf.diff.MethodAddedCheck
-import io.vrap.rmf.codegen.cli.DiffSubcommand
+package com.commercetools.rmf.diff
 
 class DiffLanguagesCheckTest extends BaseTest {
     def defaultSeverity = CheckSeverity.INFO
 
     def "added method"() {
         when:
-        def printer = new DiffSubcommand.JavaMarkdownFormatPrinter()
+        def printer = new JavaMarkdownFormatPrinter()
         def check = diff("/method-added", new MethodAddedCheck(defaultSeverity))
         def results = printer.print(check.diff())
         then:
@@ -24,7 +20,7 @@ class DiffLanguagesCheckTest extends BaseTest {
 
     def "added method get category java"() {
         when:
-        def printer = new DiffSubcommand.JavaMarkdownFormatPrinter()
+        def printer = new JavaMarkdownFormatPrinter()
         def check = diff("/method-added-get-category", new MethodAddedCheck(defaultSeverity))
         def results = printer.print(check.diff())
         then:
@@ -38,7 +34,7 @@ class DiffLanguagesCheckTest extends BaseTest {
 
     def "added method get category php"() {
         when:
-        def printer = new DiffSubcommand.PHPMarkdownFormatPrinter()
+        def printer = new PHPMarkdownFormatPrinter()
         def check = diff("/method-added-get-category", new MethodAddedCheck(defaultSeverity))
         def results = printer.print(check.diff())
         then:
@@ -52,7 +48,7 @@ class DiffLanguagesCheckTest extends BaseTest {
 
     def "added method get category ts"() {
         when:
-        def printer = new DiffSubcommand.TSMarkdownFormatPrinter()
+        def printer = new TSMarkdownFormatPrinter()
         def check = diff("/method-added-get-category", new MethodAddedCheck(defaultSeverity))
         def results = printer.print(check.diff())
         then:
@@ -66,7 +62,7 @@ class DiffLanguagesCheckTest extends BaseTest {
 
     def "added method get category dotnet"() {
         when:
-        def printer = new DiffSubcommand.DotNetMarkdownFormatPrinter()
+        def printer = new DotNetMarkdownFormatPrinter()
         def check = diff("/method-added-get-category", new MethodAddedCheck(defaultSeverity))
         def results = printer.print(check.diff())
         then:
