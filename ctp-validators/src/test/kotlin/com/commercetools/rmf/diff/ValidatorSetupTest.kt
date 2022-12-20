@@ -1,6 +1,6 @@
-package io.vrap.rmf.codegen.cli.diff
+package com.commercetools.rmf.diff
 
-import com.commercetools.rmf.diff.DiffSetup
+import com.commercetools.rmf.validators.ValidatorFixtures
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test
 
