@@ -73,7 +73,6 @@ class ClientFileProducer(
                 |
                 |// NewClient creates a new client based on the provided ClientConfig
                 |func NewClient(cfg *ClientConfig) (*Client, error) {
-                |
                 |    userAgent := cfg.UserAgent
                 |    if userAgent == "" {
                 |        userAgent = GetUserAgent()
