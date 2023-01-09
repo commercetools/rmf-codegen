@@ -375,11 +375,10 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
         return this.allProperties
             .filter { it.getAnnotation("deprecated") == null }
             .filter { it.name != this.discriminator() }
+            .filterNot { it.isPatternProperty() }
             .filter { it.required }
             .map {
-                if(it.isPatternProperty()) {
-                    "Objects.requireNonNull(values, ${vrapType.simpleClassName}.class + \": values are missing\");"
-                } else if(it.name.equals("interface")) {
+                if(it.name.equals("interface")) {
                     "Objects.requireNonNull(_interface, ${vrapType.simpleClassName}.class + \": interface is missing\");"
                 } else {
                     "Objects.requireNonNull(${it.name}, ${vrapType.simpleClassName}.class + \": ${it.name} is missing\");"

@@ -14,6 +14,10 @@ import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapScalarType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.modules.Api
+import io.vrap.rmf.raml.model.resources.Method
+import io.vrap.rmf.raml.model.resources.Trait
+import io.vrap.rmf.raml.model.responses.Body
+import io.vrap.rmf.raml.model.responses.Response
 import io.vrap.rmf.raml.model.security.OAuth20Settings
 import io.vrap.rmf.raml.model.security.SecurityScheme
 import io.vrap.rmf.raml.model.security.SecuritySchemeType
@@ -55,6 +59,10 @@ class OasRenderer constructor(val api: Api, override val vrapTypeProvider: VrapT
             """ else ""}
             |  schemas:
             |    <<${api.allAnyTypes().joinToString("\n") { renderType(it) }}>>
+            |${if (api.traits.any { it.responses.isNotEmpty()} ) """
+            |  responses:
+            |    <<${api.traits.flatMap { it.responses.map { response ->  renderTraitResponse(it, response) }}.joinToString("\n")}>>
+            """ else ""}
         """.trimMargin().keepAngleIndent()
 
         return TemplateFile(relativePath = "openapi.yaml",
@@ -75,6 +83,31 @@ class OasRenderer constructor(val api: Api, override val vrapTypeProvider: VrapT
                     is StringType -> scalarTypeRenderer.render(type).content
                     else -> "{}"
                 }}>>
+        """.trimMargin().keepAngleIndent()
+    }
+
+    private fun renderTraitResponse(it: Trait, response: Response): String {
+        return """
+            |${it.name}_${response.statusCode}:
+            |  <<${renderResponse(response)}>>
+            """.trimMargin().keepAngleIndent()
+    }
+
+    private fun renderResponse(response: Response): String {
+        return """
+            |description: |-
+            |  <<${response.description?.value?.trim() ?: response.statusCode}>>
+            |content:${if (response.bodies.size > 0) """
+            |  <<${response.bodies.joinToString("\n") { renderBody(it) } }>>""" else " {}"}
+        """.trimMargin().keepAngleIndent()
+    }
+
+    private fun renderBody(body: Body): String {
+        return """
+            |${body.contentType}:${if (body.type != null) """
+            |  schema:
+            |    ${"$"}ref: '#/components/schemas/${body.type.name}'
+            """ else ""}
         """.trimMargin().keepAngleIndent()
     }
 

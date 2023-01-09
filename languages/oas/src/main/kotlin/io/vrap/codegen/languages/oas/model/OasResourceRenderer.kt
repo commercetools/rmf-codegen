@@ -94,6 +94,13 @@ class OasResourceRenderer constructor(val api: Api, val vrapTypeProvider: VrapTy
     }
 
     private fun renderResponse(response: Response, method: Method): String {
+        if (method.`is`.any { it.trait.responses.any { it.statusCode == response.statusCode && it.description?.value?.isNotBlank() == true } }) {
+            val t = method.`is`.filter { it.trait.responses.isNotEmpty() }.flatMap { it.trait.responses.map { response -> response.statusCode to "${it.trait.name}_${response.statusCode}"  } }
+            return """
+                |\"${response.statusCode}\":
+                |  ${"$"}ref: '#components/responses/${t.first { (statusCode, _) -> statusCode == response.statusCode }.second}'
+            """.trimMargin()
+        }
         return """
             |\"${response.statusCode}\":
             |  description: |-
