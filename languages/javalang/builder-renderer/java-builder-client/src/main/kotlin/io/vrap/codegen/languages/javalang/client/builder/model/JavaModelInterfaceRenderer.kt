@@ -34,7 +34,15 @@ class JavaModelInterfaceRenderer constructor(override val vrapTypeProvider: Vrap
                         }
                         else -> null
                     }
-                ).filterNotNull()
+                )
+                .plus(
+                    if (type.name.endsWith("Draft")) {
+                        "io.vrap.rmf.base.client.Draft<${vrapType.simpleClassName}>"
+                    } else {
+                        null
+                    }
+                )
+            .filterNotNull()
 
         val content= """
             |package ${vrapType.`package`};
@@ -46,6 +54,7 @@ class JavaModelInterfaceRenderer constructor(override val vrapTypeProvider: Vrap
             |import com.fasterxml.jackson.databind.annotation.*;
             |import io.vrap.rmf.base.client.utils.Generated;
             |import io.vrap.rmf.base.client.Accessor;
+            |import io.vrap.rmf.base.client.Draft;
             |import javax.validation.Valid;
             |import javax.validation.constraints.NotNull;
             |import java.util.*;
