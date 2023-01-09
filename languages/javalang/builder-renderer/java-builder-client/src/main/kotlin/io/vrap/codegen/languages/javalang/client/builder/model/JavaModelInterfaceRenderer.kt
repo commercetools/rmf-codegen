@@ -36,7 +36,7 @@ class JavaModelInterfaceRenderer constructor(override val vrapTypeProvider: Vrap
                     }
                 )
                 .plus(
-                    if (type.name.endsWith("Draft")) {
+                    if (type.name.endsWith("Draft") && !type.hasSubtypes()) {
                         "io.vrap.rmf.base.client.Draft<${vrapType.simpleClassName}>".escapeAll()
                     } else {
                         null
