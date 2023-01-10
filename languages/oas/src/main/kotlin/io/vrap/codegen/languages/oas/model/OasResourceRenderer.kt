@@ -98,7 +98,7 @@ class OasResourceRenderer constructor(val api: Api, val vrapTypeProvider: VrapTy
             val t = method.`is`.filter { it.trait.responses.isNotEmpty() }.flatMap { it.trait.responses.map { response -> response.statusCode to "${it.trait.name}_${response.statusCode}"  } }
             return """
                 |\"${response.statusCode}\":
-                |  ${"$"}ref: '#components/responses/${t.first { (statusCode, _) -> statusCode == response.statusCode }.second}'
+                |  ${"$"}ref: '#/components/responses/${t.first { (statusCode, _) -> statusCode == response.statusCode }.second}'
             """.trimMargin()
         }
         return """
