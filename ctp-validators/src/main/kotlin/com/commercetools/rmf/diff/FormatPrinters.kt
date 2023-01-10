@@ -59,22 +59,34 @@ class JsonFormatPrinter: FormatPrinter {
 
 sealed class LanguageMarkdownFormatPrinter(val separator: String = ".", val prefix: String = "apiRoot"): FormatPrinter {
     private fun replaceMessage(diff: Diff<Any>, separator: String): Diff<Any> {
+        if (diff.diffType == DiffType.DEPRECATED) {
+            return Diff(
+                diff.diffType,
+                diff.scope,
+                diff.value,
+                diff.message.replace("deprecated", "removed"),
+                diff.eObject,
+                diff.severity,
+                diff.diffEObject,
+                diff.source
+            )
+        }
         return when (diff.eObject) {
             is Method -> if (diff.scope == Scope.METHOD && (diff.diffType == DiffType.REMOVED || diff.diffType == DiffType.ADDED)) {
-                val message = "${diff.diffType.toString().lowercase()} ${diff.scope.toString().lowercase()} `${requestChain(
-                    (diff.eObject as Method).resource(), diff.eObject as Method, separator, prefix)}`"
-                Diff(
-                    diff.diffType,
-                    diff.scope,
-                    diff.value,
-                    message,
-                    diff.eObject,
-                    diff.severity,
-                    diff.diffEObject,
-                    diff.source
-                )
-            } else
-                diff
+                    val message = "${diff.diffType.toString().lowercase()} ${diff.scope.toString().lowercase()} `${requestChain(
+                        (diff.eObject as Method).resource(), diff.eObject as Method, separator, prefix)}`"
+                    Diff(
+                        diff.diffType,
+                        diff.scope,
+                        diff.value,
+                        message,
+                        diff.eObject,
+                        diff.severity,
+                        diff.diffEObject,
+                        diff.source
+                    )
+                } else
+                    diff
             else -> diff
         }
     }
