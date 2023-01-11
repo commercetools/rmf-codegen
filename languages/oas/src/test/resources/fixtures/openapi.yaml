@@ -184,6 +184,8 @@ components:
   schemas:
     IntrospectResponse:
       type: "object"
+      required:
+        - active
       properties:
         active:
           type: "boolean"
@@ -194,6 +196,11 @@ components:
           format: "int64"
     TokenResponse:
       type: "object"
+      required:
+        - access_token
+        - expires_in
+        - scope
+        - token_type
       properties:
         access_token:
           type: "string"
@@ -208,6 +215,8 @@ components:
       allOf:
         - $ref: '#/components/schemas/TokenResponse'
         - type: "object"
+          required:
+            - refresh_token
           properties:
             access_token:
               type: "string"
