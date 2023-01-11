@@ -43,9 +43,7 @@ class RamlObjectTypeRenderer constructor(override val vrapTypeProvider: VrapType
             |examples:
             |  <<${examples.joinToString("\n") { renderExample(vrapType, it) }}>>""" else ""}${if (type.description?.value != null) """
             |description: |-
-            |  <<${type.description.value.trim()}>>""" else ""}${if (type.properties.any { it.required }) """
-            |required:
-            |  <<${type.properties.filter { it.required }.joinToString("\n") { "- ${it.name}" }}>>""" else ""}
+            |  <<${type.description.value.trim()}>>""" else ""}
             |properties:
             |  <<${properties.joinToString("\n") { renderProperty(type, it) }}>>
             """.trimMargin().keepAngleIndent()

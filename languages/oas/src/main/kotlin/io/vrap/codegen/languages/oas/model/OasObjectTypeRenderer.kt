@@ -38,7 +38,9 @@ class OasObjectTypeRenderer constructor(override val vrapTypeProvider: VrapTypeP
             |discriminator:
             |  propertyName: ${type.discriminator}
             |  mapping:
-            |    <<${discriminatorTypes.joinToString("\n") { "${it.discriminatorValue}: '#/components/schemas/${it.name}'" }}>>""" else ""}${if (properties.isEmpty().not()) """
+            |    <<${discriminatorTypes.joinToString("\n") { "${it.discriminatorValue}: '#/components/schemas/${it.name}'" }}>>""" else ""}${if (type.properties.any { it.required }) """
+            |required:
+            |  <<${type.properties.filter { it.required }.joinToString("\n") { "- ${it.name}" }}>>""" else ""}${if (properties.isEmpty().not()) """
             |properties:
             |  <<${properties.joinToString("\n") { renderProperty(type, it) }}>>""" else ""}${if (patternProperties.size > 1) """
             |additionalProperties:
