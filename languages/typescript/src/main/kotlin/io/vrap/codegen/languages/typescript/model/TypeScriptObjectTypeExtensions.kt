@@ -1,6 +1,7 @@
 package io.vrap.codegen.languages.typescript.model
 
 import io.vrap.codegen.languages.extensions.ExtensionsBase
+import io.vrap.codegen.languages.extensions.namedSubTypes
 import io.vrap.rmf.codegen.types.*
 import io.vrap.rmf.raml.model.types.AnyType
 import io.vrap.rmf.raml.model.types.ObjectType
@@ -12,11 +13,11 @@ import java.util.*
 interface TsObjectTypeExtensions : ExtensionsBase {
 
     fun List<AnyType>.getImportsForModule(moduleName: String): String {
-        return this
-                .filter { it is ObjectType }
-                .map { it as ObjectType }
+        val objectTypes = this
+            .filterIsInstance<ObjectType>()
+        return objectTypes
                 .flatMap { it.getDependencies() }
-                .getImportsForModuleVrapTypes(moduleName)
+                .getImportsForModuleVrapTypes(moduleName, objectTypes.flatMap { it.getDependentTypes() }.filterIsInstance<ObjectType>().filter { it.discriminator == null && it.namedSubTypes().isNotEmpty() }.map { it.name })
     }
 
     fun AnyType.moduleName(): String {
@@ -29,7 +30,7 @@ interface TsObjectTypeExtensions : ExtensionsBase {
         }
     }
 
-    fun List<VrapType>.getImportsForModuleVrapTypes(moduleName: String): String {
+    fun List<VrapType>.getImportsForModuleVrapTypes(moduleName: String, dependentSubTypes: List<String>): String {
         return this
                 .map { it.flattenVrapType() }
                 .distinct()
@@ -49,27 +50,27 @@ interface TsObjectTypeExtensions : ExtensionsBase {
                 }
                 .toSortedMap()
                 .map {
-                    val allImportedClasses = it.value.map { it.simpleTSName() }.sorted().joinToString(", ")
+                    val allImportedClasses = it.value.map { it.simpleTSName() }.plus(it.value.filter {dependentSubTypes.contains(it.simpleTSName()) }.map { "_${it.simpleTSName()}" }).sorted().joinToString(", ")
                     "import { $allImportedClasses } from '${it.key}'"
                 }
                 .joinToString(separator = "\n")
     }
 
+    private fun ObjectType.getDependentTypes(): List<AnyType> {
+        return this.allProperties
+            .map { it.type }
+            .plus(subTypes.plus(subTypes.flatMap { it.subTypes }).distinctBy { it.name })
+            .plus(type)
+            .flatMap { if (it is UnionType) it.oneOf else Collections.singletonList(it) }
+            .filterNotNull()
+    }
+
     private fun ObjectType.getDependencies(): List<VrapType> {
-        var dependentTypes = this.allProperties
-                .map { it.type }
-                .plus(subTypes.plus(subTypes.flatMap { it.subTypes }).distinctBy { it.name })
-                .plus(type)
-                .flatMap { if (it is UnionType) it.oneOf else Collections.singletonList(it) }
-                .filterNotNull()
-
-        val result = dependentTypes
-                .map { it.toVrapType() }
-                .map { it.flattenVrapType() }
-                .filterNotNull()
-                .filter { it !is VrapScalarType }
-
-        return result
+        return getDependentTypes()
+            .map { it.toVrapType() }
+            .map { it.flattenVrapType() }
+            .filterNotNull()
+            .filter { it !is VrapScalarType }
     }
 
     fun EObject?.toVrapType(): VrapType {

@@ -253,7 +253,7 @@ class RequestBuilder constructor(
                 )
             )
             .toList()
-                .getImportsForModuleVrapTypes(moduleName)
+                .getImportsForModuleVrapTypes(moduleName, emptyList())
     }
 
 

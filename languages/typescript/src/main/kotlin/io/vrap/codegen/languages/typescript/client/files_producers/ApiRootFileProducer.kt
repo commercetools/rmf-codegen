@@ -107,7 +107,7 @@ class ApiRootFileProducer constructor(
                                 VrapObjectType(clientConstants.requestUtilsPackage,"ApiRequest")
                         )
                 )
-                .getImportsForModuleVrapTypes(moduleName)
+                .getImportsForModuleVrapTypes(moduleName, emptyList())
     }
 
 }

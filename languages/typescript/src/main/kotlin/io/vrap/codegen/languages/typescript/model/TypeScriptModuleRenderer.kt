@@ -1,8 +1,6 @@
 package io.vrap.codegen.languages.typescript.model
 
-import io.vrap.codegen.languages.extensions.getSuperTypes
-import io.vrap.codegen.languages.extensions.isPatternProperty
-import io.vrap.codegen.languages.extensions.sortedByTopology
+import io.vrap.codegen.languages.extensions.*
 import io.vrap.codegen.languages.typescript.deprecated
 import io.vrap.codegen.languages.typescript.tsGeneratedComment
 import io.vrap.codegen.languages.typescript.toTsComment
@@ -71,13 +69,24 @@ class TypeScriptModuleRenderer constructor(override val vrapTypeProvider: VrapTy
                 """.trimMargin()
             }
         } else {
-            """
-                |<${this.toTsComment().escapeAll()}>
-                |export interface ${name} ${renderExtendsExpr()}{
-                |  <${renderPatternSpec()}>
-                |  <${renderPropertyDecls(false)}>
-                |}
-            """.trimMargin()
+            if (this.namedSubTypes().isNotEmpty()) {
+                """
+                    |<${this.toTsComment().escapeAll()}>
+                    |export interface ${name} ${renderExtendsExpr()} {
+                    |  <${renderPatternSpec()}>
+                    |  <${renderPropertyDecls(false)}>
+                    |}
+                    |export type _${name} = ${name} | ${this.namedSubTypes().joinToString(" | ") { it.name }}
+                """.trimMargin()
+            } else {
+                """
+                    |<${this.toTsComment().escapeAll()}>
+                    |export interface ${name} ${renderExtendsExpr()} {
+                    |  <${renderPatternSpec()}>
+                    |  <${renderPropertyDecls(false)}>
+                    |}
+                """.trimMargin()
+            }
         }
     }
 
@@ -108,7 +117,7 @@ class TypeScriptModuleRenderer constructor(override val vrapTypeProvider: VrapTy
                 val optional = if (it.required) "" else "?"
                 """
                     |<${comment}>
-                    |readonly ${it.name}${optional}: ${it.type.renderTypeExpr()}
+                    |readonly ${it.name}${optional}: ${it.type.renderTypeExpr(useSubTypes = true)}
                     """.trimMargin()
             }
             .joinToString(";\n")
@@ -127,11 +136,18 @@ class TypeScriptModuleRenderer constructor(override val vrapTypeProvider: VrapTy
      *
      * @param the typescript expression
      */
-    fun AnyType.renderTypeExpr(): String {
+    fun AnyType.renderTypeExpr(useSubTypes: Boolean = false): String {
         return when (this) {
             is UnionType -> oneOf.map { it.renderTypeExpr() }.joinToString(" | ")
             is IntersectionType -> allOf.map { it.renderTypeExpr() }.joinToString(" & ")
             is NilType -> "null"
+            is ObjectType -> {
+                if (useSubTypes && this.discriminator == null && this.namedSubTypes().isNotEmpty()) {
+                    "_${toVrapType().simpleTSName()}"
+                } else {
+                    toVrapType().simpleTSName()
+                }
+            }
             else -> toVrapType().simpleTSName()
         }
     }
