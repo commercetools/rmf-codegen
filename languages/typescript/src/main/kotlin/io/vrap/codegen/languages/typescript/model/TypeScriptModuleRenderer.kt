@@ -142,7 +142,8 @@ class TypeScriptModuleRenderer constructor(override val vrapTypeProvider: VrapTy
             is IntersectionType -> allOf.map { it.renderTypeExpr() }.joinToString(" & ")
             is NilType -> "null"
             is ObjectType -> {
-                if (useSubTypes && this.discriminator == null && this.namedSubTypes().isNotEmpty()) {
+                val type = (if (this.type != null && this.isInlineType) this.type else this) as ObjectType
+                if (useSubTypes && type.discriminator == null && type.namedSubTypes().isNotEmpty()) {
                     "_${toVrapType().simpleTSName()}"
                 } else {
                     toVrapType().simpleTSName()

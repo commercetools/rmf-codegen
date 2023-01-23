@@ -17,7 +17,7 @@ interface TsObjectTypeExtensions : ExtensionsBase {
             .filterIsInstance<ObjectType>()
         return objectTypes
                 .flatMap { it.getDependencies() }
-                .getImportsForModuleVrapTypes(moduleName, objectTypes.flatMap { it.getDependentTypes() }.filterIsInstance<ObjectType>().filter { it.discriminator == null && it.namedSubTypes().isNotEmpty() }.map { it.name })
+                .getImportsForModuleVrapTypes(moduleName, objectTypes.flatMap { it.getDependentTypes() }.map { if (it.type != null && it.isInlineType) it.type else it }.filterIsInstance<ObjectType>().filter { it.discriminator == null && it.namedSubTypes().isNotEmpty() }.map { it.name })
     }
 
     fun AnyType.moduleName(): String {
