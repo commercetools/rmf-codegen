@@ -14,6 +14,7 @@ import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.resources.ResourceContainer
 import io.vrap.rmf.raml.model.types.ObjectType
+import io.vrap.rmf.raml.model.types.StringInstance
 import java.util.*
 
 class JavaRequestBuilderResourceRenderer constructor(override val vrapTypeProvider: VrapTypeProvider) : ResourceRenderer, JavaEObjectTypeExtensions {
@@ -23,6 +24,16 @@ class JavaRequestBuilderResourceRenderer constructor(override val vrapTypeProvid
         val resourceName : String = type.toResourceName()
         val className : String = "${resourceName}RequestBuilder"
 
+        val implements = arrayListOf<String>()
+            .plus(
+                when (val ex = type.getAnnotation("java-implements") ) {
+                    is Annotation -> {
+                        (ex.value as StringInstance).value.escapeAll()
+                    }
+                    else -> null
+                }
+            )
+            .filterNotNull()
 
         val content : String = """
             |package ${vrapType.`package`};
@@ -39,7 +50,7 @@ class JavaRequestBuilderResourceRenderer constructor(override val vrapTypeProvid
             |
             |<${JavaSubTemplates.generatedAnnotation}>${if (type.markDeprecated()) """
             |@Deprecated""" else ""}
-            |public class $className {
+            |public class $className ${if (implements.isNotEmpty()) "implements ${implements.joinToString(", ")}" else ""} {
             |
             |    <${type.fields()}>
             |
