@@ -320,7 +320,7 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
                 .map { it.replace("{", "").replace("}", "") }
                 .map { "this.$it" }
                 .joinToString(separator = ", ")
-
+        stringFormat = stringFormat.trimStart('/')
         val bodyName : String? = if(this.bodies != null && this.bodies.isNotEmpty()){
             if(this.bodies[0].type.toVrapType() is VrapObjectType) {
                 val methodBodyVrapType = this.bodies[0].type.toVrapType() as VrapObjectType

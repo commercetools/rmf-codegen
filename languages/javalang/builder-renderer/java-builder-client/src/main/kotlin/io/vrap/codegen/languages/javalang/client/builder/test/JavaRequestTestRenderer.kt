@@ -114,7 +114,7 @@ class JavaRequestTestRenderer constructor(override val vrapTypeProvider: VrapTyp
             |    apiRoot
             |    <<${builderChain.joinToString("\n.", ".")}>>,
             |    "${method.method}",
-            |    "/${resource.fullUri.expand(resource.fullUriParameters.map { it.name to "test_${it.name}" }.toMap()).trimStart('/')}",
+            |    "${resource.fullUri.expand(resource.fullUriParameters.map { it.name to "test_${it.name}" }.toMap()).trimStart('/')}",
             |}
         """.trimMargin().keepAngleIndent()
     }
@@ -143,7 +143,7 @@ class JavaRequestTestRenderer constructor(override val vrapTypeProvider: VrapTyp
                 |    apiRoot
                 |    <<${builderChain.joinToString("\n.", ".")}>>,
                 |    "${method.method}",
-                |    "/${resource.fullUri.expand(resource.fullUriParameters.map { it.name to "test_${it.name}" }.toMap()).trimStart('/')}?${paramName}=${queryParamValueString(paramName, parameter.type, Random(paramName.hashCode()))}",
+                |    "${resource.fullUri.expand(resource.fullUriParameters.map { it.name to "test_${it.name}" }.toMap()).trimStart('/')}?${paramName}=${queryParamValueString(paramName, parameter.type, Random(paramName.hashCode()))}",
                 |}
             """.trimMargin().keepAngleIndent()
     }
