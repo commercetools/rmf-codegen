@@ -1,6 +1,7 @@
 package io.vrap.codegen.languages.ramldoc.model
 
 import io.vrap.codegen.languages.extensions.EObjectExtensions
+import io.vrap.codegen.languages.extensions.deprecated
 import io.vrap.codegen.languages.ramldoc.extensions.*
 import io.vrap.rmf.codegen.di.AllAnyTypes
 import io.vrap.rmf.codegen.di.ModelPackageName
@@ -67,7 +68,7 @@ class ApiRamlRenderer constructor(val api: Api, override val vrapTypeProvider: V
             |  <<${oAuth20Settings.joinToString("\n") { "- ${it.name}" }}>>
             """ else ""}
             |types:
-            |  <<${anyTypeList.filterNot { it is UnionType }.sortedWith(compareBy { it.name }).joinToString("\n") { "${it.name}: !include ${ramlFileName(it)}" }}>>
+            |  <<${anyTypeList.filterNot{ it.deprecated() }.filterNot { it is UnionType }.sortedWith(compareBy { it.name }).joinToString("\n") { "${it.name}: !include ${ramlFileName(it)}" }}>>
             |  
             |${api.allContainedResources.sortedWith(compareBy { it.resourcePath }).joinToString("\n") { "${it.fullUri.normalize().template }: !include resources/${it.toResourceName()}.raml" }}
         """.trimMargin().keepAngleIndent()

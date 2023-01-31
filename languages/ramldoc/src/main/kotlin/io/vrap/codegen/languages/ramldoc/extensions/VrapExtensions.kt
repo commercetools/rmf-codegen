@@ -139,7 +139,7 @@ fun Example.renderSimpleExample(): String {
     return t
 }
 
-fun Example.renderExample(exampleName: String): String {
+fun Example.renderExample(exampleName: String, inlineExample: Boolean = false): String {
     return """
             |${if (this.name.isNotEmpty()) this.name else "default"}:${if (this.displayName != null) """
             |  displayName: ${this.displayName.value.trim()}""" else ""}${if (this.description != null) """
@@ -147,8 +147,9 @@ fun Example.renderExample(exampleName: String): String {
             |    <<${this.description.value.trim()}>>""" else ""}${if (this.annotations.isNotEmpty()) """
             |  <<${this.annotations.joinToString("\n") { it.renderAnnotation() }}>>""" else ""}
             |  strict: ${this.strict.value}
-            |  value: !include ../examples/$exampleName.json
-        """.trimMargin()
+            |  value:${if (!inlineExample) " !include ../examples/$exampleName.json" else if (this.value is ObjectInstance) """|
+            |    <<${this.value.toJson().escapeAll()}>>""".trimMargin().keepAngleIndent().escapeAll() else " " + this.value.toJson().escapeAll() }
+        """.trimMargin().keepAngleIndent().escapeAll()
 }
 
 fun AnyType.renderType(withDescription: Boolean = true): String {

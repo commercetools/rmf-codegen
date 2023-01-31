@@ -99,6 +99,9 @@ class GenerateSubcommand : Callable<Int> {
     @CommandLine.Option(names = ["-w", "--watch"], description = ["Watches the files for changes"], required = false)
     var watch: Boolean = false
 
+    @CommandLine.Option(names = ["--inline-examples"], description = ["Inline the Examples to the generated RAML files"], required = false)
+    var inlineExamples: Boolean = false
+
     @CommandLine.Option(names = ["-v", "--verbose"], description = ["If set, this would move the verbosity level to debug."], required = false)
     var verbose: Boolean = false
 
@@ -147,7 +150,8 @@ class GenerateSubcommand : Callable<Int> {
                 clientPackage = clientPackageName,
                 outputFolder = outputFolder,
                 writeGitHash = writeGitHash,
-                customTypeMapping = customTypeMapping
+                customTypeMapping = customTypeMapping,
+                inlineExamples = inlineExamples
         )
 
         val res = safeRun { generate(ramlFileLocation, target, generatorConfig) }
@@ -246,7 +250,8 @@ class GenerateSubcommand : Callable<Int> {
                             modelPackage = generatorConfig.modelPackage,
                             clientPackage = generatorConfig.clientPackage,
                             outputFolder = generatorConfig.outputFolder,
-                            writeGitHash = generatorConfig.writeGitHash
+                            writeGitHash = generatorConfig.writeGitHash,
+                            inlineExamples = generatorConfig.inlineExamples
                         )
                         val generatorModule = RamlGeneratorModule(apiProvider, ramlConfig, RamldocBaseTypes)
                         RamlGeneratorComponent(generatorModule, RamldocModelModule)

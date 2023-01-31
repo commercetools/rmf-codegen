@@ -48,7 +48,8 @@ class TestCodeGenerator {
     fun testCurlExample() {
         val generatorConfig = CodeGeneratorConfig(
             basePackageName = "com/commercetools/importer",
-            outputFolder = Paths.get("build/gensrc")
+            outputFolder = Paths.get("build/gensrc"),
+            inlineExamples = true
         )
 
         val apiProvider = RamlApiProvider(Paths.get("src/test/resources/curlexample.raml"))
@@ -58,7 +59,7 @@ class TestCodeGenerator {
         val generatorComponent = RamlGeneratorComponent(generatorModule, RamldocModelModule)
         generatorComponent.generateFiles()
 
-        Assertions.assertThat(dataSink.files).hasSize(6)
+        Assertions.assertThat(dataSink.files).hasSize(9)
         Assertions.assertThat(dataSink.files.get("resources/Test.raml")?.trim()).isEqualTo("""
             # Resource
             (resourceName): Test
@@ -69,8 +70,15 @@ class TestCodeGenerator {
                 200:
                   body:
                     application/json:
-                      type: Test
+                      type: Foo
                       (builtinType): object
+                      examples:
+                        default:
+                          strict: true
+                          value:
+                            {
+                              "predicate" : "lineItem = \"SKU\""
+                            }
             
               (codeExamples):
                 curl: |-
@@ -88,7 +96,10 @@ class TestCodeGenerator {
                   examples:
                     default:
                       strict: true
-                      value: !include ../examples/TestPost-default.json
+                      value:
+                        {
+                          "foo" : "bar"
+                        }
             
               responses:
                 200:
@@ -115,7 +126,10 @@ class TestCodeGenerator {
                   examples:
                     default:
                       strict: true
-                      value: !include ../examples/TestPut-default.json
+                      value:
+                        {
+                          "foo" : "bar"
+                        }
             
               responses:
                 200:
@@ -157,6 +171,27 @@ class TestCodeGenerator {
                   curl --get http://com.foo.bar/api/foo -i \
                   --header 'FOO: ${'$'}{FOO}'
               """.trimIndent().trim())
+        Assertions.assertThat(dataSink.files.get("types/Foo.raml")?.trim()).isEqualTo("""
+            #%RAML 1.0 DataType
+            displayName: Foo
+            type: object
+            (builtinType): object
+            examples:
+              default:
+                strict: true
+                value:
+                  {
+                    "predicate" : "lineItem = \"SKU\""
+                  }
+            properties:
+            """.trimIndent().trim())
+        Assertions.assertThat(dataSink.files.get("types/Test.raml")?.trim()).isEqualTo("""
+            #%RAML 1.0 DataType
+            displayName: Test
+            type: object
+            (builtinType): object
+            properties:
+            """.trimIndent().trim())
     }
 
     @Test

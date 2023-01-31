@@ -12,10 +12,10 @@ import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.raml.model.types.*
 
 
-class OasComposedTypeRenderer constructor(override val api: OpenAPI, override val modelPackageName: String) : OasTypeRenderer<ComposedSchema>(api, modelPackageName)
-class OasObjectTypeRenderer constructor(override val api: OpenAPI, override val modelPackageName: String) : OasTypeRenderer<ObjectSchema>(api, modelPackageName)
+class OasComposedTypeRenderer constructor(override val api: OpenAPI, override val modelPackageName: String, override val inlineExamples: Boolean = false) : OasTypeRenderer<ComposedSchema>(api, modelPackageName)
+class OasObjectTypeRenderer constructor(override val api: OpenAPI, override val modelPackageName: String, override val inlineExamples: Boolean = false) : OasTypeRenderer<ObjectSchema>(api, modelPackageName)
 
-sealed class OasTypeRenderer<T: Schema<Any>> constructor(open val api: OpenAPI, open val modelPackageName: String) : Renderer<Map.Entry<String, T>> {
+sealed class OasTypeRenderer<T: Schema<Any>> constructor(open val api: OpenAPI, open val modelPackageName: String, open val inlineExamples: Boolean = false) : Renderer<Map.Entry<String, T>> {
     override fun render(type: Map.Entry<String, T>): TemplateFile {
         val typeName = type.key
         val typeVal = type.value
@@ -247,7 +247,7 @@ sealed class OasTypeRenderer<T: Schema<Any>> constructor(open val api: OpenAPI, 
             |  enum:
             |  <<${property.type.enum.joinToString("\n") { "- ${it.value}" }}>>""" else ""}${if (examples.isNotEmpty()) """
             |  examples:
-            |    <<${examples.joinToString("\n") { renderExample(it) }}>>""" else ""}${if (property.type.default != null) """
+            |    <<${examples.joinToString("\n") { renderExample(it) }}>>""" else ""}${if (discriminatorProp != property.name && property.type.default != null) """
             |  default: ${property.type.default.toYaml()}""" else ""}${if (property.type?.isInlineType == true && property.type?.annotations != null) """
             |  <<${property.type.annotations.joinToString("\n") { it.renderAnnotation() }}>>""" else ""}
             |  required: ${property.required}

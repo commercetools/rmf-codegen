@@ -32,7 +32,7 @@ sealed class OasScalarTypeRenderer<T: Schema<V>, V: Any> constructor(open val mo
             |(builtinType): string
             |${if (typeVal.enum != null && typeVal.enum.size > 0) """
             |enum:
-            |  <<${typeVal.enum.joinToString("\n") { "- $it" }}>>
+            |  <<${typeVal.enum.joinToString("\n") { "- '$it'" }}>>
             """.trimMargin().keepAngleIndent() else ""}
             """.trimMargin().keepAngleIndent()
 

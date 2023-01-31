@@ -53,7 +53,7 @@ sealed class RamlScalarTypeRenderer<T: AnyType> constructor(override val vrapTyp
             |  <<${type.description.value.trim()}>>""" else ""}
             |type: ${type.type?.name?: "string"}
             |enum:
-            |${type.enum.joinToString("\n") { "- ${it.value}" }}
+            |${type.enum.joinToString("\n") { "- '${it.value}'" }}
             |<<${type.annotations.joinToString("\n") { it.renderAnnotation() }}>>${if (examples.isNotEmpty()) """
             |examples:
             |  <<${examples.joinToString("\n") { renderExample(vrapType, it) }}>>""" else ""}
@@ -83,7 +83,7 @@ sealed class RamlScalarTypeRenderer<T: AnyType> constructor(override val vrapTyp
             |displayName: ${type.displayName?.value ?: type.name}
             |(builtinType): string
             |<<${type.annotations.joinToString("\n") { it.renderAnnotation() }}>>
-            |type: ${type.type?.name?: "string"}
+            |type: ${type.type?.name?: vrapType.scalarType}
             |${if (type.description != null) """description: |-
             |  <<${type.description.value.trim()}>>""" else ""}
             |${type.renderEAttributes().joinToString("\n")}${if (examples.isNotEmpty()) """

@@ -6,12 +6,13 @@ import io.vrap.codegen.languages.ramldoc.extensions.*
 import io.vrap.rmf.codegen.di.ModelPackageName
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendering.ObjectTypeRenderer
+import io.vrap.rmf.codegen.rendering.utils.escapeAll
 import io.vrap.rmf.codegen.rendering.utils.keepAngleIndent
 import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.types.*
 
-class RamlObjectTypeRenderer constructor(override val vrapTypeProvider: VrapTypeProvider, @ModelPackageName val modelPackageName: String) : ExtensionsBase, ObjectTypeRenderer {
+class RamlObjectTypeRenderer constructor(override val vrapTypeProvider: VrapTypeProvider, @ModelPackageName val modelPackageName: String, val inlineExamples: Boolean = false) : ExtensionsBase, ObjectTypeRenderer {
 
     override fun render(type: ObjectType): TemplateFile {
         val vrapType = vrapTypeProvider.doSwitch(type) as VrapObjectType
@@ -41,7 +42,7 @@ class RamlObjectTypeRenderer constructor(override val vrapTypeProvider: VrapType
             |${type.subTypes.filterNot { it.isInlineType }.sortedWith(compareBy { it.name }).joinToString("\n") { "- ${it.name}" }}""" else ""}${if (type.annotations.isNotEmpty()) """
             |<<${type.annotations.filterNot { annotation -> annotation.type.name == "postman-example" }.joinToString("\n") { it.renderAnnotation() }}>>""" else ""}${if (examples.isNotEmpty()) """
             |examples:
-            |  <<${examples.joinToString("\n") { renderExample(vrapType, it) }}>>""" else ""}${if (type.description?.value != null) """
+            |  <<${examples.joinToString("\n") { renderExample(vrapType, it, inlineExamples).escapeAll() }}>>""" else ""}${if (type.description?.value != null) """
             |description: |-
             |  <<${type.description.value.trim()}>>""" else ""}
             |properties:
@@ -54,7 +55,7 @@ class RamlObjectTypeRenderer constructor(override val vrapTypeProvider: VrapType
         )
     }
 
-    private fun renderExample(type: VrapObjectType, example: Example): String {
+    private fun renderExample(type: VrapObjectType, example: Example, inlineExample: Boolean = false): String {
         val t = if (type.packageDir(modelPackageName).isNotEmpty()) "../.." else ".."
         val exampleName = "${t}/examples/" + type.packageDir(modelPackageName) + type.simpleClassName + "-${if (example.name.isNotEmpty()) example.name else "default"}.json"
         return """
@@ -64,8 +65,9 @@ class RamlObjectTypeRenderer constructor(override val vrapTypeProvider: VrapType
             |    <<${example.description.value.trim()}>>""" else ""}${if (example.annotations.isNotEmpty()) """
             |  <<${example.annotations.joinToString("\n") { it.renderAnnotation() }}>>""" else ""}
             |  strict: ${example.strict.value}
-            |  value: !include $exampleName
-        """.trimMargin()
+            |  value:${if (!inlineExample) " !include $exampleName" else if (example.value is ObjectInstance) """|
+            |    <<${example.value.toJson().escapeAll()}>>""".trimMargin().keepAngleIndent().escapeAll() else " " + example.value.toJson().escapeAll() }
+        """.trimMargin().keepAngleIndent()
     }
 
     private fun renderExample(example: Example): String {
@@ -100,11 +102,11 @@ class RamlObjectTypeRenderer constructor(override val vrapTypeProvider: VrapType
             |${property.name}:
             |  <<${property.type.renderType()}>>${if (discriminatorProp == property.name && discriminatorValue.isNullOrBlank().not()) """
             |  enum:
-            |  - $discriminatorValue""" else if (property.type.isInlineType && property.type.enum.isNotEmpty()) """
+            |  - '$discriminatorValue'""" else if (property.type.isInlineType && property.type.enum.isNotEmpty()) """
             |  enum:
-            |  <<${property.type.enum.joinToString("\n") { "- ${it.value}" }}>>""" else ""}${if (examples.isNotEmpty()) """
+            |  <<${property.type.enum.joinToString("\n") { "- '${it.value}'" }}>>""" else ""}${if (examples.isNotEmpty()) """
             |  examples:
-            |    <<${examples.joinToString("\n") { renderExample(it) }}>>""" else ""}${if (property.type.default != null) """
+            |    <<${examples.joinToString("\n") { renderExample(it) }}>>""" else ""}${if (discriminatorProp != property.name && property.type.default != null) """
             |  default: ${property.type.default.toYaml()}""" else ""}${if (property.type?.isInlineType == true && property.type?.annotations != null) """
             |  <<${property.type.annotations.joinToString("\n") { it.renderAnnotation() }}>>""" else ""}
             |  required: ${property.required}

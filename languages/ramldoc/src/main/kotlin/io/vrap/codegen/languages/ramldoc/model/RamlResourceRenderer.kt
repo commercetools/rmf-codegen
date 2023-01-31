@@ -22,7 +22,7 @@ import io.vrap.rmf.raml.model.types.*
 import io.vrap.rmf.raml.model.util.StringCaseFormat
 import java.util.*
 
-class RamlResourceRenderer constructor(val api: Api, val vrapTypeProvider: VrapTypeProvider) : ResourceRenderer {
+class RamlResourceRenderer constructor(val api: Api, val vrapTypeProvider: VrapTypeProvider, val inlineExamples: Boolean = false) : ResourceRenderer {
     override fun render(type: Resource): TemplateFile {
         val content = """
             |# Resource
@@ -56,9 +56,9 @@ class RamlResourceRenderer constructor(val api: Api, val vrapTypeProvider: VrapT
             |  headers:
             |    <<${method.headers.joinToString("\n") { renderHeader(it) } }>>""" else ""}${if (method.bodies.any { it.type != null }) """
             |  body:
-            |    <<${method.bodies.filter { it.type != null }.joinToString("\n") { renderBody(it, method) } }>>""" else ""}${if (method.responses.any { response -> response.isSuccessfull() }) """
+            |    <<${method.bodies.filter { it.type != null }.joinToString("\n") { renderBody(it, method).escapeAll() } }>>""" else ""}${if (method.responses.any { response -> response.isSuccessfull() }) """
             |  responses:
-            |    <<${method.responses.filter { response -> response.isSuccessfull() }.joinToString("\n") { renderResponse(it, method) }}>>""" else ""}${if (method.hasExampleBody() || !method.sendsBody()) """
+            |    <<${method.responses.filter { response -> response.isSuccessfull() }.joinToString("\n") { renderResponse(it, method).escapeAll() }}>>""" else ""}${if (method.hasExampleBody() || !method.sendsBody()) """
             |  (codeExamples):
             |    curl: |-
             |      <<${renderCurlExample(method)}>>""" else ""}
@@ -127,7 +127,7 @@ class RamlResourceRenderer constructor(val api: Api, val vrapTypeProvider: VrapT
             |  description: |-
             |    <<${response.description.value.trim()}>>""" else ""}
             |  body:
-            |    <<${response.bodies.joinToString("\n") { renderBody(it, method, response) } }>>
+            |    <<${response.bodies.joinToString("\n") { renderBody(it, method, response).escapeAll() } }>>
         """.trimMargin().keepAngleIndent()
     }
 
@@ -145,7 +145,7 @@ class RamlResourceRenderer constructor(val api: Api, val vrapTypeProvider: VrapT
             |${body.contentType}:
             |  <<${body.type.renderType(false)}>>${if (bodyExamples.isNotEmpty()) """
             |  examples:
-            |    <<${bodyExamples.map { it.value.renderExample(it.key) }.joinToString("\n")}>>""" else ""}
+            |    <<${bodyExamples.map { it.value.renderExample(it.key, inlineExamples).escapeAll() }.joinToString("\n")}>>""" else ""}
             |
         """.trimMargin().keepAngleIndent()
     }
@@ -156,7 +156,7 @@ class RamlResourceRenderer constructor(val api: Api, val vrapTypeProvider: VrapT
             |${body.contentType}:
             |  <<${body.type.renderType(false)}>>${if (bodyExamples.isNotEmpty()) """
             |  examples:
-            |    <<${bodyExamples.map { it.value.renderExample(it.key) }.joinToString("\n")}>>""" else ""}
+            |    <<${bodyExamples.map { it.value.renderExample(it.key, inlineExamples).escapeAll() }.joinToString("\n")}>>""" else ""}
             |
         """.trimMargin().keepAngleIndent()
     }
@@ -165,7 +165,7 @@ class RamlResourceRenderer constructor(val api: Api, val vrapTypeProvider: VrapT
         return """
             |${uriParameter.name}:${if (uriParameter.type.enum.size > 0) """
             |  enum:
-            |  <<${uriParameter.type.enum.joinToString("\n") { "- ${it.value}"}}>>""" else ""}
+            |  <<${uriParameter.type.enum.joinToString("\n") { "- '${it.value}'"}}>>""" else ""}
             |  <<${uriParameter.type.renderType()}>>
             |  required: ${uriParameter.required}
         """.trimMargin().keepAngleIndent()
