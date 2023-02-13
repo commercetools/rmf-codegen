@@ -127,8 +127,7 @@ We choose kotlin because of the following features:
 - it integrates very well with our RMF Java types
 - it has very good IDE support, which makes writing code generators very easy
 
-These features make developing code generators for different programming languges/frameworks very easy.
-An example of a Java Spring code generator can be found here: [codegen-renderers/src/main/kotlin/io/vrap/codegen/languages/java/client/SpringClientRenderer.kt](https://github.com/vrapio/rmf-codegen/blob/main/codegen-renderers/src/main/kotlin/io/vrap/codegen/languages/java/client/SpringClientRenderer.kt)
+These features help in developing code generators for different programming languges/frameworks.
 
 # Running tests against your own RAML files
 
