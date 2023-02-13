@@ -36,6 +36,7 @@ class JavaModelClassFileProducer constructor(override val vrapTypeProvider: Vrap
                 |import io.vrap.rmf.base.client.ModelBase;
                 |import javax.validation.Valid;
                 |import javax.validation.constraints.NotNull;
+                |import javax.annotation.*;
                 |import java.util.*;
                 |import java.time.*;
                 |
