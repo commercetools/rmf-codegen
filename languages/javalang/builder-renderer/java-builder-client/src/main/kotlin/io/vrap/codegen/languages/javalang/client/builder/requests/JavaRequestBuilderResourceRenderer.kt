@@ -14,6 +14,7 @@ import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.resources.ResourceContainer
 import io.vrap.rmf.raml.model.types.Annotation
+import io.vrap.rmf.raml.model.types.AnyType
 import io.vrap.rmf.raml.model.types.ObjectType
 import io.vrap.rmf.raml.model.types.StringInstance
 import java.util.*
@@ -139,15 +140,15 @@ class JavaRequestBuilderResourceRenderer constructor(override val vrapTypeProvid
             |    return delete().withVersion(version);
             |}""" else ""}
             |${if(methodBodyVrapType is VrapObjectType && this.bodies[0].type.isFile().not()) """
-            |public ${this.toRequestName()} ${this.method.name.lowercase(Locale.getDefault())}(${(this.bodies[0].type as ObjectType).builderOp()}) {
+            |public ${this.toRequestName()} ${this.method.name.lowercase(Locale.getDefault())}(${this.bodies[0].type.builderOp()}) {
             |    return ${this.method.name.lowercase(Locale.getDefault())}(op.apply(${methodBodyVrapType.`package`}.${methodBodyVrapType.simpleClassName}Builder.of()).build());
             |}""" else ""}
         """.trimMargin()
     }
 
-    private fun ObjectType.builderOp(): String {
+    private fun AnyType.builderOp(): String {
         val vrapType = this.toVrapType() as VrapObjectType
-        if (this.discriminator != null) {
+        if (this is ObjectType && this.discriminator != null) {
             return "Function<${vrapType.`package`}.${vrapType.simpleClassName}Builder, Builder<? extends ${vrapType.`package`}.${vrapType.simpleClassName}>> op".escapeAll()
         }
         return "UnaryOperator<${vrapType.`package`}.${vrapType.simpleClassName}Builder> op".escapeAll()
