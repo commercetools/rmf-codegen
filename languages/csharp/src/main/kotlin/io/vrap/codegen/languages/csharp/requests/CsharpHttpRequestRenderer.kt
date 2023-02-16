@@ -3,9 +3,7 @@ package io.vrap.codegen.languages.csharp.requests
 import com.google.common.collect.Lists
 import com.google.common.net.MediaType
 import io.vrap.codegen.languages.csharp.extensions.*
-import io.vrap.codegen.languages.extensions.EObjectExtensions
-import io.vrap.codegen.languages.extensions.resource
-import io.vrap.codegen.languages.extensions.toRequestName
+import io.vrap.codegen.languages.extensions.*
 import io.vrap.rmf.codegen.firstUpperCase
 import io.vrap.rmf.codegen.firstLowerCase
 import io.vrap.rmf.codegen.io.TemplateFile
@@ -49,6 +47,7 @@ class CsharpHttpRequestRenderer constructor(override val vrapTypeProvider: VrapT
                 type.`is`.distinctBy { it.trait.name }.map { "${it.trait.className()}<${type.toRequestName()}>".escapeAll() }
             )
             .filterNotNull()
+        val hasReturnPayload = type.hasReturnPayload();
 
         val content = """
             |using System;
@@ -68,7 +67,7 @@ class CsharpHttpRequestRenderer constructor(override val vrapTypeProvider: VrapT
             |namespace ${cPackage}
             |{
             |   ${if (type.markDeprecated()) "[Obsolete(\"usage of this endpoint has been deprecated.\", false)]" else ""}
-            |   public partial class ${type.toRequestName()} : ApiMethod\<${type.toRequestName()}\>, IApiMethod\<${type.toRequestName()}, ${type.csharpReturnType(vrapTypeProvider)}\>${if (implements.isNotEmpty()) ", ${implements.joinToString(", ")}" else ""} {
+            |   public partial class ${type.toRequestName()} : ApiMethod\<${type.toRequestName()}\>, IApiMethod\<${type.toRequestName()}, ${if (hasReturnPayload) type.csharpReturnType(vrapTypeProvider) else "string"}\>${if (implements.isNotEmpty()) ", ${implements.joinToString(", ")}" else ""} {
             |
             |       <${type.properties()}>
             |   
@@ -227,12 +226,39 @@ class CsharpHttpRequestRenderer constructor(override val vrapTypeProvider: VrapT
     }
 
     private fun Method.executeAndBuild() : String {
-        var executeBlock =
+        val hasReturnPayload = this.hasReturnPayload();
+        val executeBlock =
                 """
-            |public async Task\<${this.csharpReturnType(vrapTypeProvider)}\> ExecuteAsync(CancellationToken cancellationToken = default)
+            |public async Task\<${if (hasReturnPayload) this.csharpReturnType(vrapTypeProvider) else "string"}\> ExecuteAsync(CancellationToken cancellationToken = default)
             |{
+            |   ${if (this.hasReturnPayload()) """
             |   var requestMessage = Build();
             |   return await ApiHttpClient.ExecuteAsync\<${this.csharpReturnType(vrapTypeProvider)}\>(requestMessage, cancellationToken);
+            |   """ else """
+            |   return await ExecuteAsJsonAsync(cancellationToken);
+            |   """}
+            |}
+            |
+            |public async Task\<string\> ExecuteAsJsonAsync(CancellationToken cancellationToken = default)
+            |{
+            |   var requestMessage = Build();
+            |   return await ApiHttpClient.ExecuteAsJsonAsync(requestMessage, cancellationToken);
+            |}
+            |
+            |public async Task\<IApiResponse\<${if (hasReturnPayload) this.csharpReturnType(vrapTypeProvider) else "string"}\>\> SendAsync(CancellationToken cancellationToken = default)
+            |{
+            |   ${if (this.hasReturnPayload()) """
+            |   var requestMessage = Build();
+            |   return await ApiHttpClient.SendAsync\<${this.csharpReturnType(vrapTypeProvider)}\>(requestMessage, cancellationToken);
+            |   """ else """
+            |   return await SendAsJsonAsync(cancellationToken);
+            |   """}
+            |}
+            |
+            |public async Task\<IApiResponse\<string\>\> SendAsJsonAsync(CancellationToken cancellationToken = default)
+            |{
+            |   var requestMessage = Build();
+            |   return await ApiHttpClient.SendAsJsonAsync(requestMessage, cancellationToken);
             |}
         """.trimMargin()
 
