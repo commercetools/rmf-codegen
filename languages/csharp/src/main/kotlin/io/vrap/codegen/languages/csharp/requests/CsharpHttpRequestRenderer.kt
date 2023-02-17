@@ -56,6 +56,7 @@ class CsharpHttpRequestRenderer constructor(override val vrapTypeProvider: VrapT
             |using System.Linq;
             |using System.Net;
             |using System.Net.Http;
+            |using System.Net.Http.Headers;
             |using System.Text;
             |using System.Threading.Tasks;
             |using System.Threading;
@@ -286,6 +287,11 @@ class CsharpHttpRequestRenderer constructor(override val vrapTypeProvider: VrapT
                     |   if ($bodyName != null && $bodyName.Length \> 0)
                     |   {
                     |       request.Content = new StreamContent($bodyName);
+                    |       if (Headers.HasHeader(ApiHttpHeaders.CONTENT_TYPE))
+                    |       {
+                    |           request.Content.Headers.ContentType =
+                    |               new MediaTypeHeaderValue(Headers.GetFirst(ApiHttpHeaders.CONTENT_TYPE));
+                    |       }
                     |   }
                     |   return request;
                     |}
