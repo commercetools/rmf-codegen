@@ -39,7 +39,7 @@ class CsharpRequestBuilderResourceRenderer constructor(override val vrapTypeProv
             |namespace $cPackage
             |{
             |   ${if (type.markDeprecated()) "[Obsolete(\"usage of this endpoint has been deprecated.\", false)]" else ""}
-            |   public class $className {
+            |   public partial class $className {
             |
             |       <${type.properties()}>
             |   
