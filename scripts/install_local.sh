@@ -16,7 +16,7 @@ installRmfCli(){
     cat >$SCRIPT_PATH <<EOL
 #!/bin/sh
 
-java -jar $JAR_FILE_PATH \$@
+java -Dfile.encoding=UTF-8 -jar $JAR_FILE_PATH \$@
 EOL
     chmod +x $SCRIPT_PATH
     ln -f $SCRIPT_PATH $COMMAND_SYM_LINK
