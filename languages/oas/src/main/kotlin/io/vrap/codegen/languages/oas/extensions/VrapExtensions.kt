@@ -10,6 +10,7 @@ import com.fasterxml.jackson.databind.SerializerProvider
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
+import io.vrap.codegen.languages.oas.model.renderAnyType
 import io.vrap.rmf.codegen.firstUpperCase
 import io.vrap.rmf.codegen.rendering.utils.escapeAll
 import io.vrap.rmf.codegen.rendering.utils.keepAngleIndent
@@ -127,7 +128,7 @@ fun UriParameter.renderUriParameter(): String {
             |  in: path
             |  required: ${this.required}
             |  schema:
-            |    type: ${this.type.name ?: "string"}
+            |    <<${this.type.renderAnyType()}>>
         """.trimMargin().keepAngleIndent()
 }
 

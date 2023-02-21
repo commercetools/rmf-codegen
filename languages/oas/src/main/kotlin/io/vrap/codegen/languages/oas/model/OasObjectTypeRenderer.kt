@@ -248,6 +248,6 @@ private fun renderTimeOnly(type: TimeOnlyType): String {
 private fun renderUnionType(type: UnionType): String {
     return """
         |oneOf:
-        |  <<${type.oneOf.sortedBy { it.name }.joinToString("\n") { "- \$ref: '#/components/schemas/${it.name}'" }}>>
+        |  <<${type.oneOf.sortedBy { it.name }.joinToString("\n") { "- <<${it.renderAnyType()}>>".keepAngleIndent() }}>>
     """.trimMargin().keepAngleIndent()
 }
