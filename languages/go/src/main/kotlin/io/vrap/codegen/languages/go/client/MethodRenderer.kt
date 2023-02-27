@@ -311,7 +311,17 @@ class GoMethodRenderer(
                         |    return ${returnValue}nil
                         """.trimMargin()
                     } else {
-                        ""
+                        if (statusCodes.contains(404)) {
+                            """
+                            |case ${statusCodes.joinToString(", ")}:
+                            |    return ${returnValue}ErrNotFound
+                            """.trimMargin()
+                        } else {
+                            """
+                            |case ${statusCodes.joinToString(", ")}:
+                            |    return ${returnValue}nil
+                            """.trimMargin()
+                        }
                     }
                 } else {
                     if (isSuccess) {
