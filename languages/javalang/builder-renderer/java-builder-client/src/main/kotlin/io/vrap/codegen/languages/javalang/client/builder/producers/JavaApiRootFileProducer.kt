@@ -8,9 +8,12 @@ import io.vrap.rmf.codegen.di.ClientPackageName
 import io.vrap.rmf.codegen.di.RamlApi
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendering.FileProducer
+import io.vrap.rmf.codegen.rendering.utils.escapeAll
 import io.vrap.rmf.codegen.rendering.utils.keepIndentation
 import io.vrap.rmf.raml.model.modules.Api
 import io.vrap.rmf.raml.model.resources.ResourceContainer
+import io.vrap.rmf.raml.model.types.Annotation
+import io.vrap.rmf.raml.model.types.StringInstance
 
 class JavaApiRootFileProducer constructor(@ClientPackageName val clientPackage: String, @RamlApi val api: Api) : FileProducer {
 
@@ -19,6 +22,16 @@ class JavaApiRootFileProducer constructor(@ClientPackageName val clientPackage: 
     }
 
     private fun generateApiRoot(api: Api) : TemplateFile {
+        val implements = arrayListOf("Closable")
+            .plus(
+                when (val ex = api.getAnnotation("java-implements") ) {
+                    is Annotation -> {
+                        (ex.value as StringInstance).value.escapeAll()
+                    }
+                    else -> null
+                }
+            )
+            .filterNotNull()
 
         val content =  """
             |package ${clientPackage.toJavaPackage()};
@@ -36,7 +49,7 @@ class JavaApiRootFileProducer constructor(@ClientPackageName val clientPackage: 
             | * Entrypoint for building requests against the API
             | */
             |<${JavaSubTemplates.generatedAnnotation}>
-            |public class ApiRoot implements Closeable {
+            |public class ApiRoot ${if (implements.isNotEmpty()) "implements ${implements.joinToString(", ")}" else ""} {
             |
             |    private final ApiHttpClient apiHttpClient;
             |
@@ -63,6 +76,8 @@ class JavaApiRootFileProducer constructor(@ClientPackageName val clientPackage: 
             |            apiHttpClient.close();
             |        } catch (final Throwable ignored) { }
             |    }
+            |    
+            |    <${api.getAnnotation("java-mixin")?.value?.value?.let { (it as String).escapeAll()} ?: ""}>
             |}
         """.trimMargin().keepIndentation()
 

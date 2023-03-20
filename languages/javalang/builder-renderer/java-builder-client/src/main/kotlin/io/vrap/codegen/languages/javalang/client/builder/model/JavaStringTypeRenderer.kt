@@ -9,6 +9,7 @@ import io.vrap.rmf.codegen.rendering.utils.escapeAll
 import io.vrap.rmf.codegen.rendering.utils.keepIndentation
 import io.vrap.rmf.codegen.types.VrapEnumType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
+import io.vrap.rmf.raml.model.types.Annotation
 import io.vrap.rmf.raml.model.types.StringInstance
 import io.vrap.rmf.raml.model.types.StringType
 
@@ -16,6 +17,17 @@ class JavaStringTypeRenderer constructor(override val vrapTypeProvider: VrapType
 
     override fun render(type: StringType): TemplateFile {
         val vrapType = vrapTypeProvider.doSwitch(type).toJavaVType() as VrapEnumType
+
+        val extends = arrayListOf<String>()
+            .plus(
+                when (val ex = type.getAnnotation("java-extends") ) {
+                    is Annotation -> {
+                        (ex.value as StringInstance).value.escapeAll()
+                    }
+                    else -> null
+                }
+            )
+            .filterNotNull()
 
         val content = """
                 |package ${vrapType.`package`};
@@ -31,7 +43,7 @@ class JavaStringTypeRenderer constructor(override val vrapTypeProvider: VrapType
                 |${type.toComment(" * ${vrapType.simpleClassName}").escapeAll()}
                 | */
                 |${JavaSubTemplates.generatedAnnotation}
-                |public interface ${vrapType.simpleClassName} {
+                |public interface ${vrapType.simpleClassName} ${if (extends.isNotEmpty()) { "extends ${extends.joinToString(separator = ", ")}" } else ""} {
                 |
                 |    <${type.enumConsts()}>
                 |    
@@ -85,6 +97,8 @@ class JavaStringTypeRenderer constructor(override val vrapTypeProvider: VrapType
                 |    public static ${vrapType.simpleClassName}[] values() {
                 |        return ${vrapType.simpleClassName}Enum.values();
                 |    }
+                |    
+                |    <${type.getAnnotation("java-mixin")?.value?.value?.let { (it as String).escapeAll()} ?: ""}>
                 |}
                 """.trimMargin().keepIndentation()
 

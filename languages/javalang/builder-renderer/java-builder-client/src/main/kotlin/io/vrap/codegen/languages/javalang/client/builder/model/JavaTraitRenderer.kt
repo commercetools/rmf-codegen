@@ -12,6 +12,7 @@ import io.vrap.rmf.codegen.rendering.utils.keepIndentation
 import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.resources.Trait
+import io.vrap.rmf.raml.model.types.Annotation
 import io.vrap.rmf.raml.model.types.ArrayType
 import io.vrap.rmf.raml.model.types.ObjectInstance
 import io.vrap.rmf.raml.model.types.QueryParameter
@@ -24,6 +25,16 @@ class JavaTraitRenderer constructor(override val vrapTypeProvider: VrapTypeProvi
     override fun render(type: Trait): TemplateFile {
         val vrapType = vrapTypeProvider.doSwitch(type as EObject) as VrapObjectType
 
+        val extends = arrayListOf<String>()
+            .plus(
+                when (val ex = type.getAnnotation("java-extends") ) {
+                    is Annotation -> {
+                        (ex.value as StringInstance).value.escapeAll()
+                    }
+                    else -> null
+                }
+            )
+            .filterNotNull()
 
         val content= """
             |package ${vrapType.`package`.toJavaPackage()};
@@ -35,7 +46,7 @@ class JavaTraitRenderer constructor(override val vrapTypeProvider: VrapTypeProvi
             |${type.toComment(" * ${vrapType.simpleClassName}").escapeAll()}
             | */
             |<${JavaSubTemplates.generatedAnnotation}>
-            |public interface ${vrapType.simpleClassName}\<T extends ${vrapType.simpleClassName}\<T\>\> {
+            |public interface ${vrapType.simpleClassName}\<T extends ${vrapType.simpleClassName}\<T\>\> ${if (extends.isNotEmpty()) { "extends ${extends.joinToString(separator = ", ")}" } else ""} {
             |    <${type.queryParamsGetters()}>
             |
             |    <${type.queryParamsSetters(vrapType.simpleClassName)}>
@@ -50,6 +61,8 @@ class JavaTraitRenderer constructor(override val vrapTypeProvider: VrapTypeProvi
             |    default T as${vrapType.simpleClassName}ToBaseType() {
             |        return (T)this;
             |    }
+            |    
+            |    <${type.getAnnotation("java-mixin")?.value?.value?.let { (it as String).escapeAll()} ?: ""}>
             |}
         """.trimMargin().keepIndentation()
 
