@@ -22,7 +22,7 @@ class JavaApiRootFileProducer constructor(@ClientPackageName val clientPackage: 
     }
 
     private fun generateApiRoot(api: Api) : TemplateFile {
-        val implements = arrayListOf("Closable")
+        val implements = arrayListOf("Closeable")
             .plus(
                 when (val ex = api.getAnnotation("java-implements") ) {
                     is Annotation -> {
