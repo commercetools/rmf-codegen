@@ -234,6 +234,7 @@ class JavaModelInterfaceRenderer constructor(override val vrapTypeProvider: Vrap
             """
             |/**
             |${this.type.toComment(" *")}
+            | * @return ${this.name}
             | */
             |${this.validationAnnotations()}
             |@JsonProperty("${this.name}")
