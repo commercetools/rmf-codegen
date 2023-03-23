@@ -9,6 +9,7 @@ import io.vrap.codegen.languages.javalang.client.builder.producers.JavaModelClas
 import io.vrap.codegen.languages.javalang.client.builder.producers.JavaModelDraftBuilderFileProducer
 import io.vrap.codegen.languages.javalang.client.builder.requests.JavaHttpRequestRenderer
 import io.vrap.codegen.languages.javalang.client.builder.requests.JavaRequestBuilderResourceRenderer
+import io.vrap.codegen.languages.javalang.client.builder.requests.JavaStringHttpRequestRenderer
 import io.vrap.rmf.codegen.di.RamlGeneratorModule
 import io.vrap.rmf.codegen.di.Module
 
@@ -32,7 +33,8 @@ object JavaCompleteModule: Module {
                     JavaRequestBuilderResourceRenderer(generatorModule.vrapTypeProvider())
             ), generatorModule.allResources().filterNot { it.deprecated() }),
             MethodGenerator(setOf(
-                    JavaHttpRequestRenderer(generatorModule.vrapTypeProvider())
+                    JavaHttpRequestRenderer(generatorModule.vrapTypeProvider()),
+                    JavaStringHttpRequestRenderer(generatorModule.vrapTypeProvider())
             ), generatorModule.allResourceMethods().filterNot { it.deprecated() }),
             TraitGenerator(setOf(
                     JavaTraitRenderer(generatorModule.vrapTypeProvider())

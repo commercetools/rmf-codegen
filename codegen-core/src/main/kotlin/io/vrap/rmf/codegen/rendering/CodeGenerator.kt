@@ -29,7 +29,7 @@ abstract class CodeGeneratorImpl<TRenderer: Renderer<T>, T> constructor(val gene
         val templateFiles :MutableList<Publisher<TemplateFile>> = mutableListOf()
 
         LOGGER.info("generating files with " + this.javaClass.simpleName)
-        templateFiles.add(Flowable.fromIterable(generators).flatMap { renderer -> Flowable.fromIterable(allTypes).map { renderer.render(it) } } )
+        templateFiles.add(Flowable.fromIterable(generators).flatMap { renderer -> Flowable.fromIterable(allTypes).map { renderer.render(it) }.filter{ it.content.isNotBlank() } } )
 
         return templateFiles;
     }
@@ -42,7 +42,7 @@ class FileGenerator constructor(val fileProducers: Set<FileProducer>): CodeGener
         val templateFiles :MutableList<Publisher<TemplateFile>> = mutableListOf()
 
         LOGGER.info("generating files with " + this.javaClass.simpleName)
-        templateFiles.add(Flowable.fromIterable(fileProducers).flatMap { Flowable.fromIterable(it.produceFiles()) })
+        templateFiles.add(Flowable.fromIterable(fileProducers).flatMap { Flowable.fromIterable(it.produceFiles()).filter { it.content.isNotBlank() } })
 
         return templateFiles;
     }

@@ -140,6 +140,9 @@ class JavaRequestBuilderResourceRenderer constructor(override val vrapTypeProvid
             |    return delete().withVersion(version);
             |}""" else ""}
             |${if(methodBodyVrapType is VrapObjectType && this.bodies[0].type.isFile().not()) """
+            |public ${this.toStringRequestName()} ${this.method.name.lowercase(Locale.getDefault())}(${this.stringConstructorArguments()}) {
+            |    return new ${this.toStringRequestName()}(${this.requestArguments()});
+            |}
             |public ${this.toRequestName()} ${this.method.name.lowercase(Locale.getDefault())}(${this.bodies[0].type.builderOp()}) {
             |    return ${this.method.name.lowercase(Locale.getDefault())}(op.apply(${methodBodyVrapType.`package`}.${methodBodyVrapType.simpleClassName}Builder.of()).build());
             |}""" else ""}
@@ -152,6 +155,11 @@ class JavaRequestBuilderResourceRenderer constructor(override val vrapTypeProvid
             return "Function<${vrapType.`package`}.${vrapType.simpleClassName}Builder, Builder<? extends ${vrapType.`package`}.${vrapType.simpleClassName}>> op".escapeAll()
         }
         return "UnaryOperator<${vrapType.`package`}.${vrapType.simpleClassName}Builder> op".escapeAll()
+    }
+
+    private fun Method.stringConstructorArguments(): String? {
+        val methodBodyVrapType = this.bodies[0].type.toVrapType() as VrapObjectType
+        return "final String ${methodBodyVrapType.simpleClassName.firstLowerCase()}"
     }
 
     private fun Method.constructorArguments(): String? {
