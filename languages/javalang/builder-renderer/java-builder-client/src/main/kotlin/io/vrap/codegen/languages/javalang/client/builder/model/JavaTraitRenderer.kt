@@ -45,6 +45,7 @@ class JavaTraitRenderer constructor(override val vrapTypeProvider: VrapTypeProvi
             |
             |/**
             |${type.toComment(" * ${vrapType.simpleClassName}").escapeAll()}
+            | * @param \<T\> type of extending interface
             | */
             |<${JavaSubTemplates.generatedAnnotation}>
             |public interface ${vrapType.simpleClassName}\<T extends ${vrapType.simpleClassName}\<T\>\> ${if (extends.isNotEmpty()) { "extends ${extends.joinToString(separator = ", ")}" } else ""} {
