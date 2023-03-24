@@ -61,13 +61,18 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
             |
             |    <${type.getters().escapeAll()}>
             |
+            |    /**
+            |     * builds ${vrapType.simpleClassName} with checking for non-null required values
+            |     * @return ${vrapType.simpleClassName}
+            |     */
             |    public ${vrapType.simpleClassName} build() {
             |        <${type.requiredChecks().escapeAll()}>
             |        <${type.buildMethodBody().escapeAll()}>
             |    }
             |    
             |    /**
-            |     * builds ${vrapType.simpleClassName} without checking for non null required values
+            |     * builds ${vrapType.simpleClassName} without checking for non-null required values
+            |     * @return ${vrapType.simpleClassName}
             |     */
             |    public ${vrapType.simpleClassName} buildUnchecked() {
             |        <${type.buildMethodBody().escapeAll()}>
@@ -187,6 +192,8 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
             """
                 |/**
                 |${propertyType.toComment(" *")}
+                | * @param values properties to be set
+                | * @return Builder
                 | */
                 |${property.deprecationAnnotation()}
                 |public ${type.simpleClassName}Builder values(${if (!property.required) "@Nullable" else ""} final Map<String, ${propType.fullClassName()}> values){
@@ -196,6 +203,9 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
                 |
                 |/**
                 |${propertyType.toComment(" *")}
+                | * @param key property name
+                | * @param value property value
+                | * @return Builder
                 | */
                 |${property.deprecationAnnotation()}
                 |public ${type.simpleClassName}Builder addValue(final String key, final ${propType.fullClassName()} value) {
@@ -216,7 +226,7 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
             """
                 |/**
                 |${propertyType.toComment(" *")}
-                | * @param $propertyName
+                | * @param $propertyName value to be set
                 | * @return Builder
                 | */
                 |${property.deprecationAnnotation()}
@@ -227,7 +237,7 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
                 |
                 |/**
                 |${propertyType.toComment(" *")}
-                | * @param $propertyName
+                | * @param $propertyName value to be set
                 | * @return Builder
                 | */
                 |${property.deprecationAnnotation()}
@@ -238,7 +248,7 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
                 |
                 |/**
                 |${propertyType.toComment(" *")}
-                | * @param $propertyName
+                | * @param $propertyName value to be set
                 | * @return Builder
                 | */
                 |${property.deprecationAnnotation()}
@@ -253,6 +263,7 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
                 |${if (propItemType is ObjectType && propItemType.isAbstract() && propItemType.discriminator != null) """
                 |/**
                 |${propertyType.toComment(" *")}
+                | * @param builder function to build the $propertyName value
                 | * @return Builder
                 | */
                 |${property.deprecationAnnotation()}
@@ -266,6 +277,7 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
                 |
                 |/**
                 |${propertyType.toComment(" *")}
+                | * @param builder function to build the $propertyName value
                 | * @return Builder
                 | */
                 |${property.deprecationAnnotation()}
@@ -278,6 +290,7 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
                 |${if (propItemType is ObjectType && !propItemType.isAbstract() && propType.simpleName() != JavaBaseTypes.objectType.simpleName()) """
                 |/**
                 |${propertyType.toComment(" *")}
+                | * @param builder function to build the $propertyName value
                 | * @return Builder
                 | */
                 |${property.deprecationAnnotation()}
@@ -291,6 +304,7 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
                 |
                 |/**
                 |${propertyType.toComment(" *")}
+                | * @param builder function to build the $propertyName value
                 | * @return Builder
                 | */
                 |${property.deprecationAnnotation()}
@@ -311,6 +325,7 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
                 |${if (checkedPropertyType is ObjectType && !checkedPropertyType.isAbstract() && propType.simpleName() != JavaBaseTypes.objectType.simpleName()) """
                 |/**
                 |${propertyType.toComment(" *")}
+                | * @param builder function to build the $propertyName value
                 | * @return Builder
                 | */
                 |${property.deprecationAnnotation()}
@@ -322,7 +337,7 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
                 """ else ""}
                 |/**
                 |${propertyType.toComment(" *")}
-                | * @param $propertyName
+                | * @param $propertyName value to be set
                 | * @return Builder
                 | */
                 |${property.deprecationAnnotation()}
@@ -334,6 +349,7 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
                 |${if (checkedPropertyType is ObjectType && checkedPropertyType.isAbstract() && checkedPropertyType.discriminator != null) """
                 |/**
                 |${propertyType.toComment(" *")}
+                | * @param builder function to build the $propertyName value
                 | * @return Builder
                 | */
                 |${property.deprecationAnnotation()}
