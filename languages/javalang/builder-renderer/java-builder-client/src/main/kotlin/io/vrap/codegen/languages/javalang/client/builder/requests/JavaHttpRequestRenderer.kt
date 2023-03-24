@@ -431,14 +431,19 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
 
                 val template = o.value.stream().filter { propertyValue -> propertyValue.name == "template" }.findFirst().orElse(null).value as StringInstance
                 val value = "String.format(\"" + template.value.replace("<" + placeholder.value + ">", "%s") + "\", " + placeholder.value + ")"
+                val placeholderValue = StringCaseFormat.LOWER_CAMEL_CASE.apply(placeholder.value)
 
                 val methodName = StringCaseFormat.UPPER_CAMEL_CASE.apply(paramName.value)
-                val parameters =  "final String " + StringCaseFormat.LOWER_CAMEL_CASE.apply(placeholder.value) + ", final TValue " + paramName.value
-                val listParameters =  "final String " + StringCaseFormat.LOWER_CAMEL_CASE.apply(placeholder.value) + ", final Collection<TValue> " + paramName.value
+                val parameters =  "final String $placeholderValue, final TValue ${paramName.value}"
+                val listParameters =  "final String $placeholderValue, final Collection<TValue> ${paramName.value}"
 
                 return """
                 |/**
                 | * set ${paramName.value} with the specificied value
+                | * @param <TValue> value type
+                | * @param $placeholderValue parameter name
+                | * @param ${paramName.value} parameter value
+                | * @return ${this.toRequestName()}
                 | */
                 |public <TValue> ${this.toRequestName()} with$methodName($parameters) {
                 |    return copy().withQueryParam($value, ${paramName.value});
@@ -446,6 +451,10 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
                 |
                 |/**
                 | * add additional ${paramName.value} query parameter
+                | * @param <TValue> value type
+                | * @param $placeholderValue parameter name
+                | * @param ${paramName.value} parameter value
+                | * @return ${this.toRequestName()}
                 | */
                 |public <TValue> ${this.toRequestName()} add$methodName($parameters) {
                 |    return copy().addQueryParam($value, ${paramName.value});
@@ -453,6 +462,10 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
                 |
                 |/**
                 | * set ${paramName.value} with the specificied values
+                | * @param <TValue> value type
+                | * @param $placeholderValue parameter name
+                | * @param ${paramName.value} parameter values
+                | * @return ${this.toRequestName()}
                 | */
                 |public <TValue> ${this.toRequestName()} with$methodName($listParameters) {
                 |    final String placeholderName = String.format("var.%s", ${StringCaseFormat.LOWER_CAMEL_CASE.apply(placeholder.value)});
@@ -461,6 +474,10 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
                 |
                 |/**
                 | * add additional ${paramName.value} query parameters
+                | * @param <TValue> value type
+                | * @param $placeholderValue parameter name
+                | * @param ${paramName.value} parameter values
+                | * @return ${this.toRequestName()}
                 | */
                 |public <TValue> ${this.toRequestName()} add$methodName($listParameters) {
                 |    final String placeholderName = String.format("var.%s", ${StringCaseFormat.LOWER_CAMEL_CASE.apply(placeholder.value)});
@@ -477,6 +494,7 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
                 |/**
                 | * set ${it.fieldName()} with the specified value
                 | * @param ${it.fieldName()} value to be set
+                | * @param <TValue> value type
                 | * @return ${this.toRequestName()}
                 | */
                 |public <TValue> ${this.toRequestName()} with${it.fieldName().firstUpperCase()}(final TValue ${it.fieldName()}) {
@@ -486,6 +504,7 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
                 |/**
                 | * add additional ${it.fieldName()} query parameter
                 | * @param ${it.fieldName()} value to be added
+                | * @param <TValue> value type
                 | * @return ${this.toRequestName()}
                 | */
                 |public <TValue> ${this.toRequestName()} add${it.fieldName().firstUpperCase()}(final TValue ${it.fieldName()}) {
@@ -531,6 +550,7 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
                 |/**
                 | * set ${it.fieldName()} with the specified values
                 | * @param ${it.fieldName()} values to be set
+                | * @param <TValue> value type
                 | * @return ${this.toRequestName()}
                 | */
                 |public <TValue> ${this.toRequestName()} with${it.fieldName().firstUpperCase()}(final Collection<TValue> ${it.fieldName()}) {
@@ -540,6 +560,7 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
                 |/**
                 | * add additional ${it.fieldName()} query parameters
                 | * @param ${it.fieldName()} values to be added
+                | * @param <TValue> value type
                 | * @return ${this.toRequestName()}
                 | */
                 |public <TValue> ${this.toRequestName()} add${it.fieldName().firstUpperCase()}(final Collection<TValue> ${it.fieldName()}) {
