@@ -1,6 +1,7 @@
 package io.vrap.codegen.languages.javalang.client.builder.model
 
 import io.vrap.codegen.languages.extensions.toComment
+import io.vrap.codegen.languages.extensions.toRequestName
 import io.vrap.codegen.languages.java.base.JavaSubTemplates
 import io.vrap.codegen.languages.java.base.extensions.*
 import io.vrap.codegen.languages.javalang.client.builder.requests.PLACEHOLDER_PARAM_ANNOTATION
@@ -84,11 +85,15 @@ class JavaTraitRenderer constructor(override val vrapTypeProvider: VrapTypeProvi
             .map { """
                 |/**
                 | * set ${it.fieldName()} with the specificied value
+                | * @param ${it.fieldName()} value to be set
+                | * @return ${simpleClassName}
                 | */
                 |<TValue> ${simpleClassName}<T> with${it.fieldName().firstUpperCase()}(final TValue ${it.fieldName()});
                 |
                 |/**
                 | * add additional ${it.fieldName()} query parameter
+                | * @param ${it.fieldName()} value to be added
+                | * @return ${simpleClassName}
                 | */
                 |<TValue> ${simpleClassName}<T> add${it.fieldName().firstUpperCase()}(final TValue ${it.fieldName()});
             """.trimMargin().escapeAll() }
