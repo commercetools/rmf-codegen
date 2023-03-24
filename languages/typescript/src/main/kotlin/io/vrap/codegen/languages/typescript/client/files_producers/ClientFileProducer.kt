@@ -97,7 +97,6 @@ export class ApiRequest<O> {
 $tsGeneratedComment
 
 
-import { stringify } from 'querystring'
 import {
   VariableMap,
   ClientRequest,
@@ -133,7 +132,7 @@ function cleanObject<T extends VariableMap>(obj: T): T {
 
 function formatQueryString(variableMap: VariableMap) {
   const map = cleanObject(variableMap)
-  const result = stringify(map)
+  const result = new URLSearchParams(map as Record<string, string>).toString()
   if (result === '') {
     return ''
   }
