@@ -1,6 +1,7 @@
 package io.vrap.codegen.languages.javalang.client.builder.model
 
 import io.vrap.codegen.languages.extensions.toComment
+import io.vrap.codegen.languages.extensions.toRequestName
 import io.vrap.codegen.languages.java.base.JavaSubTemplates
 import io.vrap.codegen.languages.java.base.extensions.*
 import io.vrap.codegen.languages.javalang.client.builder.requests.PLACEHOLDER_PARAM_ANNOTATION
@@ -44,6 +45,7 @@ class JavaTraitRenderer constructor(override val vrapTypeProvider: VrapTypeProvi
             |
             |/**
             |${type.toComment(" * ${vrapType.simpleClassName}").escapeAll()}
+            | * @param \<T\> type of extending interface
             | */
             |<${JavaSubTemplates.generatedAnnotation}>
             |public interface ${vrapType.simpleClassName}\<T extends ${vrapType.simpleClassName}\<T\>\> ${if (extends.isNotEmpty()) { "extends ${extends.joinToString(separator = ", ")}" } else ""} {
@@ -84,11 +86,17 @@ class JavaTraitRenderer constructor(override val vrapTypeProvider: VrapTypeProvi
             .map { """
                 |/**
                 | * set ${it.fieldName()} with the specificied value
+                | * @param ${it.fieldName()} value to be set
+                | * @param <TValue> value type
+                | * @return ${simpleClassName}
                 | */
                 |<TValue> ${simpleClassName}<T> with${it.fieldName().firstUpperCase()}(final TValue ${it.fieldName()});
                 |
                 |/**
                 | * add additional ${it.fieldName()} query parameter
+                | * @param ${it.fieldName()} value to be added
+                | * @param <TValue> value type
+                | * @return ${simpleClassName}
                 | */
                 |<TValue> ${simpleClassName}<T> add${it.fieldName().firstUpperCase()}(final TValue ${it.fieldName()});
             """.trimMargin().escapeAll() }
@@ -101,18 +109,27 @@ class JavaTraitRenderer constructor(override val vrapTypeProvider: VrapTypeProvi
                 val o = anno.value as ObjectInstance
                 val paramName = o.value.stream().filter { propertyValue -> propertyValue.name == "paramName" }.findFirst().orElse(null).value as StringInstance
                 val placeholder = o.value.stream().filter { propertyValue -> propertyValue.name == "placeholder" }.findFirst().orElse(null).value as StringInstance
+                val placeholderValue = StringCaseFormat.LOWER_CAMEL_CASE.apply(placeholder.value)
 
                 val methodName = StringCaseFormat.UPPER_CAMEL_CASE.apply(paramName.value)
-                val parameters =  "final String " + StringCaseFormat.LOWER_CAMEL_CASE.apply(placeholder.value) + ", final TValue " + paramName.value
+                val parameters =  "final String $placeholderValue, final TValue ${paramName.value}"
 
                 return """
                 |/**
                 | * set ${paramName.value} with the specificied value
+                | * @param $placeholderValue placeholder name
+                | * @param ${paramName.value} value to be set
+                | * @param <TValue> value type
+                | * @return ${simpleClassName}
                 | */
                 |<TValue> ${simpleClassName}<T> with$methodName($parameters);
                 |
                 |/**
                 | * add additional ${paramName.value} query parameter
+                | * @param $placeholderValue placeholder name
+                | * @param ${paramName.value} value to be added
+                | * @param <TValue> value type
+                | * @return ${simpleClassName}
                 | */
                 |<TValue> ${simpleClassName}<T> add$methodName($parameters);
             """.trimMargin().escapeAll()

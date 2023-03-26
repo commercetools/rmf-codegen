@@ -225,6 +225,7 @@ class JavaModelInterfaceRenderer constructor(override val vrapTypeProvider: Vrap
             """
             |/**
             |${this.type.toComment(" *")}
+            | * @return map of the pattern property values
             | */
             |${this.validationAnnotations()}
             |@JsonAnyGetter
@@ -253,33 +254,57 @@ class JavaModelInterfaceRenderer constructor(override val vrapTypeProvider: Vrap
         val vrapType = this.type.toVrapType()
         return if (this.isPatternProperty()) {
             """
+            |/**
+            |${this.type.toComment(" * set pattern property")}
+            | * @param key property name
+            | * @param value property value
+            | */
             |${this.deprecationAnnotation()}
             |@JsonAnySetter
             |public void setValue(String key, ${vrapType.simpleName()} value);
             """.trimMargin()
         } else if (this.name.equals("interface")) {
             """
+            |/**
+            |${this.type.toComment(" * set interface")}
+            | */
             |${this.deprecationAnnotation()}
             |public void setInterface(final ${vrapType.simpleName()} _interface);
             |""".trimMargin()
         } else if (vrapType is VrapArrayType) {
             """
+            |/**
+            |${this.type.toComment(" * set ${this.name}")}
+            | */
             |${this.deprecationAnnotation()}
             |@JsonIgnore
             |public void set${this.name.upperCamelCase()}(final ${vrapType.itemType.simpleName()} ...${this.name.lowerCamelCase()});
+            |/**
+            |${this.type.toComment(" * set ${this.name}")}
+            | */
+            |${this.deprecationAnnotation()}
             |public void set${this.name.upperCamelCase()}(final ${vrapType.simpleName()} ${this.name.lowerCamelCase()});
             """.trimMargin()
         } else if (this.type is UnionType) {
             (this.type as UnionType).oneOf
                 .map { anyType -> """
+                    |/**
+                    |${this.type.toComment(" * set ${this.name}")}
+                    | */
                     |${this.deprecationAnnotation()}
                     |public void set${this.name.upperCamelCase()}(final ${anyType.toVrapType().simpleName()} ${this.name.lowerCamelCase()});""".trimMargin() }
                 .plus("""
+                    |/**
+                    |${this.type.toComment(" * set ${this.name}")}
+                    | */
                     |${this.deprecationAnnotation()}
                     |public void set${this.name.upperCamelCase()}(final ${vrapType.simpleName()} ${this.name.lowerCamelCase()});""".trimMargin())
                 .joinToString("\n");
         } else {
             """
+            |/**
+            |${this.type.toComment(" * set ${this.name}")}
+            | */
             |${this.deprecationAnnotation()}
             |public void set${this.name.upperCamelCase()}(final ${vrapType.simpleName()} ${this.name.lowerCamelCase()});
             |""".trimMargin()

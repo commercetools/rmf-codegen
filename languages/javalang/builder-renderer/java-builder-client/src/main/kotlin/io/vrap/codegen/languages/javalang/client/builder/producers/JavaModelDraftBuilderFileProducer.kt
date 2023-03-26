@@ -191,7 +191,7 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
         return if(property.isPatternProperty()) {
             """
                 |/**
-                |${propertyType.toComment(" *")}
+                |${propertyType.toComment(" * assign pattern properties to the builder")}
                 | * @param values properties to be set
                 | * @return Builder
                 | */
@@ -202,7 +202,7 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
                 |}
                 |
                 |/**
-                |${propertyType.toComment(" *")}
+                |${propertyType.toComment(" * assign a pattern property to the builder")}
                 | * @param key property name
                 | * @param value property value
                 | * @return Builder
@@ -225,7 +225,7 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
             }
             """
                 |/**
-                |${propertyType.toComment(" *")}
+                |${propertyType.toComment(" * set values to the $propertyName")}
                 | * @param $propertyName value to be set
                 | * @return Builder
                 | */
@@ -236,7 +236,7 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
                 |}
                 |
                 |/**
-                |${propertyType.toComment(" *")}
+                |${propertyType.toComment(" * set value to the $propertyName")}
                 | * @param $propertyName value to be set
                 | * @return Builder
                 | */
@@ -247,7 +247,7 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
                 |}
                 |
                 |/**
-                |${propertyType.toComment(" *")}
+                |${propertyType.toComment(" * add values to the $propertyName")}
                 | * @param $propertyName value to be set
                 | * @return Builder
                 | */
@@ -262,7 +262,7 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
                 |
                 |${if (propItemType is ObjectType && propItemType.isAbstract() && propItemType.discriminator != null) """
                 |/**
-                |${propertyType.toComment(" *")}
+                |${propertyType.toComment(" * add a value to the $propertyName using the builder function")}
                 | * @param builder function to build the $propertyName value
                 | * @return Builder
                 | */
@@ -276,7 +276,7 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
                 |}
                 |
                 |/**
-                |${propertyType.toComment(" *")}
+                |${propertyType.toComment(" * set the value to the $propertyName using the builder function")}
                 | * @param builder function to build the $propertyName value
                 | * @return Builder
                 | */
@@ -289,7 +289,7 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
                 """ else ""}
                 |${if (propItemType is ObjectType && !propItemType.isAbstract() && propType.simpleName() != JavaBaseTypes.objectType.simpleName()) """
                 |/**
-                |${propertyType.toComment(" *")}
+                |${propertyType.toComment(" * add the value to the $propertyName using the builder function")}
                 | * @param builder function to build the $propertyName value
                 | * @return Builder
                 | */
@@ -303,7 +303,7 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
                 |}
                 |
                 |/**
-                |${propertyType.toComment(" *")}
+                |${propertyType.toComment(" * set the value to the $propertyName using the builder function")}
                 | * @param builder function to build the $propertyName value
                 | * @return Builder
                 | */
@@ -324,7 +324,7 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
             """
                 |${if (checkedPropertyType is ObjectType && !checkedPropertyType.isAbstract() && propType.simpleName() != JavaBaseTypes.objectType.simpleName()) """
                 |/**
-                |${propertyType.toComment(" *")}
+                |${propertyType.toComment(" * set the value to the $propertyName using the builder function")}
                 | * @param builder function to build the $propertyName value
                 | * @return Builder
                 | */
@@ -336,7 +336,7 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
                 |
                 """ else ""}
                 |/**
-                |${propertyType.toComment(" *")}
+                |${propertyType.toComment(" * set the value to the $propertyName")}
                 | * @param $propertyName value to be set
                 | * @return Builder
                 | */
@@ -348,7 +348,7 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
                 |
                 |${if (checkedPropertyType is ObjectType && checkedPropertyType.isAbstract() && checkedPropertyType.discriminator != null) """
                 |/**
-                |${propertyType.toComment(" *")}
+                |${propertyType.toComment(" * set the value to the $propertyName using the builder function")}
                 | * @param builder function to build the $propertyName value
                 | * @return Builder
                 | */
@@ -371,10 +371,14 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
     }
 
     private fun Property.getter() : String {
-
+        val propertyType = this.type;
         val vrapType = this.type.toVrapType()
         return if(this.isPatternProperty()){
             """
+                |/**
+                |${propertyType.toComment(" * values of pattern properties")}
+                | * @return pattern properties
+                | */
                 |${this.deprecationAnnotation()}
                 |${if(!this.required) "@Nullable" else ""}
                 |public Map<String, ${vrapType.fullClassName()}> getValues(){
@@ -383,6 +387,11 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
             """.escapeAll().trimMargin().keepIndentation()
         } else if(this.name.equals("interface")) {
             """
+                |/**
+                |${propertyType.toComment(" * value of interface")}
+                | * @return interface
+                | */
+                | 
                 |${this.deprecationAnnotation()}
                 |${if (!this.required) "@Nullable" else ""}
                 |public ${vrapType.fullClassName()} getInterface(){
@@ -391,6 +400,10 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
             """.escapeAll().trimMargin().keepIndentation()
         }else{
             """
+                |/**
+                |${propertyType.toComment(" * value of ${this.name}}")}
+                | * @return ${this.name}
+                | */
                 |${this.deprecationAnnotation()}
                 |${if(!this.required) "@Nullable" else ""}
                 |public ${vrapType.fullClassName()} get${this.name.firstUpperCase()}(){
