@@ -97,11 +97,16 @@ export class ApiRequest<O> {
 $tsGeneratedComment
 
 
-import { stringify } from 'querystring'
+import { stringify } from 'qs'
 import {
   VariableMap,
   ClientRequest,
 } from '${clientConstants.commonTypesPackage}'
+
+const qsOptions = {
+  indices: false,
+  encodeValuesOnly: true
+}
 
 function isDefined<T>(value: T | undefined | null): value is T {
   return typeof value !== 'undefined' && value !== null
@@ -133,7 +138,7 @@ function cleanObject<T extends VariableMap>(obj: T): T {
 
 function formatQueryString(variableMap: VariableMap) {
   const map = cleanObject(variableMap)
-  const result = stringify(map)
+  const result = stringify(map, qsOptions)
   if (result === '') {
     return ''
   }
