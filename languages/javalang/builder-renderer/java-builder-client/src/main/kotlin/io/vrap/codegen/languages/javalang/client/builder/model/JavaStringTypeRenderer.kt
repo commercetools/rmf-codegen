@@ -47,6 +47,9 @@ class JavaStringTypeRenderer constructor(override val vrapTypeProvider: VrapType
                 |
                 |    <${type.enumConsts()}>
                 |    
+                |    /**
+                |     * possible values of ${vrapType.simpleClassName}
+                |     */
                 |    enum ${vrapType.simpleClassName}Enum implements ${vrapType.simpleClassName} {
                 |        <${type.enumFields()}>
                 |        private final String jsonName;
@@ -64,13 +67,30 @@ class JavaStringTypeRenderer constructor(override val vrapTypeProvider: VrapType
                 |        }
                 |    }
                 |
+                |    /**
+                |     * the JSON value
+                |     * @return json value
+                |     */
                 |    @JsonValue
                 |    String getJsonName();
                 |
+                |    /**
+                |     * the enum value
+                |     * @return name
+                |     */
                 |    String name();
                 |
+                |    /**
+                |     * convert value to string
+                |     * @return string representation
+                |     */
                 |    String toString();
                 |
+                |    /**
+                |     * factory method for a enum value of ${vrapType.simpleClassName}
+                |     * if no enum has been found an anonymous instance will be created
+                |     * @return enum instance
+                |     */
                 |    @JsonCreator
                 |    public static ${vrapType.simpleClassName} findEnum(String value) {
                 |        return findEnumViaJsonName(value).orElse(new ${vrapType.simpleClassName}() {
@@ -90,10 +110,18 @@ class JavaStringTypeRenderer constructor(override val vrapTypeProvider: VrapType
                 |        });
                 |    }
                 |
+                |    /**
+                |     * method to find enum using the JSON value
+                |     * @return optional of enum instance
+                |     */
                 |    public static Optional\<${vrapType.simpleClassName}\> findEnumViaJsonName(String jsonName) {
                 |        return Arrays.stream(values()).filter(t -\> t.getJsonName().equals(jsonName)).findFirst();
                 |    }
                 |    
+                |    /**
+                |     * possible enum values
+                |     * @return array of possible enum values
+                |     */
                 |    public static ${vrapType.simpleClassName}[] values() {
                 |        return ${vrapType.simpleClassName}Enum.values();
                 |    }
@@ -112,6 +140,9 @@ class JavaStringTypeRenderer constructor(override val vrapTypeProvider: VrapType
     fun StringType.enumFields() = enumValues()
             ?.map {
                 """
+                |/**
+                | * ${it.value}
+                | */
                 |${it.value.enumValueName()}("${it.value}")
             """.trimMargin()
             }

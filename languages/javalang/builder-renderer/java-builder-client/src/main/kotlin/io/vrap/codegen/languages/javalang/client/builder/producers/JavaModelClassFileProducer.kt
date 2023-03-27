@@ -287,12 +287,18 @@ class JavaModelClassFileProducer constructor(override val vrapTypeProvider: Vrap
                 }
 
         val emptyConstructor : String = """
+            |/**
+            | * create empty instance
+            | */
             |public ${vrapType.simpleClassName}Impl() {
             |    <$discriminatorAssignment>
             |}
         """.trimMargin()
 
         return """
+            |/**
+            | * create instance with all properties
+            | */
             |@JsonCreator
             |${vrapType.simpleClassName}Impl(${constructorArguments.escapeAll()}) {
             |    <$propertiesAssignment>

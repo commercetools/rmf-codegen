@@ -87,6 +87,12 @@ class JavaModelInterfaceRenderer constructor(override val vrapTypeProvider: Vrap
             |
             |    <${type.subTypeBuilders().escapeAll()}>
             |
+            |    /**
+            |     * accessor map function
+            |     * @param \<T\> mapped type
+            |     * @param helper function to map the object
+            |     * @return mapped value
+            |     */
             |    default \<T\> T with${vrapType.simpleClassName}(Function\<${vrapType.simpleClassName}, T\> helper) {
             |        return helper.apply(this);
             |    }
@@ -105,6 +111,10 @@ class JavaModelInterfaceRenderer constructor(override val vrapTypeProvider: Vrap
     private fun ObjectType.typeReference(): String {
         val vrapType = vrapTypeProvider.doSwitch(this).toJavaVType() as VrapObjectType
         return """
+            |/**
+            | * gives a TypeReference for usage with Jackson DataBind
+            | * @return TypeReference
+            | */
             |public static com.fasterxml.jackson.core.type.TypeReference<${vrapType.simpleClassName}> typeReference() {
             |    return new com.fasterxml.jackson.core.type.TypeReference<${vrapType.simpleClassName}>() {
             |        @Override
@@ -128,7 +138,12 @@ class JavaModelInterfaceRenderer constructor(override val vrapTypeProvider: Vrap
     private fun ObjectType.discriminatorValueConst(): String {
         if (this.discriminatorValue == null) return "";
 
-        return "String ${this.discriminatorValue.enumValueName()} = \"${this.discriminatorValue}\";";
+        return """
+            /**
+             * discriminator value for ${this.name}
+             */
+            String ${this.discriminatorValue.enumValueName()} = \"${this.discriminatorValue}\";
+            """.trimIndent()
     }
 
     private fun ObjectType.subTypesAnnotations(): String {
@@ -168,6 +183,10 @@ class JavaModelInterfaceRenderer constructor(override val vrapTypeProvider: Vrap
             ""
         }else {
             """
+                |/**
+                | * factory method
+                | * @return instance of ${vrapType.simpleClassName}
+                | */
                 |public static ${vrapType.simpleClassName} of(){
                 |    return new ${vrapType.simpleClassName}Impl();
                 |}
@@ -182,10 +201,19 @@ class JavaModelInterfaceRenderer constructor(override val vrapTypeProvider: Vrap
             ""
         }else {
             """
+                |/**
+                | * builder factory method for ${vrapType.simpleClassName}
+                | * @return builder
+                | */
                 |public static ${vrapType.simpleClassName}Builder builder() {
                 |    return ${vrapType.simpleClassName}Builder.of();
                 |}
                 |
+                |/**
+                | * create builder for ${vrapType.simpleClassName} instance
+                | * @param template instance with prefilled values for the builder
+                | * @return builder
+                | */
                 |public static ${vrapType.simpleClassName}Builder builder(final ${vrapType.simpleClassName} template) {
                 |    return ${vrapType.simpleClassName}Builder.of(template);
                 |}
@@ -204,6 +232,10 @@ class JavaModelInterfaceRenderer constructor(override val vrapTypeProvider: Vrap
                 .map {
                     val vrapSubType = vrapTypeProvider.doSwitch(it) as VrapObjectType
                     """
+                    |/**
+                    | * builder for ${it.discriminatorValue.lowerCamelCase()} subtype
+                    | * @return builder
+                    | */
                     |public static ${vrapSubType.`package`.toJavaPackage()}.${vrapSubType.simpleClassName}Builder ${it.discriminatorValue.lowerCamelCase()}Builder() {
                     |   return ${vrapSubType.`package`.toJavaPackage()}.${vrapSubType.simpleClassName}Builder.of();
                     |}
@@ -267,6 +299,7 @@ class JavaModelInterfaceRenderer constructor(override val vrapTypeProvider: Vrap
             """
             |/**
             |${this.type.toComment(" * set interface")}
+            | * @param _interface value to be set
             | */
             |${this.deprecationAnnotation()}
             |public void setInterface(final ${vrapType.simpleName()} _interface);
@@ -275,12 +308,14 @@ class JavaModelInterfaceRenderer constructor(override val vrapTypeProvider: Vrap
             """
             |/**
             |${this.type.toComment(" * set ${this.name}")}
+            | * @param ${this.name.lowerCamelCase()} values to be set
             | */
             |${this.deprecationAnnotation()}
             |@JsonIgnore
             |public void set${this.name.upperCamelCase()}(final ${vrapType.itemType.simpleName()} ...${this.name.lowerCamelCase()});
             |/**
             |${this.type.toComment(" * set ${this.name}")}
+            | * @param ${this.name.lowerCamelCase()} values to be set
             | */
             |${this.deprecationAnnotation()}
             |public void set${this.name.upperCamelCase()}(final ${vrapType.simpleName()} ${this.name.lowerCamelCase()});
@@ -290,12 +325,14 @@ class JavaModelInterfaceRenderer constructor(override val vrapTypeProvider: Vrap
                 .map { anyType -> """
                     |/**
                     |${this.type.toComment(" * set ${this.name}")}
+                    | * @param ${this.name.lowerCamelCase()} value to be set
                     | */
                     |${this.deprecationAnnotation()}
                     |public void set${this.name.upperCamelCase()}(final ${anyType.toVrapType().simpleName()} ${this.name.lowerCamelCase()});""".trimMargin() }
                 .plus("""
                     |/**
                     |${this.type.toComment(" * set ${this.name}")}
+                    | * @param ${this.name.lowerCamelCase()} value to be set
                     | */
                     |${this.deprecationAnnotation()}
                     |public void set${this.name.upperCamelCase()}(final ${vrapType.simpleName()} ${this.name.lowerCamelCase()});""".trimMargin())
@@ -304,6 +341,7 @@ class JavaModelInterfaceRenderer constructor(override val vrapTypeProvider: Vrap
             """
             |/**
             |${this.type.toComment(" * set ${this.name}")}
+            | * @param ${this.name.lowerCamelCase()} value to be set
             | */
             |${this.deprecationAnnotation()}
             |public void set${this.name.upperCamelCase()}(final ${vrapType.simpleName()} ${this.name.lowerCamelCase()});
@@ -350,6 +388,11 @@ class JavaModelInterfaceRenderer constructor(override val vrapTypeProvider: Vrap
                     .joinToString(separator = "\n")
 
             """
+            |/**
+            | * factory method to copy an instance of ${vrapType.simpleClassName}
+            | * @param template instance to be copied
+            | * @return copy instance
+            | */
             |public static ${vrapType.simpleClassName} of(final ${vrapType.simpleClassName} template) {
             |    ${vrapType.simpleClassName}Impl instance = new ${vrapType.simpleClassName}Impl();
             |    <$fieldsAssignment>

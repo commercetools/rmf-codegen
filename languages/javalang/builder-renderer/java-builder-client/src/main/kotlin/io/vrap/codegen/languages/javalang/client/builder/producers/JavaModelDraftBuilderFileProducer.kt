@@ -452,6 +452,10 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
         val vrapType = vrapTypeProvider.doSwitch(this).toJavaVType() as VrapObjectType
 
         return """
+            |/**
+            | * factory method for an instance of ${vrapType.simpleClassName}Builder
+            | * @return builder 
+            | */
             |public static ${vrapType.simpleClassName}Builder of() {
             |    return new ${vrapType.simpleClassName}Builder();
             |}
@@ -475,6 +479,11 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
                 .joinToString(separator = "\n")
 
         return """
+            |/**
+            | * create builder for ${vrapType.simpleClassName} instance
+            | * @param template instance with prefilled values for the builder
+            | * @return builder
+            | */
             |public static ${vrapType.simpleClassName}Builder of(final ${vrapType.simpleClassName} template) {
             |    ${vrapType.simpleClassName}Builder builder = new ${vrapType.simpleClassName}Builder();
             |    <$fieldsAssignment>
