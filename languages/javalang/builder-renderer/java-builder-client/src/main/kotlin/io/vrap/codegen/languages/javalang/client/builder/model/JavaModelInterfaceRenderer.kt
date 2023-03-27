@@ -381,8 +381,7 @@ class JavaModelInterfaceRenderer constructor(override val vrapTypeProvider: Vrap
                         if(!it.isPatternProperty()){
                             "instance.set${it.name.upperCamelCase()}(template.get${it.name.upperCamelCase()}());"
                         }else{
-                            "template.values().forEach((s, o) -> instance.setValue(s, o));".escapeAll()
-                            ""
+                            "Optional.ofNullable(template).ifPresent(t -> t.values().forEach(instance::setValue));".escapeAll()
                         }
                     }
                     .joinToString(separator = "\n")
