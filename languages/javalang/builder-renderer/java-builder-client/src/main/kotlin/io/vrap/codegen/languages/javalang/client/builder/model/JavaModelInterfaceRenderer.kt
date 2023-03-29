@@ -414,9 +414,7 @@ class JavaModelInterfaceRenderer constructor(override val vrapTypeProvider: Vrap
                             "instance.set${it.name.upperCamelCase()}(template.get${it.name.upperCamelCase()}());"
                         } else {
                             when (val t = it.type) {
-                                is ObjectType -> "instance.set${it.name.upperCamelCase()}(Optional.ofNullable(template.get${it.name.upperCamelCase()}()).map(${
-                                        t.toVrapType().fullClassName()
-                                    }::deepCopy).orElse(null));"
+                                is ObjectType -> "instance.set${it.name.upperCamelCase()}(${t.toVrapType().fullClassName()}.deepCopy(template.get${it.name.upperCamelCase()}()));"
                                 is ArrayType -> """instance.set${it.name.upperCamelCase()}(Optional.ofNullable(template.get${it.name.upperCamelCase()}())
                                     |        .map(${t.items.itemTypeDeepCopyMethod()})
                                     |        .orElse(null));""".trimMargin().escapeAll()
