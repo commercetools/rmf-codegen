@@ -3,6 +3,7 @@ package io.vrap.codegen.languages.javalang.client.builder.model
 import com.google.common.collect.Lists
 import io.vrap.codegen.languages.extensions.hasSubtypes
 import io.vrap.codegen.languages.extensions.isPatternProperty
+import io.vrap.codegen.languages.extensions.namedSubTypes
 import io.vrap.codegen.languages.extensions.toComment
 import io.vrap.codegen.languages.java.base.JavaSubTemplates
 import io.vrap.codegen.languages.java.base.extensions.*
@@ -12,10 +13,7 @@ import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendering.ObjectTypeRenderer
 import io.vrap.rmf.codegen.rendering.utils.escapeAll
 import io.vrap.rmf.codegen.rendering.utils.keepIndentation
-import io.vrap.rmf.codegen.types.VrapArrayType
-import io.vrap.rmf.codegen.types.VrapEnumType
-import io.vrap.rmf.codegen.types.VrapObjectType
-import io.vrap.rmf.codegen.types.VrapTypeProvider
+import io.vrap.rmf.codegen.types.*
 import io.vrap.rmf.raml.model.types.*
 import io.vrap.rmf.raml.model.types.Annotation
 import io.vrap.rmf.raml.model.types.util.TypesSwitch
@@ -55,10 +53,12 @@ class JavaModelInterfaceRenderer constructor(override val vrapTypeProvider: Vrap
             |import io.vrap.rmf.base.client.utils.Generated;
             |import io.vrap.rmf.base.client.Accessor;
             |import javax.validation.Valid;
+            |import javax.annotation.Nullable;
             |import javax.validation.constraints.NotNull;
             |import java.util.*;
             |import java.time.*;
             |import java.util.function.Function;
+            |import java.util.stream.Collectors;
             |import java.io.IOException;
             |
             |/**
@@ -83,6 +83,8 @@ class JavaModelInterfaceRenderer constructor(override val vrapTypeProvider: Vrap
             |
             |    <${type.templateMethodBody()}>
             |
+            |    <${type.cloneTemplateMethodBody()}>
+
             |    <${type.staticBuilderMethod()}>
             |
             |    <${type.subTypeBuilders().escapeAll()}>
@@ -381,14 +383,14 @@ class JavaModelInterfaceRenderer constructor(override val vrapTypeProvider: Vrap
                         if(!it.isPatternProperty()){
                             "instance.set${it.name.upperCamelCase()}(template.get${it.name.upperCamelCase()}());"
                         }else{
-                            "Optional.ofNullable(template).ifPresent(t -> t.values().forEach(instance::setValue));".escapeAll()
+                            "Optional.ofNullable(template.values()).ifPresent(t -> t.forEach(instance::setValue));".escapeAll()
                         }
                     }
                     .joinToString(separator = "\n")
 
             """
             |/**
-            | * factory method to copy an instance of ${vrapType.simpleClassName}
+            | * factory method to create a shallow copy ${vrapType.simpleClassName}
             | * @param template instance to be copied
             | * @return copy instance
             | */
@@ -398,6 +400,64 @@ class JavaModelInterfaceRenderer constructor(override val vrapTypeProvider: Vrap
             |    return instance;
             |}
         """.trimMargin()
+        }
+    }
+
+    private fun ObjectType.cloneTemplateMethodBody(): String {
+        val vrapType = vrapTypeProvider.doSwitch(this) as VrapObjectType
+        val fieldsAssignment = this.allProperties
+                .filter { it.getAnnotation("deprecated") == null }
+                .filter { it.name != this.discriminator() }
+                .map {
+                    if (!it.isPatternProperty()) {
+                        if (it.type.toVrapType().fullClassName() == "java.lang.Object") {
+                            "instance.set${it.name.upperCamelCase()}(template.get${it.name.upperCamelCase()}());"
+                        } else {
+                            when (val t = it.type) {
+                                is ObjectType -> "instance.set${it.name.upperCamelCase()}(Optional.ofNullable(template.get${it.name.upperCamelCase()}()).map(${
+                                        t.toVrapType().fullClassName()
+                                    }::deepCopy).orElse(null));"
+                                is ArrayType -> """instance.set${it.name.upperCamelCase()}(Optional.ofNullable(template.get${it.name.upperCamelCase()}())
+                                    |        .map(${t.items.itemTypeDeepCopyMethod()})
+                                    |        .orElse(null));""".trimMargin().escapeAll()
+                                else -> "instance.set${it.name.upperCamelCase()}(template.get${it.name.upperCamelCase()}());"
+                            }
+                        }
+                    } else {
+                        "Optional.ofNullable(template.values()).ifPresent(t -> t.forEach(instance::setValue));".escapeAll()
+                    }
+                }
+        return """
+            |/**
+            | * factory method to create a deep copy of ${vrapType.simpleClassName}
+            | * @param template instance to be copied
+            | * @return copy instance
+            | */
+            |@Nullable
+            |public static ${vrapType.simpleClassName} deepCopy(@Nullable final ${vrapType.simpleClassName} template) {
+            |    if (template == null) {
+            |        return null;
+            |    }
+            |    <${if (this.namedSubTypes().isNotEmpty()) this.namedSubTypes().joinToString("\n") { it.subTypeDeepCopy() } else ""}>
+            |    ${vrapType.simpleClassName}Impl instance = new ${vrapType.simpleClassName}Impl();
+            |    <${fieldsAssignment.joinToString("\n")}>
+            |    return instance;
+            |}
+        """.trimMargin()
+    }
+
+    private fun AnyType.subTypeDeepCopy(): String {
+        return """
+            |if (template instanceof ${this.toVrapType().fullClassName()}) {
+            |    return ${this.toVrapType().fullClassName()}.deepCopy((${this.toVrapType().fullClassName()})template);
+            |}
+        """.trimMargin()
+    }
+
+    private fun AnyType.itemTypeDeepCopyMethod(): String {
+        return when(this) {
+            is ObjectType -> "t -> t.stream().map(${this.toVrapType().fullClassName()}::deepCopy).collect(Collectors.toList())"
+            else -> "ArrayList::new"
         }
     }
 
