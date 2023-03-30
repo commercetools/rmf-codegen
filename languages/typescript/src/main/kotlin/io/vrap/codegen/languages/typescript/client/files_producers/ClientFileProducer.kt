@@ -96,7 +96,7 @@ export class ApiRequest<O> {
     fun uriUtilsFile() = TemplateFile(relativePath = "${clientConstants.uriUtilsPackage}.ts", content = """
 $tsGeneratedComment
 
-
+import { stringify } from 'querystring'
 import {
   VariableMap,
   ClientRequest,
@@ -132,7 +132,7 @@ function cleanObject<T extends VariableMap>(obj: T): T {
 
 function formatQueryString(variableMap: VariableMap) {
   const map = cleanObject(variableMap)
-  const result = new URLSearchParams(map as Record<string, string>).toString()
+  const result = stringify(map)
   if (result === '') {
     return ''
   }
