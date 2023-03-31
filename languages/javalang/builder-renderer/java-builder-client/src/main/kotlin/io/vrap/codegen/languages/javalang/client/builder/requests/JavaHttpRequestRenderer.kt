@@ -593,7 +593,7 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
                  * @param key form parameter name
                  * @param value form parameter value
                  * @param <V> value type
-                 * @return T
+                 * @return ${this.toRequestName()}
                  */
                 public <V> ${this.toRequestName()} addFormParam(final String key, final V value) {
                     ${this.toRequestName()} c = copy();
@@ -606,7 +606,7 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
                  * @param key form parameter name
                  * @param value form parameter value
                  * @param <V> value type
-                 * @return T
+                 * @return ${this.toRequestName()}
                  */
                 public <V> ${this.toRequestName()} withFormParam(final String key, final V value) {
                     return withoutFormParam(key).addFormParam(key, value);
@@ -615,7 +615,7 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
                 /**
                  * removes the specified form parameter
                  * @param key form parameter name
-                 * @return T
+                 * @return ${this.toRequestName()}
                  */
                 public ${this.toRequestName()} withoutFormParam(final String key) {
                     ${this.toRequestName()} c = copy();
@@ -628,11 +628,23 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
                 /**
                  * set the form parameters
                  * @param formParams list of form parameters
-                 * @return T
+                 * @return ${this.toRequestName()}
                  */
                 public ${this.toRequestName()} withFormParams(final List<ParamEntry<String, String>> formParams) {
-                    ByProjectKeyProductProjectionsSearchPost c = copy();
+                    ${this.toRequestName()} c = copy();
                     c.formParams = formParams;
+                    return c;
+                }
+                
+                /**
+                 * add the form parameters
+                 * @param formParams list of form parameters
+                 * @return ${this.toRequestName()}
+                 */
+                public ${this.toRequestName()} addFormParams(final List<ParamEntry<String, String>> formParams) {
+                    final ${this.toRequestName()} c = copy();
+
+                    c.formParams.addAll(formParams);
                     return c;
                 }
             
