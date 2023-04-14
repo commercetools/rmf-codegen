@@ -18,7 +18,7 @@ class JavaStringTypeRenderer constructor(override val vrapTypeProvider: VrapType
     override fun render(type: StringType): TemplateFile {
         val vrapType = vrapTypeProvider.doSwitch(type).toJavaVType() as VrapEnumType
 
-        val extends = arrayListOf<String>()
+        val extends = arrayListOf("JsonEnum")
             .plus(
                 when (val ex = type.getAnnotation("java-extends") ) {
                     is Annotation -> {
@@ -37,6 +37,7 @@ class JavaStringTypeRenderer constructor(override val vrapTypeProvider: VrapType
                 |import java.lang.String;
                 |import java.util.Arrays;
                 |import java.util.Optional;
+                |import io.vrap.rmf.base.client.JsonEnum;
                 |import io.vrap.rmf.base.client.utils.Generated;
                 |
                 |/**
