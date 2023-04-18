@@ -96,7 +96,6 @@ export class ApiRequest<O> {
     fun uriUtilsFile() = TemplateFile(relativePath = "${clientConstants.uriUtilsPackage}.ts", content = """
 $tsGeneratedComment
 
-import { stringify } from 'querystring'
 import {
   VariableMap,
   ClientRequest,
@@ -104,6 +103,23 @@ import {
 
 function isDefined<T>(value: T | undefined | null): value is T {
   return typeof value !== 'undefined' && value !== null
+}
+
+function stringify(
+  object: string
+    | Record<string, any>
+    | Array<Array<string>>
+    | URLSearchParams
+): string {
+  const params = new URLSearchParams(object);
+  for (const [key, value] of Object.entries(object)) {
+    if (Array.isArray(value)) {
+      params.delete(key);
+      value.filter(Boolean).forEach((v) => params.append(key, v));
+    }
+  }
+
+  return params.toString();
 }
 
 function cleanObject<T extends VariableMap>(obj: T): T {
