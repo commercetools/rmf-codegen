@@ -1,5 +1,6 @@
 package io.vrap.codegen.languages.javalang.client.builder.producers
 
+import com.google.common.collect.Lists
 import io.vrap.codegen.languages.extensions.hasSubtypes
 import io.vrap.codegen.languages.extensions.isPatternProperty
 import io.vrap.codegen.languages.extensions.toComment
@@ -15,11 +16,8 @@ import io.vrap.rmf.codegen.rendering.utils.keepIndentation
 import io.vrap.rmf.codegen.types.VrapArrayType
 import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
-import io.vrap.rmf.raml.model.resources.Method
-import io.vrap.rmf.raml.model.types.ArrayType
-import io.vrap.rmf.raml.model.types.BooleanInstance
-import io.vrap.rmf.raml.model.types.ObjectType
-import io.vrap.rmf.raml.model.types.Property
+import io.vrap.rmf.raml.model.types.*
+import io.vrap.rmf.raml.model.types.Annotation
 import javax.lang.model.SourceVersion
 
 
@@ -33,6 +31,16 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
     fun render(type: ObjectType): TemplateFile {
 
         val vrapType = vrapTypeProvider.doSwitch(type).toJavaVType() as VrapObjectType
+        val extends = Lists.newArrayList("Builder<${vrapType.simpleClassName}>".escapeAll())
+            .plus(
+                when (val ex = type.getAnnotation("java-builder-implements") ) {
+                    is Annotation -> {
+                        (ex.value as StringInstance).value.escapeAll()
+                    }
+                    else -> null
+                }
+            )
+            .filterNotNull()
 
         val content : String = """
             |package ${vrapType.`package`};
@@ -53,7 +61,7 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
             | */
             |<${JavaSubTemplates.generatedAnnotation}>${if (type.markDeprecated() ) """
             |@Deprecated""" else ""}
-            |public class ${vrapType.simpleClassName}Builder implements Builder\<${vrapType.simpleClassName}\> {
+            |public class ${vrapType.simpleClassName}Builder implements ${extends.joinToString(", ")} {
             |
             |    <${type.fields().escapeAll()}>
             |
@@ -82,6 +90,7 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
             |
             |    <${type.templateMethod()}>
             |
+            |    <${type.getAnnotation("java-builder-mixin")?.value?.value?.let { (it as String).escapeAll()} ?: ""}>
             |}
         """.trimMargin().keepIndentation()
 
@@ -94,6 +103,16 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
     fun renderAbstract(type: ObjectType): TemplateFile {
 
         val vrapType = vrapTypeProvider.doSwitch(type).toJavaVType() as VrapObjectType
+        val extends = Lists.newArrayList<String>()
+            .plus(
+                when (val ex = type.getAnnotation("java-builder-implements") ) {
+                    is Annotation -> {
+                        (ex.value as StringInstance).value.escapeAll()
+                    }
+                    else -> null
+                }
+            )
+            .filterNotNull()
 
         val content : String = """
             |package ${vrapType.`package`};
@@ -112,11 +131,13 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
             | */
             |<${JavaSubTemplates.generatedAnnotation}>${if (type.markDeprecated() ) """
             |@Deprecated""" else ""}
-            |public class ${vrapType.simpleClassName}Builder {
+            |public class ${vrapType.simpleClassName}Builder${if (extends.isNotEmpty()) { " implements ${extends.joinToString(separator = ", ")}" } else ""} {
             |
             |    <${type.subTypeBuilders().escapeAll()}>
             |
             |    <${type.staticOfMethod().escapeAll()}>
+            |
+            |    <${type.getAnnotation("java-builder-mixin")?.value?.value?.let { (it as String).escapeAll()} ?: ""}>
             |}
         """.trimMargin().keepIndentation()
 

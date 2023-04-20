@@ -28,11 +28,13 @@ uninstallRmfCli(){
     rm -f $COMMAND_SYM_LINK
 }
 
-if ! [[ -f $JAR_FILE_PATH ]] || ! codegen_loc="$(type -p "rmf-codegen")" || [[ -z $codegen_loc ]] ; then
-  installRmfCli
-else
-  INSTALLED_VERSION=`rmf-codegen -v`
-  if [ "$CODEGEN_VERSION" != "$INSTALLED_VERSION" ]; then
-    installRmfCli
-  fi
-fi
+installRmfCli
+
+#if ! [[ -f $JAR_FILE_PATH ]] || ! codegen_loc="$(type -p "rmf-codegen")" || [[ -z $codegen_loc ]] ; then
+#  installRmfCli
+#else
+#  INSTALLED_VERSION=`rmf-codegen -v`
+#  if [ "$CODEGEN_VERSION" != "$INSTALLED_VERSION" ]; then
+#    installRmfCli
+#  fi
+#fi
