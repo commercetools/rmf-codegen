@@ -1,6 +1,5 @@
 package io.vrap.codegen.languages.javalang.client.builder.producers
 
-import com.google.common.collect.Lists
 import io.vrap.codegen.languages.extensions.hasSubtypes
 import io.vrap.codegen.languages.extensions.isPatternProperty
 import io.vrap.codegen.languages.extensions.toComment
@@ -31,7 +30,7 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
     fun render(type: ObjectType): TemplateFile {
 
         val vrapType = vrapTypeProvider.doSwitch(type).toJavaVType() as VrapObjectType
-        val extends = Lists.newArrayList("Builder<${vrapType.simpleClassName}>".escapeAll())
+        val extends = listOf("Builder<${vrapType.simpleClassName}>".escapeAll())
             .plus(
                 when (val ex = type.getAnnotation("java-builder-implements") ) {
                     is Annotation -> {
@@ -103,7 +102,7 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
     fun renderAbstract(type: ObjectType): TemplateFile {
 
         val vrapType = vrapTypeProvider.doSwitch(type).toJavaVType() as VrapObjectType
-        val extends = Lists.newArrayList<String>()
+        val extends = emptyList<String>()
             .plus(
                 when (val ex = type.getAnnotation("java-builder-implements") ) {
                     is Annotation -> {
