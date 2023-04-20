@@ -333,6 +333,26 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
                 |    this.$propertyName.add(builder.apply(${propType.itemType.fullClassName()}Builder.of()).build());
                 |    return this;
                 |}
+                |
+                |/**
+                |${propertyType.toComment(" * add the value to the $propertyName using the builder function")}
+                | * @param builder function to build the $propertyName value
+                | * @return Builder
+                | */
+                |${property.deprecationAnnotation()}
+                |public ${type.simpleClassName}Builder add${property.name.firstUpperCase()}(Function<${propType.itemType.fullClassName()}Builder, ${propType.itemType.fullClassName()}> builder) {
+                |    return plus${property.name.firstUpperCase()}(builder.apply(${propType.itemType.fullClassName()}Builder.of()));
+                |}
+                |
+                |/**
+                |${propertyType.toComment(" * set the value to the $propertyName using the builder function")}
+                | * @param builder function to build the $propertyName value
+                | * @return Builder
+                | */
+                |${property.deprecationAnnotation()}
+                |public ${type.simpleClassName}Builder set${property.name.firstUpperCase()}(Function<${propType.itemType.fullClassName()}Builder, ${propType.itemType.fullClassName()}> builder) {
+                |    return $propertyName(builder.apply(${propType.itemType.fullClassName()}Builder.of()));
+                |}
                 """ else ""}
             """.trimMargin()
         } else {
@@ -354,6 +374,16 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
                 |    return this;
                 |}
                 |
+                |/**
+                |${propertyType.toComment(" * set the value to the $propertyName using the builder function")}
+                | * @param builder function to build the $propertyName value
+                | * @return Builder
+                | */
+                |${property.deprecationAnnotation()}
+                |public ${type.simpleClassName}Builder with${propertyName.firstUpperCase()}(Function<${propType.fullClassName()}Builder, ${propType.fullClassName()}> builder) {
+                |    this.$propertyName = builder.apply(${propType.fullClassName()}Builder.of());
+                |    return this;
+                |}
                 """ else ""}
                 |/**
                 |${propertyType.toComment(" * set the value to the $propertyName")}
