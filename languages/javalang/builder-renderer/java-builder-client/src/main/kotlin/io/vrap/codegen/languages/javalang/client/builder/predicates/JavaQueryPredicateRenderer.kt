@@ -21,7 +21,7 @@ class JavaQueryPredicateRenderer constructor(val basePackage: String, override v
         val content = """
             |package ${vrapType.`package`.predicatePackage()};
             |
-            |import $basePackage.predicates.query.*;
+            |import ${basePackage.toJavaPackage()}.predicates.query.*;
             |
             |import java.util.function.Function;
             |
