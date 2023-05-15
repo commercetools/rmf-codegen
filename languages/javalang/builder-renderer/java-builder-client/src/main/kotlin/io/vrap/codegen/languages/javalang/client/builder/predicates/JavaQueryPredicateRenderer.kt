@@ -1,18 +1,13 @@
 package io.vrap.codegen.languages.javalang.client.builder.predicates;
 
-import com.google.common.collect.Lists
-import io.vrap.codegen.languages.extensions.hasSubtypes
 import io.vrap.codegen.languages.extensions.isPatternProperty
 import io.vrap.codegen.languages.java.base.extensions.*
-import io.vrap.rmf.codegen.di.BasePackageName
-import io.vrap.rmf.codegen.di.ClientPackageName
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendering.ObjectTypeRenderer
 import io.vrap.rmf.codegen.rendering.utils.escapeAll
 import io.vrap.rmf.codegen.rendering.utils.keepIndentation
 import io.vrap.rmf.codegen.types.*
 import io.vrap.rmf.raml.model.types.*
-import io.vrap.rmf.raml.model.types.Annotation
 import java.time.LocalDate
 import java.time.ZonedDateTime
 import javax.lang.model.SourceVersion
@@ -26,18 +21,7 @@ class JavaQueryPredicateRenderer constructor(override val vrapTypeProvider: Vrap
         val content = """
             |package ${vrapType.`package`.predicatePackage()};
             |
-            |import com.commercetools.api.predicates.query.BinaryQueryPredicate;
-            |import com.commercetools.api.predicates.query.CombinationQueryPredicate;
-            |import com.commercetools.api.predicates.query.ConstantQueryPredicate;
-            |import com.commercetools.api.predicates.query.ContainerQueryPredicate;
-            |import com.commercetools.api.predicates.query.BooleanComparisonPredicateBuilder;
-            |import com.commercetools.api.predicates.query.DateComparisonPredicateBuilder;
-            |import com.commercetools.api.predicates.query.DateTimeComparisonPredicateBuilder;
-            |import com.commercetools.api.predicates.query.DoubleComparisonPredicateBuilder;
-            |import com.commercetools.api.predicates.query.LongComparisonPredicateBuilder;
-            |import com.commercetools.api.predicates.query.StringComparisonPredicateBuilder;
-            |import com.commercetools.api.predicates.query.TimeComparisonPredicateBuilder;
-            |import com.commercetools.api.predicates.query.GeoJsonPredicateBuilder;
+            |import com.commercetools.api.predicates.query.*;
             |
             |import java.util.function.Function;
             |
@@ -71,7 +55,7 @@ class JavaQueryPredicateRenderer constructor(override val vrapTypeProvider: Vrap
         return propType.toBuilderDsl(this, vrapType);
     }
 
-    private fun VrapType.toBuilderDsl(property: Property, vrapType: VrapObjectType) : String {
+    private fun VrapType.toBuilderDsl(property: Property, vrapType: VrapObjectType, isItemType: Boolean = false) : String {
         var propertyName = property.name
         if(SourceVersion.isKeyword(propertyName)) {
             propertyName = "_$propertyName"
@@ -94,8 +78,21 @@ class JavaQueryPredicateRenderer constructor(override val vrapTypeProvider: Vrap
                 |}
             """.trimMargin())
         }
+        if (this is VrapObjectType && isItemType) {
+            builders.add("""
+                |public CollectionPredicateBuilder<${vrapType.builderDslName()}> $propertyName() {
+                |    return new CollectionPredicateBuilder<>(BinaryQueryPredicate.of().left(new ConstantQueryPredicate("${property.name}")),
+                |            p -> new CombinationQueryPredicate<>(p, ${vrapType.builderDslName()}::of));
+                |}
+            """.trimMargin())
+        }
+        val comparisonPredicate = if (isItemType) {
+            property.type.collectionPredicate()
+        } else {
+            property.type.comparisonPredicate()
+        }
         return when (this) {
-            is VrapArrayType -> this.itemType.toBuilderDsl(property, vrapType);
+            is VrapArrayType -> this.itemType.toBuilderDsl(property, vrapType, true)
             is VrapObjectType -> """
                 |public CombinationQueryPredicate<${vrapType.builderDslName()}> $propertyName(
                 |    Function<${this.`package`.predicatePackage()}.${this.builderDslName()}, CombinationQueryPredicate<${this.`package`.predicatePackage()}.${this.builderDslName()}>> fn) {
@@ -107,14 +104,33 @@ class JavaQueryPredicateRenderer constructor(override val vrapTypeProvider: Vrap
                 |${builders.joinToString("\n")}
             """.trimMargin().escapeAll()
             else -> """
-                |public ${property.type.comparisonPredicate()}<${vrapType.builderDslName()}> $propertyName() {
-                |    return new ${property.type.comparisonPredicate()}<>(BinaryQueryPredicate.of().left(new ConstantQueryPredicate("${property.name}")),
+                |public $comparisonPredicate<${vrapType.builderDslName()}> $propertyName() {
+                |    return new $comparisonPredicate<>(BinaryQueryPredicate.of().left(new ConstantQueryPredicate("${property.name}")),
                 |    p -> new CombinationQueryPredicate<>(p, ${vrapType.builderDslName()}::of));
                 |}
             """.trimMargin().escapeAll()
         }
     }
 
+    private fun AnyType.collectionPredicate() : String {
+        if (this.isInlineType && this.type != null) {
+            return this.type.collectionPredicate()
+        }
+        return when(this) {
+            is BooleanType -> "BooleanComparisonPredicateBuilder"
+            is DateTimeType -> "DateTimeCollectionPredicateBuilder"
+            is TimeOnlyType -> "TimeCollectionPredicateBuilder"
+            is DateOnlyType -> "DateCollectionPredicateBuilder"
+            is NumberType -> when (this.format) {
+                NumberFormat.DOUBLE -> "DoubleCollectionPredicateBuilder"
+                NumberFormat.FLOAT -> "DoubleCollectionPredicateBuilder"
+                else -> "LongCollectionPredicateBuilder"
+            }
+            is IntegerType -> "LongCollectionPredicateBuilder"
+            is StringType -> "StringCollectionPredicateBuilder"
+            else -> "StringCollectionPredicateBuilder"
+        }
+    }
     private fun AnyType.comparisonPredicate() : String {
         return when(this) {
             is BooleanType -> "BooleanComparisonPredicateBuilder"
