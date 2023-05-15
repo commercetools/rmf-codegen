@@ -12,7 +12,7 @@ import java.time.LocalDate
 import java.time.ZonedDateTime
 import javax.lang.model.SourceVersion
 
-class JavaQueryPredicateRenderer constructor(override val vrapTypeProvider: VrapTypeProvider) : JavaObjectTypeExtensions,
+class JavaQueryPredicateRenderer constructor(val basePackage: String, override val vrapTypeProvider: VrapTypeProvider) : JavaObjectTypeExtensions,
     JavaEObjectTypeExtensions, ObjectTypeRenderer {
 
     override fun render(type: ObjectType): TemplateFile {
@@ -21,7 +21,7 @@ class JavaQueryPredicateRenderer constructor(override val vrapTypeProvider: Vrap
         val content = """
             |package ${vrapType.`package`.predicatePackage()};
             |
-            |import com.commercetools.api.predicates.query.*;
+            |import $basePackage.predicates.query.*;
             |
             |import java.util.function.Function;
             |
