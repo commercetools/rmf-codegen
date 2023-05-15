@@ -94,16 +94,11 @@ class BuilderTestCodeGenerator {
         val generatorModule = RamlGeneratorModule(apiProvider, generatorConfig, JavaBaseTypes)
         val generatorComponent = RamlGeneratorComponent(generatorModule, JavaCompleteModule, JavaQueryPredicateModule)
         generatorComponent.generateFiles()
-//
-//        val generatorTestConfig = CodeGeneratorConfig(basePackageName = baseBackage, outputFolder = testOutputFolder)
-//        val generatorTestModule = RamlGeneratorModule(apiProvider, generatorTestConfig, JavaBaseTypes)
-//        val generatorTestComponent = RamlGeneratorComponent(generatorTestModule, JavaTestModule)
-//        generatorTestComponent.generateFiles()
 
-//        val generatorPredicateConfig = CodeGeneratorConfig(basePackageName = baseBackage, modelPackage = "${baseBackage}/predicates/query", outputFolder = predicateOutputFolder)
-//        val generatorPredicateModule = RamlGeneratorModule(apiProvider, generatorPredicateConfig, JavaBaseTypes)
-//        val generatorPredicateComponent = RamlGeneratorComponent(generatorPredicateModule, JavaQueryPredicateModule)
-//        generatorPredicateComponent.generateFiles()
+        val generatorTestConfig = CodeGeneratorConfig(basePackageName = baseBackage, outputFolder = testOutputFolder)
+        val generatorTestModule = RamlGeneratorModule(apiProvider, generatorTestConfig, JavaBaseTypes)
+        val generatorTestComponent = RamlGeneratorComponent(generatorTestModule, JavaTestModule)
+        generatorTestComponent.generateFiles()
     }
 
     @Disabled
