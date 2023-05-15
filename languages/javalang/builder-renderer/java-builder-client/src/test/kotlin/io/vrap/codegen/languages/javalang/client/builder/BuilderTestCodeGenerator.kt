@@ -2,6 +2,7 @@ package io.vrap.codegen.languages.javalang.client.builder
 
 import io.vrap.codegen.languages.java.base.JavaBaseTypes
 import io.vrap.codegen.languages.javalang.client.builder.module.JavaCompleteModule
+import io.vrap.codegen.languages.javalang.client.builder.predicates.JavaQueryPredicateModule
 import io.vrap.codegen.languages.javalang.client.builder.test.JavaTestModule
 
 import io.vrap.rmf.codegen.CodeGeneratorConfig
@@ -34,11 +35,13 @@ class BuilderTestCodeGenerator {
          * */
         private val generatedCodePath = System.getenv("GENERATED_CODE_PATH")
         private val generatedTestCodePath = System.getenv("GENERATED_TEST_CODE_PATH")
+        private val generatedPredicateCodePath = System.getenv("GENERATED_PREDICATE_CODE_PATH")
         private val generatedImporterCodePath = System.getenv("GENERATED_IMPORT_API_CODE_PATH")
         private val apiPath : Path = Paths.get(if (userProvidedPath == null) "../../../../api-spec/api.raml" else userProvidedPath)
         private val importApiPath : Path = Paths.get(if (importApiProvidedPath == null) "../../../../api-spec/api.raml" else importApiProvidedPath)
         private val outputFolder : Path = Paths.get(if (generatedCodePath == null) "build/gensrc/main/java-generated" else generatedCodePath)
         private val testOutputFolder : Path = Paths.get(if (generatedCodePath == null) "build/gensrc/test/java-generated" else generatedTestCodePath)
+        private val predicateOutputFolder : Path = Paths.get(if (generatedPredicateCodePath == null) "build/gensrc/main/java-generated" else generatedPredicateCodePath)
 
         val apiProvider: RamlApiProvider = RamlApiProvider(apiPath)
         val importApiProvider: RamlApiProvider = RamlApiProvider(importApiPath)
@@ -89,7 +92,7 @@ class BuilderTestCodeGenerator {
         val customTypeMapping = typeMapping.map { it.key to mapStringClass(it.value)}.toMap()
         val generatorConfig = CodeGeneratorConfig(basePackageName = baseBackage, outputFolder = outputFolder, customTypeMapping = customTypeMapping)
         val generatorModule = RamlGeneratorModule(apiProvider, generatorConfig, JavaBaseTypes)
-        val generatorComponent = RamlGeneratorComponent(generatorModule, JavaCompleteModule)
+        val generatorComponent = RamlGeneratorComponent(generatorModule, JavaCompleteModule, JavaQueryPredicateModule)
         generatorComponent.generateFiles()
 
         val generatorTestConfig = CodeGeneratorConfig(basePackageName = baseBackage, outputFolder = testOutputFolder)

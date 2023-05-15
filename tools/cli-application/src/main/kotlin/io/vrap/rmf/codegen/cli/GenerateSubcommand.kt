@@ -33,6 +33,7 @@ import io.vrap.codegen.languages.go.GoBaseTypes
 import io.vrap.codegen.languages.go.model.GoModelModule
 import io.vrap.codegen.languages.go.client.GoClientModule
 import io.vrap.codegen.languages.java.base.PlantUmlBaseTypes
+import io.vrap.codegen.languages.javalang.client.builder.predicates.JavaQueryPredicateModule
 import io.vrap.codegen.languages.javalang.plantuml.PlantUmlModule
 import io.vrap.rmf.codegen.CodeGeneratorConfig
 import io.vrap.rmf.codegen.di.*
@@ -101,6 +102,9 @@ class GenerateSubcommand : Callable<Int> {
 
     @CommandLine.Option(names = ["--inline-examples"], description = ["Inline the Examples to the generated RAML files"], required = false)
     var inlineExamples: Boolean = false
+
+    @CommandLine.Option(names = ["--predicates"], description = ["Generate predicate builders"], required = false)
+    var predicateBuilders: Boolean = false
 
     @CommandLine.Option(names = ["-v", "--verbose"], description = ["If set, this would move the verbosity level to debug."], required = false)
     var verbose: Boolean = false
@@ -205,7 +209,11 @@ class GenerateSubcommand : Callable<Int> {
                 generatorComponent = when (target) {
                     GenerationTarget.JAVA_CLIENT -> {
                         val generatorModule = RamlGeneratorModule(apiProvider, generatorConfig, JavaBaseTypes)
-                        RamlGeneratorComponent(generatorModule, JavaCompleteModule)
+                        if (predicateBuilders) {
+                            RamlGeneratorComponent(generatorModule, JavaCompleteModule, JavaQueryPredicateModule)
+                        } else {
+                            RamlGeneratorComponent(generatorModule, JavaCompleteModule)
+                        }
                     }
                     GenerationTarget.JAVA_TEST -> {
                         val generatorModule = RamlGeneratorModule(apiProvider, generatorConfig, JavaBaseTypes)
