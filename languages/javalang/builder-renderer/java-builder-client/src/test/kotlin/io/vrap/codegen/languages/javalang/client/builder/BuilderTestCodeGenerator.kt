@@ -41,7 +41,7 @@ class BuilderTestCodeGenerator {
         private val importApiPath : Path = Paths.get(if (importApiProvidedPath == null) "../../../../api-spec/api.raml" else importApiProvidedPath)
         private val outputFolder : Path = Paths.get(if (generatedCodePath == null) "build/gensrc/main/java-generated" else generatedCodePath)
         private val testOutputFolder : Path = Paths.get(if (generatedCodePath == null) "build/gensrc/test/java-generated" else generatedTestCodePath)
-        private val predicateOutputFolder : Path = Paths.get(if (generatedPredicateCodePath == null) "build/gensrc/main/java-generated" else generatedPredicateCodePath)
+        private val predicateOutputFolder : Path = Paths.get(if (generatedPredicateCodePath == null) "build/gensrc/main/java-predicates-generated" else generatedPredicateCodePath)
 
         val apiProvider: RamlApiProvider = RamlApiProvider(apiPath)
         val importApiProvider: RamlApiProvider = RamlApiProvider(importApiPath)
@@ -92,13 +92,23 @@ class BuilderTestCodeGenerator {
         val customTypeMapping = typeMapping.map { it.key to mapStringClass(it.value)}.toMap()
         val generatorConfig = CodeGeneratorConfig(basePackageName = baseBackage, outputFolder = outputFolder, customTypeMapping = customTypeMapping)
         val generatorModule = RamlGeneratorModule(apiProvider, generatorConfig, JavaBaseTypes)
-        val generatorComponent = RamlGeneratorComponent(generatorModule, JavaCompleteModule, JavaQueryPredicateModule)
+        val generatorComponent = RamlGeneratorComponent(generatorModule, JavaCompleteModule)
         generatorComponent.generateFiles()
 
         val generatorTestConfig = CodeGeneratorConfig(basePackageName = baseBackage, outputFolder = testOutputFolder)
         val generatorTestModule = RamlGeneratorModule(apiProvider, generatorTestConfig, JavaBaseTypes)
         val generatorTestComponent = RamlGeneratorComponent(generatorTestModule, JavaTestModule)
         generatorTestComponent.generateFiles()
+
+        val predicateTypeMapping = mapOf(
+            Pair("LocalizedString", "com.commercetools.api.models.common.LocalizedString"),
+        )
+        val customPredicateTypeMapping = predicateTypeMapping.map { it.key to mapStringClass(it.value)}.toMap()
+
+        val generatorPredicateConfig = CodeGeneratorConfig(basePackageName = baseBackage, outputFolder = predicateOutputFolder, customTypeMapping = customPredicateTypeMapping)
+        val generatorPredicateModule = RamlGeneratorModule(apiProvider, generatorPredicateConfig, JavaBaseTypes)
+        val generatorPredicateComponent = RamlGeneratorComponent(generatorPredicateModule, JavaQueryPredicateModule)
+        generatorPredicateComponent.generateFiles()
     }
 
     @Disabled

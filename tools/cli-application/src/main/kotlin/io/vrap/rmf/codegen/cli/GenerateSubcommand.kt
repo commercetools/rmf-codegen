@@ -57,6 +57,7 @@ import kotlin.system.measureTimeMillis
 enum class GenerationTarget {
     JAVA_CLIENT,
     JAVA_TEST,
+    JAVA_QUERY_PREDICATES,
     TYPESCRIPT_CLIENT,
     TYPESCRIPT_TEST,
     PHP_CLIENT,
@@ -71,7 +72,7 @@ enum class GenerationTarget {
     PYTHON_CLIENT,
     PLANTUML,
 }
-const val ValidTargets = "JAVA_CLIENT, JAVA_TEST, TYPESCRIPT_CLIENT, TYPESCRIPT_TEST, CSHARP_CLIENT, CSHARP_TEST, PHP_CLIENT, PHP_BASE, PHP_TEST, POSTMAN, RAML_DOC, OAS, PYTHON_CLIENT, PLANTUML"
+const val ValidTargets = "JAVA_CLIENT, JAVA_TEST, JAVA_QUERY_PREDICATES, TYPESCRIPT_CLIENT, TYPESCRIPT_TEST, CSHARP_CLIENT, CSHARP_TEST, PHP_CLIENT, PHP_BASE, PHP_TEST, POSTMAN, RAML_DOC, OAS, PYTHON_CLIENT, PLANTUML"
 
 @CommandLine.Command(name = "generate",description = ["Generate source code from a RAML specification."])
 class GenerateSubcommand : Callable<Int> {
@@ -214,6 +215,10 @@ class GenerateSubcommand : Callable<Int> {
                         } else {
                             RamlGeneratorComponent(generatorModule, JavaCompleteModule)
                         }
+                    }
+                    GenerationTarget.JAVA_QUERY_PREDICATES -> {
+                        val generatorModule = RamlGeneratorModule(apiProvider, generatorConfig, JavaBaseTypes)
+                        RamlGeneratorComponent(generatorModule, JavaQueryPredicateModule)
                     }
                     GenerationTarget.JAVA_TEST -> {
                         val generatorModule = RamlGeneratorModule(apiProvider, generatorConfig, JavaBaseTypes)
