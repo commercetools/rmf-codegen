@@ -136,17 +136,21 @@ class CsharpModelInterfaceRenderer constructor(override val vrapTypeProvider: Vr
                 .filter { it.getAnnotation("deprecated") == null }
                 .filter { it.discriminatorValue != null }
                 .sortedBy { anyType -> anyType.discriminatorValue.lowercase(Locale.getDefault()) }
-                .map { it.subtypeFactory() }
+                .map { it.subtypeFactory(this) }
                 .joinToString(separator = "\n")}>
             """.trimMargin()
         else ""
     }
 
-    private fun ObjectType.subtypeFactory(): String {
+    private fun ObjectType.subtypeFactory(parentType: ObjectType): String {
         val vrapType = vrapTypeProvider.doSwitch(this) as VrapObjectType
         val className = "${vrapType.`package`.toCsharpPackage()}.${this.objectClassName()}"
+        var subTypeName = this.discriminatorValue.upperCamelCase()
+        if (parentType.properties.any { it.name.upperCamelCase() == subTypeName }) {
+            subTypeName = "_$subTypeName"
+        }
         return """
-            |static $className ${this.discriminatorValue.upperCamelCase()}(Action\<$className\> init = null) {
+            |static $className $subTypeName(Action\<$className\> init = null) {
             |    var t = new $className();
             |    init?.Invoke(t);
             |    return t;
