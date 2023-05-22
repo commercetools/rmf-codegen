@@ -1,5 +1,7 @@
 package io.vrap.codegen.languages.javalang.client.builder.predicates;
 
+import com.google.common.collect.Lists
+import io.vrap.codegen.languages.extensions.hasSubtypes
 import io.vrap.codegen.languages.extensions.isPatternProperty
 import io.vrap.codegen.languages.extensions.namedSubTypes
 import io.vrap.codegen.languages.java.base.extensions.*
@@ -11,6 +13,7 @@ import io.vrap.rmf.codegen.rendering.utils.escapeAll
 import io.vrap.rmf.codegen.rendering.utils.keepIndentation
 import io.vrap.rmf.codegen.types.*
 import io.vrap.rmf.raml.model.types.*
+import io.vrap.rmf.raml.model.types.Annotation
 import io.vrap.rmf.raml.model.util.StringCaseFormat
 import java.time.LocalDate
 import java.time.ZonedDateTime
@@ -22,6 +25,17 @@ class JavaQueryPredicateRenderer constructor(val basePackage: String, override v
     override fun render(type: ObjectType): TemplateFile {
         val vrapType = vrapTypeProvider.doSwitch(type).toJavaVType() as VrapObjectType
 
+        val implements = Lists.newArrayList(type.type?.toVrapType()?.simpleName())
+            .plus(
+                when (val ex = type.getAnnotation("java-query-implements") ) {
+                    is Annotation -> {
+                        (ex.value as StringInstance).value.escapeAll()
+                    }
+                    else -> null
+                }
+            )
+            .filterNotNull()
+
         val content = """
             |package ${vrapType.`package`.predicatePackage()};
             |
@@ -31,7 +45,7 @@ class JavaQueryPredicateRenderer constructor(val basePackage: String, override v
             |
             |${if (type.markDeprecated()) """
             |@Deprecated""" else ""}
-            |public class ${vrapType.builderDslName()} {
+            |public class ${vrapType.builderDslName()} ${if (implements.isNotEmpty()) { "implements ${implements.joinToString(separator = ", ")}" } else ""} {
             |    public ${vrapType.builderDslName()}() {
             |    }
             |
