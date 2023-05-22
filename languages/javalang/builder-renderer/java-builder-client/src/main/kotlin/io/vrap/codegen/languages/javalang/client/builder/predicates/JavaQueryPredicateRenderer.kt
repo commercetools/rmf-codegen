@@ -25,7 +25,7 @@ class JavaQueryPredicateRenderer constructor(val basePackage: String, override v
     override fun render(type: ObjectType): TemplateFile {
         val vrapType = vrapTypeProvider.doSwitch(type).toJavaVType() as VrapObjectType
 
-        val implements = Lists.newArrayList(type.type?.toVrapType()?.simpleName())
+        val implements = emptyList<String>()
             .plus(
                 when (val ex = type.getAnnotation("java-query-implements") ) {
                     is Annotation -> {
