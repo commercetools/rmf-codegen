@@ -146,7 +146,7 @@ class CsharpModelInterfaceRenderer constructor(override val vrapTypeProvider: Vr
         val vrapType = vrapTypeProvider.doSwitch(this) as VrapObjectType
         val className = "${vrapType.`package`.toCsharpPackage()}.${this.objectClassName()}"
         var subTypeName = this.discriminatorValue.upperCamelCase()
-        if (parentType.properties.any { it.name.upperCamelCase() == subTypeName }) {
+        if (parentType.allProperties.any { it.name.lowercase() == subTypeName.lowercase() }) {
             subTypeName = "_$subTypeName"
         }
         return """
