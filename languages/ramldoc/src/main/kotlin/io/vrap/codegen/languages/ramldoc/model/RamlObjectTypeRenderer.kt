@@ -58,6 +58,7 @@ class RamlObjectTypeRenderer constructor(override val vrapTypeProvider: VrapType
     private fun renderExample(type: VrapObjectType, example: Example, inlineExample: Boolean = false): String {
         val t = if (type.packageDir(modelPackageName).isNotEmpty()) "../.." else ".."
         val exampleName = "${t}/examples/" + type.packageDir(modelPackageName) + type.simpleClassName + "-${if (example.name.isNotEmpty()) example.name else "default"}.json"
+
         return """
             |${if (example.name.isNotEmpty()) example.name else "default"}:${if (example.displayName != null) """
             |  displayName: ${example.displayName.value.trim()}""" else ""}${if (example.description != null) """
@@ -65,8 +66,8 @@ class RamlObjectTypeRenderer constructor(override val vrapTypeProvider: VrapType
             |    <<${example.description.value.trim()}>>""" else ""}${if (example.annotations.isNotEmpty()) """
             |  <<${example.annotations.joinToString("\n") { it.renderAnnotation() }}>>""" else ""}
             |  strict: ${example.strict.value}
-            |  value:${if (!inlineExample) " !include $exampleName" else if (example.value is ObjectInstance) """|
-            |    <<${example.value.toJson().escapeAll()}>>""".trimMargin().keepAngleIndent().escapeAll() else " " + example.value.toJson().escapeAll() }
+            |  value:${if (!inlineExample) " !include $exampleName" else if (example.value is ObjectInstance || example.value is ArrayInstance) """
+            |    <<${example.value.toJson().escapeAll()}>>""" else " " + example.value.toJson().escapeAll() }
         """.trimMargin().keepAngleIndent()
     }
 
