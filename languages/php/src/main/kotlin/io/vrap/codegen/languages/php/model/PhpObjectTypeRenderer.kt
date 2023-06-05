@@ -482,7 +482,7 @@ class PhpObjectTypeRenderer constructor(override val vrapTypeProvider: VrapTypeP
 
     private fun Property.mapper() = this.mapper(this.type)
 
-    private fun Property.mapper(type: AnyType, assignment: String = "$!this->${this.name} = "):String {
+    private fun Property.mapper(type: AnyType, assignment: String = "$!this->${this.name} ="):String {
         val vrapType = type.toVrapType()
         return when(type) {
             is ObjectType ->
