@@ -9,6 +9,7 @@ import io.vrap.codegen.languages.csharp.CsharpBaseTypes
 import io.vrap.codegen.languages.csharp.client.builder.test.CsharpTestModule
 import io.vrap.codegen.languages.csharp.modules.CsharpClientBuilderModule
 import io.vrap.codegen.languages.csharp.modules.CsharpModule
+import io.vrap.codegen.languages.csharp.predicates.CsharpQueryPredicateModule
 import io.vrap.codegen.languages.java.base.JavaBaseTypes
 import io.vrap.codegen.languages.javalang.client.builder.module.JavaCompleteModule
 import io.vrap.codegen.languages.javalang.client.builder.test.JavaTestModule
@@ -68,11 +69,12 @@ enum class GenerationTarget {
     RAML_DOC,
     CSHARP_CLIENT,
     CSHARP_TEST,
+    CSHARP_QUERY_PREDICATES,
     OAS,
     PYTHON_CLIENT,
     PLANTUML,
 }
-const val ValidTargets = "JAVA_CLIENT, JAVA_TEST, JAVA_QUERY_PREDICATES, TYPESCRIPT_CLIENT, TYPESCRIPT_TEST, CSHARP_CLIENT, CSHARP_TEST, PHP_CLIENT, PHP_BASE, PHP_TEST, POSTMAN, RAML_DOC, OAS, PYTHON_CLIENT, PLANTUML"
+const val ValidTargets = "JAVA_CLIENT, JAVA_TEST, JAVA_QUERY_PREDICATES, TYPESCRIPT_CLIENT, TYPESCRIPT_TEST, CSHARP_CLIENT, CSHARP_TEST, CSHARP_QUERY_PREDICATES, PHP_CLIENT, PHP_BASE, PHP_TEST, POSTMAN, RAML_DOC, OAS, PYTHON_CLIENT, PLANTUML"
 
 @CommandLine.Command(name = "generate",description = ["Generate source code from a RAML specification."])
 class GenerateSubcommand : Callable<Int> {
@@ -246,11 +248,19 @@ class GenerateSubcommand : Callable<Int> {
                     }
                     GenerationTarget.CSHARP_CLIENT -> {
                         val generatorModule = RamlGeneratorModule(apiProvider, generatorConfig, CsharpBaseTypes)
-                        RamlGeneratorComponent(generatorModule, CsharpModule, CsharpClientBuilderModule)
+                        if (predicateBuilders) {
+                            RamlGeneratorComponent(generatorModule, CsharpModule, CsharpClientBuilderModule, CsharpQueryPredicateModule)
+                        } else {
+                            RamlGeneratorComponent(generatorModule, CsharpModule, CsharpClientBuilderModule)
+                        }
                     }
                     GenerationTarget.CSHARP_TEST -> {
                         val generatorModule = RamlGeneratorModule(apiProvider, generatorConfig, CsharpBaseTypes)
                         RamlGeneratorComponent(generatorModule, CsharpTestModule)
+                    }
+                    GenerationTarget.CSHARP_QUERY_PREDICATES -> {
+                        val generatorModule = RamlGeneratorModule(apiProvider, generatorConfig, CsharpBaseTypes)
+                        RamlGeneratorComponent(generatorModule, CsharpQueryPredicateModule)
                     }
                     GenerationTarget.POSTMAN -> {
                         val generatorModule = RamlGeneratorModule(apiProvider, generatorConfig, PostmanBaseTypes)
