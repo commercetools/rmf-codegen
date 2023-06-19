@@ -58,6 +58,7 @@ class CsharpObjectTypeRenderer constructor(override val vrapTypeProvider: VrapTy
         return  """
             |${this.usings()}
             |
+            |// ReSharper disable CheckNamespace
             |namespace ${vrapType.csharpPackage()}
             |{
             |    ${if (this.markDeprecated()) "[Obsolete(\"usage of this endpoint has been deprecated.\", false)]" else ""}

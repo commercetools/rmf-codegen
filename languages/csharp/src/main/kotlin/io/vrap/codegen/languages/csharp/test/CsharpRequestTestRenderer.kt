@@ -36,6 +36,7 @@ class CsharpRequestTestRenderer constructor(override val vrapTypeProvider: VrapT
             |using ${"$modelsUsing.Common"};
             |using Xunit;
             |
+            |// ReSharper disable CheckNamespace
             |namespace $cPackage
             |{
             |   public class ${type.toResourceName()}Test:RequestBuilderParentTests 

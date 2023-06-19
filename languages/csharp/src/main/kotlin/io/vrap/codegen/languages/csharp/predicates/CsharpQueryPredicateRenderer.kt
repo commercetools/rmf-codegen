@@ -39,6 +39,7 @@ class CsharpQueryPredicateRenderer constructor(val basePackage: String, override
             |using ${basePackage.toCsharpPackage()}.Predicates.Query;
             |using commercetools.Base.Models;
             |
+            |// ReSharper disable CheckNamespace
             |namespace ${vrapType.`package`.predicatePackage()}
             |{
             |    ${if (type.markDeprecated()) """
@@ -81,7 +82,7 @@ class CsharpQueryPredicateRenderer constructor(val basePackage: String, override
             simpleClassName = this.simpleClassName
         }
 
-        var namespaceDir = packageName.replace("Models", "Predicates.Query").toNamespaceDir()
+        var namespaceDir = packageName.replace("Models", "").toNamespaceDir()
         var fileName = if (isInterface) "I${simpleClassName}" else simpleClassName
 
         return "${namespaceDir}.${fileName}QueryBuilderDsl".replace(".", "/") + ".cs"

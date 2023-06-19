@@ -248,11 +248,7 @@ class GenerateSubcommand : Callable<Int> {
                     }
                     GenerationTarget.CSHARP_CLIENT -> {
                         val generatorModule = RamlGeneratorModule(apiProvider, generatorConfig, CsharpBaseTypes)
-                        if (predicateBuilders) {
-                            RamlGeneratorComponent(generatorModule, CsharpModule, CsharpClientBuilderModule, CsharpQueryPredicateModule)
-                        } else {
-                            RamlGeneratorComponent(generatorModule, CsharpModule, CsharpClientBuilderModule)
-                        }
+                        RamlGeneratorComponent(generatorModule, CsharpModule, CsharpClientBuilderModule)
                     }
                     GenerationTarget.CSHARP_TEST -> {
                         val generatorModule = RamlGeneratorModule(apiProvider, generatorConfig, CsharpBaseTypes)

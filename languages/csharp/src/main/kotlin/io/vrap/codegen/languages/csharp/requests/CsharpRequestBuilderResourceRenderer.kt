@@ -36,6 +36,7 @@ class CsharpRequestBuilderResourceRenderer constructor(override val vrapTypeProv
             |using commercetools.Base.Serialization;
             |<${type.subResourcesUsings()}>
             |
+            |// ReSharper disable CheckNamespace
             |namespace $cPackage
             |{
             |   ${if (type.markDeprecated()) "[Obsolete(\"usage of this endpoint has been deprecated.\", false)]" else ""}

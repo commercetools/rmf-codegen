@@ -65,6 +65,7 @@ class CsharpHttpRequestRenderer constructor(override val vrapTypeProvider: VrapT
             |using commercetools.Base.Serialization;
             |${type.usings()}
             |
+            |// ReSharper disable CheckNamespace
             |namespace ${cPackage}
             |{
             |   ${if (type.markDeprecated()) "[Obsolete(\"usage of this endpoint has been deprecated.\", false)]" else ""}

@@ -27,6 +27,7 @@ class CsharpTraitRenderer  constructor(override val vrapTypeProvider: VrapTypePr
         val content= """
             |using System.Collections.Generic;
             |
+            |// ReSharper disable CheckNamespace
             |namespace ${cPackage}
             |{
             |    public interface I${vrapType.simpleClassName}\<T\> where T: I${vrapType.simpleClassName}\<T\> {

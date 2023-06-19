@@ -37,7 +37,7 @@ class CsharpModelInterfaceRenderer constructor(override val vrapTypeProvider: Vr
 
         var content : String = """
             |${type.usings()}
-            |
+            |// ReSharper disable CheckNamespace
             |namespace ${vrapType.csharpPackage()}
             |{
             |    <${type.DeserializationAttributes()}>

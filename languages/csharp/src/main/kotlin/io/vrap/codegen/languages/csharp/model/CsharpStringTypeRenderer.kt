@@ -23,6 +23,8 @@ class CsharpStringTypeRenderer constructor(override val vrapTypeProvider: VrapTy
                 |using System.Linq;
                 |using commercetools.Base.CustomAttributes;
                 |using commercetools.Base.Models;
+                |
+                |// ReSharper disable CheckNamespace
                 |namespace ${vrapType.csharpPackage()}
                 |{
                 |    public enum ${vrapType.simpleClassName}
