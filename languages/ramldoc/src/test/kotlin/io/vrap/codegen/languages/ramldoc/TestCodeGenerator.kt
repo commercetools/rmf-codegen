@@ -59,7 +59,7 @@ class TestCodeGenerator {
         val generatorComponent = RamlGeneratorComponent(generatorModule, RamldocModelModule)
         generatorComponent.generateFiles()
 
-        Assertions.assertThat(dataSink.files).hasSize(9)
+        Assertions.assertThat(dataSink.files).hasSize(10)
         Assertions.assertThat(dataSink.files.get("resources/Test.raml")?.trim()).isEqualTo("""
             # Resource
             (resourceName): Test
@@ -79,6 +79,16 @@ class TestCodeGenerator {
                             {
                               "predicate" : "lineItem = \"SKU\""
                             }
+            
+                201:
+                  body:
+                    application/json:
+                      type: string
+                      (builtinType): string
+                      examples:
+                        default:
+                          strict: true
+                          value: "foo"
             
               (codeExamples):
                 curl: |-

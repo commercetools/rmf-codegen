@@ -49,21 +49,21 @@ object RamldocModelModule : Module {
         ),
         StringTypeGenerator(
                 setOf(
-                        RamlStringTypeRenderer(generatorModule.vrapTypeProvider(), generatorModule.provideModelPackageName())
+                        RamlStringTypeRenderer(generatorModule.vrapTypeProvider(), generatorModule.provideModelPackageName(), generatorModule.generatorConfig.inlineExamples)
                 ),
                 generatorModule.allEnumStringTypes()
         ),
         PatternStringTypeGenerator(
                 setOf(
-                        RamlStringTypeRenderer(generatorModule.vrapTypeProvider(), generatorModule.provideModelPackageName())
+                        RamlStringTypeRenderer(generatorModule.vrapTypeProvider(), generatorModule.provideModelPackageName(), generatorModule.generatorConfig.inlineExamples)
                 ), generatorModule.allPatternStringTypes()),
         NamedStringTypeGenerator(
                 setOf(
-                        RamlStringTypeRenderer(generatorModule.vrapTypeProvider(), generatorModule.provideModelPackageName())
+                        RamlStringTypeRenderer(generatorModule.vrapTypeProvider(), generatorModule.provideModelPackageName(), generatorModule.generatorConfig.inlineExamples)
                 ), generatorModule.allNamedScalarTypes()),
         NamedScalarTypeGenerator(
                 setOf(
-                        RamlAnyTypeRenderer(generatorModule.vrapTypeProvider(), generatorModule.provideModelPackageName())
+                        RamlAnyTypeRenderer(generatorModule.vrapTypeProvider(), generatorModule.provideModelPackageName(), generatorModule.generatorConfig.inlineExamples)
                 ), generatorModule.allAnyTypes().namedAnyTypes()),
         ResourceGenerator(
                 setOf(
