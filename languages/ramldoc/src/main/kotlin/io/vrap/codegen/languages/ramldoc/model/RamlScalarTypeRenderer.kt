@@ -111,7 +111,7 @@ sealed class RamlScalarTypeRenderer<T: AnyType> constructor(override val vrapTyp
             |  strict: ${example.strict.value}
             |  value: ${if (!inlineExample) " !include $exampleName" else if (example.value is ObjectInstance || example.value is ArrayInstance) """
             |    <<${example.value.toJson().escapeAll()}>>""" else " " + example.value.toJson().escapeAll() }
-        """.trimMargin()
+        """.trimMargin().keepAngleIndent()
     }
 
     private fun renderExample(type: AnyType, example: Example, inlineExample: Boolean = false): String {
@@ -125,6 +125,6 @@ sealed class RamlScalarTypeRenderer<T: AnyType> constructor(override val vrapTyp
             |  strict: ${example.strict.value}
             |  value: ${if (!inlineExample) " !include $exampleName" else if (example.value is ObjectInstance || example.value is ArrayInstance) """
             |    <<${example.value.toJson().escapeAll()}>>""" else " " + example.value.toJson().escapeAll() }
-        """.trimMargin()
+        """.trimMargin().keepAngleIndent()
     }
 }
