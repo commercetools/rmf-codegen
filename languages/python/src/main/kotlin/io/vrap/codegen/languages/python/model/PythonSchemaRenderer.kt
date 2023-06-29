@@ -170,7 +170,7 @@ class PythonSchemaRenderer constructor(
         if (!prop.required) {
             kwargs.add("metadata={'omit_empty': True}")
         }
-        kwargs.add("missing=None")
+        kwargs.add("load_default=None")
         if (prop.name != prop.name.snakeCase()) {
             kwargs.add("data_key=\"${prop.name}\"")
         }
@@ -179,10 +179,12 @@ class PythonSchemaRenderer constructor(
             return """
             |helpers.RegexField(
             |    unknown=marshmallow.EXCLUDE,
-            |    metadata={'pattern': re.compile("${prop.pattern}")},
-            |    type=${prop.type.PyMarshmallowFieldClass()}(
-            |       ${kwargs.joinToString(separator = ",\n      ")}
-            |    )
+            |    metadata={
+            |        'pattern': re.compile("${prop.pattern}"),
+            |        'type': ${prop.type.PyMarshmallowFieldClass()}(
+            |            ${kwargs.joinToString(separator = ",\n      ")}
+            |        ),
+            |    },
             |)
             """.trimMargin()
         } else {
