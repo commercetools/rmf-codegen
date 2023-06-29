@@ -151,16 +151,14 @@ class PythonModelRenderer constructor(
                     "${it.name.snakeCase()}: typing.Optional[${it.type.renderTypeExpr()}] = None"
                 }
             }
-            .plus(
-                if (PyClassProperties(true).filter { it.isPatternProperty() }.size > 0) "**kwargs"  else ""
-            )
-            .filter {
-                it != ""
-            }
 
         if (kwargs.size > 0) {
             attributes += arrayOf("*")
             attributes += kwargs
+        }
+
+        if (PyClassProperties(true).filter { it.isPatternProperty() }.size > 0) {
+            attributes += arrayOf("**kwargs")
         }
 
         var initArgs = mutableListOf<String>()
