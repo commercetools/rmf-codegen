@@ -68,7 +68,7 @@ class RequestBuilder constructor(
                 .variables
                 .map { it.snakeCase() }
                 .map { "$it: str" }
-                .joinToString(separator = ",\n")
+                .joinToString(separator = ",\n") + ","
         } else { "" }
 
         val pathTypes = if (!this.fullUri.variables.isEmpty()) {
@@ -91,7 +91,7 @@ class RequestBuilder constructor(
             |
             |def __init__(
             |    self,
-            |    <$pathArgs>,
+            |    <$pathArgs>
             |    client: "BaseClient",
             |):
             |    <$assignments>
