@@ -105,14 +105,15 @@ class JavaModelClassFileProducer constructor(override val vrapTypeProvider: Vrap
             |    ${vrapType.simpleClassName}Impl that = (${vrapType.simpleClassName}Impl) o;
             |
             |    return new EqualsBuilder()
-            |            <${this.allProperties.filter { it.getAnnotation("deprecated") == null }.joinToString("\n") { it.equalsMethod() }}>
+            |            <${this.allProperties.filterNot { it.deprecated() }.joinToString("\n") { it.equalsMethod() }}>
+            |            <${this.allProperties.filterNot { it.deprecated() }.joinToString("\n") { it.equalsMethod() }}>
             |            .isEquals();
             |}
             |
             |@Override
             |public int hashCode() {
             |    return new HashCodeBuilder(17, 37)
-            |        <${this.allProperties.filter { it.getAnnotation("deprecated") == null }.joinToString("\n") { it.hashMethod() }}>
+            |        <${this.allProperties.filterNot { it.deprecated() }.joinToString("\n") { it.hashMethod() }}>
             |        .toHashCode();
             |}
         """.trimMargin().keepIndentation()
