@@ -53,7 +53,7 @@ class JavaQueryPredicateRenderer constructor(val basePackage: String, override v
             |        return new ${vrapType.builderDslName()}();
             |    }
             |
-            |    <${type.allProperties.filterNot { it.isPatternProperty() }.joinToString("\n") { it.toBuilderDsl(type) }}>
+            |    <${type.allProperties.filterNot { it.deprecated() }.filterNot { it.isPatternProperty() }.joinToString("\n") { it.toBuilderDsl(type) }}>
             |    
             |    <${type.namedSubTypes().filterIsInstance<ObjectType>().joinToString("\n") { it.toBuilderDsl("as${it.subtypeName()}", vrapType) }}>
             |}

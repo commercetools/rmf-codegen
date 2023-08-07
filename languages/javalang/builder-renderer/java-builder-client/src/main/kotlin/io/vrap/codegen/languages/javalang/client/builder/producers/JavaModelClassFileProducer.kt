@@ -139,17 +139,17 @@ class JavaModelClassFileProducer constructor(override val vrapTypeProvider: Vrap
     }
 
     private fun ObjectType.beanFields() = this.allProperties
-            .filter { it.getAnnotation("deprecated") == null }
+            .filterNot { it.deprecated() }
             .map { it.toJavaField() }.joinToString(separator = "\n\n")
 
     private fun ObjectType.setters() = this.allProperties
-            .filter { it.getAnnotation("deprecated") == null }
+            .filterNot { it.deprecated() }
             .filter { it.name != this.discriminator() }
             .map { it.setter() }
             .joinToString(separator = "\n\n")
 
     private fun ObjectType.getters() = this.allProperties
-            .filter { it.getAnnotation("deprecated") == null }
+            .filterNot { it.deprecated() }
             .map { it.getter() }
             .joinToString(separator = "\n\n")
 
@@ -247,7 +247,7 @@ class JavaModelClassFileProducer constructor(override val vrapTypeProvider: Vrap
     private fun ObjectType.constructors(): String {
         val vrapType = vrapTypeProvider.doSwitch(this).toJavaVType() as VrapObjectType
         val constructorArguments = this.allProperties
-                .filter { it.getAnnotation("deprecated") == null }
+                .filterNot { it.deprecated() }
                 .filterNot { it.name == this.discriminator() && this.discriminatorValue != null}
                 .map {
                     if(it.isPatternProperty()) {
@@ -261,7 +261,7 @@ class JavaModelClassFileProducer constructor(override val vrapTypeProvider: Vrap
                 .joinToString(separator = ", ")
 
         val propertiesAssignment : String = this.allProperties
-                .filter { it.getAnnotation("deprecated") == null }
+                .filterNot { it.deprecated() }
                 .filterNot { it.name == this.discriminator() && this.discriminatorValue != null }
                 .map {
                     if(it.isPatternProperty()){

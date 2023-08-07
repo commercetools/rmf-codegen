@@ -168,7 +168,7 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
     }
 
     private fun ObjectType.fields() = this.allProperties
-            .filter { it.getAnnotation("deprecated") == null }
+            .filterNot { it.deprecated() }
             .filter { it.name != this.discriminator() }
             .map { it.toField() }
             .joinToString(separator = "\n\n")
@@ -200,7 +200,7 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
         val vrapType = vrapTypeProvider.doSwitch(this).toJavaVType() as VrapObjectType
 
         return this.allProperties
-                .filter { it.getAnnotation("deprecated") == null }
+                .filterNot { it.deprecated() }
                 .filter { it.name != this.discriminator() }
                 .map { assignment(it, vrapType) }.joinToString(separator = "\n\n")
     }
@@ -414,7 +414,7 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
 
     private fun ObjectType.getters() : String {
         return this.allProperties
-                .filter { it.getAnnotation("deprecated") == null }
+                .filterNot { it.deprecated() }
                 .filter { it.name != this.discriminator() }
                 .map { it.getter() }
                 .joinToString(separator = "\n\n")
@@ -466,7 +466,8 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
     private fun ObjectType.requiredChecks() : String {
         val vrapType = vrapTypeProvider.doSwitch(this).toJavaVType() as VrapObjectType
         return this.allProperties
-            .filter { it.getAnnotation("deprecated") == null }
+            .asSequence()
+            .filterNot { it.deprecated() }
             .filter { it.name != this.discriminator() }
             .filterNot { it.isPatternProperty() }
             .filter { it.required }
@@ -483,18 +484,17 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
     private fun ObjectType.buildMethodBody() : String {
         val vrapType = vrapTypeProvider.doSwitch(this).toJavaVType() as VrapObjectType
         val constructorArguments = this.allProperties
-                .filter { it.getAnnotation("deprecated") == null }
-                .filter { it.name != this.discriminator() }
-                .map {
-                    if(it.isPatternProperty()) {
-                        "values"
-                    } else if(it.name.equals("interface")) {
-                        "_interface"
-                    } else {
-                        it.name
-                    }
+            .filterNot { it.deprecated() }
+            .filter { it.name != this.discriminator() }
+            .joinToString(separator = ", ") {
+                if (it.isPatternProperty()) {
+                    "values"
+                } else if (it.name.equals("interface")) {
+                    "_interface"
+                } else {
+                    it.name
                 }
-                .joinToString(separator = ", ")
+            }
         return "return new ${vrapType.simpleClassName}Impl($constructorArguments);"
     }
 
@@ -515,18 +515,17 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
     private fun ObjectType.templateMethod(): String {
         val vrapType = vrapTypeProvider.doSwitch(this).toJavaVType() as VrapObjectType
         val fieldsAssignment : String = this.allProperties
-                .filter { it.getAnnotation("deprecated") == null }
-                .filter {it.name != this.discriminator()}
-                .map {
-                    if(it.isPatternProperty()){
-                        "builder.values = template.values();"
-                    } else if(it.name.equals("interface")) {
-                        "builder._interface = template.getInterface();"
-                    } else{
-                        "builder.${it.name} = template.get${it.name.upperCamelCase()}();"
-                    }
+            .filterNot { it.deprecated() }
+            .filter { it.name != this.discriminator() }
+            .joinToString(separator = "\n") {
+                if (it.isPatternProperty()) {
+                    "builder.values = template.values();"
+                } else if (it.name.equals("interface")) {
+                    "builder._interface = template.getInterface();"
+                } else {
+                    "builder.${it.name} = template.get${it.name.upperCamelCase()}();"
                 }
-                .joinToString(separator = "\n")
+            }
 
         return """
             |/**

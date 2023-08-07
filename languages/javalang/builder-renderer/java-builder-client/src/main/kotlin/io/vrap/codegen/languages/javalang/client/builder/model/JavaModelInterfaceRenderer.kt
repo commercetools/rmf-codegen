@@ -250,7 +250,7 @@ class JavaModelInterfaceRenderer constructor(override val vrapTypeProvider: Vrap
 
 
     private fun ObjectType.getters() = this.properties
-            .filter { it.getAnnotation("deprecated") == null }
+            .filterNot { it.deprecated() }
             .map { it.getter() }
             .joinToString(separator = "\n")
 
@@ -279,7 +279,7 @@ class JavaModelInterfaceRenderer constructor(override val vrapTypeProvider: Vrap
     }
 
     private fun ObjectType.setters() = this.properties
-            .filter { it.getAnnotation("deprecated") == null }
+            .filterNot { it.deprecated() }
             .filter { it.name != this.discriminator() }
             .map { it.setter() }
             .joinToString(separator = "\n\n")
@@ -351,6 +351,7 @@ class JavaModelInterfaceRenderer constructor(override val vrapTypeProvider: Vrap
         }
     }
 
+
     private fun Property.validationAnnotations(): String {
         val validationAnnotations = ArrayList<String>()
         if (this.required != null && this.required!!) {
@@ -377,7 +378,7 @@ class JavaModelInterfaceRenderer constructor(override val vrapTypeProvider: Vrap
         }else {
             val vrapType = vrapTypeProvider.doSwitch(this) as VrapObjectType
             val fieldsAssignment : String = this.allProperties
-                    .filter { it.getAnnotation("deprecated") == null }
+                    .filterNot { it.deprecated() }
                     .filter {it.name != this.discriminator()}
                     .map {
                         if(!it.isPatternProperty()){
@@ -406,7 +407,7 @@ class JavaModelInterfaceRenderer constructor(override val vrapTypeProvider: Vrap
     private fun ObjectType.cloneTemplateMethodBody(): String {
         val vrapType = vrapTypeProvider.doSwitch(this) as VrapObjectType
         val fieldsAssignment = this.allProperties
-                .filter { it.getAnnotation("deprecated") == null }
+                .filterNot { it.deprecated() }
                 .filter { it.name != this.discriminator() }
                 .map {
                     if (!it.isPatternProperty()) {
