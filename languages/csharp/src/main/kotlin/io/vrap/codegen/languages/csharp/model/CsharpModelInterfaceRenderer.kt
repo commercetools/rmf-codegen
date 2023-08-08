@@ -182,10 +182,4 @@ class CsharpModelInterfaceRenderer constructor(override val vrapTypeProvider: Vr
             |[DeserializeAs(typeof(${vrapType.`package`.toCsharpPackage()}.${this.objectClassName()}))]
             """.trimMargin()
     }
-
-    private fun Property.deprecated() : Boolean {
-        val anno = this.getAnnotation("deprecated")
-        return (anno != null && (anno.value as BooleanInstance).value)
-    }
-
 }

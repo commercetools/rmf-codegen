@@ -71,6 +71,7 @@ class CsharpObjectTypeRenderer constructor(override val vrapTypeProvider: VrapTy
     }
 
     private fun ObjectType.toProperties() : String = this.allProperties
+        .filterNot { it.deprecated() }
         .filterNot { property -> property.isPatternProperty() }
         .map { it.toCsharpProperty(this) }.joinToString(separator = "\n\n")
 
