@@ -120,7 +120,11 @@ fun AnyType.deprecated() : Boolean {
 
 fun Property.deprecated() : Boolean {
     val anno = this.getAnnotation("deprecated")
-    return (anno != null && (anno.value as BooleanInstance).value)
+    if (anno != null) {
+        return (anno.value as BooleanInstance).value
+    }
+    val typeAnno = this.type.getAnnotation("deprecated")
+    return (typeAnno != null && (typeAnno.value as BooleanInstance).value)
 }
 
 fun ResourceContainer.allMethods(): List<Method> = this
