@@ -90,13 +90,13 @@ class CsharpObjectTypeRenderer constructor(override val vrapTypeProvider: VrapTy
     }
 
     private fun Property.parentRequired(objectType: ObjectType): Boolean  {
-        val hasParent = objectType.type != null;
+        val hasParent = objectType.type != null
         if(hasParent)
         {
             val parent = objectType.type as ObjectType
-            return parent.allProperties.find { it.name.equals(this.name) }?.required ?: false
+            return parent.allProperties.find { it.name.equals(this.name) }?.parentRequired(parent) ?: false
         }
-        return false
+        return this.required
     }
 
     fun ObjectType.renderConstructor(className: String) : String {

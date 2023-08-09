@@ -103,9 +103,9 @@ class CsharpModelInterfaceRenderer constructor(override val vrapTypeProvider: Vr
         if(hasParent)
         {
             val parent = objectType.type as ObjectType
-            return parent.allProperties.find { it.name.equals(this.name) }?.required ?: false
+            return parent.allProperties.find { it.name.equals(this.name) }?.parentRequired(parent) ?: false
         }
-        return false
+        return this.required
     }
 
     fun ObjectType.renderTypeAsADictionaryType() : String {
