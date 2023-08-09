@@ -131,8 +131,8 @@ class CsharpRequestTestRenderer constructor(override val vrapTypeProvider: VrapT
             is BooleanType -> true
             is IntegerType -> r.nextInt(1, 10)
             is NumberType -> when (type.format) {
-                NumberFormat.DOUBLE -> r.nextDouble().toString() + "m"
-                NumberFormat.FLOAT -> r.nextFloat().toString() + "m"
+                NumberFormat.DOUBLE -> r.nextDouble().toString()
+                NumberFormat.FLOAT -> r.nextFloat().toString()
                 else -> r.nextInt(1, 10)
             }
             else -> name
