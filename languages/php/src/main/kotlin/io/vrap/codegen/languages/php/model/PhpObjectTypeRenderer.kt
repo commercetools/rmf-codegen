@@ -121,7 +121,7 @@ class PhpObjectTypeRenderer constructor(override val vrapTypeProvider: VrapTypeP
     fun ObjectType.constructor(): String {
         val discriminator = this.discriminatorProperty()
         val discriminatorValue = this.discriminatorValue
-        val objectProperties = this.allProperties.filter { it.getAnnotation("deprecated") == null }
+        val objectProperties = this.allProperties.filterNot { it.deprecated() }
             .filter { property -> property != discriminator }.filter { !it.isPatternProperty() }
         val constructorProperties = if (discriminator != null) objectProperties.plus(discriminator) else objectProperties
         val assignProperties = if (discriminator != null && discriminatorValue == null ) objectProperties.plus(discriminator) else objectProperties
@@ -193,18 +193,19 @@ class PhpObjectTypeRenderer constructor(override val vrapTypeProvider: VrapTypeP
     }
 
     private fun ObjectType.toBeanFields() = this.allProperties
-            .filter { !it.isPatternProperty() }.joinToString(separator = "\n\n") { it.toPhpField() }
+        .filterNot { it.deprecated() }
+        .filter { !it.isPatternProperty() }.joinToString(separator = "\n\n") { it.toPhpField() }
 
     private fun ObjectType.setters(): String {
         val discriminator = this.discriminatorProperty()
         return this.allProperties
                 .filter { property -> property != discriminator }
-                .filter { it.getAnnotation("deprecated") == null }
+                .filterNot { it.deprecated() }
                 .filter { !it.isPatternProperty() }.joinToString(separator = "\n\n") { it.setter() }
     }
 
     private fun ObjectType.getters() = this.allProperties
-            .filter { it.getAnnotation("deprecated") == null }
+            .filterNot { it.deprecated() }
             .filter { !it.isPatternProperty() }.joinToString(separator = "\n\n") { it.getter() }
 
     private fun ObjectType.unionGetters() = this.allProperties
@@ -212,7 +213,7 @@ class PhpObjectTypeRenderer constructor(override val vrapTypeProvider: VrapTypeP
 
     private fun ObjectType.serializer(): String {
         val dtProperties = this.allProperties
-                .filter { it.getAnnotation("deprecated") == null }
+                .filterNot { it.deprecated() }
                 .filter { it.type is DateTimeOnlyType || it.type is DateTimeType || it.type is DateOnlyType || it.type is TimeOnlyType }
 
         if (dtProperties.isNotEmpty()) {

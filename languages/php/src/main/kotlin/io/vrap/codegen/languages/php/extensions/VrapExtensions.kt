@@ -267,3 +267,12 @@ fun Resource.resourcePathList(): List<Resource> {
     }
     return Lists.reverse(path)
 }
+
+fun Property.deprecated() : Boolean {
+    val anno = this.getAnnotation("deprecated")
+    if (anno != null) {
+        return (anno.value as BooleanInstance).value
+    }
+    val typeAnno = this.type.getAnnotation("deprecated")
+    return (typeAnno != null && (typeAnno.value as BooleanInstance).value)
+}
