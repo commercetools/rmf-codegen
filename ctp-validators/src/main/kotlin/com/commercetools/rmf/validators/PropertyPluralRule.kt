@@ -16,14 +16,15 @@ class PropertyPluralRule(severity: RuleSeverity, options: List<RuleOption>? = nu
     override fun caseProperty(property: Property): List<Diagnostic> {
         val validationResults: MutableList<Diagnostic> = ArrayList()
         val propertyName = property.name ?: ""
-        val pluralName = English.plural(English.singular(propertyName))
+        val singularName = English.singular(propertyName)
+        val pluralName = English.plural(singularName)
 
         if (property.type is ArrayType && property.pattern == null && propertyName != pluralName && exclude.contains(propertyName).not()) {
             val containerName = when(val propertyContainer = property.eContainer()) {
                 is ObjectType -> propertyContainer.name
                 else -> "unknown"
             }
-            validationResults.add(create(property, "Array property \"{0}\" of type \"{1}\" must be plural", propertyName, containerName))
+            validationResults.add(create(property, "Array property \"{0}\" of type \"{1}\" must be plural. (singularized: {2}, pluralized: {3})", propertyName, containerName, singularName, pluralName))
         }
         return validationResults
     }

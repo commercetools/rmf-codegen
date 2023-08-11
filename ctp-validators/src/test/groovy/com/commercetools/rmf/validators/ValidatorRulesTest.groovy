@@ -145,8 +145,27 @@ class ValidatorRulesTest extends Specification implements ValidatorFixtures {
         def result = new RamlModelBuilder(validators).buildApi(uri)
         then:
         result.validationResults.size == 2
-        result.validationResults[0].message == "Array property \"invalidItem\" of type \"Foo\" must be plural"
-        result.validationResults[1].message == "Array property \"invalidItemDesc\" of type \"Foo\" must be plural"
+        result.validationResults[0].message == "Array property \"invalidItem\" of type \"Foo\" must be plural. (singularized: invalidItem, pluralized: invalidItems)"
+        result.validationResults[1].message == "Array property \"invalidItemDesc\" of type \"Foo\" must be plural. (singularized: invalidItemDesc, pluralized: invalidItemDescs)"
+    }
+
+    def "property plural rule irregular excluded"() {
+        when:
+        def validators = Arrays.asList(new TypesValidator(Arrays.asList(PropertyPluralRule.create(Arrays.asList(new RuleOption(RuleOptionType.EXCLUDE.toString(), "ruleInfos"))))))
+        def uri = uriFromClasspath("/property-plural-rule-exclusion.raml")
+        def result = new RamlModelBuilder(validators).buildApi(uri)
+        then:
+        result.validationResults.size == 0
+    }
+
+    def "property plural rule irregular not exclused"() {
+        when:
+        def validators = Arrays.asList(new TypesValidator(Arrays.asList(PropertyPluralRule.create(emptyList()))))
+        def uri = uriFromClasspath("/property-plural-rule-exclusion.raml")
+        def result = new RamlModelBuilder(validators).buildApi(uri)
+        then:
+        result.validationResults.size == 1
+        result.validationResults[0].message == "Array property \"ruleInfos\" of type \"Foo\" must be plural. (singularized: ruleInfo, pluralized: ruleInfoes)"
     }
 
     def "query parameter camel case rule"() {
