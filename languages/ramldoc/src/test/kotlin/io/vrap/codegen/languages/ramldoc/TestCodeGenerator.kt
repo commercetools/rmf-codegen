@@ -2,6 +2,7 @@ package io.vrap.codegen.languages.ramldoc
 
 import io.vrap.codegen.languages.ramldoc.extensions.renderAnnotation
 import io.vrap.codegen.languages.ramldoc.extensions.toJson
+import io.vrap.codegen.languages.ramldoc.model.MarkdownModelModule
 import io.vrap.codegen.languages.ramldoc.model.RamldocBaseTypes
 import io.vrap.codegen.languages.ramldoc.model.RamldocModelModule
 import io.vrap.rmf.codegen.CodeGeneratorConfig
@@ -42,6 +43,23 @@ class TestCodeGenerator {
                 "attribute-to-delete" : null
               }
             }""".trimIndent())
+    }
+
+    @Test
+    fun testMarkdown() {
+        val generatorConfig = CodeGeneratorConfig(
+                basePackageName = "com/commercetools/api",
+                outputFolder = Paths.get("build/gensrc"),
+                inlineExamples = true
+        )
+
+        val dataSink = MemoryDataSink()
+        val generatorModule = RamlGeneratorModule(apiProvider, generatorConfig, RamldocBaseTypes, dataSink = dataSink)
+        val generatorComponent = RamlGeneratorComponent(generatorModule, MarkdownModelModule)
+        generatorComponent.generateFiles()
+
+        Assertions.assertThat(dataSink.files).hasSize(1)
+        Assertions.assertThat(dataSink.files.get("api.md")?.trim()).isNotEmpty()
     }
 
     @Test

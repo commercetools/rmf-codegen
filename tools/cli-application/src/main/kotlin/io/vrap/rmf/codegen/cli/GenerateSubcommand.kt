@@ -36,6 +36,7 @@ import io.vrap.codegen.languages.go.client.GoClientModule
 import io.vrap.codegen.languages.java.base.PlantUmlBaseTypes
 import io.vrap.codegen.languages.javalang.client.builder.predicates.JavaQueryPredicateModule
 import io.vrap.codegen.languages.javalang.plantuml.PlantUmlModule
+import io.vrap.codegen.languages.ramldoc.model.MarkdownModelModule
 import io.vrap.rmf.codegen.CodeGeneratorConfig
 import io.vrap.rmf.codegen.di.*
 import io.vrap.rmf.codegen.toSeconds
@@ -73,8 +74,9 @@ enum class GenerationTarget {
     OAS,
     PYTHON_CLIENT,
     PLANTUML,
+    DOC_MARKDOWN
 }
-const val ValidTargets = "JAVA_CLIENT, JAVA_TEST, JAVA_QUERY_PREDICATES, TYPESCRIPT_CLIENT, TYPESCRIPT_TEST, CSHARP_CLIENT, CSHARP_TEST, CSHARP_QUERY_PREDICATES, PHP_CLIENT, PHP_BASE, PHP_TEST, POSTMAN, RAML_DOC, OAS, PYTHON_CLIENT, PLANTUML"
+const val ValidTargets = "JAVA_CLIENT, JAVA_TEST, JAVA_QUERY_PREDICATES, TYPESCRIPT_CLIENT, TYPESCRIPT_TEST, CSHARP_CLIENT, CSHARP_TEST, CSHARP_QUERY_PREDICATES, PHP_CLIENT, PHP_BASE, PHP_TEST, POSTMAN, RAML_DOC, OAS, PYTHON_CLIENT, PLANTUML, DOC_MARKDOWN"
 
 @CommandLine.Command(name = "generate",description = ["Generate source code from a RAML specification."])
 class GenerateSubcommand : Callable<Int> {
@@ -274,6 +276,19 @@ class GenerateSubcommand : Callable<Int> {
                         )
                         val generatorModule = RamlGeneratorModule(apiProvider, ramlConfig, RamldocBaseTypes)
                         RamlGeneratorComponent(generatorModule, RamldocModelModule)
+                    }
+                    GenerationTarget.DOC_MARKDOWN -> {
+                        val ramlConfig = CodeGeneratorConfig(
+                                sharedPackage = generatorConfig.sharedPackage,
+                                basePackageName = generatorConfig.basePackageName,
+                                modelPackage = generatorConfig.modelPackage,
+                                clientPackage = generatorConfig.clientPackage,
+                                outputFolder = generatorConfig.outputFolder,
+                                writeGitHash = generatorConfig.writeGitHash,
+                                inlineExamples = generatorConfig.inlineExamples
+                        )
+                        val generatorModule = RamlGeneratorModule(apiProvider, ramlConfig, RamldocBaseTypes)
+                        RamlGeneratorComponent(generatorModule, MarkdownModelModule)
                     }
                     GenerationTarget.PLANTUML -> {
                         val ramlConfig = CodeGeneratorConfig(
