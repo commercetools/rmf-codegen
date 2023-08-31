@@ -198,8 +198,11 @@ class CsharpHttpRequestRenderer constructor(override val vrapTypeProvider: VrapT
             return "$fieldName.JsonName"
         if(type == "string")
             return fieldName
-        else
+        if(type == "decimal" || type == "int" || type == "long") {
             return "$fieldName.ToString(CultureInfo.InvariantCulture)"
+        }
+        else
+            return "$fieldName.ToString()"
     }
 
     private fun Method.queryParamsGetters() : String = this.queryParameters
