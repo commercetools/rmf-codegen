@@ -51,6 +51,7 @@ class CsharpHttpRequestRenderer constructor(override val vrapTypeProvider: VrapT
 
         val content = """
             |using System;
+            |using System.Globalization;
             |using System.IO;
             |using System.Collections.Generic;
             |using System.Linq;
@@ -198,7 +199,7 @@ class CsharpHttpRequestRenderer constructor(override val vrapTypeProvider: VrapT
         if(type == "string")
             return fieldName
         else
-            return "$fieldName.ToString()"
+            return "$fieldName.ToString(CultureInfo.InvariantCulture)"
     }
 
     private fun Method.queryParamsGetters() : String = this.queryParameters
