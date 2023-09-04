@@ -664,7 +664,7 @@ class PhpObjectTypeRenderer constructor(override val vrapTypeProvider: VrapTypeP
             | * ${if (this.namedSubTypes().filterIsInstance<ObjectType>().count() > 50) "@psalm-suppress InvalidPropertyAssignmentValue" else ""}
             | */
             |private static $!discriminatorClasses = [
-            |   <<${this.namedSubTypes().filterIsInstance<ObjectType>().filter{!it.deprecated()}.map { "'${it.discriminatorValue}' => ${it.toVrapType().simpleName()}Model::class," }.sorted().joinToString(separator = "\n")}>>
+            |   <<${this.namedSubTypes().filterIsInstance<ObjectType>().filterNot{ it.deprecated()}.filterNot { it.discriminatorValue.isNullOrEmpty() }.map { "'${it.discriminatorValue}' => ${it.toVrapType().simpleName()}Model::class," }.sorted().joinToString(separator = "\n")}>>
             |];
         """.trimMargin()
     }
