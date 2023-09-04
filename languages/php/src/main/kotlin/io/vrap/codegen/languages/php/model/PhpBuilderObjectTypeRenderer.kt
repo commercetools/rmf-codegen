@@ -131,7 +131,7 @@ class PhpBuilderObjectTypeRenderer constructor(override val vrapTypeProvider: Vr
                 |public function build(): ${vrapType.simpleClassName}
                 |{
                 |    return new ${vrapType.simpleClassName}Model(
-                |        <<${this.allProperties.filter { it.getAnnotation("deprecated") == null }.filter { property -> property != discriminator }.filter { !it.isPatternProperty() }.joinToString(",\n") { it.buildProperty() }}>>
+                |        <<${this.allProperties.filterNot { it.deprecated() }.filter { property -> property != discriminator }.filter { !it.isPatternProperty() }.joinToString(",\n") { it.buildProperty() }}>>
                 |    );
                 |}
             """.trimMargin()
@@ -146,7 +146,7 @@ class PhpBuilderObjectTypeRenderer constructor(override val vrapTypeProvider: Vr
     }
 
     fun ObjectType.imports() = this.getImports(this.allProperties).map { "use ${it.escapeAll()};" }
-            .plus(this.getImports(this.allProperties.filter { it.getAnnotation("deprecated") == null }.filter { !it.type.isScalar() && !(it.type is ArrayType) && !(it.type.toVrapType().simpleName() == "stdClass") }).map { "use ${it.escapeAll()}Builder;" })
+            .plus(this.getImports(this.allProperties.filterNot { it.deprecated() }.filter { !it.type.isScalar() && !(it.type is ArrayType) && !(it.type.toVrapType().simpleName() == "stdClass") }).map { "use ${it.escapeAll()}Builder;" })
             .distinct()
             .sorted()
             .joinToString(separator = "\n")
@@ -193,7 +193,7 @@ class PhpBuilderObjectTypeRenderer constructor(override val vrapTypeProvider: Vr
         val discriminator = this.discriminatorProperty()
 
         return this.allProperties
-                .filter { it.getAnnotation("deprecated") == null }
+                .filterNot { it.deprecated() }
                 .filter { property -> property != discriminator }
                 .filter { !it.isPatternProperty() }.joinToString(separator = "\n\n") { it.toPhpField() }
     }
@@ -202,7 +202,7 @@ class PhpBuilderObjectTypeRenderer constructor(override val vrapTypeProvider: Vr
         val discriminator = this.discriminatorProperty()
 
         return this.allProperties
-                .filter { it.getAnnotation("deprecated") == null }
+                .filterNot { it.deprecated() }
                 .filter { property -> property != discriminator }
                 .filter { !it.isPatternProperty() }.joinToString(separator = "\n\n") { it.wither() }
     }
@@ -211,7 +211,7 @@ class PhpBuilderObjectTypeRenderer constructor(override val vrapTypeProvider: Vr
         val discriminator = this.discriminatorProperty()
 
         return this.allProperties
-                .filter { it.getAnnotation("deprecated") == null }
+                .filterNot { it.deprecated() }
                 .filter { property -> property != discriminator }
                 .filter { !it.isPatternProperty() }
                 .filter { !it.type.isScalar() && !(it.type is ArrayType) && !(it.type.toVrapType().simpleName() == "stdClass") && !(it.type.toVrapType().simpleName() == "mixed") }.joinToString(separator = "\n\n") { it.withBuilder() }
@@ -221,7 +221,7 @@ class PhpBuilderObjectTypeRenderer constructor(override val vrapTypeProvider: Vr
         val discriminator = this.discriminatorProperty()
 
         return this.allProperties
-                .filter { it.getAnnotation("deprecated") == null }
+                .filterNot { it.deprecated() }
                 .filter { property -> property != discriminator }
                 .filter { !it.isPatternProperty() }.joinToString(separator = "\n\n") { it.getter() }
     }
