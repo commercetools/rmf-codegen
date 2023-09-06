@@ -58,8 +58,9 @@ class TestCodeGenerator {
         val generatorComponent = RamlGeneratorComponent(generatorModule, MarkdownModelModule)
         generatorComponent.generateFiles()
 
-        Assertions.assertThat(dataSink.files).hasSize(1)
+        Assertions.assertThat(dataSink.files).hasSize(2)
         Assertions.assertThat(dataSink.files.get("api.md")?.trim()).isNotEmpty()
+        Assertions.assertThat(dataSink.files.get("api.jsonl")?.trim()).isNotEmpty()
     }
 
     @Test

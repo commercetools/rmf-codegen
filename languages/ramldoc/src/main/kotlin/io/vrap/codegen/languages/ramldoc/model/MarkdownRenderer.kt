@@ -1,9 +1,11 @@
 package io.vrap.codegen.languages.ramldoc.model
 
-import io.vrap.codegen.languages.extensions.EObjectExtensions
-import io.vrap.codegen.languages.extensions.deprecated
-import io.vrap.codegen.languages.extensions.isSuccessfull
+import com.damnhandy.uri.template.Expression
+import com.damnhandy.uri.template.UriTemplate
+import com.google.common.collect.Lists
+import io.vrap.codegen.languages.extensions.*
 import io.vrap.codegen.languages.ramldoc.extensions.*
+import io.vrap.codegen.languages.ramldoc.extensions.toResourceName
 import io.vrap.rmf.codegen.di.AllAnyTypes
 import io.vrap.rmf.codegen.di.ModelPackageName
 import io.vrap.rmf.codegen.io.TemplateFile
@@ -14,14 +16,15 @@ import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.modules.Api
 import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Resource
+import io.vrap.rmf.raml.model.responses.Body
 import io.vrap.rmf.raml.model.security.SecuritySchemeType
 import io.vrap.rmf.raml.model.types.*
-import io.vrap.rmf.raml.model.types.impl.TypesFactoryImpl
 
 class MarkdownRenderer constructor(val api: Api, override val vrapTypeProvider: VrapTypeProvider, @AllAnyTypes val anyTypeList: List<AnyType>, @ModelPackageName val modelPackageName: String) : EObjectExtensions, FileProducer {
     override fun produceFiles(): List<TemplateFile> {
         return listOf(
-                apiRaml(api)
+                apiRaml(api),
+                jonsl(api)
         )
     }
 
@@ -56,6 +59,70 @@ class MarkdownRenderer constructor(val api: Api, override val vrapTypeProvider: 
                 content = content
         )
     }
+
+    private fun jonsl(api: Api): TemplateFile {
+        val content = """
+            |[
+            |${api.allContainedResources.sortedWith(compareBy { it.resourcePath }).map { renderJsonLResource(it) }.filter { it.isNotEmpty() }.joinToString(",\n")}
+            |]
+        """.trimMargin()
+
+        return TemplateFile(relativePath = "api.jsonl",
+                content = content
+        )
+    }
+
+    private fun renderJsonLResource(resource: Resource): String {
+        return """
+            |${resource.methods.map { it to parameterTestProvider(resource, it)?.toJson()?.trim('\"') }.filterNot { pair -> pair.second.isNullOrEmpty() }.joinToString(",\n") { renderJsonLMethod(resource, it.first, it.second) }}
+        """.trimMargin()
+    }
+
+    private fun renderJsonLMethod(resource: Resource, method: Method, chain: String?): String {
+        return """
+            |{
+            |  "input_text": ${method.displayName?.value?.toJson() ?: method.toRequestName().toJson()},
+            |  "output_text": "return apiRoot.$chain.execute()"
+            |}
+        """.trimMargin()
+    }
+
+    private fun parameterTestProvider(resource: Resource, method: Method): String? {
+        var shouldPassBody = resource.resourcePath.contains("product-projections/search")
+                && method.methodName == "post"
+
+        if(method.queryParameters.any{p ->p.required})
+            return null
+        val builderChain = resource.resourcePathList().map { r -> "${r.getMethodName()}(${if (r.relativeUri.paramValues().isNotEmpty()) "{${r.relativeUri.paramValues().joinToString(", ") { p -> " ${if(p.contains('.')) "\"${p}\"" else "$p"}: \"test_$p\""} }}" else ""})" }
+                .plus("${method.method}(${if (method.firstBody() != null || shouldPassBody)  "{body: null,\nheaders:null}" else ""})")
+        //.plus("${method.method}(${if (method.methodName=="post") "{body: null,\nheaders:null}" else ""})")
+
+        return builderChain.joinToString("\n.")
+    }
+
+    fun UriTemplate.paramValues(): List<String> {
+        return this.components.filterIsInstance<Expression>().flatMap { expression -> expression.varSpecs.map { varSpec -> varSpec.variableName  } }
+    }
+
+    fun Resource.resourcePathList(): List<Resource> {
+        val path = Lists.newArrayList<Resource>()
+        if (this.fullUri.template == "/") {
+            return path
+        }
+        path.add(this)
+        var t = this.eContainer()
+        while (t is Resource) {
+            val template = t.fullUri.template
+            if (template != "/") {
+                path.add(t)
+            }
+            t = t.eContainer()
+        }
+        return Lists.reverse(path)
+    }
+
+    fun Method.firstBody(): Body? = this.bodies.stream().findFirst().orElse(null)
+
 
     private fun renderResource(resource: Resource): String {
         return """

@@ -121,7 +121,7 @@ class TypescriptRequestTestRenderer constructor(override val vrapTypeProvider: V
         var shouldPassBody = resource.resourcePath.contains("product-projections/search")
                 && method.methodName == "post"
 
-        if(method.queryParameters.any{p ->p.required})
+        if(method.queryParameters.any{p -> p.required})
             return null
         val builderChain = resource.resourcePathList().map { r -> "${r.getMethodName()}(${if (r.relativeUri.paramValues().isNotEmpty()) "{${r.relativeUri.paramValues().joinToString(", ") { p -> " ${if(p.contains('.')) "\"${p}\"" else "$p"}: \"test_$p\""} }}" else ""})" }
                 .plus("${method.method}(${if (method.firstBody() != null || shouldPassBody)  "{body: null,\nheaders:null}" else ""})")
