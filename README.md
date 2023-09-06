@@ -21,7 +21,7 @@ The code generators are written in [kotlin](https://kotlinlang.org/).
 To install the rmf-codegen cli, run the following command
 
 ```
-curl -o- -s https://raw.githubusercontent.com/vrapio/rmf-codegen/main/scripts/install.sh | bash
+curl -o- -s https://raw.githubusercontent.com/commercetools/rmf-codegen/main/scripts/install.sh | bash
 ```
 
 You will find a new command available `rmf-codegen`, you can check that all is good by executing `rmf-codegen -v`
