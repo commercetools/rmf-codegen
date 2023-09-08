@@ -13,6 +13,13 @@ annotationTypes:
                     template: text.<locale>
                     placeholder: locale
                 type: string
+            /foo.[a-z]{2}/?:
+                (placeholderParam):
+                    paramName: foo
+                    template: foo.<locale>
+                    placeholder: locale
+                type: string
+                description: foo
             filter:
                 type: string
             /invalid/?:
@@ -27,3 +34,18 @@ annotationTypes:
                     template: text.en
                     placeholder: locale
                 type: string
+            /invalidfoo/?:
+                type: string
+                description: foo
+            /incompletefoo.[a-z]{2}/?:
+                (placeholderParam):
+                    paramName: text
+                type: string
+                description: foo
+            /invalidplaceholderfoo.[a-z]{2}/?:
+                (placeholderParam):
+                    paramName: text
+                    template: text.en
+                    placeholder: locale
+                type: string
+                description: foo

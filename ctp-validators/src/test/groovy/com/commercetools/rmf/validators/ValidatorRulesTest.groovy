@@ -353,10 +353,13 @@ class ValidatorRulesTest extends Specification implements ValidatorFixtures {
         def uri = uriFromClasspath("/placeholder-annotation-rule.raml")
         def result = new RamlModelBuilder(validators).buildApi(uri)
         then:
-        result.validationResults.size == 3
+        result.validationResults.size == 6
         result.validationResults[0].message == "Property \"/invalid/\" must define placeholder annotation"
         result.validationResults[1].message == "Placeholder object must have fields paramName, template and placeholder"
         result.validationResults[2].message == "Placeholder value \"<locale>\" must be contained in the template \"text.en\""
+        result.validationResults[3].message == "Property \"/invalidfoo/\" must define placeholder annotation"
+        result.validationResults[4].message == "Placeholder object must have fields paramName, template and placeholder"
+        result.validationResults[5].message == "Placeholder value \"<locale>\" must be contained in the template \"text.en\""
     }
 
     def "placeholder annotation for query parameter must be object"() {
