@@ -40,7 +40,7 @@ class BuilderTestCodeGenerator {
         private val apiPath : Path = Paths.get(if (userProvidedPath == null) "../../../../api-spec/api.raml" else userProvidedPath)
         private val importApiPath : Path = Paths.get(if (importApiProvidedPath == null) "../../../../api-spec/api.raml" else importApiProvidedPath)
         private val outputFolder : Path = Paths.get(if (generatedCodePath == null) "build/gensrc/main/java-generated" else generatedCodePath)
-        private val testOutputFolder : Path = Paths.get(if (generatedCodePath == null) "build/gensrc/test/java-generated" else generatedTestCodePath)
+        private val testOutputFolder : Path = Paths.get(if (generatedTestCodePath == null) "build/gensrc/test/java-generated" else generatedTestCodePath)
         private val predicateOutputFolder : Path = Paths.get(if (generatedPredicateCodePath == null) "build/gensrc/main/java-predicates-generated" else generatedPredicateCodePath)
 
         val apiProvider: RamlApiProvider = RamlApiProvider(apiPath)

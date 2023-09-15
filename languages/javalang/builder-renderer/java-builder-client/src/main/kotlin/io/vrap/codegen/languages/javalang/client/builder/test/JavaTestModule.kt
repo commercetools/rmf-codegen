@@ -12,6 +12,11 @@ object JavaTestModule: Module {
                 setOf(
                         JavaRequestTestRenderer(generatorModule.vrapTypeProvider())
                 ), generatorModule.allResources().filterNot { it.deprecated() }
+        ),
+        FileGenerator(
+                setOf(
+                        JavaBuilderTestRenderer(generatorModule.vrapTypeProvider(), generatorModule.allObjectTypes())
+                )
         )
     )
 }
