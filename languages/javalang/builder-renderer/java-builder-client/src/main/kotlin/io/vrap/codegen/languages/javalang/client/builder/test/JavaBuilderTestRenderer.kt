@@ -108,12 +108,14 @@ class JavaBuilderTestRenderer constructor(override val vrapTypeProvider: VrapTyp
             is ArrayType -> "Collections.singletonList(${propertyValue(name, type.items, r)})"
             is BooleanType -> true
             is IntegerType -> when (type.format) {
+                    NumberFormat.LONG,
                     NumberFormat.INT64 -> "${r.nextInt(1, 10)}L"
                     else -> r.nextInt(1, 10)
                 }
             is NumberType -> when (type.format) {
                     NumberFormat.DOUBLE -> r.nextDouble()
                     NumberFormat.FLOAT -> r.nextFloat()
+                    NumberFormat.LONG,
                     NumberFormat.INT64 -> "${r.nextInt(1, 10)}L"
                     else -> r.nextInt(1, 10)
                 }
