@@ -73,6 +73,7 @@ class JavaStringHttpRequestRenderer constructor(override val vrapTypeProvider: V
             |import java.util.stream.Collectors;
             |import java.util.concurrent.CompletableFuture;
             |import io.vrap.rmf.base.client.utils.Generated;
+            |import com.fasterxml.jackson.core.type.TypeReference;
             |
             |import javax.annotation.Nullable;
             |
@@ -94,6 +95,12 @@ class JavaStringHttpRequestRenderer constructor(override val vrapTypeProvider: V
             |<${JavaSubTemplates.generatedAnnotation}>${if (type.markDeprecated() ) """
             |@Deprecated""" else ""}
             |public class ${type.toStringRequestName()} extends StringBodyApiMethod\<${type.toStringRequestName()}, ${type.javaReturnType(vrapTypeProvider)}\>${if (implements.isNotEmpty()) " implements ${implements.joinToString(", ")}" else ""} {
+            |
+            |    @Override
+            |    public TypeReference\<${type.javaReturnType(vrapTypeProvider)}\> resultType() {
+            |        return new TypeReference\<${type.javaReturnType(vrapTypeProvider)}\>() {
+            |        };
+            |    }
             |
             |    <${type.fields()}>
             |
@@ -302,11 +309,17 @@ class JavaStringHttpRequestRenderer constructor(override val vrapTypeProvider: V
     }
 
     private fun Method.pathArgumentsGetters() : String = this.pathArguments()
-            .map { "public String get${it.firstUpperCase()}() {return this.$it;}" }
+            .map { """
+                |public String get${it.firstUpperCase()}() {
+                |    return this.$it;
+                |}""".trimMargin() }
             .joinToString(separator = "\n")
 
     private fun Method.pathArgumentsSetters() : String = this.pathArguments()
-            .map { "public void set${it.firstUpperCase()}(final String $it) { this.$it = $it; }" }
+            .map { """
+                |public void set${it.firstUpperCase()}(final String $it) {
+                |    this.$it = $it;
+                |}""".trimMargin() }
             .joinToString(separator = "\n\n")
 
     private fun Method.queryParamsGetters() : String = this.queryParameters

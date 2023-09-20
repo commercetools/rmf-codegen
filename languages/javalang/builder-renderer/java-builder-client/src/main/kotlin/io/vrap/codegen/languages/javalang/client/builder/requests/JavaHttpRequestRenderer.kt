@@ -78,6 +78,7 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
             |import java.util.stream.Collectors;
             |import java.util.concurrent.CompletableFuture;
             |import io.vrap.rmf.base.client.utils.Generated;
+            |import com.fasterxml.jackson.core.type.TypeReference;
             |
             |import javax.annotation.Nullable;
             |
@@ -101,8 +102,9 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
             |public class ${type.toRequestName()} extends $apiMethodClass\<${type.toRequestName()}, ${type.javaReturnType(vrapTypeProvider)}$bodyTypeClass\>${if (implements.isNotEmpty()) " implements ${implements.joinToString(", ")}" else ""} {
             |
             |    @Override
-            |    public Class\<${type.javaReturnType(vrapTypeProvider)}\> resultClass() {
-            |        return ${type.javaReturnType(vrapTypeProvider)}.class;
+            |    public TypeReference\<${type.javaReturnType(vrapTypeProvider)}\> resultType() {
+            |        return new TypeReference\<${type.javaReturnType(vrapTypeProvider)}\>() {
+            |        };
             |    }
             |
             |    <${type.fields()}>
@@ -126,11 +128,11 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
             |    <${type.queryParamsSetters()}>
             |
             |    <${type.queryParamsTemplateSetters()}>
-            |    
+            |
             |    <${type.bodyMethods()}>
             |
             |    <${type.formParamMethods()}>
-            |    
+            |
             |    <${type.equalsMethod()}>
             |
             |    @Override
@@ -201,9 +203,11 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
         return """
             |@Override
             |public boolean equals(Object o) {
-            |    if (this == o) return true;
+            |    if (this == o)
+            |        return true;
             |
-            |    if (o == null || getClass() != o.getClass()) return false;
+            |    if (o == null || getClass() != o.getClass())
+            |        return false;
             |
             |    ${this.toRequestName()} that = (${this.toRequestName()}) o;
             |
@@ -360,7 +364,9 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
                 """.trimMargin()
             else
                 """
-                |return new ApiHttpRequest(ApiHttpMethod.${this.method.name}, URI.create(httpRequestPath), getHeaders(), io.vrap.rmf.base.client.utils.json.JsonUtils.executing(() -\> apiHttpClient().getSerializerService().toJsonByteArray($bodyName)));
+                |return new ApiHttpRequest(ApiHttpMethod.${this.method.name}, URI.create(httpRequestPath), getHeaders(),
+                |    io.vrap.rmf.base.client.utils.json.JsonUtils
+                |            .executing(() -\> apiHttpClient().getSerializerService().toJsonByteArray($bodyName)));
                 |""".trimMargin()
         } else """
                 |return new ApiHttpRequest(ApiHttpMethod.${this.method.name}, URI.create(httpRequestPath), getHeaders(), null);
@@ -370,7 +376,7 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
             |@Override
             |protected ApiHttpRequest buildHttpRequest() {
             |    <$requestPathGeneration>
-            |    $bodySetter
+            |    <$bodySetter>
             |}
         """.trimMargin()
     }
@@ -394,11 +400,17 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
     }
 
     private fun Method.pathArgumentsGetters() : String = this.pathArguments()
-            .map { "public String get${it.firstUpperCase()}() {return this.$it;}" }
+            .map { """
+                |public String get${it.firstUpperCase()}() {
+                |    return this.$it;
+                |}""".trimMargin() }
             .joinToString(separator = "\n")
 
     private fun Method.pathArgumentsSetters() : String = this.pathArguments()
-            .map { "public void set${it.firstUpperCase()}(final String $it) { this.$it = $it; }" }
+            .map { """
+                |public void set${it.firstUpperCase()}(final String $it) {
+                |    this.$it = $it;
+                |}""".trimMargin() }
             .joinToString(separator = "\n\n")
 
     private fun Method.queryParamsGetters() : String = this.queryParameters
@@ -559,7 +571,9 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
                 | * @return ${this.toRequestName()}
                 | */
                 |public <TValue> ${this.toRequestName()} with${it.fieldName().firstUpperCase()}(final Collection<TValue> ${it.fieldName()}) {
-                |    return copy().withoutQueryParam("${it.name}").addQueryParams(${it.fieldName()}.stream().map(s -> new ParamEntry<>("${it.name}", s.toString())).collect(Collectors.toList())); 
+                |    return copy().withoutQueryParam("${it.name}")
+                |            .addQueryParams(
+                |                ${it.fieldName()}.stream().map(s -> new ParamEntry<>("${it.name}", s.toString())).collect(Collectors.toList())); 
                 |}
                 |
                 |/**
@@ -569,7 +583,8 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
                 | * @return ${this.toRequestName()}
                 | */
                 |public <TValue> ${this.toRequestName()} add${it.fieldName().firstUpperCase()}(final Collection<TValue> ${it.fieldName()}) {
-                |    return copy().addQueryParams(${it.fieldName()}.stream().map(s -> new ParamEntry<>("${it.name}", s.toString())).collect(Collectors.toList())); 
+                |    return copy().addQueryParams(
+                |        ${it.fieldName()}.stream().map(s -> new ParamEntry<>("${it.name}", s.toString())).collect(Collectors.toList())); 
                 |}
             """.trimMargin().escapeAll() }
             .joinToString(separator = "\n\n")
