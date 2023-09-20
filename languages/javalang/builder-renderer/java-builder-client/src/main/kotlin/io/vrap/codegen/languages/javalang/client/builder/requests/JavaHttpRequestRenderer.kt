@@ -100,6 +100,11 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
             |@Deprecated""" else ""}
             |public class ${type.toRequestName()} extends $apiMethodClass\<${type.toRequestName()}, ${type.javaReturnType(vrapTypeProvider)}$bodyTypeClass\>${if (implements.isNotEmpty()) " implements ${implements.joinToString(", ")}" else ""} {
             |
+            |    @Override
+            |    public Class\<${type.javaReturnType(vrapTypeProvider)}\> resultClass() {
+            |        return ${type.javaReturnType(vrapTypeProvider)}.class;
+            |    }
+            |
             |    <${type.fields()}>
             |
             |    <${type.constructor()}>
