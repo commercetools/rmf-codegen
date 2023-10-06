@@ -160,7 +160,8 @@ export function buildRelativeUri(commonRequest: ClientRequest): string {
   var uri: string = commonRequest.uriTemplate as string
 
   for (const param in pathMap) {
-    uri = uri.replace(`{${'$'}{param}}`, `${'$'}{pathMap[param]}`)
+    const value = encodeURIComponent(`${'$'}{pathMap[param]}`)
+    uri = uri.replace(`{${'$'}{param}}`, `${'$'}{value}`)
   }
 
   const resQuery = formatQueryString(commonRequest.queryParams || {})
