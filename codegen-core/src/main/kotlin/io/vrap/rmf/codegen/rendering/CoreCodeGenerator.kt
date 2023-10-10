@@ -14,10 +14,12 @@ class CoreCodeGenerator constructor(val dataSink: DataSink, val gitHash: String,
 
     fun generate() {
 
-        if(dataSink.clean()){
-            LOGGER.info("data sink cleanup successful")
-        } else {
-            LOGGER.info("data sink cleanup unsuccessful")
+        if (!dataSink.dryRun()) {
+            if (dataSink.clean()) {
+                LOGGER.info("data sink cleanup successful")
+            } else {
+                LOGGER.info("data sink cleanup unsuccessful")
+            }
         }
 
         val templateFiles :MutableList<Publisher<TemplateFile>> = mutableListOf()
@@ -30,7 +32,8 @@ class CoreCodeGenerator constructor(val dataSink: DataSink, val gitHash: String,
 
         templateFiles.addAll(generators.flatMap { generator -> generator.generate() })
 
-        Flowable.concat(templateFiles)
+        if (!dataSink.dryRun()) {
+            Flowable.concat(templateFiles)
                 .observeOn(Schedulers.io())
                 .parallel(PARALLELISM)
                 .map { dataSink.write(it) }
@@ -40,7 +43,8 @@ class CoreCodeGenerator constructor(val dataSink: DataSink, val gitHash: String,
                         { error -> LOGGER.error("Error occured while generating files",error)}
                 )
 
-        dataSink.postClean()
+            dataSink.postClean()
+        }
 
         LOGGER.info("files generation ended")
     }

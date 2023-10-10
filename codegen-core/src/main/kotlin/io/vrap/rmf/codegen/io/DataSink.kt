@@ -7,4 +7,6 @@ interface DataSink {
     fun clean():Boolean = true
 
     fun postClean()
+
+    fun dryRun(): Boolean = false
 }
