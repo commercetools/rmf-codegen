@@ -96,7 +96,6 @@ class JavaStringHttpRequestRenderer constructor(override val vrapTypeProvider: V
             |@Deprecated""" else ""}
             |public class ${type.toStringRequestName()} extends StringBodyApiMethod\<${type.toStringRequestName()}, ${type.javaReturnType(vrapTypeProvider)}\>${if (implements.isNotEmpty()) " implements ${implements.joinToString(", ")}" else ""} {
             |
-            |    @Override
             |    public TypeReference\<${type.javaReturnType(vrapTypeProvider)}\> resultType() {
             |        return new TypeReference\<${type.javaReturnType(vrapTypeProvider)}\>() {
             |        };
