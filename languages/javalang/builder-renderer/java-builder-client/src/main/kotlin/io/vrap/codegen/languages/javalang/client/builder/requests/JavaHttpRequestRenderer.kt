@@ -50,7 +50,7 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
         } else {
             null
         }
-        val apiMethodClass = if(bodyType != null) "BodyApiMethod" else "ApiMethod"
+        val apiMethodClass = if(bodyType != null) "TypeBodyApiMethod" else "TypeApiMethod"
         val bodyTypeClass = if(bodyType != null) ", ${bodyType.`package`.toJavaPackage()}.${bodyType.simpleName()}" else ""
 
         val content = """
@@ -101,6 +101,7 @@ class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTyp
             |@Deprecated""" else ""}
             |public class ${type.toRequestName()} extends $apiMethodClass\<${type.toRequestName()}, ${type.javaReturnType(vrapTypeProvider)}$bodyTypeClass\>${if (implements.isNotEmpty()) " implements ${implements.joinToString(", ")}" else ""} {
             |
+            |    @Override
             |    public TypeReference\<${type.javaReturnType(vrapTypeProvider)}\> resultType() {
             |        return new TypeReference\<${type.javaReturnType(vrapTypeProvider)}\>() {
             |        };
