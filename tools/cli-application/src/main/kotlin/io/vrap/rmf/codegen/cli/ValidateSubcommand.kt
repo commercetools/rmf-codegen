@@ -80,6 +80,9 @@ class ValidateSubcommand : Callable<Int> {
     @CommandLine.Option(names = ["--list-rules"], description = ["Show all rules"])
     var listRules: Boolean = false
 
+    @CommandLine.Option(names = ["-v", "--verbose"], description = ["Verbose"])
+    var verbose: Boolean = false;
+
     lateinit var modelBuilder: RamlModelBuilder
 
     private fun linkURI(): java.net.URI {
@@ -97,7 +100,7 @@ class ValidateSubcommand : Callable<Int> {
             return 0
         }
         val tmpDir = tempFile?.toAbsolutePath()?.normalize() ?: Paths.get(".tmp")
-        modelBuilder = setupValidators()
+        modelBuilder = setupValidators(verbose)
         val res = safeRun { validate(tmpDir)}
         if (watch) {
             val watchDir = ramlFileLocation.toRealPath().toAbsolutePath().parent
@@ -182,9 +185,9 @@ class ValidateSubcommand : Callable<Int> {
         return modelResult.validationResults.any { result -> result.severity >= checkSeverity.value }.let { b -> if(b) 1 else 0 }
     }
 
-    private fun setupValidators(): RamlModelBuilder {
+    private fun setupValidators(verbose: Boolean = false): RamlModelBuilder {
         val ruleset = rulesetFile?.toFile()?.inputStream() ?: ValidateSubcommand::class.java.getResourceAsStream("/ruleset.xml")
-        return RamlModelBuilder(ValidatorSetup.setup(ruleset))
+        return RamlModelBuilder(ValidatorSetup.setup(ruleset, verbose))
     }
 
     private fun diagnosticFormatter(printer: OutputFormat, filePath: Path, linkUri: java.net.URI): FormatPrinter {

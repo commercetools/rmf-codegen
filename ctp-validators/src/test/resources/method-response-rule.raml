@@ -1,8 +1,15 @@
 #%RAML 1.0
 title: method responses
 
+resourceTypes:
+  test:
+    get?:
+      responses:
+        200:
+    post?:
 /carts:
   get:
+    description: test
     responses:
       200:
   head:

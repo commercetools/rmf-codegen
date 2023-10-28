@@ -1,6 +1,7 @@
 package com.commercetools.rmf.validators
 
 import io.vrap.rmf.raml.model.RamlModelBuilder
+import org.eclipse.emf.common.util.Diagnostic
 import spock.lang.Specification
 import static java.util.Collections.emptyList
 
@@ -109,6 +110,7 @@ class ValidatorRulesTest extends Specification implements ValidatorFixtures {
         then:
         result.validationResults.size == 1
         result.validationResults[0].message == "Method \"HEAD /invalid\" must have at least one response defined"
+        result.validationResults[0].severity == Diagnostic.ERROR
     }
 
 //    def "named body type rule"() {
