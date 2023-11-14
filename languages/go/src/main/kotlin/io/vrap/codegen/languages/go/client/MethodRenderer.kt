@@ -319,6 +319,9 @@ class GoMethodRenderer(
                         """
                         |case ${it.second.toInt()}:
                         |    err = json.Unmarshal(content, &result)
+                        |    if (err != nil) {
+                        |        return nil, err
+                        |    }
                         |    return result, nil
                         """.trimMargin()
                     } else if (it.second.toInt() == 404) {
