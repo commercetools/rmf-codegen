@@ -7,10 +7,9 @@ import io.vrap.rmf.codegen.rendering.FileProducer
 import io.vrap.rmf.codegen.rendering.utils.keepIndentation
 import io.vrap.rmf.raml.model.modules.Api
 
-class ClientFileProducer constructor(
-    val clientConstants: ClientConstants,
-    val api: Api,
-    @BasePackageName val basePackageName: String
+class ClientFileProducer(
+        val api: Api,
+        @BasePackageName val basePackageName: String
 ) : FileProducer {
 
     override fun produceFiles(): List<TemplateFile> {
@@ -201,6 +200,8 @@ class ClientFileProducer constructor(
                 |func (e GenericRequestError) Error() string {
                 |    return fmt.Sprintf("Request returned status code %d", e.StatusCode)
                 |}
+                |
+                |var ErrNotFound = errors.New("resource not found")
             """.trimMargin().keepIndentation()
         )
     }
