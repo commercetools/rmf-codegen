@@ -1,5 +1,6 @@
 package io.vrap.codegen.languages.javalang.client.builder.producers
 
+import com.google.common.collect.Lists
 import io.vrap.codegen.languages.extensions.isPatternProperty
 import io.vrap.codegen.languages.extensions.toComment
 import io.vrap.codegen.languages.java.base.JavaSubTemplates
@@ -12,10 +13,8 @@ import io.vrap.rmf.codegen.rendering.utils.keepIndentation
 import io.vrap.rmf.codegen.types.VrapArrayType
 import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
-import io.vrap.rmf.raml.model.types.BooleanInstance
-import io.vrap.rmf.raml.model.types.ObjectType
-import io.vrap.rmf.raml.model.types.Property
-import io.vrap.rmf.raml.model.types.UnionType
+import io.vrap.rmf.raml.model.types.*
+import io.vrap.rmf.raml.model.types.Annotation
 
 
 class JavaModelClassFileProducer constructor(override val vrapTypeProvider: VrapTypeProvider, @AllObjectTypes private val allObjectTypes: List<ObjectType>) : JavaObjectTypeExtensions, JavaEObjectTypeExtensions, FileProducer {
@@ -27,6 +26,17 @@ class JavaModelClassFileProducer constructor(override val vrapTypeProvider: Vrap
     fun render(type: ObjectType): TemplateFile {
 
         val vrapType = vrapTypeProvider.doSwitch(type).toJavaVType() as VrapObjectType
+
+        val implements = Lists.newArrayList(vrapType.simpleClassName, "ModelBase")
+                .plus(
+                        when (val ex = type.getAnnotation("java-impl-implements") ) {
+                            is Annotation -> {
+                                (ex.value as StringInstance).value.escapeAll()
+                            }
+                            else -> null
+                        }
+                )
+                .filterNotNull()
 
         val content = """
                 |package ${vrapType.`package`.toJavaPackage()};
@@ -47,13 +57,15 @@ class JavaModelClassFileProducer constructor(override val vrapTypeProvider: Vrap
                 |import com.fasterxml.jackson.annotation.JsonProperty;
                 |import org.apache.commons.lang3.builder.EqualsBuilder;
                 |import org.apache.commons.lang3.builder.HashCodeBuilder;
+                |import org.apache.commons.lang3.builder.ToStringBuilder;
+                |import org.apache.commons.lang3.builder.ToStringStyle;
                 |
                 |/**
                 |${type.toComment(" * ${vrapType.simpleClassName}").escapeAll()}
                 | */
                 |<${JavaSubTemplates.generatedAnnotation}>${if (type.markDeprecated()) """
                 |@Deprecated""" else ""}
-                |public class ${vrapType.simpleClassName}Impl implements ${vrapType.simpleClassName}, ModelBase {
+                |public class ${vrapType.simpleClassName}Impl implements ${implements.joinToString(separator = ", ")} {
                 |
                 |    <${type.beanFields().escapeAll()}>
                 |
@@ -65,6 +77,7 @@ class JavaModelClassFileProducer constructor(override val vrapTypeProvider: Vrap
                 |
                 |    <${type.equalsMethod().escapeAll()}>
                 |
+                |    <${type.getAnnotation("java-impl-mixin")?.value?.value?.let { (it as String).escapeAll()} ?: ""}>
                 |}
         """.trimMargin().keepIndentation()
         return TemplateFile(
@@ -116,26 +129,43 @@ class JavaModelClassFileProducer constructor(override val vrapTypeProvider: Vrap
             |        <${this.allProperties.filterNot { it.deprecated() }.joinToString("\n") { it.hashMethod() }}>
             |        .toHashCode();
             |}
+            |
+            |@Override
+            |public String toString() {
+            |    return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE)
+            |        <${this.allProperties.filterNot { it.deprecated() }.joinToString("\n") { it.toStringMethod() }}>
+            |        .build();
+            |}
         """.trimMargin().keepIndentation()
     }
 
     private fun Property.equalsMethod(): String {
-        if (this.isPatternProperty()) {
-            return ".append(values, that.values)"
+        return if (this.isPatternProperty()) {
+            ".append(values, that.values)"
         } else if (this.name.equals("interface")) {
-            return ".append(_interface, that._interface)"
+            ".append(_interface, that._interface)"
         } else {
-            return ".append(${this.name.lowerCamelCase()}, that.${this.name.lowerCamelCase()})"
+            ".append(${this.name.lowerCamelCase()}, that.${this.name.lowerCamelCase()})"
         }
     }
 
     private fun Property.hashMethod(): String {
-        if (this.isPatternProperty()) {
-            return ".append(values)"
+        return if (this.isPatternProperty()) {
+            ".append(values)"
         } else if (this.name.equals("interface")) {
-            return ".append(_interface)"
+            ".append(_interface)"
         } else {
-            return ".append(${this.name.lowerCamelCase()})"
+            ".append(${this.name.lowerCamelCase()})"
+        }
+    }
+
+    private fun Property.toStringMethod(): String {
+        return if (this.isPatternProperty()) {
+            ".append(\"values\", values)"
+        } else if (this.name.equals("interface")) {
+            ".append(\"interface\", _interface)"
+        } else {
+            ".append(\"${this.name.lowerCamelCase()}\", ${this.name.lowerCamelCase()})"
         }
     }
 

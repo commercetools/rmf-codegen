@@ -16,11 +16,11 @@ import java.lang.reflect.Modifier
 class ValidatorSetup {
     companion object {
         @JvmStatic
-        fun setup(config: File): List<RamlValidator> {
-            return setup(config.inputStream())
+        fun setup(config: File, verbose: Boolean = false): List<RamlValidator> {
+            return setup(config.inputStream(), verbose)
         }
 
-        fun setup(config: InputStream): List<RamlValidator> {
+        fun setup(config: InputStream, verbose: Boolean = false): List<RamlValidator> {
             val mapper = XmlMapper.builder(XmlFactory(WstxInputFactory(), WstxOutputFactory())).defaultUseWrapper(false)
                 .enable(SerializationFeature.INDENT_OUTPUT)
                 .enable(SerializationFeature.WRAP_ROOT_VALUE)
@@ -46,6 +46,9 @@ class ValidatorSetup {
                 }
             }
 
+            if (verbose) {
+                validators.filterIsInstance(DiagnosticsAware::class.java).forEach { validator -> println("${validator::class.java}: ${validator.severity}") }
+            }
             return listOf(
                 ResolvedResourcesValidator(validators.filterIsInstance( ResolvedResourcesRule::class.java )),
                 ResourcesValidator(validators.filterIsInstance( ResourcesRule::class.java )),
@@ -58,7 +61,7 @@ class ValidatorSetup {
             var checks = setOne
             setTwo.forEach { (checkName, check) ->
                 if (checks.containsKey(checkName)) {
-                    checks = checks.plus(checkName to Rule(checkName, check.severity, checks[checkName]!!.options?.plus(check.options ?: listOf()) ?: check.options, check.enabled && checks[checkName]!!.enabled))
+                    checks = checks.plus(checkName to Rule(checkName, check.severity ?: checks[checkName]!!.severity, checks[checkName]!!.options?.plus(check.options ?: listOf()) ?: check.options, check.enabled && checks[checkName]!!.enabled))
                 } else {
                     checks = checks.plus(checkName to check)
                 }
