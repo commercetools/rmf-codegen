@@ -16,6 +16,7 @@ import io.vrap.rmf.raml.model.types.*
 import io.vrap.rmf.raml.model.types.Annotation
 import io.vrap.rmf.raml.model.util.StringCaseFormat
 import java.time.LocalDate
+import java.time.LocalTime
 import java.time.ZonedDateTime
 import javax.lang.model.SourceVersion
 
@@ -99,7 +100,7 @@ class JavaQueryPredicateRenderer constructor(val basePackage: String, override v
             methodName = "_$methodName"
         }
 
-        if (this.simpleName() == ZonedDateTime::class.simpleName || this.simpleName() == LocalDate::class.simpleName || this.simpleName() == Object::class.java.simpleName) {
+        if (this.simpleName() == ZonedDateTime::class.simpleName || this.simpleName() == LocalTime::class.simpleName || this.simpleName() == LocalDate::class.simpleName || this.simpleName() == Object::class.java.simpleName) {
             return """
                 |public ${propertyType.comparisonPredicate()}<${vrapType.builderDslName()}> $methodName() {
                 |    return new ${propertyType.comparisonPredicate()}<>(BinaryQueryPredicate.of().left(new ConstantQueryPredicate("${propertyName}")),

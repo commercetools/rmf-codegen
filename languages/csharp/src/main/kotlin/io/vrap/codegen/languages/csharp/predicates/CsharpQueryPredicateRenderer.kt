@@ -120,7 +120,7 @@ class CsharpQueryPredicateRenderer constructor(val basePackage: String, override
     private fun VrapType.toBuilderDsl(propertyName: String, propertyType: AnyType, vrapType: VrapObjectType, isItemType: Boolean = false) : String {
         val methodName = propertyName.upperCamelCase()
 
-        if (this.simpleName() == "DateTime" || this.simpleName() == "Date" || this.simpleName() == Object::class.java.simpleName) {
+        if (this.simpleName() == "DateTime" || this.simpleName() == "Date" || this.simpleName() == "TimeSpan" || this.simpleName() == Object::class.java.simpleName) {
             return """
                 |public IComparisonPredicateBuilder<${vrapType.builderDslName()}, ${propertyType.comparisonValue()}> $methodName()
                 |{
