@@ -37,6 +37,17 @@ class ValidatorRulesTest extends Specification implements ValidatorFixtures {
         result.validationResults[11].message == "Property \"fooTimeUntil\" of type \"InvalidTimeRangeUntil\" indicates a range, property ending with \"From\" is missing"
     }
 
+    def "boolean property name rule"() {
+        when:
+        def validators = Arrays.asList(new TypesValidator(Arrays.asList(BooleanPropertyNameRule.create(emptyList()))))
+        def uri = uriFromClasspath("/boolean-property-name-rule.raml")
+        def result = new RamlModelBuilder(validators).buildApi(uri)
+        then:
+        result.validationResults.size == 2
+        result.validationResults[0].message == "Property \"isBad\" of type \"InvalidBoolean\" must not have \"is\" as a prefix"
+        result.validationResults[1].message == "Property \"isNotGood\" of type \"InvalidBoolean\" must not have \"is\" as a prefix"
+    }
+
     def "discriminator name rule"() {
         when:
         def validators = Arrays.asList(new TypesValidator(Arrays.asList(DiscriminatorNameRule.create(emptyList()))))

@@ -1,0 +1,49 @@
+#%RAML 1.0
+title: boolean property name rule
+
+annotationTypes:
+  package: string
+  sdkBaseUri: string
+
+baseUri: https://api.europe-west1.commercetools.com
+
+types:
+  InvalidBoolean:
+    (package): Common
+    type: object
+    properties: # invalid because it is a boolean that is prefixed with "is"
+      isBad:  
+        description: xyz
+        type: boolean
+      isNotGood: boolean
+  ValidBoolean:
+    (package): Common
+    type: object
+    properties:
+      /a-z/: # rule can't apply on dynamic properties
+        description: xyz
+        type: boolean
+      good: # name is not prefixed with "is"
+        description: xyz
+        type: boolean
+      alsoGood: boolean
+      isolated: # name starts with "is" but not as a prefix
+        description: xyz
+        type: boolean
+  ValidNonBoolean:
+    (package): Common
+    type: object
+    properties: # type is not a boolean
+      isFine:
+        description: xyz
+        type: string
+      isAlsoFine: number
+  ValidBooleanArray:
+    (package): Common
+    type: object
+    properties:
+      isGoods: 
+        description: xyz
+        type: array
+        items: boolean 
+  
