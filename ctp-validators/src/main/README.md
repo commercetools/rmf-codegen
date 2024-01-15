@@ -18,3 +18,5 @@
 This rule states that all resources should be plural. But some Platform APIs don't follow this and they are explicitly excluded.
 
 * Add the new validator rule in this [folder](https://github.com/commercetools/rmf-codegen/tree/main/ctp-validators/src/main/kotlin/com/commercetools/rmf/validators). A new `case` method should be added to the rule class which validates the test examples added above.
+
+* Add a description of the rule in this [page](https://github.com/commercetools/commercetools-docs/tree/main/api-specs#validator-rules)

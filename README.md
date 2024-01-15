@@ -49,6 +49,8 @@ Allows to validate RAML files and generate code from them
 Commands:
   generate                  Generate source code from a RAML specification.
   verify                    Allows to verify if a raml spec is valid.
+  validate                  Validate the raml spec against defined rules and generate a validation report.
+
 ```
 
 Generating Client SDKs or normalized RAML for documentation:
@@ -83,7 +85,7 @@ Generate source code from a RAML specification.
 
 ```
 
-Validating a RAML API:
+Verifying a RAML API:
 
 ```
 Usage: rmf-codegen verify [-hw] <ramlFileLocation>
@@ -91,6 +93,31 @@ Allows to verify if a RAML spec is valid.
   <ramlFileLocation>        Api file location
   -h, --help                display this help message
   -w, --watch               Watches the files for changes
+```
+
+Validating a RAML API and generating a validity report:
+
+```
+Usage: <main class> validate [-hvw] [--list-rules] [-f=<outputFormat>]
+[-l=<linkBase>] [-lf=<linkFormat>]
+[-o=<outputTarget>] [-r=<rulesetFile>]
+[-s=<checkSeverity>] [-t=<tempFile>]
+<ramlFileLocation>
+
+Allows to verify if a raml spec is valid according to CT guidelines and generates a validation report
+
+  <ramlFileLocation>   Api file location
+  -f, --format=<outputFormat> Specifies the output format. Valid values: CLI, JSON, MARKDOWN
+  -h, --help               display this help message
+  -l, --link-base=<linkBase>
+  -lf, --link-format=<linkFormat> Specifies the link format. Valid values: CLI, GITHUB
+  --list-rules         Show all rules
+  -o, --outputTarget=<outputTarget>
+  -r, --ruleset=<rulesetFile> Ruleset configuration
+  -s, --severity=<checkSeverity> Diagnostic severity. Valid values: info, warn, error
+  -t, --temp=<tempFile>    Temporary folder
+  -v, --verbose            Verbose
+  -w, --watch              Watches the files for changes
 ```
 
 ## Development
