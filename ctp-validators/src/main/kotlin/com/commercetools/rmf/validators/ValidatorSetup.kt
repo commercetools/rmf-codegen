@@ -40,7 +40,7 @@ class ValidatorSetup {
             }
             rules = mergeRules(rules, ruleSet.rules.map { it.name to it }.toMap())
 
-            val validators = rules.values.filter { it.enabled }.map { rule -> when(rule.severity != null) {
+            val validators = rules.values.filter { it.enabled }.filter { rule -> classExists(rule.name) }.map { rule -> when(rule.severity != null) {
                     true -> Class.forName(rule.name).getConstructor(RuleSeverity::class.java, List::class.java).newInstance(rule.severity, rule.options)
                     else -> Class.forName(rule.name).getConstructor(RuleSeverity::class.java, List::class.java).newInstance(RuleSeverity.ERROR, rule.options)
                 }
@@ -68,6 +68,15 @@ class ValidatorSetup {
             }
 
             return checks
+        }
+
+        private fun classExists(className: String): Boolean {
+            try {
+                return Class.forName(className) is Class
+            } catch (_: ClassNotFoundException) {
+                System.err.println("Class not found: $className")
+                return false
+            }
         }
 
         private fun readSets(): Map<String, Map<String, Rule>> {
