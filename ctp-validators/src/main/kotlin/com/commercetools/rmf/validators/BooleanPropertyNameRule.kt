@@ -14,7 +14,7 @@ class BooleanPropertyNameRule(severity: RuleSeverity, options: List<RuleOption>?
         val validationResults: MutableList<Diagnostic> = ArrayList()
 
         type.properties.filter { property -> property.type.isBoolean() }.forEach { property ->
-            if (exclude.contains(property.name).not()) {
+            if (exclude.contains("${type.name}:${property.name}").not()) {
                 if (property.name.matches(Regex("^is[A-Z].*$"))) {
                     validationResults.add(error(type, "Property \"{0}\" of type \"{1}\" must not have \"is\" as a prefix", property.name, type.name))
                 }

@@ -4,6 +4,7 @@ import io.vrap.rmf.raml.model.RamlModelBuilder
 import org.eclipse.emf.common.util.Diagnostic
 import spock.lang.Specification
 import static java.util.Collections.emptyList
+import static java.util.Collections.singletonList
 
 class ValidatorRulesTest extends Specification implements ValidatorFixtures {
     def "property camel case rule"() {
@@ -39,7 +40,8 @@ class ValidatorRulesTest extends Specification implements ValidatorFixtures {
 
     def "boolean property name rule"() {
         when:
-        def validators = Arrays.asList(new TypesValidator(Arrays.asList(BooleanPropertyNameRule.create(emptyList()))))
+        def options = singletonList(new RuleOption(RuleOptionType.EXCLUDE.toString(), "InvalidBoolean:isExcludedBad"))
+        def validators = Arrays.asList(new TypesValidator(Arrays.asList(BooleanPropertyNameRule.create(options))))
         def uri = uriFromClasspath("/boolean-property-name-rule.raml")
         def result = new RamlModelBuilder(validators).buildApi(uri)
         then:
