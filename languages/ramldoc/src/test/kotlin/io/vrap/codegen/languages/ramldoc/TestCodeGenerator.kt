@@ -46,6 +46,38 @@ class TestCodeGenerator {
     }
 
     @Test
+    fun testFileTypeExample() {
+        val generatorConfig = CodeGeneratorConfig(
+                basePackageName = "com/commercetools/importer",
+                outputFolder = Paths.get("build/gensrc"),
+                inlineExamples = true
+        )
+
+        val apiProvider = RamlApiProvider(Paths.get("src/test/resources/filetype.raml"))
+
+        val dataSink = MemoryDataSink()
+        val generatorModule = RamlGeneratorModule(apiProvider, generatorConfig, RamldocBaseTypes, dataSink = dataSink)
+        val generatorComponent = RamlGeneratorComponent(generatorModule, RamldocModelModule)
+        generatorComponent.generateFiles()
+
+        Assertions.assertThat(dataSink.files).hasSize(2)
+        Assertions.assertThat(dataSink.files.get("types/foo.raml")?.trim()).isEqualTo("""
+            #%RAML 1.0 DataType
+            displayName: foo
+            type: object
+            (builtinType): object
+            properties:
+              bar:
+                fileTypes:
+                  - "*.js"
+                type: file
+                (builtinType): file
+                required: true
+                (inherited): false
+        """.trimIndent())
+    }
+
+    @Test
     fun testMarkdown() {
         val generatorConfig = CodeGeneratorConfig(
                 basePackageName = "com/commercetools/api",

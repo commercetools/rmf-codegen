@@ -21,6 +21,7 @@ import io.vrap.rmf.raml.model.types.*
 import io.vrap.rmf.raml.model.types.Annotation
 import io.vrap.rmf.raml.model.util.StringCaseFormat
 import io.vrap.rmf.raml.model.values.RegExp
+import org.eclipse.emf.ecore.EAttribute
 import org.eclipse.emf.ecore.EObject
 import java.io.IOException
 import java.util.stream.Collectors
@@ -47,6 +48,12 @@ fun UriTemplate.normalize(): UriTemplate {
     return UriTemplate.fromTemplate(this.template.replace("{ID}", "{id}", ignoreCase = true))
 }
 
+fun AnyType.renderFileType(): String {
+    if (!this.isInlineType) {
+        return "type: ${this.name}"
+    }
+    return this.renderEAttributes().plus("type: ${this.name ?: "file"}").joinToString("\n")
+}
 fun AnyType.renderScalarType(): String {
     if (!this.isInlineType) {
         return "type: ${this.name}"
@@ -76,6 +83,7 @@ fun AnyType.renderEAttributes(): List<String> {
             .map { eAttribute -> when(val eValue = this.eGet(eAttribute)) {
                 is RegExp -> "${eAttribute.name}: \"${eValue}\""
                 is String -> "${eAttribute.name}: \"${eValue}\""
+                is Collection<*> -> "${eAttribute.name}:\n" + (this.eGet(eAttribute) as Collection<*>).joinToString("\n") { "  - ${it?.toYaml()}" }
                 else -> "${eAttribute.name}: ${this.eGet(eAttribute)}"
             } }
 }
@@ -109,6 +117,7 @@ fun AnyType.renderTypeFacet(): String {
         is UnionType -> this.renderUnionType()
         is ObjectType -> this.renderObjectType()
         is NumberType -> this.renderNumberType()
+        is FileType -> this.renderFileType()
         else -> this.renderScalarType()}
 }
 
