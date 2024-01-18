@@ -19,11 +19,11 @@ import io.vrap.rmf.raml.model.modules.Api
 import io.vrap.rmf.raml.model.types.*
 import io.vrap.rmf.raml.model.values.RegExp
 import org.eclipse.emf.ecore.EObject
-import org.emfjson.jackson.annotations.EcoreReferenceInfo
-import org.emfjson.jackson.annotations.EcoreTypeInfo
-import org.emfjson.jackson.databind.ser.EcoreReferenceSerializer
-import org.emfjson.jackson.handlers.BaseURIHandler
-import org.emfjson.jackson.module.EMFModule
+import org.eclipse.emfcloud.jackson.annotations.EcoreReferenceInfo
+import org.eclipse.emfcloud.jackson.annotations.EcoreTypeInfo
+import org.eclipse.emfcloud.jackson.databind.ser.EcoreReferenceSerializer
+import org.eclipse.emfcloud.jackson.handlers.BaseURIHandler
+import org.eclipse.emfcloud.jackson.module.EMFModule
 import java.io.IOException
 
 class OasModuleRenderer constructor(val api: Api, override val vrapTypeProvider: VrapTypeProvider) : EObjectExtensions, FileProducer {
