@@ -4,7 +4,7 @@ ext {
             assertj: '3.16.1',
             commonmark: '0.14.0',
             directoryWatcher: '0.15.0',
-            emfjsonJackson: '1.3.0',
+            emfjsonJackson: '2.2.0',
             guava: '31.1-jre',
             junit: '5.9.0',
             jackson: '2.13.4',
@@ -58,7 +58,7 @@ ext {
             watcher: "io.methvin:directory-watcher:${versions.directoryWatcher}"
     ]
     emf = [
-            jackson: "org.emfjson:emfjson-jackson:${versions.emfjsonJackson}"
+            jackson: "org.eclipse.emfcloud:emfjson-jackson:${versions.emfjsonJackson}"
     ]
 
     slf4j = [
