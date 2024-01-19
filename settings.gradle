@@ -16,4 +16,4 @@ include 'languages:ramldoc'
 include 'ctp-validators'
 include 'tools:cli-application'
 
-include 'tools:codegen-gradle-plugin'
+//include 'tools:codegen-gradle-plugin'

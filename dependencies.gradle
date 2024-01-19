@@ -7,7 +7,7 @@ ext {
             emfjsonJackson: '2.2.0',
             guava: '31.1-jre',
             junit: '5.9.0',
-            jackson: '2.13.4',
+            jackson: '2.16.1',
             javaxValidation: '2.0.1.Final',
             kotlin: kotlinVersion,
             picocli: '4.6.1',
