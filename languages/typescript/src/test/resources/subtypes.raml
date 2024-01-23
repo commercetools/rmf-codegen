@@ -1,0 +1,38 @@
+#%RAML 1.0
+---
+title: Commercetools OAuth API
+version: 1
+baseUri: https://api.europe-west1.gcp.commercetools.com
+
+types:
+  ProductSearchQuery:
+    type: object
+  ProductSearchQueryExpression:
+    type: ProductSearchQuery
+  ProductSearchCompoundExpression:
+    type: ProductSearchQuery
+  ProductSearchAndExpression:
+    type: ProductSearchCompoundExpression
+    properties:
+      and:
+        type: ProductSearchQuery[]
+  ProductSearchExistsExpression:
+    type: ProductSearchQueryExpression
+    properties:
+      exists:
+        type: ProductSearchExistsValue
+  ProductSearchExactExpression:
+    type: ProductSearchQueryExpression
+    properties:
+      exact:
+        type: ProductSearchAnyValue
+  ProductSearchRequest:
+    type: object
+    properties:
+      query?:
+        type: ProductSearchQuery
+        description: The Product search query.
+  ProductSearchExistsValue:
+    type: object
+  ProductSearchAnyValue:
+    type: object

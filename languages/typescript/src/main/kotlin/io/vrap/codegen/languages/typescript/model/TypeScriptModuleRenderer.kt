@@ -76,7 +76,7 @@ class TypeScriptModuleRenderer constructor(override val vrapTypeProvider: VrapTy
                     |  <${renderPatternSpec()}>
                     |  <${renderPropertyDecls(false)}>
                     |}
-                    |export type _${name} = ${name} | ${this.namedSubTypes().joinToString(" | ") { it.name }}
+                    |export type _${name} = ${name} | ${this.namedSubTypes().joinToString(" | ") { it.subTypeName() }}
                 """.trimMargin()
             } else {
                 """
@@ -88,6 +88,14 @@ class TypeScriptModuleRenderer constructor(override val vrapTypeProvider: VrapTy
                 """.trimMargin()
             }
         }
+    }
+
+    private fun AnyType.subTypeName(): String {
+        val type = if (this.isInlineType()) this.type else this;
+        if ((type is ObjectType) && type.discriminator() == null && type.namedSubTypes().isNotEmpty()) {
+            return "_${this.name}"
+        }
+        return this.name
     }
 
     /**
