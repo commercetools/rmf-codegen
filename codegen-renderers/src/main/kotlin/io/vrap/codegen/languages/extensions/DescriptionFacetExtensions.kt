@@ -1,6 +1,5 @@
 package io.vrap.codegen.languages.extensions
 
-import io.vrap.rmf.codegen.doc.toHtml
 import io.vrap.rmf.raml.model.types.AnnotationsFacet
 import io.vrap.rmf.raml.model.types.DescriptionFacet
 import io.vrap.rmf.raml.model.types.ObjectInstance
@@ -33,6 +32,13 @@ fun DescriptionFacet.toComment(empty: String = ""): String {
     }
 }
 
+fun DescriptionFacet.toHtml() = this
+        .description
+        ?.value
+        ?.let(PARSER::parse)
+        ?.let(HTML_RENDERER::render)
+        ?.trim()
+
 fun String.filterLinks(): String {
     return Jsoup.clean(this, "", Safelist.basic().removeTags("a"), outputSettings)
         .replace("€", "&euro;")
@@ -56,7 +62,7 @@ fun StringInstance.toComment(): String? {
     if (enumValues?.value is ObjectInstance) {
         val description = (enumValues.value as ObjectInstance).getValue(value)
         return if (description is StringInstance) {
-            description.value?.let(PARSER::parse)?.let(HTML_RENDERER::render)?.let { "/**\n${it.lines().map { '\t' + it }.joinToString(separator = "\n")}\n*/" }
+            description.value?.let(PARSER::parse)?.let(HTML_RENDERER::render)?.let { "/**\n${it.lines().map { '\t' + it }.joinToString(separator = "\n")}\n*/" }?.filterLinks()
         } else {
             null
         }

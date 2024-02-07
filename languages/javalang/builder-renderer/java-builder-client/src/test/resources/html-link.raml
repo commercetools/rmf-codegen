@@ -1,0 +1,35 @@
+#%RAML 1.0
+---
+title: Commercetools Import API
+baseUri: https://localhost
+
+annotationTypes:
+  enumDescriptions:
+    description: |
+      Describes the values of an enum type.
+    type: object
+    properties:
+      //:
+        description: |
+          Adds a description for the enum value given by the key.
+
+types:
+  Foo:
+    type: object
+  Bar:
+    type: object
+    properties:
+      foo:
+        type: Foo
+        description: |
+          some [Foo](ctp:api:type:Foo) property
+  FooBar:
+    type: string
+    enum:
+    - foo
+    - bar
+    (enumDescriptions):
+      foo: |
+        References an [Foo](ctp:api:type:Foo).
+      bar: |
+        References an [Bar](ctp:api:type:Bar).

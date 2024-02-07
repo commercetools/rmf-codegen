@@ -9,8 +9,10 @@ import io.vrap.rmf.codegen.CodeGeneratorConfig
 import io.vrap.rmf.codegen.di.RamlApiProvider
 import io.vrap.rmf.codegen.di.RamlGeneratorComponent
 import io.vrap.rmf.codegen.di.RamlGeneratorModule
+import io.vrap.rmf.codegen.io.MemoryDataSink
 import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapType
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
@@ -141,5 +143,23 @@ class BuilderTestCodeGenerator {
 
         Assertions.assertEquals(correctSimpleTypeClass, generatedSimleTypeClass)
         Assertions.assertEquals(correctSimpleTypeInterface, generatedSimpleTypeInterface)
+    }
+
+    @Test
+    fun generateHtmlLinksToDocs() {
+        val generatorConfig = CodeGeneratorConfig(
+                basePackageName = "com/commercetools/importer",
+                outputFolder = Paths.get("build/gensrc"),
+                inlineExamples = true
+        )
+
+        val apiProvider = RamlApiProvider(Paths.get("src/test/resources/html-link.raml"))
+
+        val dataSink = MemoryDataSink()
+        val generatorModule = RamlGeneratorModule(apiProvider, generatorConfig, JavaBaseTypes, dataSink = dataSink)
+        val generatorComponent = RamlGeneratorComponent(generatorModule, JavaCompleteModule)
+        generatorComponent.generateFiles()
+
+        assertThat(dataSink.files).hasSize(8)
     }
 }
