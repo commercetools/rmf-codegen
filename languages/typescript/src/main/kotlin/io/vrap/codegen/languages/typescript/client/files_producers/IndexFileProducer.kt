@@ -4,10 +4,12 @@ import io.vrap.codegen.languages.extensions.deprecated
 import io.vrap.codegen.languages.typescript.model.TsObjectTypeExtensions
 import io.vrap.codegen.languages.typescript.toRequestBuilderName
 import io.vrap.codegen.languages.typescript.tsGeneratedComment
+import io.vrap.codegen.languages.typescript.tsRequestModuleName
 import io.vrap.rmf.codegen.di.AllAnyTypes
 import io.vrap.rmf.codegen.di.AllResources
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendering.FileProducer
+import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.types.AnyType
@@ -55,7 +57,7 @@ class IndexFileProducer constructor(
             this.asSequence()
                     .filterNot { it.deprecated() }
                     .map {
-                        "export * from '${it.toRequestBuilderName()}'"
+                        "export * from '${it.tsRequestModuleName((it.toVrapType() as VrapObjectType).`package`)}'"
                     }
                     .distinct()
                     .joinToString(separator = "\n")
