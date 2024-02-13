@@ -27,14 +27,12 @@ class IndexFileProducer constructor(
             content = """|
                 |$tsGeneratedComment
                 |
+                |// resources
+                |export * from '${clientConstants.apiRoot}' //Root client that is used to access all the endpoints in the API
+                |${allResources.exportResources()}
+                |
                 |//models
                 |${allAnyTypes.exportModels()}
-                |
-                |//Root client that is used to access all the endpoints in the API
-                |export * from '${clientConstants.apiRoot}'
-                |
-                |// resources
-                |${allResources.exportResources()}
                 |
                 |//Common package
                 |export * from '${clientConstants.commonTypesPackage}'
