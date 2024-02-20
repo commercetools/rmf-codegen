@@ -303,7 +303,7 @@ class GoMethodRenderer(
                 }
             }
             .map {
-                val isSuccess = it.second.toInt() in (200..399)
+                val isSuccess = it.second.toInt() in (200..299)
 
                 if (it.first == "nil") {
                     if (isSuccess) {
