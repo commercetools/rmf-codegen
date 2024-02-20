@@ -145,11 +145,10 @@ class GoMethodRenderer(
 
             if (it.isPatternProperty()) {
                 val name = it.paramName().exportName()
-                // TODO: We could validate the key against the regex
                 """
                 |for k, v := range input.$name {
                 |    for _, x := range v {
-                |        values.Set(k, x)
+                |        values.Add(k, x)
                 |    }
                 |}
                 """.trimMargin()
