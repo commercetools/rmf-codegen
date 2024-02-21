@@ -1,5 +1,6 @@
 package io.vrap.codegen.languages.csharp.model
 
+import io.vrap.codegen.languages.csharp.CsharpBaseTypes
 import io.vrap.codegen.languages.csharp.extensions.*
 import io.vrap.codegen.languages.csharp.requests.PLACEHOLDER_PARAM_ANNOTATION
 import io.vrap.codegen.languages.extensions.EObjectExtensions
@@ -98,7 +99,12 @@ class CsharpTraitRenderer  constructor(override val vrapTypeProvider: VrapTypePr
         val type = this.type;
         return when (type) {
             is ArrayType -> type.items.toVrapType().simpleName()
-            else -> type.toVrapType().simpleName()
+            else -> {
+                val vrapType = type.toVrapType().simpleName()
+                if (vrapType == CsharpBaseTypes.integerType.simpleName())
+                    CsharpBaseTypes.longType.simpleName()
+                else vrapType
+            }
         }
     }
 
