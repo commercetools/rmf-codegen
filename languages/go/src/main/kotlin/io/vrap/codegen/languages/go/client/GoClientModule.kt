@@ -21,9 +21,8 @@ object GoClientModule : Module {
         MethodGenerator(
             setOf(
                 GoMethodRenderer(
-                    generatorModule.clientConstants(),
-                    generatorModule.vrapTypeProvider(),
-                    generatorModule.providePackageName()
+                        generatorModule.vrapTypeProvider(),
+                        generatorModule.providePackageName()
                 )
             ),
             generatorModule.allResourceMethods()
@@ -31,9 +30,8 @@ object GoClientModule : Module {
         FileGenerator(
             setOf(
                 ClientFileProducer(
-                    generatorModule.clientConstants(),
-                    generatorModule.provideRamlModel(),
-                    generatorModule.providePackageName()
+                        generatorModule.provideRamlModel(),
+                        generatorModule.providePackageName()
                 )
             )
         )
