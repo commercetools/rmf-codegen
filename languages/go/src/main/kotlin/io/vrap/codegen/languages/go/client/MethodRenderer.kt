@@ -1,4 +1,5 @@
 package io.vrap.codegen.languages.go.client
+
 import io.vrap.codegen.languages.extensions.isPatternProperty
 import io.vrap.codegen.languages.extensions.returnType
 import io.vrap.codegen.languages.go.*
@@ -20,16 +21,14 @@ import io.vrap.rmf.raml.model.types.ArrayType
 import io.vrap.rmf.raml.model.types.FileType
 
 class GoMethodRenderer(
-        override val vrapTypeProvider: VrapTypeProvider,
-        @BasePackageName val basePackageName: String
+    override val vrapTypeProvider: VrapTypeProvider, @BasePackageName val basePackageName: String
 ) : MethodRenderer, GoObjectTypeExtensions {
 
     override fun render(type: Method): TemplateFile {
 
         val filename = type.goClientFileName()
         return TemplateFile(
-            relativePath = "$basePackageName/$filename.go",
-            content = """|
+            relativePath = "$basePackageName/$filename.go", content = """|
                 |package $basePackageName
                 |
                 |$goGeneratedComment
@@ -46,35 +45,29 @@ class GoMethodRenderer(
 
     private fun Method.importStatement(): String {
         val modules = mutableListOf<String>(
-            "context",
-            "fmt",
-            "io/ioutil",
-            "net/http",
-            "net/url"
+            "context", "fmt", "io/ioutil", "net/http", "net/url"
         )
 
-        val bodies = this.responses
-            .filter { it.bodies.isNotEmpty() }
-            .map { it.bodies[0].type.toVrapType() }
+        val bodies = this.responses.filter { it.bodies.isNotEmpty() }.map { it.bodies[0].type.toVrapType() }
 
         if (bodies.isNotEmpty()) {
             modules.add("encoding/json")
         }
 
         if (queryParameters.any {
-            val type = it.type.toVrapType()
-            when (type) {
-                is VrapArrayType -> when (type.itemType) {
+                val type = it.type.toVrapType()
+                when (type) {
+                    is VrapArrayType -> when (type.itemType) {
+                        GoBaseTypes.integerType -> true
+                        GoBaseTypes.longType -> true
+                        else -> false
+                    }
+
                     GoBaseTypes.integerType -> true
                     GoBaseTypes.longType -> true
                     else -> false
                 }
-                GoBaseTypes.integerType -> true
-                GoBaseTypes.longType -> true
-                else -> false
-            }
-        }
-        ) {
+            }) {
             modules.add("strconv")
         }
 
@@ -82,9 +75,7 @@ class GoMethodRenderer(
             modules.add("io")
         }
 
-        return modules
-            .map { "    \"$it\"" }
-            .joinToString(prefix = "import(\n", separator = "\n", postfix = "\n)")
+        return modules.map { "    \"$it\"" }.joinToString(prefix = "import(\n", separator = "\n", postfix = "\n)")
     }
 
     protected fun Method.constructor(): String {
@@ -115,7 +106,8 @@ class GoMethodRenderer(
         val structName = "${toStructName()}Input"
         return this.queryParameters.map {
             val funcName = it.paramName().exportName()
-            val valType = if (it.isPatternProperty()) "map[string]${it.type.renderTypeExpr()}" else it.type.renderTypeExpr()
+            val valType =
+                if (it.isPatternProperty()) "map[string]${it.type.renderTypeExpr()}" else it.type.renderTypeExpr()
 
             val ref = if (it.isPatternProperty() || it.required || it.type is ArrayType) "" else "&"
             """
@@ -133,12 +125,9 @@ class GoMethodRenderer(
         val structName = "${toStructName()}Input"
 
         val fields = this.queryParameters.map {
-            if (it.isPatternProperty())
-                "${it.paramName().exportName()} map[string]${it.type.renderTypeExpr()}"
-            else if (it.required || it.type is ArrayType)
-                "${it.name.exportName()} ${it.type.renderTypeExpr()}"
-            else
-                "${it.name.exportName()} *${it.type.renderTypeExpr()}"
+            if (it.isPatternProperty()) "${it.paramName().exportName()} map[string]${it.type.renderTypeExpr()}"
+            else if (it.required || it.type is ArrayType) "${it.name.exportName()} ${it.type.renderTypeExpr()}"
+            else "${it.name.exportName()} *${it.type.renderTypeExpr()}"
         }.joinToString(separator = "\n")
 
         val setters = this.queryParameters.map {
@@ -154,8 +143,7 @@ class GoMethodRenderer(
                 """.trimMargin()
             } else {
                 val name = it.name.exportName()
-                val addStatement = {
-                    key: String, input: String, type: VrapType ->
+                val addStatement = { key: String, input: String, type: VrapType ->
                     when (type) {
                         GoBaseTypes.integerType -> """values.Add("$key", strconv.Itoa($input))"""
                         GoBaseTypes.longType -> """values.Add("$key", strconv.Itoa($input))"""
@@ -169,6 +157,7 @@ class GoMethodRenderer(
                             |}
                             """.trimMargin()
                         }
+
                         else -> """values.Add("$key", fmt.Sprintf("%v", $input))"""
                     }
                 }
@@ -207,8 +196,7 @@ class GoMethodRenderer(
     }
 
     private fun Method.renderFuncWithQueryParams(): String {
-        if (this.queryParameters.isEmpty())
-            return ""
+        if (this.queryParameters.isEmpty()) return ""
 
         return """
         |${this.renderQueryParamInput()}
@@ -232,10 +220,10 @@ class GoMethodRenderer(
     }
 
     private fun Method.renderFuncExecute(): String {
-        val methodReturn = if (this.returnType().toVrapType().goTypeName() != "nil")
-            "(result *${this.returnType().toVrapType().goTypeName()}, err error)"
-        else
-            "error"
+        val methodReturn = if (this.returnType().toVrapType().goTypeName() != "nil") "(result *${
+            this.returnType().toVrapType().goTypeName()
+        }, err error)"
+        else "error"
 
         var bodyExpr = ""
         val bodyVrapType = this.vrapType()
@@ -257,8 +245,7 @@ class GoMethodRenderer(
             bodyArg = if (bodyExpr != "") "data," else "nil,"
         }
 
-        val paramsExpr = if (this.queryParameters.isNotEmpty())
-            """
+        val paramsExpr = if (this.queryParameters.isNotEmpty()) """
             |    var queryParams url.Values
             |    if (rb.params != nil) {
             |        queryParams = rb.params.Values()
@@ -291,31 +278,42 @@ class GoMethodRenderer(
 
     fun Method.responseHandler(): String {
         val returnValue = if (this.hasReturnValue()) "nil, " else ""
-        val switchStatements = this.responses
-            .map {
-                val statusCode = it.statusCode
-                if (it.bodies.isNotEmpty()) {
-                    val vrap = it.bodies[0].type.toVrapType()
-                    vrap.simpleGoName() to statusCode
-                } else {
-                    "nil" to statusCode
-                }
+        val switchStatements = this.responses.map {
+            val statusCode = it.statusCode
+            if (it.bodies.isNotEmpty()) {
+                val vrap = it.bodies[0].type.toVrapType()
+                vrap.simpleGoName() to statusCode
+            } else {
+                "nil" to statusCode
             }
-            .map {
-                val isSuccess = it.second.toInt() in (200..299)
+        }.map {
+            val isSuccess = it.second.toInt() in (200..299)
 
-                if (it.first == "nil") {
-                    if (isSuccess) {
-                        """
+            // The left hand value being empty indicates no response body has been defined for the response. This is
+            // most notably the case with HEAD requests or 404 errors, which do not have response body
+            if (it.first == "nil") {
+                // When the response body is empty but the status code is success we return a nil value
+                if (isSuccess) {
+                    """
                         |case ${it.second.toInt()}:
                         |    return ${returnValue}nil
                         """.trimMargin()
-                    } else {
-                        ""
-                    }
+                } else if (it.second.toInt() == 404) {
+                    // If status code is 404 but the response body is empty we return a sentinel value
+                    """
+                            |case ${it.second.toInt()}:
+                            |    return ${returnValue}ErrNotFound
+                            """.trimMargin()
                 } else {
-                    if (isSuccess) {
-                        """
+                    // If status code is not success but no body is defined we return a generic error as default
+                    // (see below)
+                    ""
+                }
+
+            } else {
+                if (isSuccess) {
+                    // If status is success and a response body is defined we return the marshalled data
+                    """
                         |case ${it.second.toInt()}:
                         |    err = json.Unmarshal(content, &result)
                         |    if (err != nil) {
@@ -323,13 +321,15 @@ class GoMethodRenderer(
                         |    }
                         |    return result, nil
                         """.trimMargin()
-                    } else if (it.second.toInt() == 404) {
-                        """
-                        |case ${it.second.toInt()}:
-                        |    return nil, ErrNotFound
-                        """.trimMargin()
-                    } else {
-                        """
+                } else if (it.second.toInt() == 404) {
+                    // If status code is 404 and has a response body we return a sentinel value
+                    """
+                            |case ${it.second.toInt()}:
+                            |    return ${returnValue}ErrNotFound
+                            """.trimMargin()
+                } else {
+                    // If status is failure and response body is defined we return the marshalled error
+                    """
                         |case ${it.second.toInt()}:
                         |    errorObj := ${it.first}{}
                         |    err = json.Unmarshal(content, &errorObj)
@@ -338,9 +338,9 @@ class GoMethodRenderer(
                         |    }
                         |    return ${returnValue}errorObj
                         """.trimMargin()
-                    }
                 }
-            }.joinToString("\n")
+            }
+        }.joinToString("\n")
 
         return """
         |if (err != nil) {
