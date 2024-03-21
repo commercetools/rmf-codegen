@@ -321,6 +321,12 @@ class GoMethodRenderer(
                         |    }
                         |    return result, nil
                         """.trimMargin()
+                } else if (it.second.toInt() == 404) {
+                    // If status code is 404 and has a response body we return a sentinel value
+                    """
+                            |case ${it.second.toInt()}:
+                            |    return ${returnValue}ErrNotFound
+                            """.trimMargin()
                 } else {
                     // If status is failure and response body is defined we return the marshalled error
                     """
