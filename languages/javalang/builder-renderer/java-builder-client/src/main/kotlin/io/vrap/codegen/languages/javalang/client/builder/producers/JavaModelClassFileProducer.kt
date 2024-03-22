@@ -331,7 +331,7 @@ class JavaModelClassFileProducer constructor(override val vrapTypeProvider: Vrap
             | * create instance with all properties
             | */
             |@JsonCreator
-            |${vrapType.simpleClassName}Impl(${constructorArguments.escapeAll()}) {
+            |${if(constructorArguments.isEmpty()) "public " else ""}${vrapType.simpleClassName}Impl(${constructorArguments.escapeAll()}) {
             |    <$propertiesAssignment>
             |    <$discriminatorAssignment>
             |}
