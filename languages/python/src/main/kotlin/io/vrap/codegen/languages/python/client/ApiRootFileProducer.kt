@@ -30,14 +30,14 @@ class ApiRootFileProducer constructor(
             content = """|
                 |$pyGeneratedComment
                 |${type.imports("client")}
-                |from commercetools.client import BaseClient
+                |from commercetools.base_client import BaseClient
                 |
                 |
                 |class Client(BaseClient):
                 |
                 |    def __init__(self, *args, **kwargs):
                 |        kwargs.setdefault("url", "${api.baseUri?.template}")
-                |        super().__init__(self, **kwargs)
+                |        super().__init__(**kwargs)
                 |
                 |    <${type.subResources("self").escapeAll()}>
                 |
