@@ -173,9 +173,17 @@ fun AnyType.renderType(withDescription: Boolean = true): String {
     } else {
         ""
     }
+    val displayName = if ((this.isInlineType || this.isScalar())  && this.displayName?.value.isNullOrBlank().not()) {
+        """
+        |
+        |displayName: ${this.displayName.value.trim()}
+        """.trimMargin()
+    } else {
+        ""
+    }
     return """
         |${this.renderTypeFacet()}
-        |$builtinType
+        |$builtinType$displayName
         |$description
         """.trimMargin().trimEnd()
 }
