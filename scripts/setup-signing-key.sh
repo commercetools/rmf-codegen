@@ -31,6 +31,7 @@ gcloud kms decrypt \
 set +e
 echo "Importing the signing key"
 gpg --import --no-tty --batch --yes signing_key.asc
+echo " - done"
 set -e
 
 # List available GPG keys
