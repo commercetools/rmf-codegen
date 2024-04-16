@@ -14,16 +14,16 @@ echo "Decrypt signing secrets"
 gcloud kms decrypt \
   --project=commercetools-platform \
   --location=global \
-  --keyring=teamcity \
-  --key=jvm-sdk \
+  --keyring=devtooling \
+  --key=java-sdk-v2 \
   --ciphertext-file=signing_key.enc \
   --plaintext-file=signing_key.asc
 
 gcloud kms decrypt \
   --project=commercetools-platform \
   --location=global \
-  --keyring=teamcity \
-  --key=jvm-sdk \
+  --keyring=devtooling \
+  --key=java-sdk-v2 \
   --ciphertext-file=signing_passphrase.enc \
   --plaintext-file=signing_passphrase.txt
 
