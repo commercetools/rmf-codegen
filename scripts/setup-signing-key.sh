@@ -37,7 +37,7 @@ set -e
 # List available GPG keys
 gpg -K
 
-KEYNAME=`gpg --with-colons --keyid-format long --list-keys automation@commercetools.de | grep fpr | cut -d ':' -f 10`
+KEYNAME=`gpg --with-colons --keyid-format long --list-keys devtooling@commercetools.com | grep fpr | cut -d ':' -f 10`
 
 mkdir -p ~/.gradle
 touch ~/.gradle/gradle.properties
