@@ -12,7 +12,8 @@ object BrunoModelModule : Module {
             FileGenerator(
                     setOf(
                             BrunoModuleRenderer(generatorModule.provideRamlModel(), generatorModule.vrapTypeProvider()),
-                            BrunoMethodRenderer(generatorModule.provideRamlModel(), generatorModule.vrapTypeProvider())
+                            BrunoMethodRenderer(generatorModule.provideRamlModel(), generatorModule.vrapTypeProvider()),
+                            BrunoActionRenderer(generatorModule.provideRamlModel(), generatorModule.vrapTypeProvider())
                     )
             )
     )
