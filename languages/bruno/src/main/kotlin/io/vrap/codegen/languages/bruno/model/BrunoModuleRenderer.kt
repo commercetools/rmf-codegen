@@ -21,7 +21,10 @@ class BrunoModuleRenderer constructor(val api: Api, override val vrapTypeProvide
                 brunoJson(api),
                 collectionBru(api),
                 clientCredentialsBru(api),
-                exampleEnvironment(api)
+                exampleEnvironment(api),
+                dotEnvEnvironment(api),
+                dotEnvSample(api),
+                gitIgnore()
         )
     }
 
@@ -40,6 +43,43 @@ class BrunoModuleRenderer constructor(val api: Api, override val vrapTypeProvide
                     |vars:secret [
                     |  ctp_client_id,
                     |  ctp_client_secret,
+                    |  ctp_access_token
+                    |]
+                """.trimMargin()
+        )
+    }
+
+    private fun gitIgnore(): TemplateFile {
+        return TemplateFile(relativePath = ".gitignore",
+                content = """
+                    |.env
+                """.trimMargin()
+        )
+    }
+    private fun dotEnvSample(api: Api): TemplateFile {
+        return TemplateFile(relativePath = ".env.sample",
+                content = """
+                    |CTP_CLIENT_ID=
+                    |CTP_CLIENT_SECRET=
+                """.trimMargin()
+        )
+    }
+
+    private fun dotEnvEnvironment(api: Api): TemplateFile {
+        val baseUri = when (val sdkBaseUri = api.getAnnotation("sdkBaseUri")?.value) {
+            is StringInstance -> sdkBaseUri.value
+            else -> api.baseUri.template
+        }.trimEnd('/')
+        return TemplateFile(relativePath = "environments/DotEnv.bru",
+                content = """
+                    |vars {
+                    |  authUrl: ${api.oAuth2().uri().toString().trimEnd('/')}
+                    |  apiUrl: $baseUri
+                    |  projectKey:
+                    |  ctp_client_id: {{process.env.CTP_CLIENT_ID}}
+                    |  ctp_client_secret: {{process.env.CTP_CLIENT_SECRET}}
+                    |}
+                    |vars:secret [
                     |  ctp_access_token
                     |]
                 """.trimMargin().keepAngleIndent()
@@ -86,7 +126,7 @@ class BrunoModuleRenderer constructor(val api: Api, override val vrapTypeProvide
                     |}
                     |
                     |post {
-                    |  url: {{authHost}}
+                    |  url: {{authUrl}}
                     |  body: formUrlEncoded
                     |  auth: basic
                     |}
