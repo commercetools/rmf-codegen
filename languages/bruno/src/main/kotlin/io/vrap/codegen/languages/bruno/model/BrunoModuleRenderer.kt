@@ -126,7 +126,7 @@ class BrunoModuleRenderer constructor(val api: Api, override val vrapTypeProvide
                     |}
                     |
                     |post {
-                    |  url: {{authUrl}}
+                    |  url: {{auth_url}}${api.oAuth2().uri().path}?grant_type=client_credentials
                     |  body: formUrlEncoded
                     |  auth: basic
                     |}
