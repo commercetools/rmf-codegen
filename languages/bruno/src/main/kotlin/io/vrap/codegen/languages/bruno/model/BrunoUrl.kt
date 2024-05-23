@@ -43,10 +43,6 @@ class BrunoUrl (private val resource: Resource, private val method: Method, val 
         return "${host()}${postmanUrlPath()}"
     }
 
-    fun path(drop: Int = 1): String {
-        return postmanUrlPath().split("/").drop(drop).joinToString("\",\n\"")
-    }
-
     fun query(): String {
         return method.queryParameters.joinToString("\n") { it.queryParam() }
     }
