@@ -3,6 +3,7 @@ package io.vrap.codegen.languages.bruno.model
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.module.SimpleModule
+import com.fasterxml.jackson.databind.node.ObjectNode
 import com.google.common.collect.Lists
 import io.vrap.codegen.languages.extensions.*
 import io.vrap.rmf.codegen.firstUpperCase
@@ -22,6 +23,7 @@ import io.vrap.rmf.raml.model.types.*
 import io.vrap.rmf.raml.model.types.Annotation
 import io.vrap.rmf.raml.model.util.StringCaseFormat
 import org.eclipse.emf.ecore.EObject
+import java.io.IOException
 
 class BrunoActionRenderer constructor(val api: Api, override val vrapTypeProvider: VrapTypeProvider) : EObjectExtensions, FileProducer {
 
@@ -46,13 +48,41 @@ class BrunoActionRenderer constructor(val api: Api, override val vrapTypeProvide
     }
 
     private fun renderAction(resource: Resource, method: Method, type: ObjectType, index: Int): TemplateFile {
+        val url = BrunoUrl(method.resource(), method) { resource, name -> when (name) {
+            "ID" -> resource.resourcePathName.singularize() + "-id"
+            "key" -> resource.resourcePathName.singularize() + "-key"
+            else -> StringCaseFormat.LOWER_HYPHEN_CASE.apply(name)
+        }}
+        val actionBody = resource.actionExample(type)
         val content = """
             |meta {
-            |  name: "${type.discriminatorValue.firstUpperCase()}${if (type.markDeprecated()) " (deprecated)" else ""}"
+            |  name: ${type.discriminatorValue.firstUpperCase()}${if (type.markDeprecated()) " (deprecated)" else ""}
             |  type: http
             |  seq: ${index + offset}
             |}
-            """.trimMargin()
+            | 
+            |${method.methodName} {
+            |  url: ${url.raw()}
+            |  body: ${method.bodyType()}
+            |  auth: inherit
+            |}
+            | 
+            |body:json {
+            |  <<${actionBody}>>
+            |}
+            |
+            |query {
+            |  <<${url.query()}>>
+            |}
+            |
+            |script:post-response {
+            |  <<${method.resource().testScript()}>>
+            |}
+            |
+            |assert {
+            |  res.status: in [200, 201]
+            |}
+        """.trimMargin().keepAngleIndent()
 
         val relativePath = methodResourcePath(method) + "/Update actions/" + type.discriminatorValue.firstUpperCase() + ".bru"
 
@@ -60,6 +90,64 @@ class BrunoActionRenderer constructor(val api: Api, override val vrapTypeProvide
                 relativePath = relativePath,
                 content = content
         )
+    }
+
+    fun Method.getExample(): String? {
+        val s = this.bodies?.
+        getOrNull(0)?.
+        type?.
+        examples?.
+        getOrNull(0)?.
+        value
+        return s?.toJson()
+    }
+
+    fun Method.bodyType(): String {
+        return if (this.getExample() != null) "json" else "none"
+    }
+
+    private fun Resource.actionExample(type: ObjectType): String {
+        val example = getExample(type)
+        return """
+            |{
+            |    "version": {{${this.resourcePathName.singularize()}-version}},
+            |    "actions": [
+            |        <<${if (example.isNullOrEmpty().not()) example else """
+            |        |{
+            |        |    "action": "${type.discriminatorValue}"
+            |        |}""".trimMargin()}>>
+            |    ]
+            |}
+        """.trimMargin().keepAngleIndent()
+    }
+
+    private fun getExample(type: ObjectType): String? {
+        var example: String? = null
+        var instance: Instance? = null
+
+        if (type.getAnnotation("postman-example") != null) {
+            instance = type.getAnnotation("postman-example").value
+        } else if (type.examples.size > 0) {
+            instance = type.examples[0].value
+        }
+
+        if (instance != null) {
+            example = instance.toJson()
+            try {
+                val mapper = ObjectMapper()
+                val nodes = mapper.readTree(example) as ObjectNode
+                nodes.put("action", type.discriminatorValue)
+
+                example = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(nodes)
+                    .split("\n".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray().map { s -> "  $s" }
+                    .joinToString("\n")
+                    .trim { it <= ' ' }
+            } catch (e: IOException) {
+            }
+
+        }
+
+        return example
     }
 
     private fun ObjectType.markDeprecated() : Boolean {
@@ -136,30 +224,31 @@ class BrunoActionRenderer constructor(val api: Api, override val vrapTypeProvide
 
     fun Resource.testScript(param: String = ""): String {
         return """
-            |tests["Status code " + responseCode.code] = responseCode.code === 200 || responseCode.code === 201;
-            |var data = JSON.parse(responseBody);
-            |if(data.results && data.results[0] && data.results[0].id && data.results[0].version){
-            |    pm.environment.set("${this.resourcePathName.singularize()}-id", data.results[0].id); 
-            |    pm.environment.set("${this.resourcePathName.singularize()}-version", data.results[0].version);
+            |var data = res.body;
+            |if(res.status == 200 || res.status == 201) {
+            |    if(data.results && data.results[0] && data.results[0].id && data.results[0].version){
+            |        bru.setEnvVar("${this.resourcePathName.singularize()}-id", data.results[0].id); 
+            |        bru.setEnvVar("${this.resourcePathName.singularize()}-version", data.results[0].version);
+            |    }
+            |    if(data.results && data.results[0] && data.results[0].key){
+            |        bru.setEnvVar("${this.resourcePathName.singularize()}-key", data.results[0].key); 
+            |    }
+            |    if(data.version){
+            |        bru.setEnvVar("${this.resourcePathName.singularize()}-version", data.version);
+            |    }
+            |    if(data.id){
+            |        bru.setEnvVar("${this.resourcePathName.singularize()}-id", data.id); 
+            |    }
+            |    if(data.key){
+            |        bru.setEnvVar("${this.resourcePathName.singularize()}-key", data.key);
+            |    }
+            |   ${if (param.isNotEmpty()) """
+            |   if(data.${param}){
+            |       bru.setEnvVar("${this.resourcePathName.singularize()}-${param}", data.${param});
+            |   }
+            |""".trimMargin() else ""}
             |}
-            |if(data.results && data.results[0] && data.results[0].key){
-            |    pm.environment.set("${this.resourcePathName.singularize()}-key", data.results[0].key); 
-            |}
-            |if(data.version){
-            |    pm.environment.set("${this.resourcePathName.singularize()}-version", data.version);
-            |}
-            |if(data.id){
-            |    pm.environment.set("${this.resourcePathName.singularize()}-id", data.id); 
-            |}
-            |if(data.key){
-            |    pm.environment.set("${this.resourcePathName.singularize()}-key", data.key);
-            |}
-            |${if (param.isNotEmpty()) """
-            |if(data.${param}){
-            |    pm.environment.set("${this.resourcePathName.singularize()}-${param}", data.${param});
-            |}
-            """.trimMargin() else ""}
-        """.trimMargin().split("\n").map { it.escapeJson().escapeAll() }.joinToString("\",\n\"", "\"", "\"")
+        """.trimMargin()
     }
 }
 

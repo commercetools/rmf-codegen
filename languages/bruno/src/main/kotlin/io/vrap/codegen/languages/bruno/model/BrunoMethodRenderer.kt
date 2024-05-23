@@ -70,11 +70,11 @@ class BrunoMethodRenderer constructor(val api: Api, override val vrapTypeProvide
             |<<${method.jsonBody()}>>
             | 
             |query {
-            |   <<${url.query()}>>
+            |  <<${url.query()}>>
             |}
             |
             |script:post-response {
-            |   <<${method.resource().testScript()}>>
+            |  <<${method.resource().testScript()}>>
             |}
             |
             |assert {
