@@ -23,6 +23,45 @@ class BrunoModuleRenderer(val api: Api, override val vrapTypeProvider: VrapTypeP
         )
     }
 
+    private fun readme(api: Api): String {
+        return """
+            # commercetools API Bruno Collection
+
+            This collection contains examples of requests and responses for most endpoints and commands of the
+            ${api.title}. For every command the smallest possible payload is given. Please find optional
+            fields in the related official documentation. Additionally the collection provides example requests and
+            responses for specific tasks and more complex data models.
+
+            ## Disclaimer
+
+            This is not the official ${api.title} documentation. Please see [here](http://docs.commercetools.com/)
+            for a complete and approved documentation of the ${api.title}.
+
+            ## How to use
+            
+            **:warning: Be aware that postman automatically synchronizes environment variables (including your API client credentials) to your workspace if logged in.
+            Use this collection only for development purposes and non-production projects.**
+            
+            To use this collection in Postman please perform the following steps:
+
+            1. Download and install the Bruno Client
+            1. Fork the repository
+            1. Open the collection
+            1. In the Merchant Center, create a new API Client
+            1. Select the environment and configure the client credentials in the variable `ctp_client_id` and `ctp_client_secret`
+               or create an `.env` file and put it in the collection folder. An sample file is part of the collection.
+            1. Obtain an access token by sending the "Auth/Client credentials" request. Now you can use all other endpoints
+    
+            Feel free to clone and modify this collection to your needs. This collection gets automatically
+            updated and you can pull the latest changes.
+
+            To automate frequent tasks the collection automatically manages commonly required values and parameters such
+            as resource ids, keys and versions in environment variables for you.
+
+            Please see http://docs.commercetools.com/ for further information about the commercetools Plattform.
+        """.trimIndent()
+    }
+
     private fun exampleEnvironment(api: Api): TemplateFile {
         val baseUri = when (val sdkBaseUri = api.getAnnotation("sdkBaseUri")?.value) {
             is StringInstance -> sdkBaseUri.value
@@ -70,7 +109,7 @@ class BrunoModuleRenderer(val api: Api, override val vrapTypeProvider: VrapTypeP
                     |vars {
                     |  authUrl: ${api.oAuth2().uri().toString().trimEnd('/')}
                     |  apiUrl: $baseUri
-                    |  projectKey:
+                    |  project-key:
                     |  ctp_client_id: {{process.env.CTP_CLIENT_ID}}
                     |  ctp_client_secret: {{process.env.CTP_CLIENT_SECRET}}
                     |}
@@ -107,7 +146,11 @@ class BrunoModuleRenderer(val api: Api, override val vrapTypeProvider: VrapTypeP
                     |auth:bearer {
                     |  token: {{ctp_access_token}}
                     |}
-                """.trimMargin()
+                    |
+                    |docs {
+                    |  <<${readme(api)}>>
+                    |}
+                """.trimMargin().keepAngleIndent()
         )
     }
 
