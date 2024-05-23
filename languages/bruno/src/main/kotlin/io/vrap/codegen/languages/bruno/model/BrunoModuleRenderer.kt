@@ -1,13 +1,11 @@
 package io.vrap.codegen.languages.bruno.model
 
-import com.damnhandy.uri.template.UriTemplate
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.module.SimpleModule
 import io.vrap.codegen.languages.extensions.EObjectExtensions
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendering.FileProducer
-import io.vrap.rmf.codegen.rendering.utils.escapeAll
 import io.vrap.rmf.codegen.rendering.utils.keepAngleIndent
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.modules.Api
@@ -19,11 +17,11 @@ class BrunoModuleRenderer constructor(val api: Api, override val vrapTypeProvide
     override fun produceFiles(): List<TemplateFile> {
         return listOf(
                 brunoJson(api),
-                collectionBru(api),
-                clientCredentialsBru(api),
+                collectionBru(),
+                clientCredentialsBru(),
                 exampleEnvironment(api),
                 dotEnvEnvironment(api),
-                dotEnvSample(api),
+                dotEnvSample(),
                 gitIgnore()
         )
     }
@@ -56,7 +54,7 @@ class BrunoModuleRenderer constructor(val api: Api, override val vrapTypeProvide
                 """.trimMargin()
         )
     }
-    private fun dotEnvSample(api: Api): TemplateFile {
+    private fun dotEnvSample(): TemplateFile {
         return TemplateFile(relativePath = ".env.sample",
                 content = """
                     |CTP_CLIENT_ID=
@@ -102,7 +100,7 @@ class BrunoModuleRenderer constructor(val api: Api, override val vrapTypeProvide
         )
     }
 
-    private fun collectionBru(api: Api): TemplateFile {
+    private fun collectionBru(): TemplateFile {
         return TemplateFile(relativePath = "collection.bru",
                 content = """
                     |auth {
@@ -116,7 +114,7 @@ class BrunoModuleRenderer constructor(val api: Api, override val vrapTypeProvide
         )
     }
 
-    private fun clientCredentialsBru(api: Api): TemplateFile {
+    private fun clientCredentialsBru(): TemplateFile {
         return TemplateFile(relativePath = "auth/clientCredentials.bru",
                 content = """
                     |meta {

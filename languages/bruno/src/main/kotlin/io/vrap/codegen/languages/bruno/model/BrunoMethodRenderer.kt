@@ -3,24 +3,17 @@ package io.vrap.codegen.languages.bruno.model
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.module.SimpleModule
-import com.google.common.collect.Lists
 import io.vrap.codegen.languages.extensions.*
 import io.vrap.rmf.codegen.firstUpperCase
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendering.FileProducer
-import io.vrap.rmf.codegen.rendering.MethodRenderer
-import io.vrap.rmf.codegen.rendering.utils.escapeAll
 import io.vrap.rmf.codegen.rendering.utils.keepAngleIndent
-import io.vrap.rmf.codegen.rendering.utils.keepIndentation
-import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.modules.Api
 import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.types.*
-import io.vrap.rmf.raml.model.types.Annotation
 import io.vrap.rmf.raml.model.util.StringCaseFormat
-import org.eclipse.emf.ecore.EObject
 
 class BrunoMethodRenderer constructor(val api: Api, override val vrapTypeProvider: VrapTypeProvider) : EObjectExtensions, FileProducer {
 
@@ -29,10 +22,10 @@ class BrunoMethodRenderer constructor(val api: Api, override val vrapTypeProvide
     fun allResourceMethods(): List<Method> = api.allContainedResources.flatMap { it.methods }
 
     override fun produceFiles(): List<TemplateFile> {
-        return methods(api)
+        return methods()
     }
 
-    fun methods(api: Api): List<TemplateFile> {
+    private fun methods(): List<TemplateFile> {
         return allResourceMethods().mapIndexed { index, method -> render(index, method) }
     }
 
@@ -111,6 +104,35 @@ class BrunoMethodRenderer constructor(val api: Api, override val vrapTypeProvide
         }
 
         return example
+    }
+
+    fun Resource.testScript(param: String = ""): String {
+        return """
+            |var data = res.body;
+            |if(res.status == 200 || res.status == 201) {
+            |    if(data.results && data.results[0] && data.results[0].id && data.results[0].version){
+            |        bru.setEnvVar("${this.resourcePathName.singularize()}-id", data.results[0].id); 
+            |        bru.setEnvVar("${this.resourcePathName.singularize()}-version", data.results[0].version);
+            |    }
+            |    if(data.results && data.results[0] && data.results[0].key){
+            |        bru.setEnvVar("${this.resourcePathName.singularize()}-key", data.results[0].key); 
+            |    }
+            |    if(data.version){
+            |        bru.setEnvVar("${this.resourcePathName.singularize()}-version", data.version);
+            |    }
+            |    if(data.id){
+            |        bru.setEnvVar("${this.resourcePathName.singularize()}-id", data.id); 
+            |    }
+            |    if(data.key){
+            |        bru.setEnvVar("${this.resourcePathName.singularize()}-key", data.key);
+            |    }
+            |   ${if (param.isNotEmpty()) """
+            |   if(data.${param}){
+            |       bru.setEnvVar("${this.resourcePathName.singularize()}-${param}", data.${param});
+            |   }
+            |""".trimMargin() else ""}
+            |}
+        """.trimMargin()
     }
 }
 

@@ -4,25 +4,18 @@ import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.databind.node.ObjectNode
-import com.google.common.collect.Lists
 import io.vrap.codegen.languages.extensions.*
 import io.vrap.rmf.codegen.firstUpperCase
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendering.FileProducer
-import io.vrap.rmf.codegen.rendering.MethodRenderer
-import io.vrap.rmf.codegen.rendering.utils.escapeAll
 import io.vrap.rmf.codegen.rendering.utils.keepAngleIndent
-import io.vrap.rmf.codegen.rendering.utils.keepIndentation
-import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.modules.Api
 import io.vrap.rmf.raml.model.resources.HttpMethod
 import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.types.*
-import io.vrap.rmf.raml.model.types.Annotation
 import io.vrap.rmf.raml.model.util.StringCaseFormat
-import org.eclipse.emf.ecore.EObject
 import java.io.IOException
 
 class BrunoActionRenderer constructor(val api: Api, override val vrapTypeProvider: VrapTypeProvider) : EObjectExtensions, FileProducer {
@@ -48,9 +41,9 @@ class BrunoActionRenderer constructor(val api: Api, override val vrapTypeProvide
     }
 
     private fun renderAction(resource: Resource, method: Method, type: ObjectType, index: Int): TemplateFile {
-        val url = BrunoUrl(method.resource(), method) { resource, name -> when (name) {
-            "ID" -> resource.resourcePathName.singularize() + "-id"
-            "key" -> resource.resourcePathName.singularize() + "-key"
+        val url = BrunoUrl(method.resource(), method) { methodResource, name -> when (name) {
+            "ID" -> methodResource.resourcePathName.singularize() + "-id"
+            "key" -> methodResource.resourcePathName.singularize() + "-key"
             else -> StringCaseFormat.LOWER_HYPHEN_CASE.apply(name)
         }}
         val actionBody = resource.actionExample(type)
