@@ -19,6 +19,7 @@ import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.types.*
 import io.vrap.rmf.raml.model.types.Annotation
+import io.vrap.rmf.raml.model.util.StringCaseFormat
 import org.eclipse.emf.ecore.EObject
 
 class BrunoMethodRenderer constructor(val api: Api, override val vrapTypeProvider: VrapTypeProvider) : EObjectExtensions, FileProducer {
@@ -35,16 +36,9 @@ class BrunoMethodRenderer constructor(val api: Api, override val vrapTypeProvide
         return allResourceMethods().mapIndexed { index, method -> render(index, method) }
     }
 
-
     fun render(index: Int, type: Method): TemplateFile {
 
-        val content = """
-            |meta {
-            |  name: "${type.displayName?.value ?: "${type.methodName} ${type.resource().toResourceName()}" }"
-            |  type: http
-            |  seq: ${index + offset}
-            |}
-            """.trimMargin().keepAngleIndent()
+        val content = renderStr(index, type).trimMargin().keepAngleIndent()
 
         val relativePath = methodResourcePath(type) + "/" + type.toRequestName() + ".bru"
 
@@ -54,6 +48,56 @@ class BrunoMethodRenderer constructor(val api: Api, override val vrapTypeProvide
         )
     }
 
+    fun renderStr(index: Int, method: Method): String {
+        val url = BrunoUrl(method.resource(), method) { resource, name -> when (name) {
+            "ID" -> resource.resourcePathName.singularize() + "-id"
+            "key" -> resource.resourcePathName.singularize() + "-key"
+            else -> StringCaseFormat.LOWER_HYPHEN_CASE.apply(name)
+        }}
+        return """
+            |meta {
+            |  name: ${method.displayName?.value ?: "${method.methodName} ${method.resource().toResourceName()}" }
+            |  type: http
+            |  seq: ${index + offset}
+            |}
+            | 
+            |${method.methodName} {
+            |  url: ${url.raw()}
+            |  body: ${method.bodyType()}
+            |  auth: inherit
+            |}
+            | 
+            |<<${method.jsonBody()}>>
+            | 
+            |query {
+            |   <<${url.query()}>>
+            |}
+        """.trimMargin()
+    }
+
+    fun Method.bodyType(): String {
+        return if (this.getExample() != null) "json" else "none"
+    }
+
+    fun Method.jsonBody(): String {
+        val s = this.getExample()
+        return if (s != null) {
+            """|body:json {
+               |  <<${s}>>
+               |}
+            """.trimMargin()
+        } else ""
+    }
+
+    fun Method.getExample(): String? {
+        val s = this.bodies?.
+        getOrNull(0)?.
+        type?.
+        examples?.
+        getOrNull(0)?.
+        value
+        return s?.toJson()
+    }
 
     private fun methodResourcePath(method: Method): String {
         var resourcePathes = resourcePathes(method.resource())
