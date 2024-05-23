@@ -88,6 +88,7 @@ dependencies {
     implementation project(':languages:csharp')
     implementation project(':languages:ramldoc')
     implementation project(':languages:oas')
+    implementation project(':languages:bruno')
     api project(':ctp-validators')
     api swagger.swagger_parser
     api swagger.swagger_converter
