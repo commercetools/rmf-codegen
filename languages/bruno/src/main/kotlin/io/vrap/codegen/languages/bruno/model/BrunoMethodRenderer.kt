@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.google.common.collect.Lists
 import io.vrap.codegen.languages.extensions.*
+import io.vrap.rmf.codegen.firstUpperCase
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendering.FileProducer
 import io.vrap.rmf.codegen.rendering.MethodRenderer
@@ -39,19 +40,39 @@ class BrunoMethodRenderer constructor(val api: Api, override val vrapTypeProvide
 
         val content = """
             |meta {
-            |  name: ByProjectKeyGet
+            |  name: "${type.displayName?.value ?: "${type.methodName} ${type.resource().toResourceName()}" }"
             |  type: http
             |  seq: ${index + offset}
             |}
             """.trimMargin().keepAngleIndent()
 
-        val relativePath = type.resource().fullUri.template + "/" + type.toRequestName() + ".bru"
+        val relativePath = methodResourcePath(type) + "/" + type.toRequestName() + ".bru"
 
         return TemplateFile(
                 relativePath = relativePath,
                 content = content
         )
     }
+
+
+    private fun methodResourcePath(method: Method): String {
+        var resourcePathes = resourcePathes(method.resource())
+
+        var directories = resourcePathes.map { it.displayName?.value ?: it.resourcePathName.firstUpperCase() }
+        return directories.joinToString("/")
+    }
+
+    private fun resourcePathes(resource: Resource): List<Resource> {
+        if (resource.parent is Resource) {
+            if (resource.resourcePathName == resource.parent.resourcePathName) {
+                return resourcePathes(resource.parent)
+            }
+            return resourcePathes(resource.parent).plus(resource)
+        }
+        return listOf(resource)
+    }
+
+
 
     fun Instance.toJson(): String {
         var example = ""
