@@ -40,7 +40,11 @@ class BrunoUrl (private val resource: Resource, private val method: Method, val 
     }
 
     fun raw(): String {
-        return "${host()}${postmanUrlPath()}"
+        val requiredParameters = method.queryParameters.filter { it.required }
+        val queryPart = if (requiredParameters.isNotEmpty()) {
+            "?${requiredParameters.joinToString("&") { "${it.name}=${it.defaultValue()}" }}"
+        } else ""
+        return "${host()}${postmanUrlPath()}${queryPart}"
     }
 
     fun query(): String {
