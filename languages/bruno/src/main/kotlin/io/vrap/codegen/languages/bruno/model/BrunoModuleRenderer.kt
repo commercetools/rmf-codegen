@@ -1,8 +1,5 @@
 package io.vrap.codegen.languages.bruno.model
 
-import com.fasterxml.jackson.core.JsonProcessingException
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.module.SimpleModule
 import io.vrap.codegen.languages.extensions.EObjectExtensions
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendering.FileProducer
@@ -12,7 +9,7 @@ import io.vrap.rmf.raml.model.modules.Api
 import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.types.*
 
-class BrunoModuleRenderer constructor(val api: Api, override val vrapTypeProvider: VrapTypeProvider) : EObjectExtensions, FileProducer {
+class BrunoModuleRenderer(val api: Api, override val vrapTypeProvider: VrapTypeProvider) : EObjectExtensions, FileProducer {
 
     override fun produceFiles(): List<TemplateFile> {
         return listOf(
@@ -167,32 +164,6 @@ class BrunoModuleRenderer constructor(val api: Api, override val vrapTypeProvide
                 """.trimMargin()
         )
     }
-}
-
-fun Instance.toJson(): String {
-    var example = ""
-    val mapper = ObjectMapper()
-
-    val module = SimpleModule()
-    module.addSerializer(ObjectInstance::class.java, ObjectInstanceSerializer())
-    module.addSerializer<Instance>(ArrayInstance::class.java, InstanceSerializer())
-    module.addSerializer<Instance>(IntegerInstance::class.java, InstanceSerializer())
-    module.addSerializer<Instance>(BooleanInstance::class.java, InstanceSerializer())
-    module.addSerializer<Instance>(StringInstance::class.java, InstanceSerializer())
-    module.addSerializer<Instance>(NumberInstance::class.java, InstanceSerializer())
-    mapper.registerModule(module)
-
-    if (this is StringInstance) {
-        example = this.value
-    } else if (this is ObjectInstance) {
-        try {
-            example = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(this)
-        } catch (e: JsonProcessingException) {
-        }
-
-    }
-
-    return example
 }
 
 fun Resource.testScript(param: String = ""): String {

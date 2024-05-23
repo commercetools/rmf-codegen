@@ -18,12 +18,11 @@ import io.vrap.rmf.raml.model.types.*
 import io.vrap.rmf.raml.model.util.StringCaseFormat
 import java.io.IOException
 
-class BrunoActionRenderer constructor(val api: Api, override val vrapTypeProvider: VrapTypeProvider) : EObjectExtensions, FileProducer {
+class BrunoActionRenderer(val api: Api, override val vrapTypeProvider: VrapTypeProvider) : EObjectExtensions, FileProducer {
 
     val offset = 1 + allResourceMethods().count()
 
     fun allResourceMethods(): List<Method> = api.allContainedResources.flatMap { it.methods }
-    fun allResources(): List<Resource> = api.allContainedResources
 
     override fun produceFiles(): List<TemplateFile> {
         return updateActions(api)
