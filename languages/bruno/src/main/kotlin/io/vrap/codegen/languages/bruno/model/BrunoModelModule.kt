@@ -1,15 +1,18 @@
 package io.vrap.codegen.languages.bruno.model
 
+import io.vrap.codegen.languages.extensions.deprecated
 import io.vrap.rmf.codegen.di.RamlGeneratorModule
 import io.vrap.rmf.codegen.di.Module
 import io.vrap.rmf.codegen.rendering.CodeGenerator
 import io.vrap.rmf.codegen.rendering.FileGenerator
+import io.vrap.rmf.codegen.rendering.MethodGenerator
 
 object BrunoModelModule : Module {
     override fun configure(generatorModule: RamlGeneratorModule) = setOf<CodeGenerator>(
             FileGenerator(
                     setOf(
-                            BrunoModuleRenderer(generatorModule.provideRamlModel(), generatorModule.vrapTypeProvider())
+                            BrunoModuleRenderer(generatorModule.provideRamlModel(), generatorModule.vrapTypeProvider()),
+                            BrunoMethodRenderer(generatorModule.provideRamlModel(), generatorModule.vrapTypeProvider())
                     )
             )
     )

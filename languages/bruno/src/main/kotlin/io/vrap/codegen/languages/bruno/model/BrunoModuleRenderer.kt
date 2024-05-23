@@ -1,5 +1,6 @@
 package io.vrap.codegen.languages.bruno.model
 
+import com.damnhandy.uri.template.UriTemplate
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.module.SimpleModule
@@ -17,49 +18,107 @@ class BrunoModuleRenderer constructor(val api: Api, override val vrapTypeProvide
 
     override fun produceFiles(): List<TemplateFile> {
         return listOf(
-                template(api),
-                collection(api)
+                brunoJson(api),
+                collectionBru(api),
+                clientCredentialsBru(api),
+                exampleEnvironment(api)
         )
     }
 
-    private fun template(api: Api): TemplateFile {
-        return TemplateFile(relativePath = "template.json",
+    private fun exampleEnvironment(api: Api): TemplateFile {
+        val baseUri = when (val sdkBaseUri = api.getAnnotation("sdkBaseUri")?.value) {
+            is StringInstance -> sdkBaseUri.value
+            else -> api.baseUri.template
+        }.trimEnd('/')
+        return TemplateFile(relativePath = "environments/Example.bru",
+                content = """
+                    |vars {
+                    |  authUrl: ${api.oAuth2().uri().toString().trimEnd('/')}
+                    |  apiUrl: $baseUri
+                    |  projectKey:
+                    |}
+                    |vars:secret [
+                    |  ctp_client_id,
+                    |  ctp_client_secret,
+                    |  ctp_access_token
+                    |]
+                """.trimMargin().keepAngleIndent()
+        )
+    }
+
+    private fun brunoJson(api: Api): TemplateFile {
+        return TemplateFile(relativePath = "bruno.json",
                 content = """
                     |{
-                    |  "id": "5bb74f05-5e78-4aee-b59e-492c947bc160",
-                    |  "name": "${api.title}.template",
-                    |  "values": [
-                    |    {
-                    |      "enabled": true,
-                    |      "key": "host",
-                    |      "value": "${api.baseUri.template.trimEnd('/')}",
-                    |      "type": "text"
-                    |    },
-                    |    {
-                    |      "enabled": true,
-                    |      "key": "auth_url",
-                    |      "value": "https://${api.oAuth2().uri().host}",
-                    |      "type": "text"
-                    |    },
-                    |    {
-                    |      "enabled": true,
-                    |      "key": "client_id",
-                    |      "value": "<your-client-id>",
-                    |      "type": "text"
-                    |    },
-                    |    {
-                    |      "enabled": true,
-                    |      "key": "client_secret",
-                    |      "value": "<your-client-secret>",
-                    |      "type": "text"
-                    |    },
-                    |    {
-                    |      "enabled": true,
-                    |      "key": "ctp_access_token",
-                    |      "value": "<your_access_token>",
-                    |      "type": "text"
-                    |    }
+                    |  "version": "1",
+                    |  "name": "${api.title}",
+                    |  "type": "collection",
+                    |  "ignore": [
+                    |    "node_modules",
+                    |    ".git"
                     |  ]
+                    |}
+                """.trimMargin()
+        )
+    }
+
+    private fun collectionBru(api: Api): TemplateFile {
+        return TemplateFile(relativePath = "collection.bru",
+                content = """
+                    |auth {
+                    |  mode: bearer
+                    |}
+                    |
+                    |auth:bearer {
+                    |  token: {{ctp_access_token}}
+                    |}
+                """.trimMargin()
+        )
+    }
+
+    private fun clientCredentialsBru(api: Api): TemplateFile {
+        return TemplateFile(relativePath = "auth/clientCredentials.bru",
+                content = """
+                    |meta {
+                    |  name: Client Credentials
+                    |  type: http
+                    |  seq: 1
+                    |}
+                    |
+                    |post {
+                    |  url: {{authHost}}
+                    |  body: formUrlEncoded
+                    |  auth: basic
+                    |}
+                    |
+                    |body:form-urlencoded {
+                    |  grant_type: client_credentials
+                    |}
+                    |
+                    |auth:basic {
+                    |  username: {{ctp_client_id}}
+                    |  password: {{ctp_client_secret}}
+                    |}
+                    |
+                    |script:post-response {
+                    |  var data = res.body;
+                    |  if(data.access_token){
+                    |    bru.setEnvVar("ctp_access_token", data.access_token, true);
+                    |  }
+                    |  
+                    |  if (data.scope) {
+                    |      parts = data.scope.split(" ");
+                    |      parts = parts.filter(scope => scope.includes(":")).map(scope => scope.split(":"))
+                    |      if (parts.length > 0) {
+                    |          scopeParts = parts[0];
+                    |          bru.setEnvVar("projectKey", scopeParts[1]);
+                    |          parts = parts.filter(scope => scope.length >= 3)
+                    |          if (parts.length > 0) {
+                    |              scopeParts = parts[0];
+                    |              bru.setEnvVar("storeKey", scopeParts[2]);
+                    |          }
+                    |      }
+                    |  }
                     |}
                 """.trimMargin()
         )

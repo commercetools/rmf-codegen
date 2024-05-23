@@ -21,7 +21,7 @@ class TestCodeGenerator {
     }
 
     @Test
-    fun generatePostmanModels() {
+    fun generateBrunoModels() {
         val generatorConfig = CodeGeneratorConfig(
                 basePackageName = "com/commercetools/importer",
                 outputFolder = Paths.get("$outputFolder")
