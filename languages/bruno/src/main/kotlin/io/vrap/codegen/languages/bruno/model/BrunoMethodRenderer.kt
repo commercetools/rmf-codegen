@@ -54,47 +54,8 @@ class BrunoMethodRenderer constructor(val api: Api, override val vrapTypeProvide
             "key" -> resource.resourcePathName.singularize() + "-key"
             else -> StringCaseFormat.LOWER_HYPHEN_CASE.apply(name)
         }}
-        return """
-            |meta {
-            |  name: ${method.displayName?.value ?: "${method.methodName} ${method.resource().toResourceName()}" }
-            |  type: http
-            |  seq: ${index + offset}
-            |}
-            | 
-            |${method.methodName} {
-            |  url: ${url.raw()}
-            |  body: ${method.bodyType()}
-            |  auth: inherit
-            |}
-            | 
-            |<<${method.jsonBody()}>>
-            | 
-            |query {
-            |  <<${url.query()}>>
-            |}
-            |
-            |script:post-response {
-            |  <<${method.resource().testScript()}>>
-            |}
-            |
-            |assert {
-            |  res.status: in [200, 201]
-            |}
-        """.trimMargin()
-    }
-
-    fun Method.bodyType(): String {
-        return if (this.getExample() != null) "json" else "none"
-    }
-
-    fun Method.jsonBody(): String {
-        val s = this.getExample()
-        return if (s != null) {
-            """|body:json {
-               |  <<${s}>>
-               |}
-            """.trimMargin()
-        } else ""
+        val name = method.displayName?.value ?: "${method.methodName} ${method.resource().toResourceName()}"
+        return BrunoRequestRenderer.renderRequest(name, method, url, method.getExample(), index + offset)
     }
 
     fun Method.getExample(): String? {

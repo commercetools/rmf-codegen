@@ -54,35 +54,8 @@ class BrunoActionRenderer constructor(val api: Api, override val vrapTypeProvide
             else -> StringCaseFormat.LOWER_HYPHEN_CASE.apply(name)
         }}
         val actionBody = resource.actionExample(type)
-        val content = """
-            |meta {
-            |  name: ${type.discriminatorValue.firstUpperCase()}${if (type.markDeprecated()) " (deprecated)" else ""}
-            |  type: http
-            |  seq: ${index + offset}
-            |}
-            | 
-            |${method.methodName} {
-            |  url: ${url.raw()}
-            |  body: ${method.bodyType()}
-            |  auth: inherit
-            |}
-            | 
-            |body:json {
-            |  <<${actionBody}>>
-            |}
-            |
-            |query {
-            |  <<${url.query()}>>
-            |}
-            |
-            |script:post-response {
-            |  <<${method.resource().testScript()}>>
-            |}
-            |
-            |assert {
-            |  res.status: in [200, 201]
-            |}
-        """.trimMargin().keepAngleIndent()
+        val name = "${type.discriminatorValue.firstUpperCase()}${if (type.markDeprecated()) " (deprecated)" else ""}"
+        val content = BrunoRequestRenderer.renderRequest(name, method, url, actionBody, index + offset)
 
         val relativePath = methodResourcePath(method) + "/Update actions/" + type.discriminatorValue.firstUpperCase() + ".bru"
 
@@ -90,20 +63,6 @@ class BrunoActionRenderer constructor(val api: Api, override val vrapTypeProvide
                 relativePath = relativePath,
                 content = content
         )
-    }
-
-    fun Method.getExample(): String? {
-        val s = this.bodies?.
-        getOrNull(0)?.
-        type?.
-        examples?.
-        getOrNull(0)?.
-        value
-        return s?.toJson()
-    }
-
-    fun Method.bodyType(): String {
-        return if (this.getExample() != null) "json" else "none"
     }
 
     private fun Resource.actionExample(type: ObjectType): String {
@@ -220,35 +179,6 @@ class BrunoActionRenderer constructor(val api: Api, override val vrapTypeProvide
         }
 
         return example
-    }
-
-    fun Resource.testScript(param: String = ""): String {
-        return """
-            |var data = res.body;
-            |if(res.status == 200 || res.status == 201) {
-            |    if(data.results && data.results[0] && data.results[0].id && data.results[0].version){
-            |        bru.setEnvVar("${this.resourcePathName.singularize()}-id", data.results[0].id); 
-            |        bru.setEnvVar("${this.resourcePathName.singularize()}-version", data.results[0].version);
-            |    }
-            |    if(data.results && data.results[0] && data.results[0].key){
-            |        bru.setEnvVar("${this.resourcePathName.singularize()}-key", data.results[0].key); 
-            |    }
-            |    if(data.version){
-            |        bru.setEnvVar("${this.resourcePathName.singularize()}-version", data.version);
-            |    }
-            |    if(data.id){
-            |        bru.setEnvVar("${this.resourcePathName.singularize()}-id", data.id); 
-            |    }
-            |    if(data.key){
-            |        bru.setEnvVar("${this.resourcePathName.singularize()}-key", data.key);
-            |    }
-            |   ${if (param.isNotEmpty()) """
-            |   if(data.${param}){
-            |       bru.setEnvVar("${this.resourcePathName.singularize()}-${param}", data.${param});
-            |   }
-            |""".trimMargin() else ""}
-            |}
-        """.trimMargin()
     }
 }
 
