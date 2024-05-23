@@ -48,18 +48,12 @@ class BrunoUrl (private val resource: Resource, private val method: Method, val 
     }
 
     fun query(): String {
-        return method.queryParameters.joinToString(",\n") { it.queryParam() }
+        return method.queryParameters.joinToString("\n") { it.queryParam() }
     }
 
     private fun QueryParameter.queryParam() : String {
-        return """
-            |{
-            |    "key": "${this.name}",
-            |    "value": "${this.defaultValue()}",
-            |    "equals": true,
-            |    "disabled": ${this.required.not()}
-            |}
-        """.trimMargin()
+        val disabled = if (this.required) "" else "~"
+        return "${disabled}${this.name}: ${this.defaultValue()}"
     }
 
     fun QueryParameter.defaultValue(): String {

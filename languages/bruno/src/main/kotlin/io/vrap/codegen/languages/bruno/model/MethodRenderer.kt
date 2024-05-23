@@ -17,49 +17,39 @@ class MethodRenderer {
         }}
         return """
             |{
-            |    "name": "${method.displayName?.value ?: "${method.methodName} ${method.resource().toResourceName()}" }",
-            |    "event": [
-            |        {
-            |            "listen": "test",
-            |            "script": {
-            |                "type": "text/javascript",
-            |                "exec": [
-            |                    <<${method.resource().testScript()}>>
-            |                ]
-            |            }
-            |        }
-            |    ],
-            |    "request": {
-            |        "auth":
-            |            <<${auth()}>>,
-            |        "method": "${method.methodName}",
-            |        "header": [
-            |            {
-            |                "key": "Content-Type",
-            |                "value": "application/json"
-            |            }
-            |        ],
-            |        "url": {
-            |            "raw": "${url.raw()}",
-            |            "host": [
-            |                "{{host}}"
-            |            ],
-            |            "path": [
-            |                <<"${url.path()}">>
-            |            ],
-            |            "query": [
-            |                <<${url.query()}>>
-            |            ]
-            |        },
-            |        "description": "${method.description?.description()}",
-            |        "body": {
-            |            "mode": "raw",
-            |            "raw": "${method.rawBody()}"
-            |        }
-            |    },
-            |    "response": []
+            |    meta {
+            |      name: "${method.displayName?.value ?: "${method.methodName} ${method.resource().toResourceName()}" }" 
+            |      type: http
+            |      seq: 1
+            |    }
+            |    
+            |    ${method.methodName} {
+            |      url: "${url.raw()}"
+            |      body: ${method.bodyType()}
+            |      auth: ${authType()} 
+            |    }
+            |    
+            |    <<${auth()}>>
+            |    
+            |    <<${method.jsonBody()}>>
+            |    
+            |    query {
+            |       <<${url.query()}>>
+            |    }
+            |    
             |}
         """.trimMargin()
+    }
+
+    fun Method.bodyType(): String {
+        return if (this.getExample() != null) "json" else "none"
+    }
+
+    fun Method.jsonBody(): String {
+        val s = this.getExample()
+        return if (s != null) {
+            "body:json ${s}"
+        } else ""
     }
 
     fun Method.getExample(): String? {
@@ -69,10 +59,6 @@ class MethodRenderer {
         examples?.
         getOrNull(0)?.
         value
-        return StringEscapeUtils.escapeJson(s?.toJson())
-    }
-
-    fun Method.rawBody(): String {
-        return this.getExample()?.escapeAll()?:""
+        return s?.toJson()
     }
 }

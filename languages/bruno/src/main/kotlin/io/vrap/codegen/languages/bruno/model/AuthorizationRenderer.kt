@@ -255,15 +255,11 @@ private fun testAuthScript(): String {
             """.trimMargin()
 }
 
+fun authType(): String = "bearer"
 fun auth(): String {
     return """
-            |{
-            |    "type": "oauth2",
-            |    "oauth2": {
-            |        "accessToken": "{{ctp_access_token}}",
-            |        "addTokenTo": "header",
-            |        "tokenType": "Bearer"
-            |    }
+            |auth:bearer {
+            |  token: "{{ctp_access_token}}"
             |}
             """.trimMargin()
 }
