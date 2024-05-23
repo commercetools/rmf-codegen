@@ -141,12 +141,13 @@ class BrunoModuleRenderer constructor(val api: Api, override val vrapTypeProvide
                     |}
                     |
                     |script:post-response {
-                    |  var data = res.body;
-                    |  if(data.access_token){
-                    |    bru.setEnvVar("ctp_access_token", data.access_token, true);
-                    |  }
+                    |  if(res.status == 200) {
+                    |    var data = res.body;
+                    |    if(data.access_token){
+                    |      bru.setEnvVar("ctp_access_token", data.access_token, true);
+                    |    }
                     |  
-                    |  if (data.scope) {
+                    |    if (data.scope) {
                     |      parts = data.scope.split(" ");
                     |      parts = parts.filter(scope => scope.includes(":")).map(scope => scope.split(":"))
                     |      if (parts.length > 0) {
@@ -158,7 +159,12 @@ class BrunoModuleRenderer constructor(val api: Api, override val vrapTypeProvide
                     |              bru.setEnvVar("storeKey", scopeParts[2]);
                     |          }
                     |      }
+                    |    }
                     |  }
+                    |}
+                    |
+                    |assert {
+                    |  res.status: eq 200
                     |}
                 """.trimMargin()
         )
