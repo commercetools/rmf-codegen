@@ -169,61 +169,6 @@ class BrunoModuleRenderer constructor(val api: Api, override val vrapTypeProvide
                 """.trimMargin()
         )
     }
-
-    private fun collection(api: Api): TemplateFile {
-        return TemplateFile(relativePath = "collection.json",
-                content = """
-                    |{
-                    |    "info": {
-                    |        "_postman_id": "f367b534-c9ea-e7c5-1f46-7a27dc6a30ba",
-                    |        "name": "${api.title}",
-                    |        "description": "${readme(api).escapeJson().escapeAll()}",
-                    |        "schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json"
-                    |    },
-                    |    "auth":
-                    |        <<${auth()}>>,
-                    |    "item": [
-                    |        <<${authorization(api.oAuth2())}>>,
-                    |        <<${api.resources.joinToString(",") { ResourceRenderer().render(it) }}>>
-                    |    ]
-                    |}
-                """.trimMargin().keepAngleIndent())
-    }
-
-    private fun readme(api: Api): String {
-        return """
-            # commercetools API Postman Collection
-
-            This Postman collection contains examples of requests and responses for most endpoints and commands of the
-            ${api.title}. For every command the smallest possible payload is given. Please find optional
-            fields in the related official documentation. Additionally the collection provides example requests and
-            responses for specific tasks and more complex data models.
-
-            ## Disclaimer
-
-            This is not the official ${api.title} documentation. Please see [here](http://docs.commercetools.com/)
-            for a complete and approved documentation of the ${api.title}.
-
-            ## How to use
-            
-            **:warning: Be aware that postman automatically synchronizes environment variables (including your API client credentials) to your workspace if logged in.
-            Use this collection only for development purposes and non-production projects.**
-            
-            To use this collection in Postman please perform the following steps:
-
-            1. Download and install the Postman Client
-            2. Import the [collection.json](collection.json) and [template.json](template.json) in your postman application
-            3. In the Merchant Center, create a new API Client and fill in the client credentials in your environment
-            4. Obtain an access token by sending the "Authorization/Obtain access token" request at the bottom of the request list. Now you can use all other endpoints
-    
-            Feel free to clone and modify this collection to your needs.
-
-            To automate frequent tasks the collection automatically manages commonly required values and parameters such
-            as resource ids, keys and versions in Postman environment variables for you.
-
-            Please see http://docs.commercetools.com/ for further information about the commercetools Plattform.
-        """.trimIndent()
-    }
 }
 
 fun Instance.toJson(): String {
