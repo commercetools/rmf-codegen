@@ -38,7 +38,7 @@ class BrunoModuleRenderer constructor(val api: Api, override val vrapTypeProvide
                     |vars {
                     |  authUrl: ${api.oAuth2().uri().toString().trimEnd('/')}
                     |  apiUrl: $baseUri
-                    |  projectKey:
+                    |  project-key:
                     |}
                     |vars:secret [
                     |  ctp_client_id,
@@ -126,7 +126,7 @@ class BrunoModuleRenderer constructor(val api: Api, override val vrapTypeProvide
                     |}
                     |
                     |post {
-                    |  url: {{auth_url}}${api.oAuth2().uri().path}?grant_type=client_credentials
+                    |  url: {{authUrl}}
                     |  body: formUrlEncoded
                     |  auth: basic
                     |}
@@ -152,11 +152,11 @@ class BrunoModuleRenderer constructor(val api: Api, override val vrapTypeProvide
                     |      parts = parts.filter(scope => scope.includes(":")).map(scope => scope.split(":"))
                     |      if (parts.length > 0) {
                     |          scopeParts = parts[0];
-                    |          bru.setEnvVar("projectKey", scopeParts[1]);
+                    |          bru.setEnvVar("project-key", scopeParts[1]);
                     |          parts = parts.filter(scope => scope.length >= 3)
                     |          if (parts.length > 0) {
                     |              scopeParts = parts[0];
-                    |              bru.setEnvVar("storeKey", scopeParts[2]);
+                    |              bru.setEnvVar("store-key", scopeParts[2]);
                     |          }
                     |      }
                     |    }

@@ -11,7 +11,7 @@ import org.eclipse.emf.ecore.EObject
 class BrunoUrl (private val resource: Resource, private val method: Method, val renameParam: Function2<Resource, String, String>) {
 
     fun host(): String {
-        return "{{host}}"
+        return "{{apiUrl}}"
     }
 
     private fun transformUri(resource: Resource, uriComponent: UriTemplateComponent): String {
