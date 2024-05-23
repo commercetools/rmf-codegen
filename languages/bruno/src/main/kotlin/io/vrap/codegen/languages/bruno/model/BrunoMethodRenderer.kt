@@ -112,35 +112,6 @@ class BrunoMethodRenderer constructor(val api: Api, override val vrapTypeProvide
 
         return example
     }
-
-    fun Resource.testScript(param: String = ""): String {
-        return """
-            |var data = res.body;
-            |if(res.status == 200 || res.status == 201) {
-            |    if(data.results && data.results[0] && data.results[0].id && data.results[0].version){
-            |        bru.setEnvVar("${this.resourcePathName.singularize()}-id", data.results[0].id); 
-            |        bru.setEnvVar("${this.resourcePathName.singularize()}-version", data.results[0].version);
-            |    }
-            |    if(data.results && data.results[0] && data.results[0].key){
-            |        bru.setEnvVar("${this.resourcePathName.singularize()}-key", data.results[0].key); 
-            |    }
-            |    if(data.version){
-            |        bru.setEnvVar("${this.resourcePathName.singularize()}-version", data.version);
-            |    }
-            |    if(data.id){
-            |        bru.setEnvVar("${this.resourcePathName.singularize()}-id", data.id); 
-            |    }
-            |    if(data.key){
-            |        bru.setEnvVar("${this.resourcePathName.singularize()}-key", data.key);
-            |    }
-            |   ${if (param.isNotEmpty()) """
-            |   if(data.${param}){
-            |       bru.setEnvVar("${this.resourcePathName.singularize()}-${param}", data.${param});
-            |   }
-            |""".trimMargin() else ""}
-            |}
-        """.trimMargin()
-    }
 }
 
 
