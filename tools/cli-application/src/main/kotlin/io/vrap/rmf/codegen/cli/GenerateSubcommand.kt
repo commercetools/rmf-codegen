@@ -5,6 +5,8 @@ import io.methvin.watcher.DirectoryWatcher
 import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.plugins.RxJavaPlugins
 import io.reactivex.rxjava3.schedulers.Schedulers
+import io.vrap.codegen.languages.bruno.model.BrunoBaseTypes
+import io.vrap.codegen.languages.bruno.model.BrunoModelModule
 import io.vrap.codegen.languages.csharp.CsharpBaseTypes
 import io.vrap.codegen.languages.csharp.client.builder.test.CsharpTestModule
 import io.vrap.codegen.languages.csharp.modules.CsharpClientBuilderModule
@@ -77,9 +79,10 @@ enum class GenerationTarget {
     OAS,
     PYTHON_CLIENT,
     PLANTUML,
-    DOC_MARKDOWN
+    DOC_MARKDOWN,
+    BRUNO
 }
-const val ValidTargets = "JAVA_CLIENT, JAVA_TEST, JAVA_QUERY_PREDICATES, TYPESCRIPT_CLIENT, TYPESCRIPT_TEST, CSHARP_CLIENT, CSHARP_TEST, CSHARP_QUERY_PREDICATES, PHP_CLIENT, PHP_BASE, PHP_TEST, POSTMAN, RAML_DOC, OAS, PYTHON_CLIENT, PLANTUML, DOC_MARKDOWN"
+const val ValidTargets = "JAVA_CLIENT, JAVA_TEST, JAVA_QUERY_PREDICATES, TYPESCRIPT_CLIENT, TYPESCRIPT_TEST, CSHARP_CLIENT, CSHARP_TEST, CSHARP_QUERY_PREDICATES, PHP_CLIENT, PHP_BASE, PHP_TEST, POSTMAN, RAML_DOC, OAS, PYTHON_CLIENT, PLANTUML, DOC_MARKDOWN, BRUNO"
 
 @CommandLine.Command(name = "generate",description = ["Generate source code from a RAML specification."])
 class GenerateSubcommand : Callable<Int> {
@@ -271,6 +274,10 @@ class GenerateSubcommand : Callable<Int> {
                     GenerationTarget.POSTMAN -> {
                         val generatorModule = RamlGeneratorModule(apiProvider, generatorConfig, PostmanBaseTypes, dataSink = sink)
                         RamlGeneratorComponent(generatorModule, PostmanModelModule)
+                    }
+                    GenerationTarget.BRUNO -> {
+                        val generatorModule = RamlGeneratorModule(apiProvider, generatorConfig, BrunoBaseTypes, dataSink = sink)
+                        RamlGeneratorComponent(generatorModule, BrunoModelModule)
                     }
                     GenerationTarget.RAML_DOC -> {
                         val ramlConfig = CodeGeneratorConfig(
