@@ -42,7 +42,7 @@ class BrunoModuleRenderer(val api: Api, override val vrapTypeProvider: VrapTypeP
             **:warning: Be aware that postman automatically synchronizes environment variables (including your API client credentials) to your workspace if logged in.
             Use this collection only for development purposes and non-production projects.**
             
-            To use this collection in Postman please perform the following steps:
+            To use this collection in Bruno please perform the following steps:
 
             1. Download and install the Bruno Client
             1. Fork the repository
@@ -67,10 +67,11 @@ class BrunoModuleRenderer(val api: Api, override val vrapTypeProvider: VrapTypeP
             is StringInstance -> sdkBaseUri.value
             else -> api.baseUri.template
         }.trimEnd('/')
+
         return TemplateFile(relativePath = "environments/Example.bru",
                 content = """
                     |vars {
-                    |  authUrl: ${api.oAuth2().uri().toString().trimEnd('/')}
+                    |  authUrl: https://${api.oAuth2().uri().host}
                     |  apiUrl: $baseUri
                     |  project-key:
                     |}
@@ -107,7 +108,7 @@ class BrunoModuleRenderer(val api: Api, override val vrapTypeProvider: VrapTypeP
         return TemplateFile(relativePath = "environments/DotEnv.bru",
                 content = """
                     |vars {
-                    |  authUrl: ${api.oAuth2().uri().toString().trimEnd('/')}
+                    |  authUrl: https://${api.oAuth2().uri().host}
                     |  apiUrl: $baseUri
                     |  project-key:
                     |  ctp_client_id: {{process.env.CTP_CLIENT_ID}}
@@ -164,7 +165,7 @@ class BrunoModuleRenderer(val api: Api, override val vrapTypeProvider: VrapTypeP
                     |}
                     |
                     |post {
-                    |  url: {{authUrl}}
+                    |  url: {{authUrl}}/oauth/token
                     |  body: formUrlEncoded
                     |  auth: basic
                     |}
