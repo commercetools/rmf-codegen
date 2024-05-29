@@ -17,8 +17,8 @@ class BrunoModuleRenderer(val api: Api, override val vrapTypeProvider: VrapTypeP
                 collectionBru(),
                 clientCredentialsBru(),
                 exampleEnvironment(api),
-                dotEnvEnvironment(api),
-                dotEnvSample(),
+                dotEnvEnvironment(),
+                dotEnvSample(api),
                 gitIgnore()
         )
     }
@@ -91,25 +91,27 @@ class BrunoModuleRenderer(val api: Api, override val vrapTypeProvider: VrapTypeP
                 """.trimMargin()
         )
     }
-    private fun dotEnvSample(): TemplateFile {
-        return TemplateFile(relativePath = ".env.sample",
-                content = """
-                    |CTP_CLIENT_ID=
-                    |CTP_CLIENT_SECRET=
-                """.trimMargin()
-        )
-    }
-
-    private fun dotEnvEnvironment(api: Api): TemplateFile {
+    private fun dotEnvSample(api: Api): TemplateFile {
         val baseUri = when (val sdkBaseUri = api.getAnnotation("sdkBaseUri")?.value) {
             is StringInstance -> sdkBaseUri.value
             else -> api.baseUri.template
         }.trimEnd('/')
+        return TemplateFile(relativePath = ".env.sample",
+                content = """
+                    |CTP_CLIENT_ID=
+                    |CTP_CLIENT_SECRET=
+                    |CTP_API_URL=$baseUri
+                    |CTP_AUTH_URL=https://${api.oAuth2().uri().host}
+                """.trimMargin()
+        )
+    }
+
+    private fun dotEnvEnvironment(): TemplateFile {
         return TemplateFile(relativePath = "environments/DotEnv.bru",
                 content = """
                     |vars {
-                    |  authUrl: https://${api.oAuth2().uri().host}
-                    |  apiUrl: $baseUri
+                    |  authUrl: {{process.env.CTP_AUTH_URL}}
+                    |  apiUrl: {{process.env.CTP_API_URL}}
                     |  project-key:
                     |  ctp_client_id: {{process.env.CTP_CLIENT_ID}}
                     |  ctp_client_secret: {{process.env.CTP_CLIENT_SECRET}}
