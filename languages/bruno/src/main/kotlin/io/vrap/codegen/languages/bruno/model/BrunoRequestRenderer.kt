@@ -1,5 +1,6 @@
 package io.vrap.codegen.languages.bruno.model
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.net.MediaType
 import io.vrap.codegen.languages.extensions.resource
 import io.vrap.rmf.codegen.rendering.utils.keepAngleIndent
@@ -12,22 +13,33 @@ object BrunoRequestRenderer {
             "application/json" -> "json"
             else -> "none"
         }
+        val metaType = when(mediaType) {
+            "graphql" -> "graphql"
+            else -> "http"
+        }
+        val mapper = ObjectMapper();
+        val query = if (mediaType == "graphql") {
+            mapper.readTree(body).get("query")?.asText()
+        } else ""
         val bodyStr = if (mediaType == "graphql") {
             """
             |body:graphql {
-            |  <<${body}>>
-            |}    
-            """.trimMargin()
+            |  <<${query?.trim()}>>
+            |}
+            |body:graphql:vars {
+            |  <<${mapper.readTree(body).get("variables")?.toPrettyString()}>>
+            |}
+            """.trimMargin().keepAngleIndent()
         } else if (mediaType == "json" && body != null) """
             |body:json {
             |  <<${body}>>
-            |}    
+            |}  
             """.trimMargin().keepAngleIndent()
         else ""
         return """
             |meta {
             |  name: $name
-            |  type: http
+            |  type: $metaType
             |  seq: $index
             |}
             | 
