@@ -9,8 +9,12 @@ object JavaQueryPredicateModule: Module {
     override fun configure(generatorModule: RamlGeneratorModule) = setOf<CodeGenerator> (
         ObjectTypeGenerator(
                 setOf(
-                        JavaQueryPredicateRenderer(generatorModule.providePackageName(), generatorModule.vrapTypeProvider())
+                        JavaQueryPredicateRenderer(generatorModule.providePackageName(), generatorModule.vrapTypeProvider()),
+//                        JavaExpansionPredicateRenderer(generatorModule.providePackageName(), generatorModule.vrapTypeProvider())
                 ), generatorModule.allObjectTypes()
-        )
+        ),
+//        FileGenerator(
+//                setOf(JavaExpansionProducer(generatorModule.providePackageName()))
+//        )
     )
 }
