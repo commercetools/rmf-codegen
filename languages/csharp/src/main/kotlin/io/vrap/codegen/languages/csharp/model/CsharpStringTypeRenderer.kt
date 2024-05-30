@@ -40,7 +40,7 @@ class CsharpStringTypeRenderer constructor(override val vrapTypeProvider: VrapTy
                 |        {
                 |            return JsonName;
                 |        }
-                |        
+                |
                 |        IEnumerator IEnumerable.GetEnumerator()
                 |        {
                 |            return GetEnumerator();
@@ -55,21 +55,21 @@ class CsharpStringTypeRenderer constructor(override val vrapTypeProvider: VrapTy
                 |    [EnumInterfaceCreator(typeof(I${vrapType.simpleClassName}), "FindEnum")]
                 |    public interface I${vrapType.simpleClassName} : IJsonName, IEnumerable\<char\>
                 |    {
-                |         <${type.enumStaticFields("${vrapType.simpleClassName}")}>
+                |        <${type.enumStaticFields("${vrapType.simpleClassName}")}>
                 |
-                |         ${vrapType.simpleClassName}? Value { get; }
-                |        
-                |         static I${vrapType.simpleClassName}[] Values()
-                |         {
-                |             return new[]
-                |             {
+                |        ${vrapType.simpleClassName}? Value { get; }
+                |
+                |        static I${vrapType.simpleClassName}[] Values()
+                |        {
+                |            return new[]
+                |            {
                 |                 <${type.enumFieldsAsNames()}>
                 |             };
-                |         }
-                |         static I${vrapType.simpleClassName} FindEnum(string value)
-                |         {
-                |             return Values().FirstOrDefault(origin =\> origin.JsonName == value) ?? new ${vrapType.simpleClassName}Wrapper() {JsonName = value};
-                |         }
+                |        }
+                |        static I${vrapType.simpleClassName} FindEnum(string value)
+                |        {
+                |            return Values().FirstOrDefault(origin =\> origin.JsonName == value) ?? new ${vrapType.simpleClassName}Wrapper() { JsonName = value };
+                |        }
                 |    }
                 |}
                 """.trimMargin().keepIndentation()
@@ -95,7 +95,7 @@ class CsharpStringTypeRenderer constructor(override val vrapTypeProvider: VrapTy
             ?.map {
                 """
                  |public static I${enumName} ${it.value.enumValueName()} = new ${enumName}Wrapper
-                 |    {Value = ${enumName}.${it.value.enumValueName()}, JsonName = "${it.value}"}; 
+                 |{ Value = ${enumName}.${it.value.enumValueName()}, JsonName = "${it.value}" };
             """.trimMargin()
             }
             ?.joinToString(separator = "\n\n", postfix = "")
@@ -103,10 +103,10 @@ class CsharpStringTypeRenderer constructor(override val vrapTypeProvider: VrapTy
     fun StringType.enumFieldsAsNames() = enumValues()
             ?.map {
                 """
-                 |${it.value.enumValueName()} 
+                 |${it.value.enumValueName()}
             """.trimMargin()
             }
-            ?.joinToString(separator = ",\n", postfix = "")
+            ?.joinToString(separator = " ,\n", postfix = "")
 
 
     fun StringType.enumValues() =  enum?.filter { it is StringInstance }

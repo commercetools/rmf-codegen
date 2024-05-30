@@ -56,7 +56,7 @@ class CsharpQueryPredicateRenderer constructor(val basePackage: String, override
             |        }
             |
             |        <${type.allProperties.filterNot { it.deprecated() }.filterNot { it.isPatternProperty() }.joinToString("\n") { it.toBuilderDsl(type) }}>
-            |    
+            |
             |        <${type.namedSubTypes().filterIsInstance<ObjectType>().joinToString("\n") { it.toBuilderDsl("As${it.subtypeName()}", vrapType) }}>
             |    }
             |}

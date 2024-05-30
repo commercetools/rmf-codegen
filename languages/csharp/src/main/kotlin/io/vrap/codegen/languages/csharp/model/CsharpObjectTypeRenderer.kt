@@ -30,7 +30,7 @@ class CsharpObjectTypeRenderer constructor(override val vrapTypeProvider: VrapTy
             |    ${if (type.markDeprecated()) "[Obsolete(\"usage of this endpoint has been deprecated.\", false)]" else ""}
             |    public partial class ${type.objectClassName()} : I${vrapType.simpleClassName}
             |    {
-            |        <${if(type.isADictionaryType()) "" else type.toProperties()}>
+            |        ${if(type.isADictionaryType()) "" else type.toProperties("        ")}
             |        <${type.renderConstructor(vrapType.simpleClassName)}>
             |    }
             |}
@@ -70,10 +70,10 @@ class CsharpObjectTypeRenderer constructor(override val vrapTypeProvider: VrapTy
         """
     }
 
-    private fun ObjectType.toProperties() : String = this.allProperties
+    private fun ObjectType.toProperties(indent: String = "") : String = this.allProperties
         .filterNot { it.deprecated() }
         .filterNot { property -> property.isPatternProperty() }
-        .map { it.toCsharpProperty(this) }.joinToString(separator = "\n\n")
+        .map { it.toCsharpProperty(this) }.joinToString(separator = "\n\n$indent")
 
     private fun Property.toCsharpProperty(objectType: ObjectType): String {
         val propName = this.name.firstUpperCase()
@@ -83,7 +83,7 @@ class CsharpObjectTypeRenderer constructor(override val vrapTypeProvider: VrapTy
         val deprecationAttr = if(this.deprecationAnnotation() == "") "" else this.deprecationAnnotation()+"\n";
 
         return """
-            |${deprecationAttr}public ${typeName}$nullableChar $propName { get; set;}${if (this.type.toVrapType() is VrapArrayType) """
+            |${deprecationAttr}public ${typeName}$nullableChar $propName { get; set; }${if (this.type.toVrapType() is VrapArrayType) """
             |${deprecationAttr}public IEnumerable\<${(this.type.toVrapType() as VrapArrayType).itemType.simpleName()}\>$nullableChar ${propName}Enumerable { set =\> $propName = value$nullableChar.ToList(); }
             |""" else ""}
             """.trimMargin()
@@ -103,8 +103,8 @@ class CsharpObjectTypeRenderer constructor(override val vrapTypeProvider: VrapTy
         val isEmptyConstructor = this.getConstructorContentForDiscriminator() == "";
         return if(!isEmptyConstructor)
             """public ${className}()
-                |{ 
-                |   ${this.getConstructorContentForDiscriminator()}
+                |{
+                |    ${this.getConstructorContentForDiscriminator()}
                 |}"""
         else
             ""

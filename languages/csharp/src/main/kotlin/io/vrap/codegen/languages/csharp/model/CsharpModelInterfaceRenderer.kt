@@ -43,7 +43,7 @@ class CsharpModelInterfaceRenderer constructor(override val vrapTypeProvider: Vr
             |    <${type.DeserializationAttributes()}>
             |    public partial interface I${vrapType.simpleClassName} ${if (extends.isNotEmpty()) { ": ${extends.joinToString(separator = ", ")}" } else ""}
             |    {
-            |        <${type.toProperties()}>
+            |        ${type.toProperties("        ")}
             |        
             |        <${type.subtypeFactories()}>
             |    }
@@ -65,10 +65,10 @@ class CsharpModelInterfaceRenderer constructor(override val vrapTypeProvider: Vr
         )
     }
 
-    private fun ObjectType.toProperties() : String = this.properties
+    private fun ObjectType.toProperties(indent: String = "") : String = this.properties
             .filterNot { it.deprecated() }
             .filterNot { property -> property.isPatternProperty() }
-            .map { it.toCsharpProperty(this) }.joinToString(separator = "\n\n")
+            .map { it.toCsharpProperty(this) }.joinToString(separator = "\n\n$indent")
 
     private fun Property.toCsharpProperty(objectType: ObjectType): String {
         val propName = this.name.firstUpperCase()
@@ -80,7 +80,7 @@ class CsharpModelInterfaceRenderer constructor(override val vrapTypeProvider: Vr
         val deprecationAttr = if(this.deprecationAnnotation() == "") "" else this.deprecationAnnotation()+"\n";
 
         return """
-            |${deprecationAttr}${newKeyword}${typeName}$nullableChar $propName { get; set;}${if (this.type.toVrapType() is VrapArrayType) """
+            |${deprecationAttr}${newKeyword}${typeName}$nullableChar $propName { get; set; }${if (this.type.toVrapType() is VrapArrayType) """
             |${deprecationAttr}${newKeyword}IEnumerable\<${(this.type.toVrapType() as VrapArrayType).itemType.simpleName()}\>$nullableChar ${propName}Enumerable { set =\> $propName = value$nullableChar.ToList(); }
             |""" else ""}
             """.trimMargin()
