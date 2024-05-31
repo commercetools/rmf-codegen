@@ -21,7 +21,7 @@ import java.time.LocalTime
 import java.time.ZonedDateTime
 import javax.lang.model.SourceVersion
 
-class JavaExpansionPredicateRenderer constructor(val basePackage: String, override val vrapTypeProvider: VrapTypeProvider) : JavaObjectTypeExtensions,
+class JavaExpansionPredicateRenderer constructor(val basePackageName: String, override val vrapTypeProvider: VrapTypeProvider) : JavaObjectTypeExtensions,
     JavaEObjectTypeExtensions, ObjectTypeRenderer {
 
     override fun render(type: ObjectType): TemplateFile {
@@ -74,8 +74,7 @@ class JavaExpansionPredicateRenderer constructor(val basePackage: String, overri
             |    <<${type.allProperties.asSequence()
                     .filterNot { it.deprecated() }
                     .filterNot { it.type.isScalar() }
-                    .filterNot { it.isPatternProperty() }
-                    .filter { (it.type.toVrapType() is VrapObjectType && it.type.toVrapType().fullClassName() != "java.lang.Object") || (it.type.toVrapType() is VrapArrayType && (it.type.toVrapType() as VrapArrayType).itemType is VrapObjectType && (it.type.toVrapType() as VrapArrayType).itemType.fullClassName() != "java.lang.Object") }
+                    .filter { it.type.isExpandable() || (it.type is ArrayType && (it.type as ArrayType).items.isExpandable()) }
                     .joinToString("\n") { it.toBuilderDsl(type) }}>>
             |}
         """.trimMargin().keepAngleIndent()
@@ -94,15 +93,29 @@ class JavaExpansionPredicateRenderer constructor(val basePackage: String, overri
         val vrapType = type.toVrapType()
         val propType = this.type.toVrapType()
 
-        return propType.toBuilderDsl(this.name, this.type, vrapType);
+        return propType.toBuilderDsl(this.name, this);
     }
 
-    private fun VrapType.toBuilderDsl(propertyName: String, propertyType: AnyType, vrapType: VrapType, isItemType: Boolean = false) : String {
+    private fun VrapType.toBuilderDsl(propertyName: String, property: Property) : String {
         var methodName = propertyName
         if(SourceVersion.isKeyword(methodName)) {
             methodName = "_$methodName"
         }
 
+        if (property.isPatternProperty()) {
+            if (this.fullClassName() == "java.lang.Object") {
+                return """
+                    |public ${basePackageName.toJavaPackage()}.predicates.expansion.ObjectExpansionDsl withName(final String name) {
+                    |   return ${basePackageName.toJavaPackage()}.predicates.expansion.ObjectExpansionDsl.of(appendOne(path, name));
+                    |}
+                    """.trimMargin()
+            }
+            return """
+                |public ${(this as VrapObjectType).builderDslName(true)} withName(final String name) {
+                |    return ${this.builderDslName(true)}.of(appendOne(path, name));
+                |}
+            """.trimMargin()
+        }
         if (this is VrapArrayType) {
             return """
                 |public ${this.builderDslName(true)} $methodName() {
@@ -113,6 +126,14 @@ class JavaExpansionPredicateRenderer constructor(val basePackage: String, overri
                 |}
             """.trimMargin()
         }
+        if (this.fullClassName() == "java.lang.Object") {
+            return """
+            |public ${basePackageName.toJavaPackage()}.predicates.expansion.ObjectExpansionDsl $methodName() {
+            |   return ${basePackageName.toJavaPackage()}.predicates.expansion.ObjectExpansionDsl.of(appendOne(path, "$propertyName"));
+            |}
+            """.trimMargin()
+        }
+
         return """
             |public ${(this as VrapObjectType).builderDslName(true)} $methodName() {
             |   return ${this.builderDslName(true)}.of(appendOne(path, "$propertyName"));
