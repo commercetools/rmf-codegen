@@ -30,9 +30,9 @@ class JavaObjectTypeRenderer constructor(override val vrapTypeProvider: VrapType
                 |${type.imports()}
                 |import com.fasterxml.jackson.annotation.*;
                 |import io.vrap.rmf.base.client.utils.Generated;
-                |import javax.validation.Valid;
-                |import javax.validation.constraints.NotNull;
-                |import javax.validation.constraints.Size;
+                |import jakarta.validation.Valid;
+                |import jakarta.validation.constraints.NotNull;
+                |import jakarta.validation.constraints.Size;
                 |import java.util.*;
                 |import org.apache.commons.lang3.builder.EqualsBuilder;
                 |import org.apache.commons.lang3.builder.HashCodeBuilder;
