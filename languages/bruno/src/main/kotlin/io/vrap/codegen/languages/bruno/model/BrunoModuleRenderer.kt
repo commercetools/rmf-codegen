@@ -142,6 +142,10 @@ class BrunoModuleRenderer(val api: Api, override val vrapTypeProvider: VrapTypeP
     private fun collectionBru(): TemplateFile {
         return TemplateFile(relativePath = "collection.bru",
                 content = """
+                    |headers {
+                    |  User-Agent: bruno/0.1.0
+                    |}
+                    |
                     |auth {
                     |  mode: bearer
                     |}
