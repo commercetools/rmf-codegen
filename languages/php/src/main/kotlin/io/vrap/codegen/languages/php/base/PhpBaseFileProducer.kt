@@ -2752,7 +2752,19 @@ class PhpBaseFileProducer constructor(val api: Api, @BasePackageName val package
                     |    
                     |    /** @psalm-var string */
                     |    private $!cacheKey;
-                    |
+                    |    /**
+                    |     * The constructor of the ClientCredentials class.
+                    |     *
+                    |     * @param string $!clientId
+                    |     *   The client id.
+                    |     * @param string $!clientSecret
+                    |     *   The client secret.
+                    |     * @param string $!scope
+                    |     *   The scope is needed when you have a client with multiple permissions
+                    |     *   but you want only a token for a specific scope.
+                    |     *   Format: `<the scope name>:<the project key>`.
+                    |     *   Example: `manage_products:project1`.
+                    |     */
                     |    public function __construct(string $!clientId, string $!clientSecret, string $!scope = null)
                     |    {
                     |        $!this->clientId = $!clientId;
