@@ -2760,7 +2760,7 @@ class PhpBaseFileProducer constructor(val api: Api, @BasePackageName val package
                     |     * @param string $!clientSecret
                     |     *   The client secret.
                     |     * @param string $!scope
-                    |     *   Provide the scope when you want to request a specific one for the client.
+                    |     *   Provide the scope when you want to request a specific ones for the client. Can be ommitted to use all scopes of the oauth client.
                     |     *   Format: `<the scope name>:<the project key>`.
                     |     *   Example: `manage_products:project1`.
                     |     */
