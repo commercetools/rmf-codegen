@@ -2760,8 +2760,7 @@ class PhpBaseFileProducer constructor(val api: Api, @BasePackageName val package
                     |     * @param string $!clientSecret
                     |     *   The client secret.
                     |     * @param string $!scope
-                    |     *   The scope is needed when you have a client with multiple permissions
-                    |     *   but you want only a token for a specific scope.
+                    |     *   Provide the scope when you want to request a specific one for the client.
                     |     *   Format: `<the scope name>:<the project key>`.
                     |     *   Example: `manage_products:project1`.
                     |     */
