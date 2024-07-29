@@ -39,6 +39,8 @@ import io.vrap.codegen.languages.java.base.PlantUmlBaseTypes
 import io.vrap.codegen.languages.javalang.client.builder.predicates.JavaQueryPredicateModule
 import io.vrap.codegen.languages.javalang.plantuml.PlantUmlModule
 import io.vrap.codegen.languages.ramldoc.model.MarkdownModelModule
+import io.vrap.codegen.languages.typescript.joi.JoiBaseTypes
+import io.vrap.codegen.languages.typescript.joi.JoiModule
 import io.vrap.rmf.codegen.CodeGeneratorConfig
 import io.vrap.rmf.codegen.di.*
 import io.vrap.rmf.codegen.io.DataSink
@@ -80,9 +82,10 @@ enum class GenerationTarget {
     PYTHON_CLIENT,
     PLANTUML,
     DOC_MARKDOWN,
-    BRUNO
+    BRUNO,
+    TYPESCRIPT_JOI_VALIDATOR
 }
-const val ValidTargets = "JAVA_CLIENT, JAVA_TEST, JAVA_QUERY_PREDICATES, TYPESCRIPT_CLIENT, TYPESCRIPT_TEST, CSHARP_CLIENT, CSHARP_TEST, CSHARP_QUERY_PREDICATES, PHP_CLIENT, PHP_BASE, PHP_TEST, POSTMAN, RAML_DOC, OAS, PYTHON_CLIENT, PLANTUML, DOC_MARKDOWN, BRUNO"
+const val ValidTargets = "JAVA_CLIENT, JAVA_TEST, JAVA_QUERY_PREDICATES, TYPESCRIPT_CLIENT, TYPESCRIPT_TEST, CSHARP_CLIENT, CSHARP_TEST, CSHARP_QUERY_PREDICATES, PHP_CLIENT, PHP_BASE, PHP_TEST, POSTMAN, RAML_DOC, OAS, PYTHON_CLIENT, PLANTUML, DOC_MARKDOWN, BRUNO, TYPESCRIPT_JOI_VALIDATOR"
 
 @CommandLine.Command(name = "generate",description = ["Generate source code from a RAML specification."])
 class GenerateSubcommand : Callable<Int> {
@@ -246,6 +249,10 @@ class GenerateSubcommand : Callable<Int> {
                     GenerationTarget.TYPESCRIPT_TEST -> {
                         val generatorModule = RamlGeneratorModule(apiProvider, generatorConfig, TypeScriptBaseTypes, dataSink = sink)
                         RamlGeneratorComponent(generatorModule, TypescriptTestModule)
+                    }
+                    GenerationTarget.TYPESCRIPT_JOI_VALIDATOR -> {
+                        val generatorModule = RamlGeneratorModule(apiProvider, generatorConfig, JoiBaseTypes, dataSink = sink)
+                        RamlGeneratorComponent(generatorModule, JoiModule)
                     }
                     GenerationTarget.PHP_CLIENT -> {
                         val generatorModule = RamlGeneratorModule(apiProvider, generatorConfig, PhpBaseTypes, dataSink = sink)
