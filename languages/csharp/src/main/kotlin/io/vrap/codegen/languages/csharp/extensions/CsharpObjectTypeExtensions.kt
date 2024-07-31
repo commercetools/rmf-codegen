@@ -2,13 +2,14 @@ package io.vrap.codegen.languages.csharp.extensions
 
 import io.vrap.codegen.languages.extensions.*
 import io.vrap.rmf.codegen.firstUpperCase
-import io.vrap.rmf.codegen.types.VrapArrayType
-import io.vrap.rmf.codegen.types.VrapEnumType
-import io.vrap.rmf.codegen.types.VrapObjectType
-import io.vrap.rmf.codegen.types.VrapType
+import io.vrap.rmf.codegen.types.*
+import io.vrap.rmf.raml.model.types.ArrayType
 import io.vrap.rmf.raml.model.types.BooleanInstance
+import io.vrap.rmf.raml.model.types.DateOnlyType
+import io.vrap.rmf.raml.model.types.DateTimeType
 import io.vrap.rmf.raml.model.types.ObjectType
 import io.vrap.rmf.raml.model.types.Property
+import io.vrap.codegen.languages.extensions.EObjectExtensions
 
 const val ANNOTATION_ABSTRACT = "abstract"
 
@@ -32,27 +33,52 @@ interface CsharpObjectTypeExtensions : ExtensionsBase {
         return usingsList
     }
 
-    fun ObjectType.usings() : String {
+    fun ObjectType.usings(provider: VrapTypeProvider, isInterface: Boolean = false, isDictionary: Boolean = false) : String {
         var usingsAsList = this.getUsings()
         val vrapType = vrapTypeProvider.doSwitch(this) as VrapObjectType
         var packageName = vrapType.`package`
-        usingsAsList = usingsAsList.dropLastWhile { it== packageName }
+        usingsAsList = usingsAsList.filterNot { it == vrapType.csharpPackage() }
         var usings= usingsAsList.map { "using $it;" }.joinToString(separator = "\n")
-        var commonUsings = this.getCommonUsings()
+        var commonUsings = this.getCommonUsings(provider, isInterface, isDictionary)
 
         var allusings = if(usings.isNotEmpty()) usings +"\n"+ commonUsings else usings+ commonUsings
 
         return allusings
     }
 
-    fun ObjectType.getCommonUsings() : String {
-        return   """using System;
-                    |using System.Collections.Generic;
-                    |using System.Linq;
-                    |using System.Text.Json.Serialization;
-                    |using commercetools.Base.CustomAttributes;
-                    |using commercetools.Base.Models;
-                    |"""
+//    fun ObjectType.getCommonUsings() : String {
+//        return   """using System;
+//                    |using System.Collections.Generic;
+//                    |using System.Linq;
+//                    |using System.Text.Json.Serialization;
+//                    |using commercetools.Base.CustomAttributes;
+//                    |using commercetools.Base.Models;
+//                    |"""
+//    }
+
+    fun ObjectType.getCommonUsings(provider: VrapTypeProvider, isInterface: Boolean = false, isDictionary: Boolean = false) : String {
+
+        var usings = listOf<String>()
+        val props = this.allProperties.map { provider.doSwitch(it.type) }
+        if (props.any { it.simpleName() == "Object" || it.simpleName() == "DateTime" || it.simpleName() == "TimeSpan" } || this.allProperties.any { it.markDeprecated() } || this.markDeprecated()) {
+            usings = usings.plus("System")
+        }
+        if (isDictionary || props.any { it is VrapArrayType }) {
+            usings = usings.plus("System.Collections.Generic")
+                    .plus("System.Linq")
+        }
+        if (props.any { it is VrapArrayType && (it.itemType.simpleName() == "Object" || it.itemType.simpleName() == "DateTime" || it.itemType.simpleName() == "TimeSpan") }) {
+            usings = usings.plus("System")
+        }
+        if (props.any { it.simpleName() == "Date" }) {
+            usings = usings.plus("commercetools.Base.Models")
+        }
+        if (isInterface || this.discriminator.isNullOrEmpty().not() || (this.isInlineType && (this.type as ObjectType).discriminator.isNullOrEmpty().not())) {
+            usings = usings.plus("commercetools.Base.CustomAttributes")
+                    .plus("System")
+        }
+
+        return usings.distinct().joinToString("\n") { "using $it;" }
     }
 
     public fun ObjectType.objectClassName(): String {

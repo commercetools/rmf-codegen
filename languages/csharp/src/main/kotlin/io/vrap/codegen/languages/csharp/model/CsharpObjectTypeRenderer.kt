@@ -23,19 +23,19 @@ class CsharpObjectTypeRenderer constructor(override val vrapTypeProvider: VrapTy
         val vrapType = vrapTypeProvider.doSwitch(type) as VrapObjectType
 
         var content : String = """
-            |${type.usings()}
+            |${type.usings(vrapTypeProvider)}
             |
             |namespace ${vrapType.csharpPackage()}
             |{
             |    ${if (type.markDeprecated()) "[Obsolete(\"usage of this endpoint has been deprecated.\", false)]" else ""}
             |    public partial class ${type.objectClassName()} : I${vrapType.simpleClassName}
             |    {
-            |        ${if(type.isADictionaryType()) "" else type.toProperties("        ")}
+            |        <${if(type.isADictionaryType()) "" else type.toProperties()}>
             |        <${type.renderConstructor(vrapType.simpleClassName)}>
             |    }
             |}
             |
-        """.trimMargin().keepIndentation()
+        """.trimMargin().keepIndentation().split("\n").joinToString(separator = "\n") { it.trimEnd() }
 
         if(type.isADictionaryType())
         {
@@ -56,7 +56,7 @@ class CsharpObjectTypeRenderer constructor(override val vrapTypeProvider: VrapTy
         var property = this.properties[0]
 
         return  """
-            |${this.usings()}
+            |${this.usings(vrapTypeProvider, false, true)}
             |
             |// ReSharper disable CheckNamespace
             |namespace ${vrapType.csharpPackage()}
@@ -70,10 +70,10 @@ class CsharpObjectTypeRenderer constructor(override val vrapTypeProvider: VrapTy
         """
     }
 
-    private fun ObjectType.toProperties(indent: String = "") : String = this.allProperties
+    private fun ObjectType.toProperties() : String = this.allProperties
         .filterNot { it.deprecated() }
         .filterNot { property -> property.isPatternProperty() }
-        .map { it.toCsharpProperty(this) }.joinToString(separator = "\n\n$indent")
+        .map { it.toCsharpProperty(this) }.joinToString(separator = "\n\n")
 
     private fun Property.toCsharpProperty(objectType: ObjectType): String {
         val propName = this.name.firstUpperCase()
@@ -84,8 +84,8 @@ class CsharpObjectTypeRenderer constructor(override val vrapTypeProvider: VrapTy
 
         return """
             |${deprecationAttr}public ${typeName}$nullableChar $propName { get; set; }${if (this.type.toVrapType() is VrapArrayType) """
-            |${deprecationAttr}public IEnumerable\<${(this.type.toVrapType() as VrapArrayType).itemType.simpleName()}\>$nullableChar ${propName}Enumerable { set =\> $propName = value$nullableChar.ToList(); }
-            |""" else ""}
+            |
+            |${deprecationAttr}public IEnumerable\<${(this.type.toVrapType() as VrapArrayType).itemType.simpleName()}\>$nullableChar ${propName}Enumerable { set =\> $propName = value$nullableChar.ToList(); }""" else ""}
             """.trimMargin()
     }
 
