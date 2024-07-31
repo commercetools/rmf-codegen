@@ -70,7 +70,7 @@ interface CsharpObjectTypeExtensions : ExtensionsBase {
         if (props.any { it is VrapArrayType && (it.itemType.simpleName() == "Object" || it.itemType.simpleName() == "DateTime" || it.itemType.simpleName() == "TimeSpan") }) {
             usings = usings.plus("System")
         }
-        if (props.any { it.simpleName() == "Date" }) {
+        if (props.any { it.simpleName() == "Date" || (it is VrapArrayType && (it.itemType.simpleName() == "Date")) }) {
             usings = usings.plus("commercetools.Base.Models")
         }
         if (isInterface || this.discriminator.isNullOrEmpty().not() || (this.isInlineType && (this.type as ObjectType).discriminator.isNullOrEmpty().not())) {
