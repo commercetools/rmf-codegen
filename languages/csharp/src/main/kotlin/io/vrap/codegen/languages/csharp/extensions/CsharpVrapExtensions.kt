@@ -180,3 +180,12 @@ fun Property.deprecated() : Boolean {
     return (typeAnno != null && (typeAnno.value as BooleanInstance).value)
 }
 
+fun Property.markDeprecated() : Boolean {
+    val anno = this.getAnnotation("markDeprecated")
+    if (anno != null) {
+        return (anno.value as BooleanInstance).value
+    }
+    val typeAnno = this.type.getAnnotation("markDeprecated")
+    return (typeAnno != null && (typeAnno.value as BooleanInstance).value)
+}
+

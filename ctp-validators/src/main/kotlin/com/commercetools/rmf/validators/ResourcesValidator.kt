@@ -1,6 +1,8 @@
 package com.commercetools.rmf.validators
 
 import io.vrap.rmf.raml.model.resources.util.ResourcesSwitch
+import io.vrap.rmf.raml.model.types.AnnotationsFacet
+import io.vrap.rmf.raml.model.types.ArrayInstance
 import io.vrap.rmf.raml.validation.AbstractRamlValidator
 import io.vrap.rmf.raml.validation.RamlValidator
 import org.eclipse.emf.common.util.Diagnostic
@@ -19,7 +21,13 @@ class ResourcesValidator(private val validators: List<ResourcesSwitch<List<Diagn
         context: Map<Any, Any>
     ): Boolean {
         val validationResults = validators.stream()
-            .flatMap { validator: ResourcesSwitch<List<Diagnostic>> -> validator.doSwitch(eObject).stream() }
+            .flatMap { validator: ResourcesSwitch<List<Diagnostic>> ->
+                return@flatMap if (eObject is AnnotationsFacet && eObject.getAnnotation("ignoreValidators") != null && (eObject.getAnnotation("ignoreValidators").value as ArrayInstance).value.any { it.value == validator.javaClass.simpleName } ) {
+                    emptyList<Diagnostic>().stream()
+                } else {
+                    validator.doSwitch(eObject).stream()
+                }
+            }
             .collect(Collectors.toList())
         validationResults.forEach(Consumer { diagnostic: Diagnostic? -> diagnostics.add(diagnostic) })
         return validationResults.isEmpty()

@@ -1,0 +1,38 @@
+#%RAML 1.0
+title: discriminator subtype rule
+
+types:
+  Foo:
+    type: object
+    discriminator: type
+    properties:
+      type: string
+  SubFoo:
+    discriminatorValue: sub
+    type: Foo
+  Bar:
+    type: object
+    description: InvalidBar
+    properties:
+      name: string
+  FooBar:
+    description: FooBar
+    type: object
+    properties:
+      bar: Bar
+  FooBar2:
+    type: object
+    properties:
+      bar:
+        description: Bar
+        type: Bar
+  InvalidBaz:
+    type: object
+    description: InvalidBar
+    properties:
+      name: string
+  SubBaz:
+    description: SubBaz
+    type: InvalidBaz
+  SubBaz2:
+    type: InvalidBaz

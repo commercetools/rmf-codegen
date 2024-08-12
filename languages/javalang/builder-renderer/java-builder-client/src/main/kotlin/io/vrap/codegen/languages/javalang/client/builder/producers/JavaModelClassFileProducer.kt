@@ -44,8 +44,8 @@ class JavaModelClassFileProducer constructor(override val vrapTypeProvider: Vrap
                 |${type.imports()}
                 |import io.vrap.rmf.base.client.utils.Generated;
                 |import io.vrap.rmf.base.client.ModelBase;
-                |import javax.validation.Valid;
-                |import javax.validation.constraints.NotNull;
+                |import jakarta.validation.Valid;
+                |import jakarta.validation.constraints.NotNull;
                 |import java.util.*;
                 |import java.time.*;
                 |
@@ -331,7 +331,7 @@ class JavaModelClassFileProducer constructor(override val vrapTypeProvider: Vrap
             | * create instance with all properties
             | */
             |@JsonCreator
-            |${vrapType.simpleClassName}Impl(${constructorArguments.escapeAll()}) {
+            |${if(constructorArguments.isEmpty()) "public " else ""}${vrapType.simpleClassName}Impl(${constructorArguments.escapeAll()}) {
             |    <$propertiesAssignment>
             |    <$discriminatorAssignment>
             |}

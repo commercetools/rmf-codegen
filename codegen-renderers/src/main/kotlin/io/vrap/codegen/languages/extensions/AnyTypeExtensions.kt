@@ -24,3 +24,8 @@ fun AnyType.deprecated() : Boolean {
     val anno = this.getAnnotation("deprecated")
     return (anno != null && (anno.value as BooleanInstance).value)
 }
+
+fun AnyType.markDeprecated() : Boolean {
+    val anno = this.getAnnotation("markDeprecated")
+    return (anno != null && (anno.value as BooleanInstance).value)
+}

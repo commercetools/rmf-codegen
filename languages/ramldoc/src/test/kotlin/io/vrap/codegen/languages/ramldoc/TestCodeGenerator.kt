@@ -149,6 +149,7 @@ class TestCodeGenerator {
                 FOO:
                   type: string
                   (builtinType): string
+                  displayName: Foo
                   required: true
               body:
                 application/json:

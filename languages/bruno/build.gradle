@@ -1,0 +1,8 @@
+
+dependencies {
+    implementation project(':codegen-renderers')
+    implementation commons.lang3
+    implementation commons.text
+    implementation orgkotlin.reflect
+    implementation orgkotlin.stdlib
+}

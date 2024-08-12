@@ -397,4 +397,14 @@ class ValidatorRulesTest extends Specification implements ValidatorFixtures {
         result.validationResults[0].message == "Property \"/invalid/\" must define object type for placeholder annotation"
     }
 
+    def "subtypes should be discriminated"() {
+        when:
+        def validators = Arrays.asList(new TypesValidator(Arrays.asList(PolymorphicSubtypesRule.create(emptyList()))))
+        def uri = uriFromClasspath("/polymorphic-subtype-rule.raml")
+        def result = new RamlModelBuilder(validators).buildApi(uri)
+        then:
+        result.validationResults.size == 1
+        result.validationResults[0].message == "Type \"InvalidBaz\" has subtypes but no discriminator is set"
+    }
+
 }

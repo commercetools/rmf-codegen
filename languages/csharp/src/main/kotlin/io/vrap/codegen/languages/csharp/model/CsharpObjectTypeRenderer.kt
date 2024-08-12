@@ -23,7 +23,7 @@ class CsharpObjectTypeRenderer constructor(override val vrapTypeProvider: VrapTy
         val vrapType = vrapTypeProvider.doSwitch(type) as VrapObjectType
 
         var content : String = """
-            |${type.usings()}
+            |${type.usings(vrapTypeProvider)}
             |
             |namespace ${vrapType.csharpPackage()}
             |{
@@ -35,7 +35,7 @@ class CsharpObjectTypeRenderer constructor(override val vrapTypeProvider: VrapTy
             |    }
             |}
             |
-        """.trimMargin().keepIndentation()
+        """.trimMargin().keepIndentation().split("\n").joinToString(separator = "\n") { it.trimEnd() }
 
         if(type.isADictionaryType())
         {
@@ -56,7 +56,7 @@ class CsharpObjectTypeRenderer constructor(override val vrapTypeProvider: VrapTy
         var property = this.properties[0]
 
         return  """
-            |${this.usings()}
+            |${this.usings(vrapTypeProvider, false, true)}
             |
             |// ReSharper disable CheckNamespace
             |namespace ${vrapType.csharpPackage()}
@@ -83,9 +83,9 @@ class CsharpObjectTypeRenderer constructor(override val vrapTypeProvider: VrapTy
         val deprecationAttr = if(this.deprecationAnnotation() == "") "" else this.deprecationAnnotation()+"\n";
 
         return """
-            |${deprecationAttr}public ${typeName}$nullableChar $propName { get; set;}${if (this.type.toVrapType() is VrapArrayType) """
-            |${deprecationAttr}public IEnumerable\<${(this.type.toVrapType() as VrapArrayType).itemType.simpleName()}\>$nullableChar ${propName}Enumerable { set =\> $propName = value$nullableChar.ToList(); }
-            |""" else ""}
+            |${deprecationAttr}public ${typeName}$nullableChar $propName { get; set; }${if (this.type.toVrapType() is VrapArrayType) """
+            |
+            |${deprecationAttr}public IEnumerable\<${(this.type.toVrapType() as VrapArrayType).itemType.simpleName()}\>$nullableChar ${propName}Enumerable { set =\> $propName = value$nullableChar.ToList(); }""" else ""}
             """.trimMargin()
     }
 
@@ -103,8 +103,8 @@ class CsharpObjectTypeRenderer constructor(override val vrapTypeProvider: VrapTy
         val isEmptyConstructor = this.getConstructorContentForDiscriminator() == "";
         return if(!isEmptyConstructor)
             """public ${className}()
-                |{ 
-                |   ${this.getConstructorContentForDiscriminator()}
+                |{
+                |    ${this.getConstructorContentForDiscriminator()}
                 |}"""
         else
             ""

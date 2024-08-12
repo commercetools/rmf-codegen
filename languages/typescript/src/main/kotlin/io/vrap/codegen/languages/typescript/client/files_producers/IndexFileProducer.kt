@@ -37,6 +37,8 @@ class IndexFileProducer constructor(
                 |//Common package
                 |export * from '${clientConstants.commonTypesPackage}'
                 |export * from '${clientConstants.middlewarePackage}'
+                |export * from '${clientConstants.requestUtilsPackage}'
+                |export * from '${clientConstants.uriUtilsPackage}'
 
             """.trimMargin()
     ))

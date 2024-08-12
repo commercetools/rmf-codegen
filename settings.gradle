@@ -12,6 +12,7 @@ include 'languages:typescript'
 include 'languages:python'
 include 'languages:go'
 include 'languages:ramldoc'
+include 'languages:bruno'
 
 include 'ctp-validators'
 include 'tools:cli-application'

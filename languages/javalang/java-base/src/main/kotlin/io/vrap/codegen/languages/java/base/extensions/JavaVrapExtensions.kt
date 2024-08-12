@@ -37,6 +37,12 @@ fun String.toScalarType(): String {
     return t
 }
 
+fun AnyType.isExpandable() : Boolean {
+    val anno = this.getAnnotation("expandable", true)
+    return (anno != null && (anno.value as BooleanInstance).value)
+}
+
+
 fun VrapType.fullClassName(unboxed: Boolean = false): String {
     return when (this) {
         is VrapAnyType -> this.baseType

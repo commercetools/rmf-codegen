@@ -19,7 +19,7 @@ class QueryParameterCamelCaseRule(severity: RuleSeverity, options: List<RuleOpti
                 if (exclude.contains(queryParameter.name).not() && queryParameter.pattern == null) {
                     if (!queryParameter.name.matches(Regex("^[.a-zA-Z0-9]+$"))) {
                         validationResults.add(create(queryParameter, "Query parameter \"{0}\" name must use alphanum and dot only", queryParameter.name))
-                    } else if (StringCaseFormat.LOWER_CAMEL_CASE.apply(queryParameter.name) != queryParameter.name) {
+                    } else if (StringCaseFormat.LOWER_CAMEL_CASE.apply(queryParameter.name.replace(".", "")) != queryParameter.name.replace(".", "")) {
                         validationResults.add(create(queryParameter, "Query parameter \"{0}\" must be lower camel cased", queryParameter.name))
                     }
                 }
