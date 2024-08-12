@@ -545,7 +545,7 @@ class GoFileProducer constructor(
 
     private fun StringType.renderEnumValues(enumName: String): String {
         return this.enumValues()
-            .map { "${enumName}${it.exportName()} $enumName = \"$it\"" }
+            .map { "${enumName}${it.exportName().replace(".", "")} $enumName = \"$it\"" }
             .joinToString(prefix = "const (", separator = "\n", postfix = ")")
     }
 
