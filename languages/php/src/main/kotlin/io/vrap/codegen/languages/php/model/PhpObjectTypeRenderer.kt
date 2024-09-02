@@ -409,10 +409,11 @@ class PhpObjectTypeRenderer constructor(override val vrapTypeProvider: VrapTypeP
                         |return JsonObjectModel::of($!data);
                     """.trimMargin()
                 } else {
+                    val propType = (if (type.isInlineType) type.type else type) as ObjectType
                     """
                         |/** @psalm-var stdClass|array<string, mixed> $!data */
-                        |${if (type.discriminator.isNullOrBlank()) "" else "$!className = ${type.toVrapType().simpleName()}Model::resolveDiscriminatorClass($!data);"}
-                        |return ${if (type.discriminator.isNullOrBlank()) "${type.toVrapType().simpleName()}Model" else "$!className"}::of($!data);
+                        |${if (propType.discriminator.isNullOrBlank()) "" else "$!className = ${type.toVrapType().simpleName()}Model::resolveDiscriminatorClass($!data);"}
+                        |return ${if (propType.discriminator.isNullOrBlank()) "${type.toVrapType().simpleName()}Model" else "$!className"}::of($!data);
                     """.trimMargin()
                 }
             is ArrayType ->
@@ -497,14 +498,15 @@ class PhpObjectTypeRenderer constructor(override val vrapTypeProvider: VrapTypeP
                         |$assignment JsonObjectModel::of($!data);
                     """.trimMargin()
                 } else {
+                    val propType = (if (type.isInlineType) type.type  else type) as ObjectType
                     """
                         |/** @psalm-var stdClass|array<string, mixed>|null $!data */
                         |$!data = $!this->raw(self::${this.toPhpConstantName()});
                         |if (is_null($!data)) {
                         |    return null;
                         |}
-                        |${if (type.discriminator.isNullOrBlank()) "" else "$!className = ${type.toVrapType().simpleName()}Model::resolveDiscriminatorClass($!data);"}
-                        |$assignment ${if (type.discriminator.isNullOrBlank()) "${type.toVrapType().simpleName()}Model" else "$!className"}::of($!data);
+                        |${if (propType.discriminator.isNullOrBlank()) "" else "$!className = ${type.toVrapType().simpleName()}Model::resolveDiscriminatorClass($!data);"}
+                        |$assignment ${if (propType.discriminator.isNullOrBlank()) "${type.toVrapType().simpleName()}Model" else "$!className"}::of($!data);
                     """.trimMargin()
                 }
             is ArrayType ->
