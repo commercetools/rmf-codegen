@@ -203,7 +203,9 @@ class RequestBuilder constructor(
             |headers${if (this.headerIsRequired()) "" else "?"}: {
             |   <${this
                 .headers
-                .map { "'${it.name}': ${(it.type as StringType).enum.map { "'${it.value}'" }.joinToString(separator = " | ")}" }
+                .map { "'${it.name}': ${
+                    if ((it.type as StringType).enum.isNotEmpty()) (it.type as StringType).enum.map { "'${it.value}'" }.joinToString(separator = " | ") else "string | string[]" }"
+                }
                 .joinToString(separator = "\n")
         }>
             |   [key:string]: string | string[]
