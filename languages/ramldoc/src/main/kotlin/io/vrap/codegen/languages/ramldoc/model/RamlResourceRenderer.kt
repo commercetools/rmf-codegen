@@ -107,7 +107,7 @@ class RamlResourceRenderer constructor(val api: Api, val vrapTypeProvider: VrapT
             else ->
                 """
                     |curl$xParam ${baseUri}${r.fullUri.normalize().template}$queryParameters -i${if (addBearerToken) """ \\
-                    |--header "Authorization: Bearer ${'$'}{BEARER_TOKEN}"""" else ""}${if (headers.isNotEmpty()) """ \\
+                    |--header "Authorization: Bearer ${'$'}{BEARER_TOKEN}" """ else ""}${if (headers.isNotEmpty()) """ \\
                     |${headers.joinToString("\\\\\n")}
                     """ else ""}
                 """
