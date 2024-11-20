@@ -282,7 +282,7 @@ class JavaModelClassFileProducer constructor(override val vrapTypeProvider: Vrap
                 .filterNot { it.name == this.discriminator() && this.discriminatorValue != null}
                 .map {
                     if(it.isPatternProperty()) {
-                        "@JsonProperty(\"values\") final Map<String, ${it.type.toVrapType().fullClassName()}> values"
+                        "final Map<String, ${it.type.toVrapType().fullClassName()}> values"
                     }else if(it.name.equals("interface")) {
                         "@JsonProperty(\"${it.name.lowerCamelCase()}\") final ${it.type.toVrapType().fullClassName()} _interface"
                     } else {
