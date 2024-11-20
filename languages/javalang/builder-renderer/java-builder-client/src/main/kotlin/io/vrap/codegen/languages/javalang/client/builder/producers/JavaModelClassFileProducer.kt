@@ -51,6 +51,7 @@ class JavaModelClassFileProducer constructor(override val vrapTypeProvider: Vrap
                 |
                 |import com.fasterxml.jackson.core.JsonProcessingException;
                 |import com.fasterxml.jackson.databind.annotation.*;
+                |import com.fasterxml.jackson.annotation.JsonAnySetter;
                 |import com.fasterxml.jackson.annotation.JsonCreator;
                 |import com.fasterxml.jackson.annotation.JsonIgnore;
                 |import com.fasterxml.jackson.annotation.JsonInclude;
@@ -282,7 +283,7 @@ class JavaModelClassFileProducer constructor(override val vrapTypeProvider: Vrap
                 .filterNot { it.name == this.discriminator() && this.discriminatorValue != null}
                 .map {
                     if(it.isPatternProperty()) {
-                        "final Map<String, ${it.type.toVrapType().fullClassName()}> values"
+                        "@JsonAnySetter() final Map<String, ${it.type.toVrapType().fullClassName()}> values"
                     }else if(it.name.equals("interface")) {
                         "@JsonProperty(\"${it.name.lowerCamelCase()}\") final ${it.type.toVrapType().fullClassName()} _interface"
                     } else {
