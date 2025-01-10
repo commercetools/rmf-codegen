@@ -98,10 +98,10 @@ class JoiValidatorModuleRenderer constructor(override val vrapTypeProvider: Vrap
 
                     }.joinToString(separator = ", ")
 
-            val id = if(sharedSchema.isNotEmpty()) """.id('$parentType').${sharedSchema.joinToString(separator = ".") { "shared($it())" }}""" else ""
+            val id = if(sharedSchema.isNotEmpty()) """.${sharedSchema.joinToString(separator = ".") { "shared($it())" }}""" else ""
             joiAlternativesTypes.add(this.toVrapType().simpleJoiName())
 
-            schemaDeclaration = """Joi.alternatives().try($allSubsCases)$id"""
+            schemaDeclaration = """Joi.alternatives().try($allSubsCases).id('$parentType')$id"""
 
         } else {
             schemaDeclaration =  """<${renderPropertySchemas()}>"""
@@ -121,10 +121,16 @@ class JoiValidatorModuleRenderer constructor(override val vrapTypeProvider: Vrap
         val patternProperties = this.allProperties.renderPatternProperties()
         val additionalProperties = this.additionalProperties?:true
         val unknown = if (!additionalProperties) ".unknown(false)" else ""
+
+        val sharedTypes = this.allProperties
+            .filter { !it.isPatternProperty() }
+            .filter { joiAlternativesTypes.contains(it.type.toVrapType().simpleJoiName()) && discriminatorProperty }
+            .sortedWith(PropertiesComparator)
+            .joinToString(separator = ".") { "shared(${it.type.toVrapType().simpleJoiName()}())"  }
         return if (patternProperties.isNullOrEmpty())
             """ |Joi.object()${unknown}.keys({
                 |   <$nonPatternProperties>
-                |})
+                |})${if (sharedTypes.isNotEmpty()) ".$sharedTypes" else ""}
             """.trimMargin()
         else {
             if (nonPatternProperties.isNotBlank())
@@ -132,10 +138,10 @@ class JoiValidatorModuleRenderer constructor(override val vrapTypeProvider: Vrap
                 |Joi.object().keys({
                 |   <$nonPatternProperties>
                 |})
-                |$patternProperties
+                |$patternProperties${if (sharedTypes.isNotEmpty()) ".$sharedTypes" else ""}
             """.trimMargin()
             else
-                "Joi.object()<$patternProperties>"
+                "Joi.object()<$patternProperties>${if (sharedTypes.isNotEmpty()) ".$sharedTypes" else ""}"
         }
     }
 
