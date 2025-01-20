@@ -150,10 +150,11 @@ class JoiValidatorModuleRenderer constructor(override val vrapTypeProvider: Vrap
         val discriminatorConstraint = if (this == current.discriminatorProperty()) ".valid(Joi.override, '${current.discriminatorValue}')" else ""
         val requiredConstraint = if (this.required) ".required()" else ".optional()"
         val maxConstraint = if (this.type is ArrayType && (this.type as ArrayType).maxItems != null) ".max(${(this.type as ArrayType).maxItems})" else ""
+        val patternConstraint = if (this.type is StringType && (this.type as StringType).pattern != null ) ".pattern(/${(this.type as StringType).pattern}/)" else ""
         val joiLink = joiAlternativesTypes.contains(vrapType.simpleJoiName()) && discriminatorProperty
         val joiSchema = if(joiLink)"Joi.link('#${vrapType.simpleJoiName()}')" else vrapType.renderTypeRef()
-
-        return "${name}: ${joiSchema}${maxConstraint}${discriminatorConstraint}${requiredConstraint}"
+        val uniquePropConstraint = if (this.getAnnotation("uniqueProperty") != null) ".unique(\"${(this.getAnnotation("uniqueProperty").value as StringInstance).value}\")" else ""
+        return "${name}: ${joiSchema}${maxConstraint}${patternConstraint}${discriminatorConstraint}${uniquePropConstraint}${requiredConstraint}"
     }
 
     private fun VrapType.renderTypeRef(): String {
