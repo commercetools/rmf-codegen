@@ -102,7 +102,13 @@ class JoiValidatorModuleRenderer constructor(override val vrapTypeProvider: Vrap
             schemaDeclaration = if (this.discriminatorProperty() != null) {
                 val discriminatorProperty = this.discriminatorProperty()!!
                 val subCases = allSubsCases.map { "{ is: '${it.first}', then: ${it.second} }" }
-                val namedSubcases = if (this.discriminatorProperty()!!.type.toVrapType().simpleTSName() != "string") subCases.plus("{ is: Joi.string(), then: Joi.object({ ${discriminatorProperty.name}: ${discriminatorProperty.type.toVrapType().simpleJoiName()}()}) }") else subCases
+                val namedSubcases = if (this.discriminatorProperty()!!.type.toVrapType().simpleTSName() != "string")
+                    subCases.plus("{ is: Joi.string(), then: Joi.object({ ${discriminatorProperty.name}: ${discriminatorProperty.type.toVrapType().simpleJoiName()}()}) }")
+                else {
+                    subCases.plus(
+                        "{ is: Joi.string(), then: Joi.object({ ${discriminatorProperty.name}: Joi.string().valid('${allSubsCases.toMap().keys.joinToString("', '")}')}) }"
+                    )
+                }
                 """
                     Joi.alternatives().conditional(Joi.ref('.${this.discriminatorProperty()?.name}'), {
                        switch: [
