@@ -83,25 +83,36 @@ class JoiValidatorModuleRenderer constructor(override val vrapTypeProvider: Vrap
                     .map {
                         val typeName = it.toVrapType().simpleJoiName()
                         val existMainType = it.allProperties
-                                .filter { !it.isPatternProperty() }
-                                .sortedWith(PropertiesComparator)
-                                .filter {
-                                    it.type.toVrapType().simpleJoiName() == parentType
-                                }
+                            .filter { !it.isPatternProperty() }
+                            .sortedWith(PropertiesComparator)
+                            .filter {
+                                it.type.toVrapType().simpleJoiName() == parentType
+                            }
+                        val schema = if (existMainType.isNotEmpty()) {
+                                sharedSchema.add(typeName)
+                                recursionTypes.add(typeName)
 
-                        if(existMainType.isNotEmpty()){
-                            sharedSchema.add("$typeName")
-                            recursionTypes.add("$typeName")
-
-                            "Joi.link('#$typeName')"
-                        } else "$typeName()"
-
-                    }.joinToString(separator = ", ")
+                                "Joi.link('#$typeName')"
+                            } else "$typeName()"
+                        it.discriminatorValue to schema
+                    }
 
             val id = if(sharedSchema.isNotEmpty()) """.${sharedSchema.joinToString(separator = ".") { "shared($it())" }}""" else ""
             joiAlternativesTypes.add(this.toVrapType().simpleJoiName())
-
-            schemaDeclaration = """Joi.alternatives().try($allSubsCases).id('$parentType')$id"""
+            schemaDeclaration = if (this.discriminatorProperty() != null) {
+                val discriminatorProperty = this.discriminatorProperty()!!
+                val subCases = allSubsCases.map { "{ is: '${it.first}', then: ${it.second} }" }
+                val namedSubcases = if (this.discriminatorProperty()!!.type.toVrapType().simpleTSName() != "string") subCases.plus("{ is: Joi.string(), then: Joi.object({ ${discriminatorProperty.name}: ${discriminatorProperty.type.toVrapType().simpleJoiName()}()}) }") else subCases
+                """
+                    Joi.alternatives().conditional(Joi.ref('.${this.discriminatorProperty()?.name}'), {
+                       switch: [
+                         <${namedSubcases.joinToString(",\n")}>
+                       ]
+                    }).id('$parentType')$id
+                """.trimIndent()
+            } else {
+                """Joi.alternatives().try(${allSubsCases.joinToString(separator = ", ") { it.second }}).id('$parentType')$id"""
+            }
 
         } else {
             schemaDeclaration =  """<${renderPropertySchemas()}>"""
