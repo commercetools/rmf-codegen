@@ -41,6 +41,7 @@ class OasResourceRenderer constructor(val api: Api, val vrapTypeProvider: VrapTy
     }
 
     private fun renderMethod(method: Method): String {
+        val bodies = method.bodies.filter { it.type != null }.filterNot { it.type is FileType }.plus(method.bodies.firstOrNull { it.type is FileType }).filterNotNull()
         return """
             |${method.methodName}:${if (method.securedBy.isNotEmpty()) """
             |  security:
@@ -51,7 +52,7 @@ class OasResourceRenderer constructor(val api: Api, val vrapTypeProvider: VrapTy
             |  parameters:
             |    <<${method.queryParameters.joinToString("\n") { renderQueryParameter(it) }}>>""" else ""}${if (method.bodies.any { it.type != null }) """
             |  requestBody:
-            |    <<${method.bodies.filter { it.type != null }.joinToString("\n") { renderBody(it, method) } }>>""" else ""}
+            |    <<${bodies.joinToString("\n") { renderBody(it, method) } }>>""" else ""}
             |  responses:
             |    <<${method.responses.joinToString("\n") { renderResponse(it, method) }}>>
         """.trimMargin().keepAngleIndent()
