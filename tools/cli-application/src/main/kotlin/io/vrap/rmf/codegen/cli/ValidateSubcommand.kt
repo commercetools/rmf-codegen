@@ -28,10 +28,7 @@ import java.nio.file.Paths
 import java.util.*
 import java.util.concurrent.Callable
 import java.util.concurrent.TimeUnit
-import kotlin.io.path.Path
-import kotlin.io.path.relativeTo
-import kotlin.io.path.relativeToOrSelf
-import kotlin.io.path.toPath
+import kotlin.io.path.*
 
 enum class DiagnosticSeverity(val severity: String, val value: Int) {
     INFO("info", Diagnostic.INFO),
@@ -67,6 +64,9 @@ class ValidateSubcommand : Callable<Int> {
     @CommandLine.Option(names = ["-l", "--link-base"])
     var linkBase: java.net.URI? = null
 
+    @CommandLine.Option(names = ["-d", "--dir-base"])
+    var dirBase: Path? = null
+
     @CommandLine.Option(names = ["-lf", "--link-format"], description = ["Specifies the link format","Valid values: ${LinkFormat.VALID_VALUES}"] )
     var linkFormat: LinkFormat = LinkFormat.CLI
 
@@ -90,6 +90,10 @@ class ValidateSubcommand : Callable<Int> {
             uri = java.net.URI.create("$uri/")
         }
         return uri
+    }
+
+    private fun dirBase(): Path {
+        return dirBase ?: Paths.get("").toAbsolutePath()
     }
 
     override fun call(): Int {
@@ -198,7 +202,7 @@ class ValidateSubcommand : Callable<Int> {
             OutputFormat.PHP_MARKDOWN -> MarkdownFormatPrinter(linkFormatter)
             OutputFormat.TS_MARKDOWN -> MarkdownFormatPrinter(linkFormatter)
             OutputFormat.DOTNET_MARKDOWN -> MarkdownFormatPrinter(linkFormatter)
-            OutputFormat.GITHUB -> GithubFormatPrinter(linkFormatter)
+            OutputFormat.GITHUB -> GithubFormatPrinter(dirBase(), linkFormatter)
             OutputFormat.JSON -> TODO()
         }
     }
@@ -280,9 +284,10 @@ class ValidateSubcommand : Callable<Int> {
         }
     }
 
-    class GithubFormatPrinter(override val linkFormatter: LinkFormatter): FormatPrinter {
+    class GithubFormatPrinter(val dirBase: Path, override val linkFormatter: LinkFormatter): FormatPrinter {
 
         override fun print(fileURI: URI, result: RamlModelResult<Api>): String {
+            System.out.println(dirBase)
             val validationResults = result.validationResults
             var output = ""
             if (validationResults.isNotEmpty()) {
@@ -290,14 +295,19 @@ class ValidateSubcommand : Callable<Int> {
                 val warnings = validationResults.filter { diagnostic -> diagnostic.severity == Diagnostic.WARNING }
                 val infos = validationResults.filter { diagnostic -> diagnostic.severity == Diagnostic.INFO }
 
-                if (errors.isNotEmpty()) output += errors.joinToString("\n") { "::error file=${java.net.URI.create(it.location).path},line=${it.line}::${it.detailMessage()}" }
-                if (warnings.isNotEmpty()) output += errors.joinToString("\n") { "::warning file=${java.net.URI.create(it.location).path},line=${it.line}::${it.detailMessage()}" }
-                if (infos.isNotEmpty()) output += errors.joinToString("\n") { "::notice file=${java.net.URI.create(it.location).path},line=${it.line}::${it.detailMessage()}" }
+                if (errors.isNotEmpty()) output += errors.joinToString("\n") { "::error file=${it.toLocation(dirBase)},line=${it.line}::${it.detailMessage()}" }
+                if (warnings.isNotEmpty()) output += errors.joinToString("\n") { "::warning file=${it.toLocation(dirBase)},line=${it.line}::${it.detailMessage()}" }
+                if (infos.isNotEmpty()) output += errors.joinToString("\n") { "::notice file=${it.toLocation(dirBase)},line=${it.line}::${it.detailMessage()}" }
 
                 return output
             }
             return "::notice ::Specification at ${fileURI.toFileString()} is valid."
         }
+
+        fun RamlDiagnostic.toLocation(filePath: Path): Path {
+            return java.net.URI.create(this.location).toPath().relativeToOrSelf(filePath)
+        }
+
     }
 
     class MarkdownFormatPrinter(override val linkFormatter: LinkFormatter): FormatPrinter {
