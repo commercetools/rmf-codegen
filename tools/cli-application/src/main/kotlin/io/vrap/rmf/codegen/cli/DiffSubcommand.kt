@@ -83,6 +83,7 @@ class DiffSubcommand : Callable<Int> {
                 OutputFormat.PHP_MARKDOWN -> PHPMarkdownFormatPrinter()
                 OutputFormat.TS_MARKDOWN -> TSMarkdownFormatPrinter()
                 OutputFormat.DOTNET_MARKDOWN -> DotNetMarkdownFormatPrinter()
+                OutputFormat.GITHUB -> CliFormatPrinter()
                 OutputFormat.JSON -> JsonFormatPrinter()
             }
         }
