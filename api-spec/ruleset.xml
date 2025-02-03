@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ruleset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/commercetools/rmf-codegen/main/ctp-validators/src/main/resources/ruleset.xsd">
+    <name>default</name>
+    <apply set="default"/>
+    <rules>
+        <rule>
+            <name>com.commercetools.rmf.validators.CamelCaseRule</name>
+            <options>
+                <option type="exclude">error_description</option>
+            </options>
+        </rule>
+        <rule enabled="false">
+            <name>com.commercetools.rmf.validators.UnionTypePropertyRule</name>
+        </rule>
+        <rule>
+            <name>com.commercetools.rmf.validators.AsMapRule</name>
+            <options>
+                <option type="exclude">LocalizedString</option>
+                <option type="exclude">CategoryOrderHints</option>
+            </options>
+        </rule>
+        <rule>
+            <name>com.commercetools.rmf.validators.NestedTypeRule</name>
+            <options>
+                <option type="exclude">PriceMapping#productVariant</option>
+            </options>
+        </rule>
+        <rule>
+            <name>com.commercetools.rmf.validators.UriParameterDeclaredRule</name>
+            <options>
+                <option type="exclude">/{projectKey}/import-sinks/{importSinkKey}/items/{resourceKey}</option>
+            </options>
+        </rule>
+        <rule enabled="false">
+            <name>com.commercetools.rmf.validators.DatetimeRule</name>
+        </rule>
+    </rules>
+</ruleset>
