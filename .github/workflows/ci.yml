@@ -24,6 +24,7 @@ jobs:
       - name: Build and Release
         run: ./gradlew clean check shadowJar
 
+      - run: ./scripts/install_local.sh
       - name: Checkout
         uses: actions/checkout@v3
         with:
@@ -31,8 +32,9 @@ jobs:
 
       - name: Test validate
         continue-on-error: true
-        run: ./rmf-gen.sh validate -f GITHUB ./api-spec/api.raml
+        run: rmf-codegen validate -f GITHUB ./api-spec/api.raml
         working-directory: test
+
   test_node:
     name: Build npm package
 
