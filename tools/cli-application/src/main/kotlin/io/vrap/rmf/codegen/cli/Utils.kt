@@ -28,10 +28,11 @@ enum class OutputFormat {
     PHP_MARKDOWN,
     TS_MARKDOWN,
     DOTNET_MARKDOWN,
-    JSON;
+    JSON,
+    GITHUB;
 
     companion object {
-        const val VALID_VALUES = "CLI, JSON, MARKDOWN"
+        const val VALID_VALUES = "CLI, JSON, MARKDOWN, GITHUB"
     }
 }
 
@@ -183,8 +184,3 @@ object InternalLogger {
         }
     }
 }
-
-
-
-
-

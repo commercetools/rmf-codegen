@@ -22,7 +22,11 @@ jobs:
           java-version: '11'
 
       - name: Build and Release
-        run: ./gradlew clean check
+        run: ./gradlew clean check shadowJar
+
+      - name: Test validate
+        continue-on-error: true
+        run: ./rmf-gen.sh validate -f GITHUB ./api-spec/api.raml
   test_node:
     name: Build npm package
 

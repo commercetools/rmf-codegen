@@ -16,7 +16,6 @@ import io.vrap.rmf.raml.model.RamlDiagnostic
 import io.vrap.rmf.raml.model.RamlModelBuilder
 import io.vrap.rmf.raml.model.RamlModelResult
 import io.vrap.rmf.raml.model.modules.Api
-import io.vrap.rmf.raml.validation.Source
 import io.vrap.rmf.raml.validation.Violation
 import org.eclipse.emf.common.util.Diagnostic
 import org.eclipse.emf.common.util.URI
@@ -199,6 +198,7 @@ class ValidateSubcommand : Callable<Int> {
             OutputFormat.PHP_MARKDOWN -> MarkdownFormatPrinter(linkFormatter)
             OutputFormat.TS_MARKDOWN -> MarkdownFormatPrinter(linkFormatter)
             OutputFormat.DOTNET_MARKDOWN -> MarkdownFormatPrinter(linkFormatter)
+            OutputFormat.GITHUB -> GithubFormatPrinter(linkFormatter)
             OutputFormat.JSON -> TODO()
         }
     }
@@ -280,6 +280,26 @@ class ValidateSubcommand : Callable<Int> {
         }
     }
 
+    class GithubFormatPrinter(override val linkFormatter: LinkFormatter): FormatPrinter {
+
+        override fun print(fileURI: URI, result: RamlModelResult<Api>): String {
+            val validationResults = result.validationResults
+            var output = ""
+            if (validationResults.isNotEmpty()) {
+                val errors = validationResults.filter { diagnostic -> diagnostic.severity == Diagnostic.ERROR }
+                val warnings = validationResults.filter { diagnostic -> diagnostic.severity == Diagnostic.WARNING }
+                val infos = validationResults.filter { diagnostic -> diagnostic.severity == Diagnostic.INFO }
+
+                if (errors.isNotEmpty()) output += errors.joinToString("\n") { "::error file=${java.net.URI.create(it.location).path},line=${it.line}::${it.detailMessage()}" }
+                if (warnings.isNotEmpty()) output += errors.joinToString("\n") { "::warning file=${java.net.URI.create(it.location).path},line=${it.line}::${it.detailMessage()}" }
+                if (infos.isNotEmpty()) output += errors.joinToString("\n") { "::notice file=${java.net.URI.create(it.location).path},line=${it.line}::${it.detailMessage()}" }
+
+                return output
+            }
+            return "✅ Specification at ${fileURI.toFileString()} is valid."
+        }
+    }
+
     class MarkdownFormatPrinter(override val linkFormatter: LinkFormatter): FormatPrinter {
         override fun print(fileURI: URI, result: RamlModelResult<Api>): String {
             val relativeFileLink = Path(fileURI.toFileString()).relativeTo(linkFormatter.filePath)
@@ -321,5 +341,3 @@ class ValidateSubcommand : Callable<Int> {
         }
     }
 }
-
-
