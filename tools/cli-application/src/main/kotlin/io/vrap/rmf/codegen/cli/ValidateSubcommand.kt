@@ -296,7 +296,7 @@ class ValidateSubcommand : Callable<Int> {
 
                 return output
             }
-            return "✅ Specification at ${fileURI.toFileString()} is valid."
+            return "::notice ::Specification at ${fileURI.toFileString()} is valid."
         }
     }
 
