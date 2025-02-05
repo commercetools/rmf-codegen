@@ -14,6 +14,7 @@ import io.vrap.rmf.codegen.types.VrapEnumType
 import io.vrap.rmf.codegen.types.VrapScalarType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.types.*
+import io.vrap.rmf.raml.model.util.StringCaseFormat
 
 class TypeScriptModuleRenderer constructor(override val vrapTypeProvider: VrapTypeProvider, @AllAnyTypes val allAnyTypes: List<AnyType>) : TsObjectTypeExtensions, FileProducer {
 
@@ -57,11 +58,15 @@ class TypeScriptModuleRenderer constructor(override val vrapTypeProvider: VrapTy
                 |export type ${name} =
                 |  <${subTypes.plus(subTypes.flatMap { it.subTypes }).distinctBy { it.name }.filter { !it.isInlineType }.filterNot { it.deprecated() }.map { it.renderTypeExpr() }.sorted().joinToString(" |\n")}>
                 |;
+                |export interface I${name} {
+                |  <${renderPatternSpec()}>
+                |  <${renderPropertyDecls(true, true)}>
+                |}
                 """.trimMargin()
             } else {
                 """
                 |<${toTsComment().escapeAll()}>
-                |export interface ${name} {
+                |export interface ${name} ${renderExtendsExpr("I")} {
                 |  readonly ${discriminator()}: "${discriminatorValue}";
                 |  <${renderPatternSpec()}>
                 |  <${renderPropertyDecls(true)}>
@@ -103,8 +108,8 @@ class TypeScriptModuleRenderer constructor(override val vrapTypeProvider: VrapTy
      *
      * @return the rendered extends expression
      */
-    fun ObjectType.renderExtendsExpr(): String {
-        return type?.toVrapType()?.simpleTSName()?.let { "extends $it " } ?: ""
+    fun ObjectType.renderExtendsExpr(prefix: String = ""): String {
+        return type?.toVrapType()?.simpleTSName()?.let { "extends $prefix$it " } ?: ""
     }
 
     /**
@@ -114,10 +119,10 @@ class TypeScriptModuleRenderer constructor(override val vrapTypeProvider: VrapTy
      * @param all if true renders all inherited properties, if false renders only direct properties
      * @return the rendered property type declarations
      */
-    fun ObjectType.renderPropertyDecls(all: Boolean): String {
+    fun ObjectType.renderPropertyDecls(all: Boolean, includeDiscriminator: Boolean = false ): String {
         val renderProperties = if (all) allProperties else properties
         return renderProperties
-            .filter { !it.isPatternProperty() && it.name != discriminator() }
+            .filter { !it.isPatternProperty() && (it.name != discriminator() || includeDiscriminator) }
             .filterNot { it.deprecated() }
             .map {
                 val comments = it.type.toTsCommentList().plus(it.markDeprecated())
@@ -168,6 +173,10 @@ class TypeScriptModuleRenderer constructor(override val vrapTypeProvider: VrapTy
             is VrapEnumType ->
                 """
                 |<${this.toTsComment().escapeAll()}>
+                |export enum ${vrapType.simpleClassName}Enum {
+                |  <${this.renderEnum()}>
+                |}
+                |   
                 |export type ${vrapType.simpleClassName} =
                 |   <${this.renderEnumValues()}>;
                 """.trimMargin()
@@ -183,6 +192,11 @@ class TypeScriptModuleRenderer constructor(override val vrapTypeProvider: VrapTy
         .sorted()
         .plus("string")
         .joinToString(" |\n")
+
+    private fun StringType.renderEnum(): String = enumValues()
+        .map { "${StringCaseFormat.UPPER_CAMEL_CASE.apply(it)} = '${it}'" }
+        .sorted()
+        .joinToString(",\n")
 
 
     private fun StringType.enumValues() = enum?.filter { it is StringInstance }
