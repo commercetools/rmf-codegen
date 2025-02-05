@@ -15,9 +15,10 @@ interface TsObjectTypeExtensions : ExtensionsBase {
     fun List<AnyType>.getImportsForModule(moduleName: String): String {
         val objectTypes = this
             .filterIsInstance<ObjectType>()
+        val dependentSubTypes = objectTypes.flatMap { it.getDependentTypes() }.map { if (it.type != null && it.isInlineType) it.type else it }.filterIsInstance<ObjectType>();
         return objectTypes
                 .flatMap { it.getDependencies() }
-                .getImportsForModuleVrapTypes(moduleName, objectTypes.flatMap { it.getDependentTypes() }.map { if (it.type != null && it.isInlineType) it.type else it }.filterIsInstance<ObjectType>().filter { it.discriminator == null && it.namedSubTypes().isNotEmpty() }.map { it.name })
+                .getImportsForModuleVrapTypes(moduleName, dependentSubTypes.filter { it.discriminator == null && it.namedSubTypes().isNotEmpty() }.map { it.name }, dependentSubTypes.filter { it.discriminator != null }.map { it.name }.distinct())
     }
 
     fun AnyType.moduleName(): String {
@@ -30,7 +31,7 @@ interface TsObjectTypeExtensions : ExtensionsBase {
         }
     }
 
-    fun List<VrapType>.getImportsForModuleVrapTypes(moduleName: String, dependentSubTypes: List<String>): String {
+    fun List<VrapType>.getImportsForModuleVrapTypes(moduleName: String, dependentSubTypes: List<String>, discriminatorTypes: List<String>): String {
         return this
                 .map { it.flattenVrapType() }
                 .distinct()
@@ -50,7 +51,10 @@ interface TsObjectTypeExtensions : ExtensionsBase {
                 }
                 .toSortedMap()
                 .map {
-                    val allImportedClasses = it.value.map { it.simpleTSName() }.plus(it.value.filter {dependentSubTypes.contains(it.simpleTSName()) }.map { "_${it.simpleTSName()}" }).sorted().joinToString(", ")
+                    val allImportedClasses = it.value.map { it.simpleTSName() }
+                        .plus(it.value.filter {dependentSubTypes.contains(it.simpleTSName()) }.map { "_${it.simpleTSName()}" })
+                        .plus(it.value.filter {discriminatorTypes.contains(it.simpleTSName()) }.map { "I${it.simpleTSName()}" })
+                        .sorted().joinToString(", ")
                     "import { $allImportedClasses } from '${it.key}'"
                 }
                 .joinToString(separator = "\n")
@@ -114,9 +118,3 @@ interface TsObjectTypeExtensions : ExtensionsBase {
         }
     }
 }
-
-
-
-
-
-

@@ -255,11 +255,8 @@ class RequestBuilder constructor(
                 )
             )
             .toList()
-                .getImportsForModuleVrapTypes(moduleName, emptyList())
+                .getImportsForModuleVrapTypes(moduleName, emptyList(), emptyList())
     }
 
 
 }
-
-
-
