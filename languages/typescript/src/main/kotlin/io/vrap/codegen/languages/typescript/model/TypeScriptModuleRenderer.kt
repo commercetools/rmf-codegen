@@ -173,7 +173,7 @@ class TypeScriptModuleRenderer constructor(override val vrapTypeProvider: VrapTy
             is VrapEnumType ->
                 """
                 |<${this.toTsComment().escapeAll()}>
-                |export enum ${vrapType.simpleClassName}Enum {
+                |export enum ${vrapType.simpleClassName}Values {
                 |  <${this.renderEnum()}>
                 |}
                 |   
