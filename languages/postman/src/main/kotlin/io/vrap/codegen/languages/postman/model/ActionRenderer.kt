@@ -3,6 +3,7 @@ package io.vrap.codegen.languages.postman.model
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.ObjectNode
 import io.vrap.codegen.languages.extensions.resource
+import io.vrap.codegen.languages.extensions.toResourceName
 import io.vrap.rmf.codegen.firstUpperCase
 import io.vrap.rmf.codegen.rendering.utils.escapeAll
 import io.vrap.rmf.codegen.rendering.utils.keepAngleIndent
@@ -20,24 +21,81 @@ class ActionRenderer {
 
         val updateMethod = resource.getUpdateMethod()
 
-        val actions = updateMethod?.getActions()?.filterNot { objType -> objType.deprecated() }?.map { renderAction(resource, updateMethod, it) } ?: return emptyList()
+        return updateMethod?.getActions()?.filterNot { objType -> objType.deprecated() }?.map { renderAction(resource, updateMethod, it) } ?: return emptyList()
 
-        return listOf("""
-            |{
-            |    "name": "Update actions",
-            |    "item": [
-            |        <<${actions.joinToString(",\n") }>>
-            |    ]
-            |}
-        """.trimMargin())
     }
 
     private fun renderAction(resource: Resource, method: Method, type: ObjectType): String {
+
+        val resourceName = method.resource().toResourceName().removePrefix("ByProjectKey")
+        val toolName = type.discriminatorValue.firstUpperCase().split(" ") ?.joinToString("") { word ->
+            word.replaceFirstChar { it.uppercase() }
+        }?.replaceFirstChar { it.lowercaseChar() } ?: resourceName.replaceFirstChar { it.lowercaseChar() }
+        val requestMethod = method.methodName.uppercase()
+
+        val description = method.description?.description() ?: method.displayName?.value
         val url = PostmanUrl(method.resource(), method) { resource, name -> when (name) {
             "ID" -> resource.resourcePathName.singularize() + "-id"
             "key" -> resource.resourcePathName.singularize() + "-key"
             else -> StringCaseFormat.LOWER_HYPHEN_CASE.apply(name)
         }}
+        val actionType = when (requestMethod) {
+            "GET" -> "read"
+            "HEAD" -> "read"
+            "POST" -> "write"
+            "PUT" -> "write"
+            "DELETE" -> "delete"
+            else -> "read"
+        }
+
+        return """
+            |{
+            |    "name": "${toolName}Tool",
+            |    "actionType": "${actionType}",
+            |    "tool": tool(
+            |        async (args: any) => {
+            |            try {
+            |                const method: string = "${requestMethod}";
+            |                let body = {}
+            |                const bodyStr = args.postRequestParams;
+            |                if (method === "POST" && bodyStr) {
+            |                  try {
+            |                    JSON.parse(bodyStr);
+            |                  } catch {
+            |                    return "Invalid body value: "+ body
+            |                  }
+            |                  body = { body: bodyStr };
+            |                }
+            |                let url = [apiUrl, projectKey, "${url.path(2)}"].join("/");
+            |                Object.entries(args.pathVariables || {}).forEach(([key, value]: any) => {
+            |                           url = url.replace(`{{\$\{key}}}`, value);
+            |                         })
+            |                const headers = { "Content-Type": "application/json", "Authorization": "Bearer " + accessToken };
+            |                const response = await fetch(url, {
+            |                  method,
+            |                  headers,
+            |                  ...body
+            |                });
+            |                const jsonData = await response.text();
+            |                return jsonData;
+            |            } catch (error) {
+            |                return `Fetch Error:` + (error as Error).message;
+            |            }
+            |        }, {
+            |        name: "${type.discriminatorValue.firstUpperCase()}${if (type.markDeprecated()) " (deprecated)" else ""}",
+            |        description: "${description}",
+            |        schema: z.object({
+            |            "query": z.object({
+            |                <<${url.querySchema()}>>
+            |            }).optional(),
+            |            "pathVariables": z.object({
+            |                <<${url.pathVars(2)}>>
+            |            }).optional(),
+            |            <<${this.bodySchema(method.bodies[0].type as ObjectType)}>>
+            |        })
+            |    })
+            |}
+        """.trimIndent()
         return """
             |{
             |    "name": "${type.discriminatorValue.firstUpperCase()}${if (type.markDeprecated()) " (deprecated)" else ""}",
@@ -111,6 +169,16 @@ class ActionRenderer {
         """.trimMargin().keepAngleIndent()
     }
 
+
+    private fun bodySchema(type: ObjectType): String {
+        val example = this.getExample(type)?.escapeAll()?:""
+
+        if (example.isEmpty()) {
+            return ""
+        }
+
+        return  "\"postRequestParams\": z.string().describe(`String value for the request JSON payload. example value (all fields are optional): ${example}`)"
+    }
     private fun getExample(type: ObjectType): String? {
         var example: String? = null
         var instance: Instance? = null

@@ -40,6 +40,7 @@ class PostmanUrl (private val resource: Resource, private val method: Method, va
         }
     }
 
+
     fun raw(): String {
         return "${host()}${postmanUrlPath()}"
     }
@@ -47,12 +48,28 @@ class PostmanUrl (private val resource: Resource, private val method: Method, va
     fun path(drop: Int = 1): String {
         return postmanUrlPath().split("/").drop(drop).joinToString("\",\n\"")
     }
+    fun pathVars(drop: Int = 1): String {
+        val regex = Regex(".*\\{\\{(.+)}}.*")
+        val parts = postmanUrlPath().split("/").drop(drop).map { it.trim() }.mapNotNull { segment ->
+            val groups = regex.matchEntire(segment)?.groupValues
+            // If the segment matches our regex, extract the key and return the zod schema string.
+            groups?.get(1)?.let { key ->
+                "\"$key\": z.string()"
+            }
+        }
+        return parts.joinToString(",\n")
+    }
+
 
     fun query(): String {
         return method.queryParameters.joinToString(",\n") { it.queryParam() }
     }
 
-    private fun QueryParameter.queryParam() : String {
+    fun querySchema(): String {
+        return method.queryParameters.filterNot { it.name.startsWith("/") }.joinToString(",\n") { it.queryParamSchema() }
+    }
+
+    private fun QueryParameter.queryParam() :   String {
         return """
             |{
             |    "key": "${this.name}",
@@ -60,6 +77,24 @@ class PostmanUrl (private val resource: Resource, private val method: Method, va
             |    "equals": true,
             |    "disabled": ${this.required.not()}
             |}
+        """.trimMargin()
+    }
+
+
+    private fun QueryParameter.queryParamSchema() : String {
+        if (this.name.startsWith("/")) {
+            return ""
+        }
+        val optional = if (this.required.not()) ".optional()" else ""
+        val description = (this.type.description?.value?.let { ".describe(\"${it.replace("\n", " ")}\") " } ?: "").replace(Regex("\\[(.*?)\\]\\([^)]*\\)"), "$1")
+
+//        val min = if (this.type.minimum != null) ".min(${this.type})" else ""
+//        val max = if (this.type.maximum != null) ".max(${this.type.maximum})" else ""
+
+
+//        val default = if (this.defaultValue().isNotEmpty()) ".default('${this.defaultValue()}')" else ""
+        return """
+            | "${this.name}": z.string()$optional$description
         """.trimMargin()
     }
 

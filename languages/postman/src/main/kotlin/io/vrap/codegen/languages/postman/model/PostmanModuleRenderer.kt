@@ -66,19 +66,13 @@ class PostmanModuleRenderer constructor(val api: Api, override val vrapTypeProvi
     }
 
     private fun collection(api: Api): TemplateFile {
-        return TemplateFile(relativePath = "collection.json",
+        return TemplateFile(relativePath = "tools.ts",
                 content = """
-                    |{
-                    |    "info": {
-                    |        "_postman_id": "f367b534-c9ea-e7c5-1f46-7a27dc6a30ba",
-                    |        "name": "${api.title}",
-                    |        "description": "${readme(api).escapeJson().escapeAll()}",
-                    |        "schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json"
-                    |    },
-                    |    "auth":
-                    |        <<${auth()}>>,
-                    |    "item": [
-                    |        <<${authorization(api.oAuth2())}>>,
+                    |import {z} from 'zod';
+                    |import { tool } from "@langchain/core/tools";
+                    |
+                    |export const CoCoTools = ({accessToken, apiUrl, projectKey}: any) => {
+                    |    return [
                     |        <<${api.resources.joinToString(",") { ResourceRenderer().render(it) }}>>
                     |    ]
                     |}
