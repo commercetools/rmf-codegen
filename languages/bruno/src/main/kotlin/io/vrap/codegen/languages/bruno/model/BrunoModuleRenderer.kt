@@ -78,7 +78,9 @@ class BrunoModuleRenderer(val api: Api, override val vrapTypeProvider: VrapTypeP
                     |vars:secret [
                     |  ctp_client_id,
                     |  ctp_client_secret,
-                    |  ctp_access_token
+                    |  ctp_access_token,
+                    |  username,
+                    |  password
                     |]
                 """.trimMargin()
         )
@@ -102,6 +104,9 @@ class BrunoModuleRenderer(val api: Api, override val vrapTypeProvider: VrapTypeP
                     |CTP_CLIENT_SECRET=
                     |CTP_API_URL=$baseUri
                     |CTP_AUTH_URL=https://${api.oAuth2().uri().host}
+                    |CTP_PROJECT_KEY=
+                    |CTP_USERNAME=
+                    |CTP_USER_PWD=
                 """.trimMargin()
         )
     }
@@ -112,9 +117,11 @@ class BrunoModuleRenderer(val api: Api, override val vrapTypeProvider: VrapTypeP
                     |vars {
                     |  authUrl: {{process.env.CTP_AUTH_URL}}
                     |  apiUrl: {{process.env.CTP_API_URL}}
-                    |  project-key:
+                    |  project-key: {{process.env.CTP_PROJECT_KEY}}
                     |  ctp_client_id: {{process.env.CTP_CLIENT_ID}}
                     |  ctp_client_secret: {{process.env.CTP_CLIENT_SECRET}}
+                    |  username: {{process.env.CTP_USERNAME}}
+                    |  password: {{process.env.CTP_USER_PWD}}
                     |}
                     |vars:secret [
                     |  ctp_access_token
@@ -178,6 +185,117 @@ class BrunoModuleRenderer(val api: Api, override val vrapTypeProvider: VrapTypeP
                     |
                     |body:form-urlencoded {
                     |  grant_type: client_credentials
+                    |}
+                    |
+                    |auth:basic {
+                    |  username: {{ctp_client_id}}
+                    |  password: {{ctp_client_secret}}
+                    |}
+                    |
+                    |script:post-response {
+                    |  if(res.status == 200) {
+                    |    var data = res.body;
+                    |    if(data.access_token){
+                    |      bru.setEnvVar("ctp_access_token", data.access_token, true);
+                    |    }
+                    |  
+                    |    if (data.scope) {
+                    |      parts = data.scope.split(" ");
+                    |      parts = parts.filter(scope => scope.includes(":")).map(scope => scope.split(":"))
+                    |      if (parts.length > 0) {
+                    |          scopeParts = parts[0];
+                    |          bru.setEnvVar("project-key", scopeParts[1]);
+                    |          parts = parts.filter(scope => scope.length >= 3)
+                    |          if (parts.length > 0) {
+                    |              scopeParts = parts[0];
+                    |              bru.setEnvVar("store-key", scopeParts[2]);
+                    |          }
+                    |      }
+                    |    }
+                    |  }
+                    |}
+                    |
+                    |assert {
+                    |  res.status: eq 200
+                    |}
+                """.trimMargin()
+        )
+    }
+
+    private fun anonymousFlowBru(): TemplateFile {
+        return TemplateFile(relativePath = "auth/anonymousFlow.bru",
+            content = """
+                    |meta {
+                    |  name: Anonymous session flow
+                    |  type: http
+                    |  seq: 3
+                    |}
+                    |
+                    |post {
+                    |  url: {{authUrl}}/oauth/{{project-key}}/anonymous/token
+                    |  body: formUrlEncoded
+                    |  auth: basic
+                    |}
+                    |
+                    |body:form-urlencoded {
+                    |  grant_type: client_credentials
+                    |}
+                    |
+                    |auth:basic {
+                    |  username: {{ctp_client_id}}
+                    |  password: {{ctp_client_secret}}
+                    |}
+                    |
+                    |script:post-response {
+                    |  if(res.status == 200) {
+                    |    var data = res.body;
+                    |    if(data.access_token){
+                    |      bru.setEnvVar("ctp_access_token", data.access_token, true);
+                    |    }
+                    |  
+                    |    if (data.scope) {
+                    |      parts = data.scope.split(" ");
+                    |      parts = parts.filter(scope => scope.includes(":")).map(scope => scope.split(":"))
+                    |      if (parts.length > 0) {
+                    |          scopeParts = parts[0];
+                    |          bru.setEnvVar("project-key", scopeParts[1]);
+                    |          parts = parts.filter(scope => scope.length >= 3)
+                    |          if (parts.length > 0) {
+                    |              scopeParts = parts[0];
+                    |              bru.setEnvVar("store-key", scopeParts[2]);
+                    |          }
+                    |      }
+                    |    }
+                    |  }
+                    |}
+                    |
+                    |assert {
+                    |  res.status: eq 200
+                    |}
+                """.trimMargin()
+        )
+    }
+
+    private fun passwordFlowBru(): TemplateFile {
+        return TemplateFile(relativePath = "auth/anonymousFlow.bru",
+            content = """
+                    |meta {
+                    |  name: Password flow
+                    |  type: http
+                    |  seq: 2
+                    |}
+                    |
+                    |post {
+                    |  url: {{authUrl}}/oauth/{{project-key}}/customers/token
+                    |  body: formUrlEncoded
+                    |  auth: basic
+                    |}
+                    |
+                    |body:form-urlencoded {
+                    |  grant_type: password
+                    |  username: {{username}}
+                    |  password: {{password}}
+                    |  scope: manage_my_profile:{{project-key}} manage_my_orders:{{project-key}}
                     |}
                     |
                     |auth:basic {

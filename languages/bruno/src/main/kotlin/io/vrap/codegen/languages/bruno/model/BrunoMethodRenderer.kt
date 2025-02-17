@@ -17,7 +17,7 @@ import io.vrap.rmf.raml.model.util.StringCaseFormat
 
 class BrunoMethodRenderer(val api: Api, override val vrapTypeProvider: VrapTypeProvider) : EObjectExtensions, FileProducer {
 
-    val offset = 1
+    val offset = 3
 
     fun allResourceMethods(): List<Method> = api.allContainedResources.flatMap { it.methods }
 
@@ -106,5 +106,3 @@ class BrunoMethodRenderer(val api: Api, override val vrapTypeProvider: VrapTypeP
         return example
     }
 }
-
-
