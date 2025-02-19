@@ -12,6 +12,14 @@ securitySchemes:
     type: Basic Authentication
 securedBy:
   - basic
+annotationTypes:
+  placeholderParam:
+    type: object
+    allowedTargets: TypeDeclaration
+    properties:
+      paramName: string
+      template: string
+      placeholder: string
 resourceTypes:
   base:
     post:
@@ -77,6 +85,11 @@ types:
       queryParameters:
         token:
           type: string
+        /text\.[a-z]{2}(-[A-Z]{2})?/:
+          (placeholderParam):
+            paramName: text
+            template: text.<locale>
+            placeholder: locale
       responses:
         200:
           body:

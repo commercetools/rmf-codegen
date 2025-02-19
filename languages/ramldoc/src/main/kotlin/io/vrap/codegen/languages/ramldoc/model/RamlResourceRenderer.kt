@@ -173,8 +173,15 @@ class RamlResourceRenderer constructor(val api: Api, val vrapTypeProvider: VrapT
 
     private fun renderQueryParameter(queryParameter: QueryParameter): String {
         val parameterExamples = queryParameter.inlineTypes.flatMap { inlineType -> inlineType.examples }
+        val parameterName = if (queryParameter.getAnnotation("placeholderParam", true) != null) {
+            val anno = queryParameter.getAnnotation("placeholderParam", true)
+            val o = anno.value as ObjectInstance
+            (o.value.stream().filter { propertyValue -> propertyValue.name == "template" }.findFirst().orElse(null).value as StringInstance).value ?: queryParameter.name
+        } else {
+            queryParameter.name
+        }
         return """
-            |${queryParameter.name}:${if (queryParameter.type.default != null) """
+            |${parameterName}:${if (queryParameter.type.default != null) """
             |  default: ${queryParameter.type.default.toYaml()}""" else ""}
             |  required: ${queryParameter.required}
             |  <<${queryParameter.type.renderType()}>>${if (parameterExamples.isNotEmpty()) """

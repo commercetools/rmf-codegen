@@ -113,7 +113,7 @@ class ApiRamlRenderer constructor(val api: Api, override val vrapTypeProvider: V
     private fun renderAnnotationType(annotation: AnyAnnotationType): String {
         return """
             |${annotation.name}:
-            |   <<${annotation.renderType()}>>
+            |  <<${annotation.renderType()}>>
         """.trimMargin().keepAngleIndent()
     }
 
