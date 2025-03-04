@@ -1340,7 +1340,7 @@ class PhpBaseFileProducer constructor(val api: Api, @BasePackageName val package
                     |    protected function ensureHeader(array $!headers, string $!header, $!defaultValue): array
                     |    {
                     |        $!normalizedHeader = strtolower($!header);
-                    |        foreach ($!headers as $!headerName => $!value) {
+                    |        foreach (array_keys($!headers) as $!headerName) {
                     |            $!normalized = strtolower($!headerName);
                     |            if ($!normalized !== $!normalizedHeader) {
                     |                continue;
@@ -2659,7 +2659,7 @@ class PhpBaseFileProducer constructor(val api: Api, @BasePackageName val package
                     |     * @param string $!uri
                     |     * @psalm-param array<string, string> $!args
                     |     */
-                    |    public function __construct(string $!uri = '', array $!args = [], ClientInterface $!client = null)
+                    |    public function __construct(string $!uri = '', array $!args = [], ?ClientInterface $!client = null)
                     |    {
                     |        $!this->uri = $!uri;
                     |        $!this->args = $!args;
@@ -2909,8 +2909,6 @@ class PhpBaseFileProducer constructor(val api: Api, @BasePackageName val package
                     |     */
                     |    public function getToken(): Token
                     |    {
-                    |        $!item = null;
-                    |
                     |        $!token = $!this->getCacheToken();
                     |        if (!is_null($!token)) {
                     |            return new TokenModel($!token);
@@ -3139,8 +3137,8 @@ class PhpBaseFileProducer constructor(val api: Api, @BasePackageName val package
                     |            function (
                     |                int $!retries,
                     |                RequestInterface $!request,
-                    |                ResponseInterface $!response = null,
-                    |                \Exception $!error = null
+                    |                ?ResponseInterface $!response = null,
+                    |                ?\Exception $!error = null
                     |            ) use ($!maxRetries) {
                     |                if ($!response instanceof ResponseInterface && $!response->getStatusCode() < 500) {
                     |                    return false;

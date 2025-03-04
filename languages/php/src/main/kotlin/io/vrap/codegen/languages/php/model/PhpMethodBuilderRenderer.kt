@@ -43,7 +43,7 @@ class PhpMethodBuilderRenderer constructor(api: Api, vrapTypeProvider: VrapTypeP
             |    /**
             |     * @psalm-param array<string, string> $!args
             |     */
-            |    public function __construct(array $!args = [], ClientInterface $!client = null) {
+            |    public function __construct(array $!args = [], ?ClientInterface $!client = null) {
             |        parent::__construct('${type.fullUri.template}', $!args, $!client);
             |    }
             |

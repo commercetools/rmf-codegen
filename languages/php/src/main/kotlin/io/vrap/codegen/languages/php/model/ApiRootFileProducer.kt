@@ -42,7 +42,7 @@ class ApiRootFileProducer constructor(api: Api, vrapTypeProvider: VrapTypeProvid
                     |    /**
                     |     * @psalm-param array<string, string> $!args
                     |     */
-                    |    public function __construct(ClientInterface $!client = null, array $!args = [])
+                    |    public function __construct(?ClientInterface $!client = null, array $!args = [])
                     |    {
                     |        parent::__construct('', $!args, $!client);
                     |    }

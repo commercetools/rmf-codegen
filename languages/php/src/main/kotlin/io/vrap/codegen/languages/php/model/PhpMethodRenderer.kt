@@ -106,7 +106,7 @@ class PhpMethodRenderer constructor(override val vrapTypeProvider: VrapTypeProvi
             |     */
             |    public function __construct(${
             type.allParams()?.joinToString(separator = "") { "string $$it, " } ?: ""
-        }${if (type.firstBody()?.type is FileType) "UploadedFileInterface " else ""}$!body = null, array $!headers = [], ClientInterface $!client = null)
+        }${if (type.firstBody()?.type is FileType) "?UploadedFileInterface " else ""}$!body = null, array $!headers = [], ?ClientInterface $!client = null)
             |    {
             |        $!uri = str_replace([${
             type.allParams()?.joinToString(separator = ", ") { "'{$it}'" } ?: ""
@@ -128,7 +128,7 @@ class PhpMethodRenderer constructor(override val vrapTypeProvider: VrapTypeProvi
             |     * @psalm-param ?class-string<T> $!resultType
             |     * @return ${returnTypes.joinToString("|")}|T|null
             |     */
-            |    public function mapFromResponse(?ResponseInterface $!response, string $!resultType = null)
+            |    public function mapFromResponse(?ResponseInterface $!response, ?string $!resultType = null)
             |    {
             |        if (is_null($!response)) {
             |            return null;
@@ -159,7 +159,7 @@ class PhpMethodRenderer constructor(override val vrapTypeProvider: VrapTypeProvi
             |     *
             |     * @return null|T|${returnTypes.joinToString("|")}
             |     */
-            |    public function execute(array $!options = [], string $!resultType = null)
+            |    public function execute(array $!options = [], ?string $!resultType = null)
             |    {
             |        try {
             |            $!response = $!this->send($!options);
@@ -182,7 +182,7 @@ class PhpMethodRenderer constructor(override val vrapTypeProvider: VrapTypeProvi
             |     *
             |     * @return PromiseInterface
             |     */
-            |    public function executeAsync(array $!options = [], string $!resultType = null)
+            |    public function executeAsync(array $!options = [], ?string $!resultType = null)
             |    {
             |        return $!this->sendAsync($!options)->then(
             |            function(ResponseInterface $!response) use ($!resultType) {
