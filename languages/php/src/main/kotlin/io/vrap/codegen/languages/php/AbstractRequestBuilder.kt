@@ -51,7 +51,7 @@ abstract class AbstractRequestBuilder constructor(
                 |/**${if (it.markDeprecated()) """
                 | * @deprecated""" else ""}
                 | */
-                |public function ${it.getMethodName()}(${it.relativeUri.paramValues().joinToString(", ") { "string $$it = null" }}): ${it.resourceBuilderName()}
+                |public function ${it.getMethodName()}(${it.relativeUri.paramValues().joinToString(", ") { "?string $$it = null" }}): ${it.resourceBuilderName()}
                 |{
                 |    $!args = $!this->getArgs();${it.relativeUri.paramValues().joinToString("\n") {"""
                 |    if (!is_null($$it)) {

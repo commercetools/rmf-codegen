@@ -53,7 +53,7 @@ class PhpRequestTestRenderer constructor(api: Api, vrapTypeProvider: VrapTypePro
             |    ${if (type.methods.any { !it.deprecated() }) """/**
             |     * @dataProvider getRequests()
             |     */
-            |    public function testBuilder(callable $!builderFunction, string $!method, string $!relativeUri, string $!body = null)
+            |    public function testBuilder(callable $!builderFunction, string $!method, string $!relativeUri, ?string $!body = null)
             |    {
             |        $!builder = new ${rootResource()}();
             |        $!request = $!builderFunction($!builder);

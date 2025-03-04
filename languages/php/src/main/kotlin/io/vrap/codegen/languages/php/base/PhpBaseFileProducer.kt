@@ -337,7 +337,7 @@ class PhpBaseFileProducer constructor(val api: Api, @BasePackageName val package
                     |    /**
                     |     * @return static|mixed
                     |     */
-                    |    public function with(callable $!callable = null)
+                    |    public function with(?callable $!callable = null)
                     |    {
                     |        if (is_null($!callable)) {
                     |            return $!this;
@@ -383,12 +383,12 @@ class PhpBaseFileProducer constructor(val api: Api, @BasePackageName val package
                     |     * @psalm-param ?stdClass $!data
                     |     * @return static
                     |     */
-                    |    public static function fromStdClass(stdClass $!data = null);
+                    |    public static function fromStdClass(?stdClass $!data = null);
                     |    
                     |    /**
                     |     * @return static|mixed
                     |     */
-                    |    public function with(callable $!callable = null);
+                    |    public function with(?callable $!callable = null);
                     |}
                 """.trimMargin().forcedLiteralEscape()
         )
@@ -428,7 +428,7 @@ class PhpBaseFileProducer constructor(val api: Api, @BasePackageName val package
                     |     * @psalm-param ?stdClass $!data
                     |     * @return static
                     |     */
-                    |    final public static function fromStdClass(stdClass $!data = null)
+                    |    final public static function fromStdClass(?stdClass $!data = null)
                     |    {
                     |        $!t = new static();
                     |        $!t->rawData = $!data;
@@ -910,7 +910,7 @@ class PhpBaseFileProducer constructor(val api: Api, @BasePackageName val package
                     |     * @param string $!message
                     |     * @param ?JsonObject $!result
                     |     */
-                    |    public function __construct($!message, $!result, RequestInterface $!request, ResponseInterface $!response, \Exception $!previous = null, array $!handlerContext = [])
+                    |    public function __construct($!message, $!result, RequestInterface $!request, ResponseInterface $!response, ?\Exception $!previous = null, array $!handlerContext = [])
                     |    {
                     |        $!this->result = $!result;
                     |        parent::__construct($!message, $!request, $!response, $!previous, $!handlerContext);
@@ -1009,7 +1009,7 @@ class PhpBaseFileProducer constructor(val api: Api, @BasePackageName val package
                     |     * @param string $!message
                     |     * @param ?JsonObject $!result
                     |     */
-                    |    public function __construct($!message, $!result, RequestInterface $!request, ResponseInterface $!response, \Exception $!previous = null, array $!handlerContext = [])
+                    |    public function __construct($!message, $!result, RequestInterface $!request, ResponseInterface $!response, ?\Exception $!previous = null, array $!handlerContext = [])
                     |    {
                     |        $!this->result = $!result;
                     |        parent::__construct($!message, $!request, $!response, $!previous, $!handlerContext);

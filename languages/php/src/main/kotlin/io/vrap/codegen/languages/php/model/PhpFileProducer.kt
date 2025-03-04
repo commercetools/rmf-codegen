@@ -138,7 +138,7 @@ class PhpFileProducer constructor(val api: Api, clientConstants: ClientConstants
                     |    /** @psalm-var array */
                     |    private $!options;
                     |
-                    |    public function __construct(${if (baseUri.variables.isNotEmpty()) { baseUri.paramDefinitions() } else ""}array $!clientOptions = [], string $!baseUri = null)
+                    |    public function __construct(${if (baseUri.variables.isNotEmpty()) { baseUri.paramDefinitions() } else ""}array $!clientOptions = [], ?string $!baseUri = null)
                     |    {
                     |        /** @psalm-var string $!apiUri */
                     |        $!apiUri = $!baseUri ?? static::API_URI;
