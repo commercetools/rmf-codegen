@@ -785,7 +785,7 @@ class PhpBaseFileProducer constructor(val api: Api, @BasePackageName val package
                     |     */
                     |    private $!expiresIn;
                     |
-                    |    public function __construct(string $!value, int $!expiresIn = null)
+                    |    public function __construct(string $!value, ?int $!expiresIn = null)
                     |    {
                     |        $!this->value = $!value;
                     |        $!this->expiresIn = $!expiresIn ?? 0;
@@ -1060,7 +1060,7 @@ class PhpBaseFileProducer constructor(val api: Api, @BasePackageName val package
                     |    private $!userAgent;
                     |    public const USER_AGENT = 'commercetools-sdk-php-v2';
                     |
-                    |    public function __construct(string $!suffix = null)
+                    |    public function __construct(?string $!suffix = null)
                     |    {
                     |        if (defined('\GuzzleHttp\ClientInterface::MAJOR_VERSION')) {
                     |            $!clientVersion = (string) constant(ClientInterface::class . '::MAJOR_VERSION');
@@ -1707,7 +1707,7 @@ class PhpBaseFileProducer constructor(val api: Api, @BasePackageName val package
                     |     * @psalm-param ?array<int, TObject|stdClass> $!data
                     |     * @param array|null $!data
                     |     */
-                    |    final public function __construct(array $!data = null)
+                    |    final public function __construct(?array $!data = null)
                     |    {
                     |        if (!is_null($!data)) {
                     |            $!this->index($!data);
@@ -1968,7 +1968,7 @@ class PhpBaseFileProducer constructor(val api: Api, @BasePackageName val package
                     |     * @psalm-param ?array<int, TScalar|scalar> $!data
                     |     * @param array|null $!data
                     |     */
-                    |    final public function __construct(array $!data = null)
+                    |    final public function __construct(?array $!data = null)
                     |    {
                     |        if (!is_null($!data)) {
                     |            $!this->index($!data);
@@ -2236,7 +2236,7 @@ class PhpBaseFileProducer constructor(val api: Api, @BasePackageName val package
                     |     * @psalm-param ?stdClass $!data
                     |     * @psalm-return static
                     |     */
-                    |    public static function fromStdClass(stdClass $!data = null);
+                    |    public static function fromStdClass(?stdClass $!data = null);
                     |
                     |    /**
                     |     * @template T
@@ -2260,7 +2260,7 @@ class PhpBaseFileProducer constructor(val api: Api, @BasePackageName val package
                     |    /**
                     |     * @return static|mixed
                     |     */
-                    |    public function with(string $!key, callable $!callable = null);
+                    |    public function with(string $!key, ?callable $!callable = null);
                     |
                     |    public function getIterator(): MapperIterator;
                     |
@@ -2349,7 +2349,7 @@ class PhpBaseFileProducer constructor(val api: Api, @BasePackageName val package
                     |     * @psalm-param ?array<string, TObject|stdClass> $!data
                     |     * @param array|null $!data
                     |     */
-                    |    final public function __construct(array $!data = null)
+                    |    final public function __construct(?array $!data = null)
                     |    {
                     |        if (!is_null($!data)) {
                     |            $!this->index($!data);
@@ -2393,7 +2393,7 @@ class PhpBaseFileProducer constructor(val api: Api, @BasePackageName val package
                     |     * @psalm-param ?stdClass $!data
                     |     * @psalm-return static
                     |     */
-                    |    final public static function fromStdClass(stdClass $!data = null)
+                    |    final public static function fromStdClass(?stdClass $!data = null)
                     |    {
                     |        /** @psalm-var array<string, TObject|stdClass> $!t */
                     |        $!t = (array)$!data;
@@ -2471,7 +2471,7 @@ class PhpBaseFileProducer constructor(val api: Api, @BasePackageName val package
                     |    /**
                     |     * @return ?TObject|mixed
                     |     */
-                    |    public function with(string $!key, callable $!callable = null)
+                    |    public function with(string $!key, ?callable $!callable = null)
                     |    {
                     |        $!data = $!this->at($!key);
                     |        if (is_null($!callable)) {
@@ -2765,7 +2765,7 @@ class PhpBaseFileProducer constructor(val api: Api, @BasePackageName val package
                     |     *   Format: `<the scope name>:<the project key>`.
                     |     *   Example: `manage_products:project1`.
                     |     */
-                    |    public function __construct(string $!clientId, string $!clientSecret, string $!scope = null)
+                    |    public function __construct(string $!clientId, string $!clientSecret, ?string $!scope = null)
                     |    {
                     |        $!this->clientId = $!clientId;
                     |        $!this->clientSecret = $!clientSecret;
@@ -2885,7 +2885,7 @@ class PhpBaseFileProducer constructor(val api: Api, @BasePackageName val package
                     |    /**
                     |     * @psalm-param CacheItemPoolInterface|CacheInterface|mixed $!cache
                     |     */
-                    |    public function __construct(TokenProvider $!provider, $!cache, string $!cacheKey = null)
+                    |    public function __construct(TokenProvider $!provider, $!cache, ?string $!cacheKey = null)
                     |    {
                     |       $!this->validateCache($!cache);
                     |       $!this->cache = $!cache;
