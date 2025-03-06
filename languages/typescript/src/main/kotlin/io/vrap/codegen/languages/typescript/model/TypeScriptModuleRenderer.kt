@@ -190,7 +190,7 @@ class TypeScriptModuleRenderer constructor(override val vrapTypeProvider: VrapTy
     private fun StringType.renderEnumValues(): String = enumValues()
         .map { "'${it}'" }
         .sorted()
-        .plus("string")
+        .plus("(string & {})")
         .joinToString(" |\n")
 
     private fun StringType.renderEnum(): String = enumValues()
