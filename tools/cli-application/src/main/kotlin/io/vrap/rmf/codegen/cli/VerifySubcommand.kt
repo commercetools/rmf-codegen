@@ -6,7 +6,10 @@ import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.schedulers.Schedulers
 import io.vrap.rmf.raml.model.RamlModelBuilder
 import org.eclipse.emf.common.util.URI
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import picocli.CommandLine
+import picocli.CommandLine.ParentCommand
 import java.nio.file.Path
 import java.util.*
 import java.util.concurrent.Callable
@@ -26,7 +29,13 @@ class VerifySubcommand : Callable<Int> {
     @CommandLine.Option(names = ["-w", "--watch"], description = ["Watches the files for changes"], required = false)
     var watch: Boolean = false
 
+    @ParentCommand
+    lateinit var codegen: RMFCommand
+
     override fun call(): Int {
+        val logger: ch.qos.logback.classic.Logger = LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME) as ch.qos.logback.classic.Logger
+        logger.level = codegen.loglevel()
+
         val res = safeRun { verify()}
         if (watch) {
             val watchDir = ramlFileLocation.toRealPath().toAbsolutePath().parent

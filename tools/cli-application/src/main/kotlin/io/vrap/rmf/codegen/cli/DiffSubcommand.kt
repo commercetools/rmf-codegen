@@ -1,5 +1,6 @@
 package io.vrap.rmf.codegen.cli
 
+import ch.qos.logback.classic.Level
 import com.commercetools.rmf.diff.*
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.vrap.codegen.languages.extensions.getMethodName
@@ -11,7 +12,10 @@ import io.vrap.rmf.raml.model.modules.Api
 import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Resource
 import org.eclipse.emf.common.util.URI
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import picocli.CommandLine
+import picocli.CommandLine.ParentCommand
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Path
@@ -42,7 +46,13 @@ class DiffSubcommand : Callable<Int> {
     @CommandLine.Option(names = ["-s", "--severity"], description = ["Check severity", "Valid values: ${CheckSeverity.VALID_VALUES}"])
     var checkSeverity: CheckSeverity = CheckSeverity.FATAL
 
+    @ParentCommand
+    lateinit var codegen: RMFCommand
+
     override fun call(): Int {
+        val logger: ch.qos.logback.classic.Logger = LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME) as ch.qos.logback.classic.Logger
+        logger.level = codegen.loglevel()
+
         return diff()
     }
 

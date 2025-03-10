@@ -20,7 +20,10 @@ import io.vrap.rmf.raml.validation.Violation
 import org.eclipse.emf.common.util.Diagnostic
 import org.eclipse.emf.common.util.URI
 import org.eclipse.emf.ecore.util.EcoreUtil
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import picocli.CommandLine
+import picocli.CommandLine.ParentCommand
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Path
@@ -82,6 +85,9 @@ class ValidateSubcommand : Callable<Int> {
     @CommandLine.Option(names = ["-v", "--verbose"], description = ["Verbose"])
     var verbose: Boolean = false;
 
+    @ParentCommand
+    lateinit var codegen: RMFCommand
+
     lateinit var modelBuilder: RamlModelBuilder
 
     private fun linkURI(): java.net.URI {
@@ -97,6 +103,9 @@ class ValidateSubcommand : Callable<Int> {
     }
 
     override fun call(): Int {
+        val logger: ch.qos.logback.classic.Logger = LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME) as ch.qos.logback.classic.Logger
+        logger.level = codegen.loglevel()
+
         if (listRules) {
             println("Available validators:")
             println(ValidatorSetup.allValidatorRules().joinToString("\n"));

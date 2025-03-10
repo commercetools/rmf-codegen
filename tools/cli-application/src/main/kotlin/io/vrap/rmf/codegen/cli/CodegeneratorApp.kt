@@ -2,7 +2,10 @@
 
 package io.vrap.rmf.codegen.cli
 
+import ch.qos.logback.classic.Level
 import io.vrap.rmf.codegen.cli.info.BuildInfo
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import picocli.AutoComplete
 import picocli.CommandLine
 import picocli.CommandLine.Command
@@ -34,9 +37,21 @@ class RMFCommand : Callable<Int> {
     @Option(names = ["-h", "--help"], usageHelp = true, description = ["display this help message"])
     var usageHelpRequested = false
 
+    @Option(names = ["--loglevel"], description = ["log level"], required = false)
+    var logLevel: LogLevel = LogLevel.INFO
+
     override fun call(): Int {
         InternalLogger.error("Please invoke a subcommand");
         CommandLine(this).usage(System.out);
         return 0
+    }
+
+    fun loglevel(): Level {
+        return when(logLevel) {
+            LogLevel.INFO -> Level.INFO
+            LogLevel.WARN -> Level.WARN
+            LogLevel.ERROR -> Level.ERROR
+            LogLevel.DEBUG -> Level.DEBUG
+        }
     }
 }

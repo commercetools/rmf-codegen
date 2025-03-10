@@ -4,8 +4,7 @@
             <pattern>%msg%n</pattern>
         </encoder>
     </appender>
-    <variable name="LOGLEVEL" value="${LOGLEVEL:-INFO}" />
-    <root level="${LOGLEVEL}">
+    <root level="info">
         <appender-ref ref="STDOUT" />
     </root>
 </configuration>

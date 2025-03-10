@@ -1,5 +1,6 @@
 package io.vrap.rmf.codegen.cli
 
+import ch.qos.logback.classic.Level
 import io.methvin.watcher.DirectoryChangeEvent
 import io.methvin.watcher.DirectoryWatcher
 import io.reactivex.rxjava3.core.Observable
@@ -47,7 +48,10 @@ import io.vrap.rmf.codegen.io.FileDataSink
 import io.vrap.rmf.codegen.toSeconds
 import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapType
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import picocli.CommandLine
+import picocli.CommandLine.ParentCommand
 import java.io.FileInputStream
 import java.lang.IllegalArgumentException
 import java.nio.file.Files
@@ -130,6 +134,9 @@ class GenerateSubcommand : Callable<Int> {
     @CommandLine.Option(names = ["--dry-run"], description = ["Don't write to files"], required = false )
     var dryRun: Boolean? = false
 
+    @ParentCommand
+    lateinit var codegen: RMFCommand
+
     @CommandLine.Parameters(index = "0",description = ["Api file location"])
     lateinit var ramlFileLocation: Path
 
@@ -152,6 +159,9 @@ class GenerateSubcommand : Callable<Int> {
     }
 
     override fun call(): Int {
+        val logger: ch.qos.logback.classic.Logger = LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME) as ch.qos.logback.classic.Logger
+        logger.level = if (verbose) Level.DEBUG else codegen.loglevel()
+
         RxJavaPlugins.setErrorHandler { e: Throwable -> InternalLogger.warn(e)}
         if(verbose){
             InternalLogger.logLevel = LogLevel.DEBUG
