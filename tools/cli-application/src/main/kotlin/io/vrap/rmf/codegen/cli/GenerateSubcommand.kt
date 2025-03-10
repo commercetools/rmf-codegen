@@ -43,9 +43,7 @@ import io.vrap.codegen.languages.typescript.joi.JoiBaseTypes
 import io.vrap.codegen.languages.typescript.joi.JoiModule
 import io.vrap.rmf.codegen.CodeGeneratorConfig
 import io.vrap.rmf.codegen.di.*
-import io.vrap.rmf.codegen.io.DataSink
 import io.vrap.rmf.codegen.io.FileDataSink
-import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.toSeconds
 import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapType

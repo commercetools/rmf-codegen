@@ -98,6 +98,8 @@ dependencies {
     api 'org.eclipse.elk:org.eclipse.elk.alg.layered:0.8.1'
     api 'org.eclipse.elk:org.eclipse.elk.alg.mrtree:0.8.1'
 
+    api 'ch.qos.logback:logback-classic:1.5.10'
+
     implementation orgkotlin.stdlib
     implementation google.guava
     implementation picocli.cli

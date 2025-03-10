@@ -1,11 +1,13 @@
 package io.vrap.rmf.codegen.cli
 
+import io.vrap.rmf.codegen.io.ConsoleDataSink
 import io.vrap.rmf.raml.model.RamlDiagnostic
 import io.vrap.rmf.raml.model.RamlModelResult
 import io.vrap.rmf.raml.model.modules.Api
 import io.vrap.rmf.raml.validation.Violation
 import org.eclipse.emf.common.util.Diagnostic
 import org.eclipse.emf.common.util.URI
+import org.slf4j.LoggerFactory
 import java.nio.file.Paths
 import kotlin.io.path.toPath
 
@@ -151,36 +153,37 @@ class GithubRamlDiagnosticPrinter: RamlDiagnosticPrinter {
 
 object InternalLogger {
 
+    private val LOGGER = LoggerFactory.getLogger(InternalLogger::class.java)
+
     var logLevel = LogLevel.INFO
 
     fun debug(message: String) {
         if (logLevel.level <= LogLevel.DEBUG.level) {
-            println("✅   $message")
+            LOGGER.debug("✅   $message")
         }
     }
 
     fun info(message: String) {
         if (logLevel.level <= LogLevel.INFO.level) {
-            println("✅   $message")
+            LOGGER.info("✅   $message")
         }
     }
 
     fun warn(message: Throwable) {
         if (logLevel.level <= LogLevel.WARN.level) {
-            println("⚠️   $message")
+            LOGGER.warn("⚠️   $message")
         }
     }
 
     fun error(message: String) {
         if (logLevel.level <= LogLevel.ERROR.level) {
-            println("🛑   $message")
+            LOGGER.error("🛑   $message")
         }
     }
 
     fun error(throwable: Throwable) {
         if (logLevel.level <= LogLevel.ERROR.level) {
-            println("🛑   $throwable")
-
+            LOGGER.error("🛑   $throwable")
         }
     }
 }

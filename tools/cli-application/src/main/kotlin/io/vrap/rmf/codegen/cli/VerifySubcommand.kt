@@ -84,5 +84,3 @@ class VerifySubcommand : Callable<Int> {
     }
 
 }
-
-

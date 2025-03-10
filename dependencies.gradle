@@ -13,7 +13,7 @@ ext {
             picocli: '4.6.1',
             rmf: '0.2.0-20240722205528',
             rxjava: '3.1.2',
-            slf4j: '1.7.25',
+            slf4j: '2.0.17',
             spock: '2.2-groovy-4.0',
             swaggerParser: '2.1.20',
             jsoup: '1.15.1',
