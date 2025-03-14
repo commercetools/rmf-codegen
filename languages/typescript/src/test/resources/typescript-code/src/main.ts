@@ -1,6 +1,6 @@
 import { createAuthMiddlewareForClientCredentialsFlow } from "@commercetools/sdk-middleware-auth"
 import { createHttpMiddleware } from "@commercetools/sdk-middleware-http"
-import { createClient } from "@commercetools/sdk-client"
+import { createClient } from "@commercetools/ts-client"
 
 import fetch from "node-fetch"
 import { createApiBuilderFromCtpClient } from "./ctp/ctp-client"
@@ -17,12 +17,12 @@ const authMiddleware = createAuthMiddlewareForClientCredentialsFlow({
 
   },
   scopes: [`manage_project:${projectKey}`],
-  fetch
+  httpClient: fetch
 })
 
 const httpMiddleware = createHttpMiddleware({
   host: "https://api.sphere.io",
-  fetch
+  httpClient: fetch
 })
 
 const ctpClient = createClient({
