@@ -21,6 +21,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.util.concurrent.Callable
 import java.util.stream.Collectors
+import kotlin.io.path.exists
 
 @CommandLine.Command(name = "diff", description = ["Generates a diff between two specifications"])
 class DiffSubcommand : Callable<Int> {
@@ -57,7 +58,16 @@ class DiffSubcommand : Callable<Int> {
     }
 
     private fun diff(): Int {
-        val originalApi = readApi(originalFileLocation.toRealPath().toAbsolutePath())
+        val originalExists = try {
+            originalFileLocation.toRealPath().toAbsolutePath().exists()
+        } catch (_: Exception) {
+            false
+        }
+        val originalApi = if (originalExists)
+            readApi(originalFileLocation.toRealPath().toAbsolutePath())
+        else
+            RamlModelBuilder().buildApi(URI.createURI(Companion::class.java.getResource("/empty.raml")!!.toString())).rootObject
+
         val changedApi = readApi(changedFileLocation.toRealPath().toAbsolutePath())
 
         val config = diffConfigurationFile?.toFile()?.inputStream() ?: ValidateSubcommand::class.java.getResourceAsStream("/diff.xml")
