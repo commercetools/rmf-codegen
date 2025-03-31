@@ -88,9 +88,12 @@ class ValidatorRulesTest extends Specification implements ValidatorFixtures {
         def uri = uriFromClasspath("/namedstringenum-rule.raml")
         def result = new RamlModelBuilder(validators).buildApi(uri)
         then:
-        result.validationResults.size == 2
+        result.validationResults.size == 5
         result.validationResults[0].message == "Named string type \"InvalidString\" must define enum values"
         result.validationResults[1].message == "Named string type \"InvalidStringDesc\" must define enum values"
+        result.validationResults[2].message == "Property \"foo\" of type \"FooType\" must not define enum values"
+        result.validationResults[3].message == "Property \"foo\" of type \"BarType\" must not define enum values"
+        result.validationResults[4].message == "Property \"foo\" of type \"BarFooType\" must not define enum values"
     }
 
     def "method post body rule"() {

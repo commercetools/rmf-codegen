@@ -23,3 +23,44 @@ types:
   InvalidStringDesc:
     description: invalid
     type: string
+  TypeId:
+    type: string
+    enum:
+      - foo
+      - bar
+  FooType:
+    type: object
+    properties:
+      foo:
+        type: TypeId
+        description: Foo
+        enum:
+          - foo
+  BarType:
+    type: object
+    properties:
+      foo:
+        type: TypeId
+        description: Foo
+        enum:
+          - bar
+  FooBarType:
+    type: object
+    properties:
+      foo:
+        type: TypeId
+        description: Foo
+  BarFooType:
+    type: object
+    properties:
+      foo:
+        type: string
+        description: Foo
+        enum:
+          - bar
+  BarFooStringType:
+    type: object
+    properties:
+      foo:
+        type: string
+        description: Foo
