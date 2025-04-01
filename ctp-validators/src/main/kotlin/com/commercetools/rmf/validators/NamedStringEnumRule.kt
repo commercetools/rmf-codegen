@@ -30,7 +30,7 @@ class NamedStringEnumRule(severity: RuleSeverity, options: List<RuleOption>? = n
     override fun caseProperty(property: Property?): List<Diagnostic> {
         val validationResults: MutableList<Diagnostic> = ArrayList()
 
-        if (property != null && property.type.isInlineType && property.type is StringType && property.type.enum.isNotEmpty()) {
+        if (property != null && property.type.isInlineType && property.type is StringType && property.type.name != "string" && property.type.enum.isNotEmpty()) {
             val containerName = when(val propertyContainer = property.eContainer()) {
                 is ObjectType -> propertyContainer.name
                 else -> "unknown"
