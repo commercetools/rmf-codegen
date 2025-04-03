@@ -156,7 +156,7 @@ class TypeScriptModuleRenderer constructor(override val vrapTypeProvider: VrapTy
             is NilType -> "null"
             is ObjectType -> {
                 val type = (if (this.type != null && this.isInlineType) this.type else this) as ObjectType
-                if (useSubTypes && type.discriminator == null && type.namedSubTypes().isNotEmpty()) {
+                if (useSubTypes && type.discriminator() == null && type.namedSubTypes().isNotEmpty()) {
                     "_${toVrapType().simpleTSName()}"
                 } else {
                     toVrapType().simpleTSName()
