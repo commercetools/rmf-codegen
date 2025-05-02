@@ -30,10 +30,8 @@ class JavaBuilderTestRenderer constructor(override val vrapTypeProvider: VrapTyp
         val content = """
             |package ${vrapType.`package`};
             |
-            |import com.tngtech.junit.dataprovider.DataProvider;
-            |import com.tngtech.junit.dataprovider.DataProviderExtension;
-            |import com.tngtech.junit.dataprovider.UseDataProvider;
-            |import com.tngtech.junit.dataprovider.UseDataProviderExtension;
+            |import org.junit.jupiter.params.ParameterizedTest;
+            |import org.junit.jupiter.params.provider.MethodSource;
             |import org.assertj.core.api.Assertions;
             |import org.junit.jupiter.api.Test;
             |import org.junit.jupiter.api.TestTemplate;
@@ -44,21 +42,18 @@ class JavaBuilderTestRenderer constructor(override val vrapTypeProvider: VrapTyp
             |import java.time.ZonedDateTime;
             |import java.util.Collections;
             |
-            |@ExtendWith(UseDataProviderExtension.class)
-            |@ExtendWith(DataProviderExtension.class)
             |public class ${vrapType.simpleClassName}Test {
             |    ${if (properties.isNotEmpty()) """
-            |    @TestTemplate
-            |    @UseDataProvider("objectBuilder")
-            |    public void buildUnchecked(${vrapType.simpleClassName}Builder builder) {
+            |    @ParameterizedTest(name = "#{index} with {0}")
+            |    @MethodSource("objectBuilder")
+            |    public void buildUnchecked(String name, ${vrapType.simpleClassName}Builder builder) {
             |        ${vrapType.simpleClassName} ${vrapType.simpleClassName.firstLowerCase()} = builder.buildUnchecked();
             |        Assertions.assertThat(${vrapType.simpleClassName.firstLowerCase()}).isInstanceOf(${vrapType.simpleClassName}.class);
             |    }
             |
-            |    @DataProvider
             |    public static Object[][] objectBuilder() {
             |        return new Object[][] {
-            |            <<${properties.joinToString(",\n") { "new Object[] { ${builder(type, it)} }" }}>>
+            |            <<${properties.joinToString(",\n") { "new Object[] { \"${it.name}\", ${builder(type, it)} }" }}>>
             |        };
             |    }
             |    
