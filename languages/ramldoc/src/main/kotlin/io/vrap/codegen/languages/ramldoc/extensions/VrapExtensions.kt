@@ -81,7 +81,7 @@ fun AnyType.renderEAttributes(): List<String> {
     val eAttributes = this.eClass().eAllAttributes
     return eAttributes.filter { eAttribute -> eAttribute.name !in listOf("name", "discriminator", "discriminatorValue") && this.eGet(eAttribute) != null}
             .map { eAttribute -> when(val eValue = this.eGet(eAttribute)) {
-                is RegExp -> "${eAttribute.name}: \"${eValue}\""
+                is RegExp -> "${eAttribute.name}: ${eValue}"
                 is String -> "${eAttribute.name}: \"${eValue}\""
                 is Collection<*> -> "${eAttribute.name}:\n" + (this.eGet(eAttribute) as Collection<*>).joinToString("\n") { "  - ${it?.toYaml()}" }
                 else -> "${eAttribute.name}: ${this.eGet(eAttribute)}"
