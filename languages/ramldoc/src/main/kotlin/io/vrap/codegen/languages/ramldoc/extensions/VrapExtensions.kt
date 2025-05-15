@@ -221,7 +221,7 @@ fun AnyAnnotationType.renderEAttributes(): List<String> {
     val eAttributes = this.eClass().eAllAttributes
     return eAttributes.filter { eAttribute -> eAttribute.name != "name" && this.eGet(eAttribute) != null}
             .map { eAttribute -> when(val eValue = this.eGet(eAttribute)) {
-                is RegExp -> "${eAttribute.name}: \"${eValue}\""
+                is RegExp -> "${eAttribute.name}: ${eValue}"
                 is String -> "${eAttribute.name}: \"${eValue}\""
                 else -> "${eAttribute.name}: ${this.eGet(eAttribute)}"
             } }
