@@ -37,6 +37,8 @@ import io.vrap.codegen.languages.go.GoBaseTypes
 import io.vrap.codegen.languages.go.model.GoModelModule
 import io.vrap.codegen.languages.go.client.GoClientModule
 import io.vrap.codegen.languages.java.base.PlantUmlBaseTypes
+import io.vrap.codegen.languages.javalang.client.builder.module.JavaClientModule
+import io.vrap.codegen.languages.javalang.client.builder.module.JavaModelModule
 import io.vrap.codegen.languages.javalang.client.builder.predicates.JavaQueryPredicateModule
 import io.vrap.codegen.languages.javalang.plantuml.PlantUmlModule
 import io.vrap.codegen.languages.ramldoc.model.MarkdownModelModule
@@ -66,7 +68,9 @@ import kotlin.system.measureTimeMillis
 
 /** Targets section */
 enum class GenerationTarget {
+    JAVA_CLIENT_ONLY,
     JAVA_CLIENT,
+    JAVA_MODELS,
     JAVA_TEST,
     JAVA_QUERY_PREDICATES,
     TYPESCRIPT_CLIENT,
@@ -237,9 +241,25 @@ class GenerateSubcommand : Callable<Int> {
                     GenerationTarget.JAVA_CLIENT -> {
                         val generatorModule = RamlGeneratorModule(apiProvider, generatorConfig, JavaBaseTypes, dataSink = sink)
                         if (predicateBuilders) {
-                            RamlGeneratorComponent(generatorModule, JavaCompleteModule, JavaQueryPredicateModule)
+                            RamlGeneratorComponent(generatorModule, JavaClientModule, JavaModelModule, JavaQueryPredicateModule)
                         } else {
-                            RamlGeneratorComponent(generatorModule, JavaCompleteModule)
+                            RamlGeneratorComponent(generatorModule, JavaClientModule, JavaModelModule)
+                        }
+                    }
+                    GenerationTarget.JAVA_CLIENT_ONLY -> {
+                        val generatorModule = RamlGeneratorModule(apiProvider, generatorConfig, JavaBaseTypes, dataSink = sink)
+                        if (predicateBuilders) {
+                            RamlGeneratorComponent(generatorModule, JavaClientModule, JavaQueryPredicateModule)
+                        } else {
+                            RamlGeneratorComponent(generatorModule, JavaClientModule)
+                        }
+                    }
+                    GenerationTarget.JAVA_MODELS -> {
+                        val generatorModule = RamlGeneratorModule(apiProvider, generatorConfig, JavaBaseTypes, dataSink = sink)
+                        if (predicateBuilders) {
+                            RamlGeneratorComponent(generatorModule, JavaModelModule, JavaQueryPredicateModule)
+                        } else {
+                            RamlGeneratorComponent(generatorModule, JavaModelModule)
                         }
                     }
                     GenerationTarget.JAVA_QUERY_PREDICATES -> {

@@ -67,7 +67,7 @@ class JavaModelInterfaceRenderer constructor(override val vrapTypeProvider: Vrap
             | * \<hr\>
             | <${type.builderComment().escapeAll()}> 
             | */
-            |<${type.subTypesAnnotations()}>
+            |<${type.subTypesAnnotations()}><${type.discriminatorSubType()}>
             |<${JavaSubTemplates.generatedAnnotation}>
             |<${type.jsonDeserialize()}>${if (type.markDeprecated()) """
             |@Deprecated""" else ""}
@@ -148,24 +148,30 @@ class JavaModelInterfaceRenderer constructor(override val vrapTypeProvider: Vrap
             """.trimIndent()
     }
 
+    private fun ObjectType.discriminatorSubType(): String {
+        if (this.discriminatorValue == null) return "";
+
+        return "@io.vrap.rmf.base.client.utils.json.SubType(\"${this.discriminatorValue}\")"
+    }
+
     private fun ObjectType.subTypesAnnotations(): String {
         val vrapType = vrapTypeProvider.doSwitch(this).toJavaVType() as VrapObjectType
+//             |@JsonSubTypes({
+//            |   <${
+//                this.subTypes.plus(this.subTypes.flatMap { it.subTypes }).distinctBy { it.name }
+//                    .asSequence()
+//                    .filterIsInstance<ObjectType>()
+//                    .filter { it.getAnnotation("deprecated") == null }
+//                    .filter { it.discriminatorValue != null }
+//                    .sortedBy { anyType -> anyType.name }
+//                    .map {
+//                        val vrapSubType = vrapTypeProvider.doSwitch(it) as VrapObjectType
+//                        "@JsonSubTypes.Type(value = ${vrapSubType.`package`.toJavaPackage()}.${vrapSubType.simpleClassName}Impl.class, name = ${vrapSubType.simpleClassName}.${it.discriminatorValue.enumValueName()})"
+//                    }
+//                    .joinToString(separator = ",\n")}>
+//            |})
         return if (this.hasSubtypes())
             """
-            |@JsonSubTypes({
-            |   <${
-                this.subTypes.plus(this.subTypes.flatMap { it.subTypes }).distinctBy { it.name }
-                    .asSequence()
-                    .filterIsInstance<ObjectType>()
-                    .filter { it.getAnnotation("deprecated") == null }
-                    .filter { it.discriminatorValue != null }
-                    .sortedBy { anyType -> anyType.name }
-                    .map {
-                        val vrapSubType = vrapTypeProvider.doSwitch(it) as VrapObjectType
-                        "@JsonSubTypes.Type(value = ${vrapSubType.`package`.toJavaPackage()}.${vrapSubType.simpleClassName}Impl.class, name = ${vrapSubType.simpleClassName}.${it.discriminatorValue.enumValueName()})" 
-                    }
-                    .joinToString(separator = ",\n")}>
-            |})
             |@JsonTypeInfo(
             |    use = JsonTypeInfo.Id.NAME,
             |    include = JsonTypeInfo.As.EXISTING_PROPERTY,
@@ -427,6 +433,8 @@ class JavaModelInterfaceRenderer constructor(override val vrapTypeProvider: Vrap
                     }
                 }
         return """
+            |public ${vrapType.simpleClassName} copyDeep();
+            |
             |/**
             | * factory method to create a deep copy of ${vrapType.simpleClassName}
             | * @param template instance to be copied
@@ -437,7 +445,10 @@ class JavaModelInterfaceRenderer constructor(override val vrapTypeProvider: Vrap
             |    if (template == null) {
             |        return null;
             |    }
-            |    <${if (this.namedSubTypes().isNotEmpty()) this.namedSubTypes().joinToString("\n") { it.subTypeDeepCopy() } else ""}>
+            |    <${if (this.namedSubTypes().isNotEmpty()) """
+            |    if (!(template instanceof ${vrapType.simpleClassName}Impl)) {
+            |        return template.copyDeep();
+            |    }""" else ""}>
             |    ${vrapType.simpleClassName}Impl instance = new ${vrapType.simpleClassName}Impl();
             |    <${fieldsAssignment.joinToString("\n")}>
             |    return instance;
@@ -447,7 +458,7 @@ class JavaModelInterfaceRenderer constructor(override val vrapTypeProvider: Vrap
 
     private fun AnyType.subTypeDeepCopy(): String {
         return """
-            |if (template instanceof ${this.toVrapType().fullClassName()}) {
+            |if (template instanceof  ${this.toVrapType().fullClassName()}) {
             |    return ${this.toVrapType().fullClassName()}.deepCopy((${this.toVrapType().fullClassName()})template);
             |}
         """.trimMargin()

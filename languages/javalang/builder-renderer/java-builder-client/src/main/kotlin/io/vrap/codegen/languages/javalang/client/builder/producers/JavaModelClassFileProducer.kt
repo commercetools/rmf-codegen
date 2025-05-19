@@ -79,6 +79,11 @@ class JavaModelClassFileProducer constructor(override val vrapTypeProvider: Vrap
                 |    <${type.equalsMethod().escapeAll()}>
                 |
                 |    <${type.getAnnotation("java-impl-mixin")?.value?.value?.let { (it as String).escapeAll()} ?: ""}>
+                |    
+                |    @Override
+                |    public ${vrapType.simpleClassName} copyDeep() {
+                |        return ${vrapType.simpleClassName}.deepCopy(this);
+                |    }
                 |}
         """.trimMargin().keepIndentation()
         return TemplateFile(
