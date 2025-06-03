@@ -27,6 +27,18 @@ paths:
               schema:
                 $ref: '#/components/schemas/IntrospectResponse'
 
+  /oauth/test:
+    post:
+      operationId: OauthTestPost
+      responses:
+        "200":
+          description: |-
+            200
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ArrayTestType'
+
   /oauth/token:
     post:
       operationId: OauthTokenPost
@@ -247,3 +259,23 @@ components:
         - refresh_token
     GrantType:
       type: "string"
+    BaseArrayTestType:
+      type: "object"
+      required:
+        - arrayOfFloatExample
+      properties:
+        arrayOfFloatExample:
+          type: "array"
+          items:
+            type: "number"
+            format: "double"
+    ArrayTestType:
+      type: "object"
+      required:
+        - arrayOfFloatExample
+      properties:
+        arrayOfFloatExample:
+          type: "array"
+          items:
+            type: "number"
+            format: "double"

@@ -27,6 +27,9 @@ resourceTypes:
               type: TokenResponse
         401:
           description: Unauthorized
+uses:
+  arrays: ./arrays.raml
+
 types:
   IntrospectResponse:
     properties:
@@ -71,7 +74,26 @@ types:
       - refresh_token
   GrantType:
     type: string
+  BaseArrayTestType:
+    description: A type containing arrays of different kinds.
+    properties:
+      arrayOfFloatExample:
+        description: An array of float. JSON primitive is `array`, display type is "Array of Float". !!! Until underlying libraries are fixed, this displays "Array of Number" because the pattern information is lost.
+        type: array
+        items:
+          type: number
+          format: 'float'
+        minItems: 1
+        maxItems: 1
+        uniqueItems: false
 /oauth:
+  /test:
+    post:
+      responses:
+        200:
+          body:
+            application/json:
+              type: arrays.ArrayTestType
   /introspect:
     post:
       queryParameters:

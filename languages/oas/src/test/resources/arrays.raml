@@ -1,0 +1,16 @@
+#%RAML 1.0 Library
+usage: Array test types.
+
+types:
+  ArrayTestType:
+    description: A type containing arrays of different kinds.
+    properties:
+      arrayOfFloatExample:
+        description: An array of float. JSON primitive is `array`, display type is "Array of Float". !!! Until underlying libraries are fixed, this displays "Array of Number" because the pattern information is lost.
+        type: array
+        items:
+          type: number
+          format: 'float'
+        minItems: 1
+        maxItems: 1
+        uniqueItems: false

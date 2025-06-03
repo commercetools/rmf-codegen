@@ -119,7 +119,7 @@ class OasObjectTypeRenderer constructor(override val vrapTypeProvider: VrapTypeP
 }
 
 public fun AnyType.renderAnyType(): String {
-    if (this.isInlineType && this.type != null && this.name != null) {
+    if (this.isInlineType && this !is ArrayType && this.type != null && this.name != null) {
         return this.type.renderAnyType()
     }
     return when(this) {
