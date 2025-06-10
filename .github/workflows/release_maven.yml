@@ -34,8 +34,8 @@ jobs:
       - name: Build and Release
         run: export VERSION="1.0.0-`date '+%Y%m%d%H%M%S'`"; ./gradlew -Pversion=$VERSION clean check publishMavenPublicationToSonatype closeAndReleaseSonatypeStagingRepository writeVersionToReadme
         env:
-          CTP_OSS_USER: ${{ secrets.OSS_USER }}
-          CTP_OSS_SECRET: ${{ secrets.OSS_SECRET }}
+          SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
+          SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
 
 
       - uses: stefanzweifel/git-auto-commit-action@v4.6.0

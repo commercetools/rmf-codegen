@@ -32,8 +32,8 @@ jobs:
       - name: Build and Release
         run: ./gradlew -Pversion=${{ github.ref_name }} clean check publishMavenPublicationToSonatype closeAndReleaseSonatypeStagingRepository
         env:
-          CTP_OSS_USER: ${{ secrets.OSS_USER }}
-          CTP_OSS_SECRET: ${{ secrets.OSS_SECRET }}
+          SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
+          SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
 
       - name: Setup Node
         uses: actions/setup-node@v3
