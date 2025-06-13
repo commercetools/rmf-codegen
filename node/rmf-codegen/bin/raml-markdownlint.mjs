@@ -5,7 +5,7 @@ import yaml from 'js-yaml';
 import {globby} from 'globby';
 import fs from 'fs';
 import path from 'path'
-import markdownlint from 'markdownlint';
+import { lint } from 'markdownlint/sync';
 
 const IncludeYamlType = new yaml.Type('!include', {
     kind: 'scalar',
@@ -80,7 +80,7 @@ function validateMarkdown(file, rootNode, outputFile){
             }
             let mdLintOptions = traverse.clone(markdownLintDefaults);
             mdLintOptions.strings =  { "" : this.node };
-            let mdLintResult = markdownlint.sync(mdLintOptions);
+            let mdLintResult = lint(mdLintOptions);
             let mdLintResultString = mdLintResult.toString();
             if (mdLintResultString) {
                 // FYI: the markdown lint does currently not break the test, it's just for warning purpose.
