@@ -3,6 +3,10 @@ on:
 
 name: Release to Maven Central
 
+permissions:
+  contents: write
+  actions: write
+
 jobs:
   release:
     name: Build and release
@@ -11,16 +15,16 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Java
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '11'
 
       - name: Setup Node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: "14"
 
