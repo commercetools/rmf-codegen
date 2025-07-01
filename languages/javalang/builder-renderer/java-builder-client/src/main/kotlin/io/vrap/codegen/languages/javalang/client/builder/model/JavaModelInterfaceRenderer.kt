@@ -18,6 +18,7 @@ import io.vrap.rmf.raml.model.types.*
 import io.vrap.rmf.raml.model.types.Annotation
 import io.vrap.rmf.raml.model.types.util.TypesSwitch
 import org.eclipse.emf.ecore.EObject
+import javax.lang.model.SourceVersion
 
 class JavaModelInterfaceRenderer constructor(override val vrapTypeProvider: VrapTypeProvider) : JavaObjectTypeExtensions, JavaEObjectTypeExtensions, ObjectTypeRenderer {
 
@@ -303,14 +304,14 @@ class JavaModelInterfaceRenderer constructor(override val vrapTypeProvider: Vrap
             |@JsonAnySetter
             |public void setValue(String key, ${vrapType.simpleName()} value);
             """.trimMargin()
-        } else if (this.name.equals("interface")) {
+        } else if (SourceVersion.isKeyword(this.name)) {
             """
             |/**
-            |${this.type.toComment(" * set interface")}
-            | * @param _interface value to be set
+            |${this.type.toComment(" * set ${this.name}")}
+            | * @param _${this.name.lowerCamelCase()} value to be set
             | */
             |${this.deprecationAnnotation()}
-            |public void setInterface(final ${vrapType.simpleName()} _interface);
+            |public void set${this.name.upperCamelCase()}(final ${vrapType.simpleName()} _${this.name.lowerCamelCase()});
             |""".trimMargin()
         } else if (vrapType is VrapArrayType) {
             """

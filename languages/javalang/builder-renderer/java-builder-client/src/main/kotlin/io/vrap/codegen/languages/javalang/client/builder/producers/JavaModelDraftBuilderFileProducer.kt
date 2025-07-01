@@ -181,11 +181,11 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
                 |${if(!this.required) "@Nullable" else ""}
                 |private Map<String, ${vrapType.fullClassName()}> values = new HashMap<>();
             """.escapeAll().trimMargin().keepIndentation()
-        } else if(this.name.equals("interface")) {
+        } else if(SourceVersion.isKeyword(this.name)) {
             """
                 |${this.deprecationAnnotation()}
                 |${if (!this.required) "@Nullable" else ""}
-                |private ${vrapType.fullClassName()} _interface;
+                |private ${vrapType.fullClassName()} _${this.name.lowerCamelCase()};
             """.trimMargin()
         }else{
             """
@@ -435,17 +435,17 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
                 |    return this.values;
                 |}
             """.escapeAll().trimMargin().keepIndentation()
-        } else if(this.name.equals("interface")) {
+        } else if(SourceVersion.isKeyword(this.name)) {
             """
                 |/**
-                |${propertyType.toComment(" * value of interface")}
-                | * @return interface
+                |${propertyType.toComment(" * value of ${this.name.lowerCamelCase()}")}
+                | * @return ${this.name.lowerCamelCase()}
                 | */
                 | 
                 |${this.deprecationAnnotation()}
                 |${if (!this.required) "@Nullable" else ""}
-                |public ${vrapType.fullClassName()} getInterface(){
-                |    return this._interface;
+                |public ${vrapType.fullClassName()} get${this.name.upperCamelCase()}(){
+                |    return this._${this.name.lowerCamelCase()};
                 |}
             """.escapeAll().trimMargin().keepIndentation()
         }else{
@@ -472,8 +472,8 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
             .filterNot { it.isPatternProperty() }
             .filter { it.required }
             .map {
-                if(it.name.equals("interface")) {
-                    "Objects.requireNonNull(_interface, ${vrapType.simpleClassName}.class + \": interface is missing\");"
+                if(SourceVersion.isKeyword(it.name)) {
+                    "Objects.requireNonNull(_${it.name.lowerCamelCase()}, ${vrapType.simpleClassName}.class + \": ${it.name.lowerCamelCase()} is missing\");"
                 } else {
                     "Objects.requireNonNull(${it.name}, ${vrapType.simpleClassName}.class + \": ${it.name} is missing\");"
                 }
@@ -489,8 +489,8 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
             .joinToString(separator = ", ") {
                 if (it.isPatternProperty()) {
                     "values"
-                } else if (it.name.equals("interface")) {
-                    "_interface"
+                } else if (SourceVersion.isKeyword(it.name)) {
+                    "_${it.name.lowerCamelCase()}"
                 } else {
                     it.name
                 }
@@ -520,8 +520,8 @@ class JavaModelDraftBuilderFileProducer constructor(override val vrapTypeProvide
             .joinToString(separator = "\n") {
                 if (it.isPatternProperty()) {
                     "builder.values = template.values();"
-                } else if (it.name.equals("interface")) {
-                    "builder._interface = template.getInterface();"
+                } else if (SourceVersion.isKeyword(it.name)) {
+                    "builder._${it.name.lowerCamelCase()} = template.get${it.name.upperCamelCase()}();"
                 } else {
                     "builder.${it.name} = template.get${it.name.upperCamelCase()}();"
                 }

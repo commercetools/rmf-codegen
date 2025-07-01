@@ -15,6 +15,7 @@ import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.types.*
 import io.vrap.rmf.raml.model.types.Annotation
+import javax.lang.model.SourceVersion
 
 
 class JavaModelClassFileProducer constructor(override val vrapTypeProvider: VrapTypeProvider, @AllObjectTypes private val allObjectTypes: List<ObjectType>) : JavaObjectTypeExtensions, JavaEObjectTypeExtensions, FileProducer {
@@ -100,10 +101,10 @@ class JavaModelClassFileProducer constructor(override val vrapTypeProvider: Vrap
                 |${this.deprecationAnnotation()}
                 |private Map<String, ${vrapType.fullClassName()}> values;""".trimMargin()
         } else {
-            if(this.name.equals("interface")) {
+            if(SourceVersion.isKeyword(this.name)) {
                 """
                 |${this.deprecationAnnotation()}
-                |private ${vrapType.fullClassName()} _interface;""".trimMargin()
+                |private ${vrapType.fullClassName()} _${this.name.lowerCamelCase()};""".trimMargin()
             } else {
                 """
                 |${this.deprecationAnnotation()}
@@ -148,8 +149,8 @@ class JavaModelClassFileProducer constructor(override val vrapTypeProvider: Vrap
     private fun Property.equalsMethod(): String {
         return if (this.isPatternProperty()) {
             ".append(values, that.values)"
-        } else if (this.name.equals("interface")) {
-            ".append(_interface, that._interface)"
+        } else if (SourceVersion.isKeyword(this.name)) {
+            ".append(_${this.name.lowerCamelCase()}, that._${this.name.lowerCamelCase()})"
         } else {
             ".append(${this.name.lowerCamelCase()}, that.${this.name.lowerCamelCase()})"
         }
@@ -158,8 +159,8 @@ class JavaModelClassFileProducer constructor(override val vrapTypeProvider: Vrap
     private fun Property.hashMethod(): String {
         return if (this.isPatternProperty()) {
             ".append(values)"
-        } else if (this.name.equals("interface")) {
-            ".append(_interface)"
+        } else if (SourceVersion.isKeyword(this.name)) {
+            ".append(_${this.name.lowerCamelCase()})"
         } else {
             ".append(${this.name.lowerCamelCase()})"
         }
@@ -168,8 +169,8 @@ class JavaModelClassFileProducer constructor(override val vrapTypeProvider: Vrap
     private fun Property.toStringMethod(): String {
         return if (this.isPatternProperty()) {
             ".append(\"values\", values)"
-        } else if (this.name.equals("interface")) {
-            ".append(\"interface\", _interface)"
+        } else if (SourceVersion.isKeyword(this.name)) {
+            ".append(\"${this.name.lowerCamelCase()}\", _${this.name.lowerCamelCase()})"
         } else {
             ".append(\"${this.name.lowerCamelCase()}\", ${this.name.lowerCamelCase()})"
         }
@@ -202,11 +203,11 @@ class JavaModelClassFileProducer constructor(override val vrapTypeProvider: Vrap
             |    values.put(key, value);
             |}
             """.trimMargin()
-        } else if(this.name.equals("interface")) {
+        } else if(SourceVersion.isKeyword(this.name)) {
             """
                 |${this.deprecationAnnotation()}
-                |public void setInterface(final ${vrapType.fullClassName()} _interface) {
-                |    this._interface = _interface;
+                |public void set${this.name.upperCamelCase()}(final ${vrapType.fullClassName()} _${this.name.lowerCamelCase()}) {
+                |    this._${this.name.lowerCamelCase()} = _${this.name.lowerCamelCase()};
                 |}
             """.trimMargin()
         } else if (vrapType is VrapArrayType) {
@@ -258,14 +259,14 @@ class JavaModelClassFileProducer constructor(override val vrapTypeProvider: Vrap
             |    return values;
             |}
             """.trimMargin()
-        } else if(this.name.equals("interface")) {
+        } else if(SourceVersion.isKeyword(this.name)) {
             """
                 |/**
                 |${this.type.toComment(" *")}
                 | */
                 |${this.deprecationAnnotation()}
-                |public ${vrapType.fullClassName()} getInterface() {
-                |    return this._interface;
+                |public ${vrapType.fullClassName()} get${this.name.upperCamelCase()}() {
+                |    return this._${this.name.lowerCamelCase()};
                 |}
             """.trimMargin()
         } else {
@@ -289,8 +290,8 @@ class JavaModelClassFileProducer constructor(override val vrapTypeProvider: Vrap
                 .map {
                     if(it.isPatternProperty()) {
                         "@JsonAnySetter @JsonProperty(\"values\") final Map<String, ${it.type.toVrapType().fullClassName()}> values"
-                    }else if(it.name.equals("interface")) {
-                        "@JsonProperty(\"${it.name.lowerCamelCase()}\") final ${it.type.toVrapType().fullClassName()} _interface"
+                    }else if(SourceVersion.isKeyword(it.name)) {
+                        "@JsonProperty(\"${it.name}\") final ${it.type.toVrapType().fullClassName()} _${it.name.lowerCamelCase()}"
                     } else {
                         "@JsonProperty(\"${it.name}\") final ${it.type.toVrapType().fullClassName()} ${it.name.lowerCamelCase()}"
                     }
@@ -303,8 +304,8 @@ class JavaModelClassFileProducer constructor(override val vrapTypeProvider: Vrap
                 .map {
                     if(it.isPatternProperty()){
                         "this.values = values;"
-                    } else if (it.name.equals("interface")){
-                        "this._interface = _interface;"
+                    } else if (SourceVersion.isKeyword(it.name)){
+                        "this._${it.name.lowerCamelCase()} = _${it.name.lowerCamelCase()};"
                     } else {
                         "this.${it.name.lowerCamelCase()} = ${it.name.lowerCamelCase()};"
                     }
