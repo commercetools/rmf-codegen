@@ -166,7 +166,22 @@ class JoiValidatorModuleRenderer constructor(override val vrapTypeProvider: Vrap
         val vrapType: VrapType = this.type.toVrapType()
         val discriminatorConstraint = if (this == current.discriminatorProperty()) ".valid(Joi.override, '${current.discriminatorValue}')" else ""
         val requiredConstraint = if (this.required) ".required()" else ".optional()"
-        val maxConstraint = if (this.type is ArrayType && (this.type as ArrayType).maxItems != null) ".max(${(this.type as ArrayType).maxItems})" else ""
+        val type = this.type
+        val maxConstraint = when {
+            type is StringType && type.maxLength != null -> ".max(${type.maxLength}, 'utf8')"
+            type is NumberType && type.maximum != null -> ".max(${type.maximum})"
+            type is IntegerType && type.maximum != null -> ".max(${type.maximum})"
+            type is ArrayType && type.maxItems != null -> ".max(${type.maxItems})"
+            else -> ""
+        }
+        val minConstraint = when {
+            type is StringType && type.minLength != null -> ".min(${type.minLength}, 'utf8')"
+            type is NumberType && type.minimum != null -> ".min(${type.minimum})"
+            type is IntegerType && type.minimum != null -> ".min(${type.minimum})"
+            type is ArrayType && type.minItems != null -> ".min(${type.minItems})"
+            else -> ""
+        }
+
         val patternConstraint = if (this.type is StringType && (this.type as StringType).pattern != null ) ".pattern(/${(this.type as StringType).pattern}/)" else ""
         val joiLink = joiAlternativesTypes.contains(vrapType.simpleJoiName()) && discriminatorProperty
         val joiSchema = if(joiLink)
@@ -179,7 +194,7 @@ class JoiValidatorModuleRenderer constructor(override val vrapTypeProvider: Vrap
                 vrapType.renderTypeRef()
         val uniqueAnnotation = this.getAnnotation("uniqueProperty") ?: this.type.getAnnotation("uniqueProperty")
         val uniquePropConstraint = if (uniqueAnnotation != null) ".unique(\"${(uniqueAnnotation.value as StringInstance).value}\")" else ""
-        return "${name}: ${joiSchema}${maxConstraint}${patternConstraint}${discriminatorConstraint}${uniquePropConstraint}${requiredConstraint}"
+        return "${name}: ${joiSchema}${minConstraint}${maxConstraint}${patternConstraint}${discriminatorConstraint}${uniquePropConstraint}${requiredConstraint}"
     }
 
     private fun VrapType.renderTypeRef(): String {
