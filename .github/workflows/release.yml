@@ -9,6 +9,10 @@ permissions: {}
 
 jobs:
   release_maven:
+    permissions:
+      id-token: write
+      contents: read
+
     name: Build and release to Maven
 
     runs-on: ubuntu-latest

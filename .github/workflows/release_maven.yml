@@ -6,6 +6,7 @@ name: Release to Maven Central
 permissions:
   contents: write
   actions: write
+  id-token: write
 
 jobs:
   release:
