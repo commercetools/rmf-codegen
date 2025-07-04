@@ -142,15 +142,6 @@ subprojects { project ->
     apply plugin: 'groovy'
     apply plugin: 'kotlin'
 
-    apply plugin: 'dev.sigstore.sign'
-
-    sigstoreSign {
-        oidcClient {
-            gitHub {
-                audience.set("sigstore")
-            }
-        }
-    }
     group 'com.commercetools.rmf'
     version=globalVersion
 
