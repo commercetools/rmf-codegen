@@ -3,13 +3,15 @@ on:
 
 name: Release to Maven Central
 
-permissions:
-  contents: write
-  actions: write
-  id-token: write
+permissions: {}
 
 jobs:
   release:
+    permissions:
+      contents: write
+      actions: write
+      id-token: write
+
     name: Build and release
 
     runs-on: ubuntu-latest
@@ -41,7 +43,6 @@ jobs:
         env:
           SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
           SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
-
 
       - uses: stefanzweifel/git-auto-commit-action@v4.6.0
         with:
