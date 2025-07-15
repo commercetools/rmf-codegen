@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "@commercetools/sdk-client": "^2.1.1",
+    "@commercetools/ts-client": "latest",
     "@commercetools/sdk-middleware-auth": "^6.0.0",
     "@commercetools/sdk-middleware-http": "^6.0.0",
     "joi": "^14.3.1",
