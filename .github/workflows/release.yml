@@ -36,7 +36,7 @@ jobs:
           GRADLE_PUBLISH_SECRET: ${{ secrets.GRADLE_PUBLISH_SECRET }}
 
       - name: Build and Release
-        run: ./gradlew -Pversion=${{ github.ref_name }} clean check publishMavenPublicationToSonatype closeAndReleaseSonatypeStagingRepository
+        run: ./gradlew -Pversion=${{ github.ref_name }} clean check publishMavenPublicationToStagingRepository jreleaserDeploy
         env:
           SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
           SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}

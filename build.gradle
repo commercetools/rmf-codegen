@@ -25,7 +25,8 @@ plugins {
     id 'com.github.johnrengelman.shadow' version '7.1.0'
     id 'com.palantir.graal' version '0.9.0'
 
-    id 'io.github.gradle-nexus.publish-plugin' version '1.0.0'
+    id 'org.jreleaser' version '1.19.0'
+//    id 'io.github.gradle-nexus.publish-plugin' version '1.0.0'
     id 'org.jetbrains.kotlin.jvm' version "$kotlinVersion"
     id 'org.jetbrains.kotlin.kapt'  version "$kotlinVersion" apply false
 }
@@ -108,16 +109,44 @@ def excludeProject= [
     'codegen-gradle-plugin',
 ]
 
-nexusPublishing {
-    repositories {
-        sonatype {
-            nexusUrl.set(uri("https://ossrh-staging-api.central.sonatype.com/service/local/"))
-            snapshotRepositoryUrl.set(uri("https://central.sonatype.com/repository/maven-snapshots/"))
-            username = System.getenv('SONATYPE_USERNAME')
-            password = System.getenv('SONATYPE_PASSWORD')
+//nexusPublishing {
+//    repositories {
+//        sonatype {
+//            nexusUrl.set(uri("https://ossrh-staging-api.central.sonatype.com/service/local/"))
+//            snapshotRepositoryUrl.set(uri("https://central.sonatype.com/repository/maven-snapshots/"))
+//            username = System.getenv('SONATYPE_USERNAME')
+//            password = System.getenv('SONATYPE_PASSWORD')
+//        }
+//    }
+//}
+
+jreleaser {
+    signing {
+        active = 'ALWAYS'
+        armored = true
+        mode = 'COMMAND'
+    }
+    deploy {
+        maven {
+            mavenCentral {
+                sonatype {
+                    active = 'ALWAYS'
+                    url = 'https://central.sonatype.com/api/v1/publisher'
+                    username = System.getenv('SONATYPE_USERNAME')
+                    password = System.getenv('SONATYPE_PASSWORD')
+                    stagingRepository('build/staging-deploy')
+                    // wait 30s between status checks
+                    retryDelay = 30
+
+                    // up to 100 status checks
+                    maxRetries = 100
+                }
+            }
         }
     }
 }
+
+jreleaserDeploy.dependsOn publishMavenPublicationToStagingRepository
 
 group='com.commercetools.rmf'
 
@@ -141,7 +170,7 @@ subprojects { project ->
     apply plugin: 'java-library' // needed to make sure that transitive deps have 'compile' scope
     apply plugin: 'groovy'
     apply plugin: 'kotlin'
-    apply(plugin:  "dev.sigstore.sign")
+//    apply(plugin:  "dev.sigstore.sign")
 
     group 'com.commercetools.rmf'
     version=globalVersion
@@ -185,19 +214,24 @@ subprojects { project ->
         testImplementation jackson_core.databind
     }
 
+
     if (project.file("build.gradle").exists() && !excludeProject.contains(project.name)) {
         publishing {
             repositories {
+//                maven {
+//                    if (version.status == 'release') {
+//                        url("https://ossrh-staging-api.central.sonatype.com/service/local/staging/deploy/maven2/")
+//                    } else {
+//                        url("https://central.sonatype.com/repository/maven-snapshots/")
+//                    }
+//                    credentials {
+//                        username System.getenv('SONATYPE_USERNAME') ?: ''
+//                        password System.getenv("SONATYPE_PASSWORD") ?: ''
+//                    }
+//                }
                 maven {
-                    if (version.status == 'release') {
-                        url("https://ossrh-staging-api.central.sonatype.com/service/local/staging/deploy/maven2/")
-                    } else {
-                        url("https://central.sonatype.com/repository/maven-snapshots/")
-                    }
-                    credentials {
-                        username System.getenv('SONATYPE_USERNAME') ?: ''
-                        password System.getenv("SONATYPE_PASSWORD") ?: ''
-                    }
+                    name = "staging"
+                    url = uri(rootProject.layout.buildDirectory.dir("staging-deploy"))
                 }
             }
             publications {

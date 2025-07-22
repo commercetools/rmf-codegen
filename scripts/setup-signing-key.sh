@@ -45,8 +45,9 @@ touch ~/.gradle/gradle.properties
 echo "signing.gnupg.executable=gpg" >> ~/.gradle/gradle.properties
 echo "signing.gnupg.keyName=$KEYNAME" >> ~/.gradle/gradle.properties
 echo "signing.gnupg.passphrase=$(<signing_passphrase.txt)" >> ~/.gradle/gradle.properties
+echo "jreleaser.signing.command.keyName=$KEYNAME" >> ~/.gradle/gradle.properties
+echo "jreleaser.signing.passphrase=$(<signing_passphrase.txt)" >> ~/.gradle/gradle.properties
 echo "gradle.publish.key=${GRADLE_PUBLISH_KEY}" >> ~/.gradle/gradle.properties
 echo "gradle.publish.secret=${GRADLE_PUBLISH_SECRET}" >> ~/.gradle/gradle.properties
 
 rm -rf signing_passphrase.txt signing_passphrase.enc signing_key.enc decrypter.json signing_key.asc
-
