@@ -146,7 +146,7 @@ jreleaser {
     }
 }
 
-jreleaserDeploy.dependsOn publishMavenPublicationToStagingRepository
+jreleaserDeploy.dependsOn 'publishMavenPublicationToStagingRepository'
 
 group='com.commercetools.rmf'
 
