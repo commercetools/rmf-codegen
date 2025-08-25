@@ -40,7 +40,20 @@ fun DescriptionFacet.toHtml() = this
         ?.trim()
 
 fun String.filterLinks(): String {
-    return Jsoup.clean(this, "", Safelist.basic().removeTags("a"), outputSettings)
+    val doc = Jsoup.parse(this)
+
+    val links = doc.select("a[href]")
+
+    for( link in links ) {
+        if (link.attr("href").startsWith("ctp:")) {
+            link.attr("href", "https://docs.commercetools.com/apis/${link.attr("href")}")
+        } else {
+            link.tagName("span")
+        }
+    }
+
+    return Jsoup
+        .clean(doc.html(), "", Safelist.basic(), outputSettings)
         .replace("€", "&euro;")
 }
 
