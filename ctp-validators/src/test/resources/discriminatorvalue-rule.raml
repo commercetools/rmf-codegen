@@ -1,0 +1,18 @@
+#%RAML 1.0
+title: discriminator parent rule
+
+types:
+  Foo:
+    type: object
+    discriminator: type
+    properties:
+      type: string
+  FooBar:
+    type: Foo
+    discriminatorValue: foobar
+  InvalidFooBaz:
+    discriminator: type
+    discriminatorValue: foobaz
+    type: object
+    properties:
+      type: string
