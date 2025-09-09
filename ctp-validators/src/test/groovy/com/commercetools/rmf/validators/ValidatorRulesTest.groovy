@@ -81,6 +81,16 @@ class ValidatorRulesTest extends Specification implements ValidatorFixtures {
         result.validationResults[0].message == "Discriminator and DiscriminatorValue property defined in the same type: InvalidFooBaz"
     }
 
+    def "discriminator subtype rule"() {
+        def validators = Arrays.asList(new TypesValidator(Arrays.asList(DiscriminatedSubtypeRule.create(emptyList()))))
+        def uri = uriFromClasspath("/discriminatorsubtype-rule.raml")
+        when:
+        def result = new RamlModelBuilder(validators).buildApi(uri)
+        then:
+        result.validationResults.size() == 1
+        result.validationResults[0].message == "Discriminator was added to supertype, it should be set to not null for all subtypes. Discriminator is set to null for subtype: InvalidFoo, while there is a discriminator for parent type: Foo"
+    }
+
     def "filename rule"() {
         when:
         def validators = Arrays.asList(new ModulesValidator(Arrays.asList(FilenameRule.create(emptyList()))))
