@@ -17,7 +17,7 @@ class DiscriminatedSubtypeRule(severity: RuleSeverity, options: List<RuleOption>
         val validationResults: MutableList<Diagnostic> = ArrayList()
 
         val parent = type.type
-        if (parent != null && (parent as ObjectType).discriminator != null && type.discriminatorValue == null && exclude.contains(type.name).not()) {
+        if (!type.isInlineType && parent != null && (parent as ObjectType).discriminator != null && type.discriminatorValue == null && exclude.contains(type.name).not()) {
             validationResults.add(create(type,
                 "Discriminator was added to supertype, it should be set to not null for all subtypes. Discriminator is set to null for subtype: {0}, while there is a discriminator for parent type: {1}",
                 type.name, parent.name))
