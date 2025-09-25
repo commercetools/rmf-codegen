@@ -116,5 +116,5 @@ fun QueryParameter.methodName(): String {
         val paramName = o.value.stream().filter { propertyValue -> propertyValue.name == "paramName" }.findFirst().orElse(null).value as StringInstance
         return "with" + StringCaseFormat.UPPER_CAMEL_CASE.apply(paramName.value)
     }
-    return "with" + StringCaseFormat.UPPER_CAMEL_CASE.apply(this.name.replace(".", "-"))
+    return "with" + StringCaseFormat.UPPER_CAMEL_CASE.apply(this.name.replace(".", "-").replace("[", "-").replace("]", ""))
 }

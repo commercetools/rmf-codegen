@@ -168,7 +168,7 @@ fun QueryParameter.methodName(): String {
         val paramName = o.value.stream().filter { propertyValue -> propertyValue.name == "paramName" }.findFirst().orElse(null).value as StringInstance
         return "With" + StringCaseFormat.UPPER_CAMEL_CASE.apply(paramName.value)
     }
-    return "With" + StringCaseFormat.UPPER_CAMEL_CASE.apply(this.name.replace(".", "-"))
+    return "With" + StringCaseFormat.UPPER_CAMEL_CASE.apply(this.name.replace(".", "-").replace("[", "-").replace("]", ""))
 }
 
 fun Property.deprecated() : Boolean {
@@ -188,4 +188,3 @@ fun Property.markDeprecated() : Boolean {
     val typeAnno = this.type.getAnnotation("markDeprecated")
     return (typeAnno != null && (typeAnno.value as BooleanInstance).value)
 }
-
