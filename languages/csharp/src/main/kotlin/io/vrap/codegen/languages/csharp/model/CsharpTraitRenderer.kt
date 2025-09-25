@@ -109,6 +109,6 @@ class CsharpTraitRenderer  constructor(override val vrapTypeProvider: VrapTypePr
     }
 
     private fun QueryParameter.fieldName(): String {
-        return StringCaseFormat.LOWER_CAMEL_CASE.apply(this.name.replace(".", "-"))
+        return StringCaseFormat.LOWER_CAMEL_CASE.apply(this.name.replace(".", "-").replace("[", "-").replace("]", ""))
     }
 }

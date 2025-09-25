@@ -14,6 +14,7 @@ import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.types.*
+import java.net.URLEncoder
 import kotlin.random.Random
 
 class CsharpRequestTestRenderer constructor(override val vrapTypeProvider: VrapTypeProvider, private val basePackagePrefix: String): ResourceRenderer, CsharpEObjectTypeExtensions, CsharpObjectTypeExtensions {
@@ -135,7 +136,7 @@ class CsharpRequestTestRenderer constructor(override val vrapTypeProvider: VrapT
                 NumberFormat.FLOAT -> r.nextFloat().toString()
                 else -> r.nextInt(1, 10)
             }
-            else -> name
+            else ->  URLEncoder.encode(name, "UTF-8")
         }
     }
 

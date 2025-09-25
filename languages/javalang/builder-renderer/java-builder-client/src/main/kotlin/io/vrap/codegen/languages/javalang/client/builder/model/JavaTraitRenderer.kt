@@ -146,6 +146,6 @@ class JavaTraitRenderer constructor(override val vrapTypeProvider: VrapTypeProvi
     }
 
     private fun QueryParameter.fieldName(): String {
-        return StringCaseFormat.LOWER_CAMEL_CASE.apply(this.name.replace(".", "-"))
+        return StringCaseFormat.LOWER_CAMEL_CASE.apply(this.name.replace(".", "-").replace("[", "-").replace("]", ""))
     }
 }
