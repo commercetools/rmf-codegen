@@ -15,6 +15,7 @@ import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.types.*
+import io.vrap.rmf.raml.model.util.StringCaseFormat
 import java.util.regex.Pattern
 import kotlin.random.Random
 
@@ -99,7 +100,7 @@ class TypescriptRequestTestRenderer constructor(override val vrapTypeProvider: V
             paramName = "\"${placeholderTemplate.value.replace("<${placeholder.value}>", placeholder.value)}\""
             methodValue = "$paramName"
         }
-        else if(paramName.contains("."))
+        else if(paramName.contains(".") || paramName.contains("["))
         {
             paramName = "\"${paramName}\""
         }

@@ -77,7 +77,7 @@ class PhpTraitRenderer constructor(override val vrapTypeProvider: VrapTypeProvid
     }
 
     private fun QueryParameter.fieldName(): String {
-        return StringCaseFormat.LOWER_CAMEL_CASE.apply(this.name.replace(".", "-"))
+        return StringCaseFormat.LOWER_CAMEL_CASE.apply(this.name.replace(".", "-").replace("[", "-").replace("]", ""))
     }
 
     private fun Trait.markDeprecated() : Boolean {
