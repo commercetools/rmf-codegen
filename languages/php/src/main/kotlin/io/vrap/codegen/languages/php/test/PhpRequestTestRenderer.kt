@@ -19,6 +19,7 @@ import io.vrap.rmf.raml.model.types.ObjectInstance
 import io.vrap.rmf.raml.model.types.QueryParameter
 import io.vrap.rmf.raml.model.types.StringInstance
 import org.eclipse.emf.ecore.EObject
+import java.net.URLEncoder
 
 class PhpRequestTestRenderer constructor(api: Api, vrapTypeProvider: VrapTypeProvider, clientConstants: ClientConstants) : ResourceRenderer, AbstractRequestBuilder(api, vrapTypeProvider, clientConstants), EObjectTypeExtensions {
     private val resourcePackage = "Resource"
@@ -243,7 +244,7 @@ class PhpRequestTestRenderer constructor(api: Api, vrapTypeProvider: VrapTypePro
             |            <<${builderChain.joinToString("\n->", "->")}>>;
             |    },
             |    '${method.method}',
-            |    '${resource.fullUri.expand(resource.fullUriParameters.map { it.name to "test_${it.name}" }.toMap()).trimStart('/')}?${paramName}=${paramName}',
+            |    '${resource.fullUri.expand(resource.fullUriParameters.map { it.name to "test_${it.name}" }.toMap()).trimStart('/')}?${URLEncoder.encode(paramName, "UTF-8")}=${URLEncoder.encode(paramName, "UTF-8")}',
             |]
         """.trimMargin()
     }
