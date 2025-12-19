@@ -16,6 +16,7 @@ import io.vrap.rmf.raml.model.resources.Method
 import io.vrap.rmf.raml.model.resources.Resource
 import io.vrap.rmf.raml.model.types.*
 import io.vrap.rmf.raml.model.util.StringCaseFormat
+import java.net.URLEncoder
 import java.util.regex.Pattern
 import kotlin.random.Random
 
@@ -91,7 +92,7 @@ class TypescriptRequestTestRenderer constructor(override val vrapTypeProvider: V
         var methodValue = parameter.template()
         var requiredParams = method.queryParameters.toMutableList().filter { p -> p.name != parameter.name && p.required  }
         var requiredParamsStr: String = requiredParams.map { r -> "${r.name}:${queryParamValueString(r.name, r.type, Random(r.name.hashCode()))}" }.joinToString(", ")
-        var requiredParamsStrUrl: String = requiredParams.map { r -> "${r.name}:${queryParamValueString(r.name, r.type, Random(r.name.hashCode())).toString().replace("\"","")}" }.joinToString("&")
+        var requiredParamsStrUrl: String = requiredParams.map { r -> "${r.name}:${URLEncoder.encode(queryParamValueString(r.name, r.type, Random(r.name.hashCode())).toString().replace("\"",""), "UTF-8")}" }.joinToString("&")
 
         if (anno != null) {
             val o = anno.value as ObjectInstance
@@ -111,7 +112,7 @@ class TypescriptRequestTestRenderer constructor(override val vrapTypeProvider: V
         return """
                 |{   
                 |    method: '${method.method}',
-                |    uri: '/${resource.fullUri.expand(resource.fullUriParameters.map { it.name to "test_${it.name}" }.toMap()).trimStart('/')}?${paramName.replace("\"", "")}=${queryParamValueString(paramName, parameter.type, Random(paramName.hashCode())).toString().replace("\"","")}${ if(requiredParamsStrUrl!="") "&${requiredParamsStrUrl.replace(":","=")}" else ""}',            
+                |    uri: '/${resource.fullUri.expand(resource.fullUriParameters.map { it.name to "test_${it.name}" }.toMap()).trimStart('/')}?${URLEncoder.encode(paramName.replace("\"", ""), "UTF-8")}=${URLEncoder.encode(queryParamValueString(paramName, parameter.type, Random(paramName.hashCode())).toString().replace("\"",""), "UTF-8")}${ if(requiredParamsStrUrl!="") "&${requiredParamsStrUrl.replace(":","=")}" else ""}',            
                 |    request: apiRoot
                 |    <<${builderChain.joinToString("\n.", ".")}>>,    
                 |}
