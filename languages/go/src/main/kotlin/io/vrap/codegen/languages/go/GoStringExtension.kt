@@ -38,10 +38,11 @@ fun String.exportName(): String {
     if (this.contains("/")) {
         throw Exception("Invalid identifier name: " + this)
     }
-    if (this[0].isUpperCase()) {
-        return this
+    val sanitized = this.replace("[", "_").replace("]", "")
+    if (sanitized[0].isUpperCase()) {
+        return sanitized
     }
-    var name = StringCaseFormat.UPPER_CAMEL_CASE.apply(this.replace(".", "_"))
+    var name = StringCaseFormat.UPPER_CAMEL_CASE.apply(sanitized.replace(".", "_"))
     mapOf(
         "^Id$" to "ID"
     ).forEach { (key, value) -> name = name.replace(key.toRegex(), value) }
