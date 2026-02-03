@@ -41,7 +41,7 @@ fun String.exportName(): String {
     if (this[0].isUpperCase()) {
         return this
     }
-    var name = StringCaseFormat.UPPER_CAMEL_CASE.apply(this.replace(".", "_"))
+    var name = StringCaseFormat.UPPER_CAMEL_CASE.apply(this.replace(Regex("[.\\[\\]]"), "_"))
     mapOf(
         "^Id$" to "ID"
     ).forEach { (key, value) -> name = name.replace(key.toRegex(), value) }
