@@ -428,4 +428,40 @@ class ValidatorRulesTest extends Specification implements ValidatorFixtures {
         result.validationResults[0].message == "Type \"InvalidBaz\" has subtypes but no discriminator is set"
     }
 
+    def "enum value pascal case rule"() {
+        when:
+        def validators = Arrays.asList(new TypesValidator(Arrays.asList(EnumValuePascalCaseRule.create(emptyList()))))
+        def uri = uriFromClasspath("/enum-value-pascal-case-rule.raml")
+        def result = new RamlModelBuilder(validators).buildApi(uri)
+        then:
+        result.validationResults.size() == 17
+        result.validationResults[0].message == "Enum value \"platform\" in type \"InvalidLowercaseEnum\" must be PascalCase"
+        result.validationResults[1].message == "Enum value \"external\" in type \"InvalidLowercaseEnum\" must be PascalCase"
+        result.validationResults[2].message == "Enum value \"disabled\" in type \"InvalidLowercaseEnum\" must be PascalCase"
+        result.validationResults[3].message == "Enum value \"PLATFORM\" in type \"InvalidUppercaseEnum\" must be PascalCase"
+        result.validationResults[4].message == "Enum value \"EXTERNAL\" in type \"InvalidUppercaseEnum\" must be PascalCase"
+        result.validationResults[5].message == "Enum value \"DISABLED\" in type \"InvalidUppercaseEnum\" must be PascalCase"
+        result.validationResults[6].message == "Enum value \"add_line_item\" in type \"InvalidSnakeCaseEnum\" must be PascalCase"
+        result.validationResults[7].message == "Enum value \"remove_line_item\" in type \"InvalidSnakeCaseEnum\" must be PascalCase"
+        result.validationResults[8].message == "Enum value \"set_custom_type\" in type \"InvalidSnakeCaseEnum\" must be PascalCase"
+        result.validationResults[9].message == "Enum value \"addLineItem\" in type \"InvalidCamelCaseEnum\" must be PascalCase"
+        result.validationResults[10].message == "Enum value \"removeLineItem\" in type \"InvalidCamelCaseEnum\" must be PascalCase"
+        result.validationResults[11].message == "Enum value \"setCustomType\" in type \"InvalidCamelCaseEnum\" must be PascalCase"
+        result.validationResults[12].message == "Enum value \"add-line-item\" in type \"InvalidKebabCaseEnum\" must be PascalCase"
+        result.validationResults[13].message == "Enum value \"remove-line-item\" in type \"InvalidKebabCaseEnum\" must be PascalCase"
+        result.validationResults[14].message == "Enum value \"invalidCamelCase\" in type \"MixedCaseEnum\" must be PascalCase"
+        result.validationResults[15].message == "Enum value \"INVALID_UPPER\" in type \"MixedCaseEnum\" must be PascalCase"
+        result.validationResults[16].message == "Enum value \"another-invalid\" in type \"MixedCaseEnum\" must be PascalCase"
+    }
+
+    def "enum value pascal case rule with exclusions"() {
+        when:
+        def options = singletonList(new RuleOption(RuleOptionType.EXCLUDE.toString(), "InvalidLowercaseEnum"))
+        def validators = Arrays.asList(new TypesValidator(Arrays.asList(EnumValuePascalCaseRule.create(options))))
+        def uri = uriFromClasspath("/enum-value-pascal-case-rule.raml")
+        def result = new RamlModelBuilder(validators).buildApi(uri)
+        then:
+        result.validationResults.size() == 14
+    }
+
 }

@@ -1,0 +1,81 @@
+#%RAML 1.0
+title: enum value pascal case rule
+
+annotationTypes:
+  package: string
+
+types:
+  # Valid enum - all values are PascalCase
+  ValidStatusEnum:
+    (package): Common
+    type: string
+    enum:
+      - Platform
+      - External
+      - Disabled
+      - Active
+      - Ordered
+
+  # Valid enum - PascalCase with multiple words
+  ValidActionTypeEnum:
+    (package): Common
+    type: string
+    enum:
+      - AddLineItem
+      - RemoveLineItem
+      - ChangeQuantity
+      - SetCustomType
+
+  # Invalid enum - lowercase values
+  InvalidLowercaseEnum:
+    (package): Common
+    type: string
+    enum:
+      - platform
+      - external
+      - disabled
+
+  # Invalid enum - UPPERCASE (SCREAMING_SNAKE_CASE style)
+  InvalidUppercaseEnum:
+    (package): Common
+    type: string
+    enum:
+      - PLATFORM
+      - EXTERNAL
+      - DISABLED
+
+  # Invalid enum - snake_case values
+  InvalidSnakeCaseEnum:
+    (package): Common
+    type: string
+    enum:
+      - add_line_item
+      - remove_line_item
+      - set_custom_type
+
+  # Invalid enum - camelCase values (starts with lowercase)
+  InvalidCamelCaseEnum:
+    (package): Common
+    type: string
+    enum:
+      - addLineItem
+      - removeLineItem
+      - setCustomType
+
+  # Invalid enum - kebab-case values
+  InvalidKebabCaseEnum:
+    (package): Common
+    type: string
+    enum:
+      - add-line-item
+      - remove-line-item
+
+  # Mixed valid and invalid
+  MixedCaseEnum:
+    (package): Common
+    type: string
+    enum:
+      - ValidPascalCase
+      - invalidCamelCase
+      - INVALID_UPPER
+      - another-invalid
