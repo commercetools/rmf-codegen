@@ -192,11 +192,11 @@ private fun AnyType.isBoolean(): Boolean {
 ## Workflow for Creating a New Rule
 
 1. **Understand the requirement**: Clarify what the rule should validate
-2. **Create the rule file**: `YourRuleNameRule.kt` in the validators directory
-3. **Create the test RAML**: `your-rule-name.raml` in test resources
+2. **Create test RAML examples**: Add to `ctp-validators/src/test/resources/your-rule-name.raml` with both valid and invalid test cases
+3. **Create the rule file**: `YourRuleNameRule.kt` in the validators directory with appropriate `case` methods
 4. **Add the test case**: Add test method to `ValidatorRulesTest.groovy`
 5. **Run tests**: Use `./gradlew :ctp-validators:test` to verify
-6. **Document**: Ensure error messages are clear and helpful
+6. **Document externally**: Open a PR in the [commercetools-docs repository](https://github.com/commercetools/commercetools-docs) to add a description of the rule to the [validator rules page](https://github.com/commercetools/commercetools-docs/tree/main/api-specs#validator-rules)
 
 ## Example Reference
 
