@@ -1,6 +1,7 @@
 package com.commercetools.rmf.validators
 
 import io.vrap.rmf.raml.model.types.StringType
+import io.vrap.rmf.raml.model.util.StringCaseFormat
 import org.eclipse.emf.common.util.Diagnostic
 import java.util.*
 
@@ -34,20 +35,7 @@ class EnumValuePascalCaseRule(severity: RuleSeverity, options: List<RuleOption>?
     }
 
     private fun isPascalCase(value: String): Boolean {
-        if (value.isEmpty()) return false
-        
-        // Must start with uppercase letter
-        if (!value[0].isUpperCase()) return false
-        
-        // Should not contain underscores or hyphens (common in snake_case or kebab-case)
-        if (value.contains('_') || value.contains('-')) return false
-        
-        // Should not be all uppercase (SCREAMING_SNAKE_CASE)
-        if (value.length > 1 && value.all { it.isUpperCase() || !it.isLetter() }) return false
-        
-        // Check that it only contains letters (PascalCase should not have numbers at the start or special characters)
-        // Allow letters and numbers, but must start with uppercase letter
-        return value.all { it.isLetterOrDigit() }
+        return value == StringCaseFormat.UPPER_CAMEL_CASE.apply(value)
     }
 
     companion object : ValidatorFactory<EnumValuePascalCaseRule> {
