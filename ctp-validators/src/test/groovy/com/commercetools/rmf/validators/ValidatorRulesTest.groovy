@@ -456,12 +456,12 @@ class ValidatorRulesTest extends Specification implements ValidatorFixtures {
 
     def "enum value pascal case rule with exclusions"() {
         when:
-        def options = singletonList(new RuleOption(RuleOptionType.EXCLUDE.toString(), "InvalidLowercaseEnum"))
+        def options = singletonList(new RuleOption(RuleOptionType.EXCLUDE.toString(), "InvalidLowercaseEnum:platform"))
         def validators = Arrays.asList(new TypesValidator(Arrays.asList(EnumValuePascalCaseRule.create(options))))
         def uri = uriFromClasspath("/enum-value-pascal-case-rule.raml")
         def result = new RamlModelBuilder(validators).buildApi(uri)
         then:
-        result.validationResults.size() == 14
+        result.validationResults.size() == 16
     }
 
 }

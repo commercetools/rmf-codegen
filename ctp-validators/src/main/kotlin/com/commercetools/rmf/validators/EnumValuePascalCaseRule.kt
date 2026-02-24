@@ -15,10 +15,10 @@ class EnumValuePascalCaseRule(severity: RuleSeverity, options: List<RuleOption>?
     override fun caseStringType(type: StringType): List<Diagnostic> {
         val validationResults: MutableList<Diagnostic> = ArrayList()
 
-        if (exclude.contains(type.name).not() && type.name != "string" && type.enum.isNullOrEmpty().not()) {
+        if (type.name != "string" && type.enum.isNullOrEmpty().not()) {
             type.enum.forEach { enumValue ->
                 val enumName = enumValue.value as? String
-                if (enumName != null && !isPascalCase(enumName)) {
+                if (enumName != null && exclude.contains("${type.name}:${enumName}").not() && !isPascalCase(enumName)) {
                     validationResults.add(
                         error(
                             type,
