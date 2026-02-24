@@ -5,8 +5,9 @@ on:
 
 name: AutoRelease
 
-permissions: {}
-
+permissions:
+  id-token: write
+  contents: read
 jobs:
   release_maven:
     permissions:
