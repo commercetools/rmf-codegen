@@ -36,12 +36,11 @@ jobs:
           GRADLE_PUBLISH_SECRET: ${{ secrets.GRADLE_PUBLISH_SECRET }}
 
       - name: Build and Release
-        run: ./gradlew -Pversion=${{ github.ref_name }} clean check # publishMavenPublicationToSonatype closeAndReleaseSonatypeStagingRepository
+        run: ./gradlew -Pversion=${{ github.ref_name }} clean check publishMavenPublicationToSonatype closeAndReleaseSonatypeStagingRepository
         env:
           SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
           SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
 
       # Configure npm for OIDC authentication with trusted publishing
       # This must be done after CI setup to ensure npm is properly configured
@@ -66,15 +65,6 @@ jobs:
           npm config delete //registry.npmjs.org/:_authToken || true
           # Verify npm can access the registry (this will use OIDC if configured)
           echo "npm OIDC authentication configured via setup-node action"
-
-#      - name: Creating .npmrc
-#        run: |
-#          cat << EOF > "$HOME/.npmrc"
-#            email=npmjs@commercetools.com
-#            //registry.npmjs.org/:_authToken=$NPM_TOKEN
-#          EOF
-#        env:
-#          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Publish npm package
         working-directory: node/rmf-codegen
