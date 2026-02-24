@@ -78,7 +78,7 @@ jobs:
 
       - name: Publish npm package
         working-directory: node/rmf-codegen
-        run: yarn npm publish --no-git-tag-version --minor
+        run: npm publish --no-git-tag-version --minor
 
   bump_version:
     name: Bump NPM version
