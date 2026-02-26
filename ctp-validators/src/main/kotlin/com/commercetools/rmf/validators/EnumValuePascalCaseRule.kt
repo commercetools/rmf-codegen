@@ -18,7 +18,7 @@ class EnumValuePascalCaseRule(severity: RuleSeverity, options: List<RuleOption>?
         if (type.name != "string" && type.enum.isNullOrEmpty().not()) {
             type.enum.forEach { enumValue ->
                 val enumName = enumValue.value as? String
-                if (enumName != null && exclude.contains("${type.name}:${enumName}").not() && !isPascalCase(enumName)) {
+                if (enumName != null && exclude.contains("${type.name}:${enumName}").not() && exclude.contains("${type.name}").not() && !isPascalCase(enumName)) {
                     validationResults.add(
                         error(
                             type,

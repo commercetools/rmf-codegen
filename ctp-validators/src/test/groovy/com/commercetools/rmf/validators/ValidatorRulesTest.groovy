@@ -434,7 +434,7 @@ class ValidatorRulesTest extends Specification implements ValidatorFixtures {
         def uri = uriFromClasspath("/enum-value-pascal-case-rule.raml")
         def result = new RamlModelBuilder(validators).buildApi(uri)
         then:
-        result.validationResults.size() == 17
+        result.validationResults.size() == 19
         result.validationResults[0].message == "Enum value \"platform\" in type \"InvalidLowercaseEnum\" must be PascalCase"
         result.validationResults[1].message == "Enum value \"external\" in type \"InvalidLowercaseEnum\" must be PascalCase"
         result.validationResults[2].message == "Enum value \"disabled\" in type \"InvalidLowercaseEnum\" must be PascalCase"
@@ -452,6 +452,8 @@ class ValidatorRulesTest extends Specification implements ValidatorFixtures {
         result.validationResults[14].message == "Enum value \"invalidCamelCase\" in type \"MixedCaseEnum\" must be PascalCase"
         result.validationResults[15].message == "Enum value \"INVALID_UPPER\" in type \"MixedCaseEnum\" must be PascalCase"
         result.validationResults[16].message == "Enum value \"another-invalid\" in type \"MixedCaseEnum\" must be PascalCase"
+        result.validationResults[17].message == "Enum value \"centPrecision\" in type \"MoneyType\" must be PascalCase"
+        result.validationResults[18].message == "Enum value \"highPrecision\" in type \"MoneyType\" must be PascalCase"
     }
 
     def "enum value pascal case rule with exclusions"() {
@@ -461,7 +463,15 @@ class ValidatorRulesTest extends Specification implements ValidatorFixtures {
         def uri = uriFromClasspath("/enum-value-pascal-case-rule.raml")
         def result = new RamlModelBuilder(validators).buildApi(uri)
         then:
-        result.validationResults.size() == 16
+        result.validationResults.size() == 18
     }
-
+    def "enum value pascal case rule with type exclusion"() {
+        when:
+        def options = singletonList(new RuleOption(RuleOptionType.EXCLUDE.toString(), "MoneyType"))
+        def validators = Arrays.asList(new TypesValidator(Arrays.asList(EnumValuePascalCaseRule.create(options))))
+        def uri = uriFromClasspath("/enum-value-pascal-case-rule.raml")
+        def result = new RamlModelBuilder(validators).buildApi(uri)
+        then:
+        result.validationResults.size() == 17
+    }
 }
