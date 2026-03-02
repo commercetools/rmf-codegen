@@ -499,4 +499,29 @@ class ValidatorRulesTest extends Specification implements ValidatorFixtures {
         then:
         result.validationResults.size() == 7
     }
+
+    def "parameter min max abbreviation rule"() {
+        when:
+        def options = singletonList(new RuleOption(RuleOptionType.EXCLUDE.toString(), "minimumExcluded"))
+        def validators = Arrays.asList(new ResourcesValidator(Arrays.asList(ParameterMinMaxAbbreviationRule.create(options))))
+        def uri = uriFromClasspath("/parameter-minmax-abbreviation-rule.raml")
+        def result = new RamlModelBuilder(validators).buildApi(uri)
+        then:
+        result.validationResults.size() == 6
+        result.validationResults[0].message == "Query parameter \"minimumQuantity\" must use \"min\"/\"max\" instead of \"minimum\"/\"maximum\""
+        result.validationResults[1].message == "Query parameter \"maximumPrice\" must use \"min\"/\"max\" instead of \"minimum\"/\"maximum\""
+        result.validationResults[2].message == "Query parameter \"minimum\" must use \"min\"/\"max\" instead of \"minimum\"/\"maximum\""
+        result.validationResults[3].message == "Query parameter \"maximum\" must use \"min\"/\"max\" instead of \"minimum\"/\"maximum\""
+        result.validationResults[4].message == "Header \"minimumRetry\" must use \"min\"/\"max\" instead of \"minimum\"/\"maximum\""
+        result.validationResults[5].message == "Header \"maximumRetry\" must use \"min\"/\"max\" instead of \"minimum\"/\"maximum\""
+    }
+
+    def "parameter min max abbreviation rule without exclusions"() {
+        when:
+        def validators = Arrays.asList(new ResourcesValidator(Arrays.asList(ParameterMinMaxAbbreviationRule.create(emptyList()))))
+        def uri = uriFromClasspath("/parameter-minmax-abbreviation-rule.raml")
+        def result = new RamlModelBuilder(validators).buildApi(uri)
+        then:
+        result.validationResults.size() == 7
+    }
 }
