@@ -474,4 +474,29 @@ class ValidatorRulesTest extends Specification implements ValidatorFixtures {
         then:
         result.validationResults.size() == 17
     }
+
+    def "property min max abbreviation rule"() {
+        when:
+        def options = singletonList(new RuleOption(RuleOptionType.EXCLUDE.toString(), "InvalidMinMax:minimumExcluded"))
+        def validators = Arrays.asList(new TypesValidator(Arrays.asList(PropertyMinMaxAbbreviationRule.create(options))))
+        def uri = uriFromClasspath("/property-minmax-abbreviation-rule.raml")
+        def result = new RamlModelBuilder(validators).buildApi(uri)
+        then:
+        result.validationResults.size() == 6
+        result.validationResults[0].message == "Property \"minimumQuantity\" of type \"InvalidMinMax\" must use \"min\"/\"max\" instead of \"minimum\"/\"maximum\""
+        result.validationResults[1].message == "Property \"maximumPrice\" of type \"InvalidMinMax\" must use \"min\"/\"max\" instead of \"minimum\"/\"maximum\""
+        result.validationResults[2].message == "Property \"minimumOrder\" of type \"InvalidMinMax\" must use \"min\"/\"max\" instead of \"minimum\"/\"maximum\""
+        result.validationResults[3].message == "Property \"maximumItems\" of type \"InvalidMinMax\" must use \"min\"/\"max\" instead of \"minimum\"/\"maximum\""
+        result.validationResults[4].message == "Property \"minimum\" of type \"InvalidMinMax\" must use \"min\"/\"max\" instead of \"minimum\"/\"maximum\""
+        result.validationResults[5].message == "Property \"maximum\" of type \"InvalidMinMax\" must use \"min\"/\"max\" instead of \"minimum\"/\"maximum\""
+    }
+
+    def "property min max abbreviation rule without exclusions"() {
+        when:
+        def validators = Arrays.asList(new TypesValidator(Arrays.asList(PropertyMinMaxAbbreviationRule.create(emptyList()))))
+        def uri = uriFromClasspath("/property-minmax-abbreviation-rule.raml")
+        def result = new RamlModelBuilder(validators).buildApi(uri)
+        then:
+        result.validationResults.size() == 7
+    }
 }

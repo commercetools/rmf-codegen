@@ -1,0 +1,55 @@
+#%RAML 1.0
+title: property min max abbreviation rule
+
+annotationTypes:
+  package: string
+  sdkBaseUri: string
+
+baseUri: https://api.europe-west1.commercetools.com
+
+types:
+  InvalidMinMax:
+    (package): Common
+    type: object
+    properties:
+      minimumQuantity:
+        description: uses minimum as prefix - should be minQuantity
+        type: number
+      maximumPrice:
+        description: uses maximum as prefix - should be maxPrice
+        type: number
+      minimumOrder:
+        description: uses minimum as prefix - should be minOrder
+        type: number
+      maximumItems:
+        description: uses maximum as prefix - should be maxItems
+        type: number
+      minimum:
+        description: standalone minimum - should be min
+        type: number
+      maximum:
+        description: standalone maximum - should be max
+        type: number
+      minimumExcluded:
+        description: will be excluded via options
+        type: string
+
+  ValidMinMax:
+    (package): Common
+    type: object
+    properties:
+      minQuantity:
+        description: correct abbreviated prefix
+        type: number
+      maxPrice:
+        description: correct abbreviated prefix
+        type: number
+      min:
+        description: correct standalone abbreviation
+        type: number
+      max:
+        description: correct standalone abbreviation
+        type: number
+      validName:
+        description: unrelated property name
+        type: string
