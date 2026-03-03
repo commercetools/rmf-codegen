@@ -1,0 +1,34 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(grep -l \"minimum\\\\|maximum\" /Users/morass/Repos/rmf-codegen/ctp-validators/src/test/resources/*.raml)",
+      "Bash(./gradlew :ctp-validators:test)",
+      "Bash(find /Users/morass/Repos/sphere-backend -name \"*.raml\" -exec grep -l \"minimum\\\\|maximum\" {} ;)",
+      "Bash(xargs cat)",
+      "Bash(while read f)",
+      "Bash(do grep -H \"minimum\\\\|maximum\" \"$f\")",
+      "Bash(done)",
+      "Bash(shuf)",
+      "Bash(find /Users/morass/Repos/sphere-backend/platform/search-api/src/main/raml -name \"*.raml\" -type f -exec cat {} ;)",
+      "Bash(find /Users/morass/Repos/commercetools-docs/api-specs -type f -name \"*.raml\" -exec grep -H \"^\\\\s*\\\\\\(minimum\\\\|maximum\\\\\\)\" {} ;)",
+      "Bash(find /Users/morass/Repos/commercetools-docs/api-specs -type f -name \"*.raml\" -exec grep -H \"^\\\\s*\\\\\\(minimum[A-Z]\\\\|maximum[A-Z]\\\\\\)\" {} ;)",
+      "Bash(find /Users/morass/Repos/commercetools-docs/api-specs -type f -name \"*.raml\" -exec grep -l \"^\\\\s*\\\\\\(minimum\\\\|maximum\\\\\\)\" {} ;)",
+      "Bash(find /Users/morass/Repos/rmf-codegen/.claude/worktrees/bold-poitras -name \"*.raml\" -exec grep -l \"headers:\" {} ;)",
+      "Bash(git add ctp-validators/src/main/kotlin/com/commercetools/rmf/validators/ParameterMinMaxAbbreviationRule.kt ctp-validators/src/test/resources/parameter-minmax-abbreviation-rule.raml ctp-validators/src/test/groovy/com/commercetools/rmf/validators/ValidatorRulesTest.groovy)",
+      "Bash(git commit:*)",
+      "Bash(git push origin claude/bold-poitras)",
+      "Bash(git add api-specs/README.md)",
+      "Bash(git push)",
+      "Bash(git add api-specs/readme.md)",
+      "mcp__fc210d30-797d-4966-8b55-8c3a3a9c5988__updateConfluencePage",
+      "Bash(brew --version)",
+      "Bash(/opt/homebrew/bin/brew --version)",
+      "Bash(/usr/local/bin/brew --version)",
+      "Bash(/opt/homebrew/bin/gh --version)",
+      "Bash(/usr/local/bin/gh --version)",
+      "Bash(python3 -c \":*)"
+    ]
+  }
+}
