@@ -1,0 +1,32 @@
+#%RAML 1.0
+title: with total default rule
+
+/valid-resource:
+  get:
+    queryParameters:
+      withTotal:
+        type: boolean
+        default: false
+        required: false
+
+/invalid-resource-true:
+  get:
+    queryParameters:
+      withTotal:
+        type: boolean
+        default: true
+        required: false
+
+/invalid-resource-no-default:
+  get:
+    queryParameters:
+      withTotal:
+        type: boolean
+        required: false
+
+/unrelated-resource:
+  get:
+    queryParameters:
+      limit:
+        type: number
+        default: 20
