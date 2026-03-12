@@ -482,13 +482,15 @@ class ValidatorRulesTest extends Specification implements ValidatorFixtures {
         def uri = uriFromClasspath("/property-minmax-abbreviation-rule.raml")
         def result = new RamlModelBuilder(validators).buildApi(uri)
         then:
-        result.validationResults.size() == 6
+        result.validationResults.size() == 8
         result.validationResults[0].message == "Property \"minimumQuantity\" of type \"InvalidMinMax\" must use \"min\"/\"max\" instead of \"minimum\"/\"maximum\""
         result.validationResults[1].message == "Property \"maximumPrice\" of type \"InvalidMinMax\" must use \"min\"/\"max\" instead of \"minimum\"/\"maximum\""
         result.validationResults[2].message == "Property \"minimumOrder\" of type \"InvalidMinMax\" must use \"min\"/\"max\" instead of \"minimum\"/\"maximum\""
         result.validationResults[3].message == "Property \"maximumItems\" of type \"InvalidMinMax\" must use \"min\"/\"max\" instead of \"minimum\"/\"maximum\""
         result.validationResults[4].message == "Property \"minimum\" of type \"InvalidMinMax\" must use \"min\"/\"max\" instead of \"minimum\"/\"maximum\""
         result.validationResults[5].message == "Property \"maximum\" of type \"InvalidMinMax\" must use \"min\"/\"max\" instead of \"minimum\"/\"maximum\""
+        result.validationResults[6].message == "Property \"minimumTypeNumber\" of type \"InvalidMinMax\" must use \"min\"/\"max\" instead of \"minimum\"/\"maximum\""
+        result.validationResults[7].message == "Property \"minimumNumber\" of type \"InvalidMinMax\" must use \"min\"/\"max\" instead of \"minimum\"/\"maximum\""
     }
 
     def "property min max abbreviation rule without exclusions"() {
@@ -497,7 +499,7 @@ class ValidatorRulesTest extends Specification implements ValidatorFixtures {
         def uri = uriFromClasspath("/property-minmax-abbreviation-rule.raml")
         def result = new RamlModelBuilder(validators).buildApi(uri)
         then:
-        result.validationResults.size() == 7
+        result.validationResults.size() == 9
     }
 
     def "parameter min max abbreviation rule"() {
@@ -507,13 +509,15 @@ class ValidatorRulesTest extends Specification implements ValidatorFixtures {
         def uri = uriFromClasspath("/parameter-minmax-abbreviation-rule.raml")
         def result = new RamlModelBuilder(validators).buildApi(uri)
         then:
-        result.validationResults.size() == 6
+        result.validationResults.size() == 8
         result.validationResults[0].message == "Query parameter \"minimumQuantity\" must use \"min\"/\"max\" instead of \"minimum\"/\"maximum\""
         result.validationResults[1].message == "Query parameter \"maximumPrice\" must use \"min\"/\"max\" instead of \"minimum\"/\"maximum\""
         result.validationResults[2].message == "Query parameter \"minimum\" must use \"min\"/\"max\" instead of \"minimum\"/\"maximum\""
         result.validationResults[3].message == "Query parameter \"maximum\" must use \"min\"/\"max\" instead of \"minimum\"/\"maximum\""
-        result.validationResults[4].message == "Header \"minimumRetry\" must use \"min\"/\"max\" instead of \"minimum\"/\"maximum\""
-        result.validationResults[5].message == "Header \"maximumRetry\" must use \"min\"/\"max\" instead of \"minimum\"/\"maximum\""
+        result.validationResults[4].message == "Query parameter \"minimumTypeNumber\" must use \"min\"/\"max\" instead of \"minimum\"/\"maximum\""
+        result.validationResults[5].message == "Query parameter \"minimumDescNumber\" must use \"min\"/\"max\" instead of \"minimum\"/\"maximum\""
+        result.validationResults[6].message == "Header \"minimumRetry\" must use \"min\"/\"max\" instead of \"minimum\"/\"maximum\""
+        result.validationResults[7].message == "Header \"maximumRetry\" must use \"min\"/\"max\" instead of \"minimum\"/\"maximum\""
     }
 
     def "parameter min max abbreviation rule without exclusions"() {
@@ -522,6 +526,6 @@ class ValidatorRulesTest extends Specification implements ValidatorFixtures {
         def uri = uriFromClasspath("/parameter-minmax-abbreviation-rule.raml")
         def result = new RamlModelBuilder(validators).buildApi(uri)
         then:
-        result.validationResults.size() == 7
+        result.validationResults.size() == 9
     }
 }
