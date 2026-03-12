@@ -535,8 +535,10 @@ class ValidatorRulesTest extends Specification implements ValidatorFixtures {
         def uri = uriFromClasspath("/with-total-default-rule.raml")
         def result = new RamlModelBuilder(validators).buildApi(uri)
         then:
-        result.validationResults.size() == 2
+        result.validationResults.size() == 4
         result.validationResults[0].message == "Query parameter \"withTotal\" of method \"GET /invalid-resource-true\" must have a default value of \"false\", found \"true\""
         result.validationResults[1].message == "Query parameter \"withTotal\" of method \"GET /invalid-resource-no-default\" must have a default value of \"false\""
+        result.validationResults[2].message == "Query parameter \"withTotal\" of method \"GET /invalid-resource-shorthand\" must have a default value of \"false\""
+        result.validationResults[3].message == "Query parameter \"withTotal\" of method \"GET /invalid-resource-desc-true\" must have a default value of \"false\", found \"true\""
     }
 }

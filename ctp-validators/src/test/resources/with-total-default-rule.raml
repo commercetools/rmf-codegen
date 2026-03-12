@@ -24,6 +24,29 @@ title: with total default rule
         type: boolean
         required: false
 
+/invalid-resource-shorthand:
+  get:
+    queryParameters:
+      withTotal: boolean
+
+/invalid-resource-desc-true:
+  get:
+    queryParameters:
+      withTotal:
+        description: Include total count in response
+        type: boolean
+        default: true
+        required: false
+
+/valid-resource-desc:
+  get:
+    queryParameters:
+      withTotal:
+        description: Include total count in response
+        type: boolean
+        default: false
+        required: false
+
 /unrelated-resource:
   get:
     queryParameters:
