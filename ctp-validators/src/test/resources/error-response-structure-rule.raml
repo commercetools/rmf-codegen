@@ -6,8 +6,10 @@ types:
     type: object
     properties:
       statusCode:
+        description: HTTP status code
         type: integer
       message:
+        description: Error message
         type: string
       errors:
         type: array
@@ -15,6 +17,7 @@ types:
           type: object
           properties:
             code:
+              description: Error code
               type: string
             message:
               type: string
@@ -38,6 +41,7 @@ types:
     type: object
     properties:
       statusCode:
+        description: HTTP status code
         type: integer
       errors:
         type: array
@@ -47,6 +51,7 @@ types:
             code:
               type: string
             message:
+              description: Error message
               type: string
 
   MissingErrorsArrayError:
@@ -63,6 +68,7 @@ types:
       statusCode:
         type: integer
       message:
+        description: Error message
         type: string
       errors:
         type: array
@@ -70,6 +76,7 @@ types:
           type: object
           properties:
             detail:
+              description: Error detail
               type: string
 
 /valid:
