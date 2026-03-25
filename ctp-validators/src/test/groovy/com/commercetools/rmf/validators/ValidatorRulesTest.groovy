@@ -474,4 +474,48 @@ class ValidatorRulesTest extends Specification implements ValidatorFixtures {
         then:
         result.validationResults.size() == 17
     }
+
+    def "resource allowed characters rule"() {
+        when:
+        def validators = Arrays.asList(new ResourcesValidator(Arrays.asList(ResourceAllowedCharactersRule.create(emptyList()))))
+        def uri = uriFromClasspath("/resource-path-segment-rule.raml")
+        def result = new RamlModelBuilder(validators).buildApi(uri)
+        then:
+        result.validationResults.size() == 4
+        result.validationResults[0].message == "Resource \"/{projectKey}/invalid_underscore\" path segment \"invalid_underscore\" must only contain lowercase letters, digits, and hyphens"
+        result.validationResults[1].message == "Resource \"/{projectKey}/invalid~tilde\" path segment \"invalid~tilde\" must only contain lowercase letters, digits, and hyphens"
+        result.validationResults[2].message == "Resource \"/{projectKey}/products.json\" path segment \"products.json\" must only contain lowercase letters, digits, and hyphens"
+        result.validationResults[3].message == "Resource \"/{projectKey}/export.csv\" path segment \"export.csv\" must only contain lowercase letters, digits, and hyphens"
+    }
+
+    def "resource allowed characters rule with exclusions"() {
+        when:
+        def options = singletonList(new RuleOption(RuleOptionType.EXCLUDE.toString(), "invalid_underscore"))
+        def validators = Arrays.asList(new ResourcesValidator(Arrays.asList(ResourceAllowedCharactersRule.create(options))))
+        def uri = uriFromClasspath("/resource-path-segment-rule.raml")
+        def result = new RamlModelBuilder(validators).buildApi(uri)
+        then:
+        result.validationResults.size() == 3
+    }
+
+    def "resource no file extension rule"() {
+        when:
+        def validators = Arrays.asList(new ResourcesValidator(Arrays.asList(ResourceNoFileExtensionRule.create(emptyList()))))
+        def uri = uriFromClasspath("/resource-path-segment-rule.raml")
+        def result = new RamlModelBuilder(validators).buildApi(uri)
+        then:
+        result.validationResults.size() == 2
+        result.validationResults[0].message == "Resource \"/{projectKey}/products.json\" path segment \"products.json\" must not contain a file extension"
+        result.validationResults[1].message == "Resource \"/{projectKey}/export.csv\" path segment \"export.csv\" must not contain a file extension"
+    }
+
+    def "resource no file extension rule with exclusions"() {
+        when:
+        def options = singletonList(new RuleOption(RuleOptionType.EXCLUDE.toString(), "products.json"))
+        def validators = Arrays.asList(new ResourcesValidator(Arrays.asList(ResourceNoFileExtensionRule.create(options))))
+        def uri = uriFromClasspath("/resource-path-segment-rule.raml")
+        def result = new RamlModelBuilder(validators).buildApi(uri)
+        then:
+        result.validationResults.size() == 1
+    }
 }
