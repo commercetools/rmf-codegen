@@ -474,4 +474,25 @@ class ValidatorRulesTest extends Specification implements ValidatorFixtures {
         then:
         result.validationResults.size() == 17
     }
+
+    def "uri parameter camelCase rule"() {
+        when:
+        def options = singletonList(new RuleOption(RuleOptionType.EXCLUDE.toString(), "ID"))
+        def validators = Arrays.asList(new ResourcesValidator(Arrays.asList(UriParameterCamelCaseRule.create(options))))
+        def uri = uriFromClasspath("/uri-parameter-camelcase-rule.raml")
+        def result = new RamlModelBuilder(validators).buildApi(uri)
+        then:
+        result.validationResults.size() == 2
+        result.validationResults[0].message == "URI parameter \"productID\" in resource \"/{projectKey}/invalid/{productID}\" must be lowerCamelCase"
+        result.validationResults[1].message == "URI parameter \"BusinessUnitKey\" in resource \"/{projectKey}/invalid/{BusinessUnitKey}\" must be lowerCamelCase"
+    }
+
+    def "uri parameter camelCase rule without exclusions"() {
+        when:
+        def validators = Arrays.asList(new ResourcesValidator(Arrays.asList(UriParameterCamelCaseRule.create(emptyList()))))
+        def uri = uriFromClasspath("/uri-parameter-camelcase-rule.raml")
+        def result = new RamlModelBuilder(validators).buildApi(uri)
+        then:
+        result.validationResults.size() == 3
+    }
 }

@@ -1,0 +1,12 @@
+#%RAML 1.0
+title: uri parameter camelCase rule
+
+/{projectKey}:
+  /valid:
+    /{id}:
+    /key={key}:
+    /{associateId}:
+  /invalid:
+    /{ID}:
+    /{productID}:
+    /{BusinessUnitKey}:
