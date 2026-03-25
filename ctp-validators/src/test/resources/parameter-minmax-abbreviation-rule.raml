@@ -1,0 +1,22 @@
+#%RAML 1.0
+title: parameter min max abbreviation rule
+
+/resources:
+  get:
+    queryParameters:
+      minimumQuantity: string
+      maximumPrice: string
+      minimum: string
+      maximum: string
+      minimumExcluded: string
+      minimumTypeNumber:
+        type: string
+      minimumDescNumber:
+        description: Lorem Ipsum
+        type: string
+      minQuantity: string
+      maxPrice: string
+    headers:
+      minimumRetry: string
+      maximumRetry: string
+      maxRetry: string
