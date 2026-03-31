@@ -518,4 +518,61 @@ class ValidatorRulesTest extends Specification implements ValidatorFixtures {
         then:
         result.validationResults.size() == 1
     }
+
+    def "resource plural rule with classifier - valid collections and skipped non-collections"() {
+        when:
+        def validators = Arrays.asList(new ResourcesValidator(Arrays.asList(ResourcePluralRule.create(emptyList()))))
+        def uri = uriFromClasspath("/resource-classifier-plural.raml")
+        def result = new RamlModelBuilder(validators).buildApi(uri)
+        then:
+        result.validationResults.size() == 0
+    }
+
+    def "resource plural rule with classifier - singular collection detected"() {
+        when:
+        def validators = Arrays.asList(new ResourcesValidator(Arrays.asList(ResourcePluralRule.create(emptyList()))))
+        def uri = uriFromClasspath("/resource-classifier-plural-invalid.raml")
+        def result = new RamlModelBuilder(validators).buildApi(uri)
+        then:
+        result.validationResults.size() == 1
+        result.validationResults[0].message == "Resource \"category\" must be plural"
+    }
+
+    def "resource singular rule - valid singletons"() {
+        when:
+        def validators = Arrays.asList(new ResourcesValidator(Arrays.asList(ResourceSingularRule.create(emptyList()))))
+        def uri = uriFromClasspath("/resource-singular-rule.raml")
+        def result = new RamlModelBuilder(validators).buildApi(uri)
+        then:
+        result.validationResults.size() == 0
+    }
+
+    def "resource singular rule - plural singleton detected"() {
+        when:
+        def validators = Arrays.asList(new ResourcesValidator(Arrays.asList(ResourceSingularRule.create(emptyList()))))
+        def uri = uriFromClasspath("/resource-singular-rule-invalid.raml")
+        def result = new RamlModelBuilder(validators).buildApi(uri)
+        then:
+        result.validationResults.size() == 1
+        result.validationResults[0].message == "Singleton resource \"configurations\" must be singular"
+    }
+
+    def "scoping order rule - valid order"() {
+        when:
+        def validators = Arrays.asList(new ResourcesValidator(Arrays.asList(ScopingOrderRule.create(emptyList()))))
+        def uri = uriFromClasspath("/scoping-order-rule.raml")
+        def result = new RamlModelBuilder(validators).buildApi(uri)
+        then:
+        result.validationResults.size() == 0
+    }
+
+    def "scoping order rule - invalid order"() {
+        when:
+        def validators = Arrays.asList(new ResourcesValidator(Arrays.asList(ScopingOrderRule.create(emptyList()))))
+        def uri = uriFromClasspath("/scoping-order-rule-invalid.raml")
+        def result = new RamlModelBuilder(validators).buildApi(uri)
+        then:
+        result.validationResults.size() == 1
+        result.validationResults[0].message.contains("incorrect scoping order")
+    }
 }
