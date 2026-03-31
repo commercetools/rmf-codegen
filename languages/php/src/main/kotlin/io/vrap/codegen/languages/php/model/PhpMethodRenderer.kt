@@ -111,7 +111,7 @@ class PhpMethodRenderer constructor(override val vrapTypeProvider: VrapTypeProvi
             |        $!uri = str_replace([${
             type.allParams()?.joinToString(separator = ", ") { "'{$it}'" } ?: ""
         }], [${
-            type.allParams()?.joinToString(separator = ", ") { "$$it" } ?: ""
+            type.allParams()?.joinToString(separator = ", ") { "urlencode($$it)" } ?: ""
         }], '${type.apiResource().fullUri.template.trimStart('/')}');
             |        <<${type.firstBody()?.ensureContentType() ?: ""}>>
             |        <<${
