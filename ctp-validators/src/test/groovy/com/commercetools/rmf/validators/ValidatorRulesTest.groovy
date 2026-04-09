@@ -528,4 +528,29 @@ class ValidatorRulesTest extends Specification implements ValidatorFixtures {
         then:
         result.validationResults.size() == 9
     }
+
+    def "error response structure rule"() {
+        when:
+        def options = singletonList(new RuleOption(RuleOptionType.EXCLUDE.toString(), "GET /excluded"))
+        def validators = Arrays.asList(new ResourcesValidator(Arrays.asList(ErrorResponseStructureRule.create(options))))
+        def uri = uriFromClasspath("/error-response-structure-rule.raml")
+        def result = new RamlModelBuilder(validators).buildApi(uri)
+        then:
+        result.validationResults.size() == 5
+        result.validationResults[0].message == "Method \"GET /missing-status-code\" error response (status 400) body type must have a \"statusCode\" property"
+        result.validationResults[1].message == "Method \"GET /missing-message\" error response (status 404) body type must have a \"message\" property"
+        result.validationResults[2].message == "Method \"GET /missing-errors-array\" error response (status 500) body type should have an \"errors\" array property"
+        result.validationResults[2].severity == Diagnostic.WARNING
+        result.validationResults[3].message == "Method \"GET /invalid-error-items\" error response (status 400) error items must have a \"code\" property"
+        result.validationResults[4].message == "Method \"GET /invalid-error-items\" error response (status 400) error items must have a \"message\" property"
+    }
+
+    def "error response structure rule without exclusions"() {
+        when:
+        def validators = Arrays.asList(new ResourcesValidator(Arrays.asList(ErrorResponseStructureRule.create(emptyList()))))
+        def uri = uriFromClasspath("/error-response-structure-rule.raml")
+        def result = new RamlModelBuilder(validators).buildApi(uri)
+        then:
+        result.validationResults.size() == 6
+    }
 }

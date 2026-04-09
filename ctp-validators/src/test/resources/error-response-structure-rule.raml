@@ -1,0 +1,132 @@
+#%RAML 1.0
+title: error response structure rule
+
+types:
+  ValidErrorResponse:
+    type: object
+    properties:
+      statusCode:
+        description: HTTP status code
+        type: integer
+      message:
+        description: Error message
+        type: string
+      errors:
+        type: array
+        items:
+          type: object
+          properties:
+            code:
+              description: Error code
+              type: string
+            message:
+              type: string
+
+  MissingStatusCodeError:
+    type: object
+    properties:
+      message:
+        type: string
+      errors:
+        type: array
+        items:
+          type: object
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+
+  MissingMessageError:
+    type: object
+    properties:
+      statusCode:
+        description: HTTP status code
+        type: integer
+      errors:
+        type: array
+        items:
+          type: object
+          properties:
+            code:
+              type: string
+            message:
+              description: Error message
+              type: string
+
+  MissingErrorsArrayError:
+    type: object
+    properties:
+      statusCode:
+        type: integer
+      message:
+        type: string
+
+  InvalidErrorItems:
+    type: object
+    properties:
+      statusCode:
+        type: integer
+      message:
+        description: Error message
+        type: string
+      errors:
+        type: array
+        items:
+          type: object
+          properties:
+            detail:
+              description: Error detail
+              type: string
+
+/valid:
+  get:
+    responses:
+      200:
+        body:
+          application/json:
+            type: object
+      400:
+        body:
+          application/json:
+            type: ValidErrorResponse
+
+/missing-status-code:
+  get:
+    responses:
+      400:
+        body:
+          application/json:
+            type: MissingStatusCodeError
+
+/missing-message:
+  get:
+    responses:
+      404:
+        body:
+          application/json:
+            type: MissingMessageError
+
+/missing-errors-array:
+  get:
+    responses:
+      500:
+        body:
+          application/json:
+            type: MissingErrorsArrayError
+
+/invalid-error-items:
+  get:
+    responses:
+      400:
+        body:
+          application/json:
+            type: InvalidErrorItems
+
+/excluded:
+  get:
+    responses:
+      400:
+        body:
+          application/json:
+            type: MissingStatusCodeError
