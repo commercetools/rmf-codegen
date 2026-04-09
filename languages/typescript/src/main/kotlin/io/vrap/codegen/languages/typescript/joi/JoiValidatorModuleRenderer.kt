@@ -8,6 +8,7 @@ import io.vrap.codegen.languages.typescript.tsGeneratedComment
 import io.vrap.rmf.codegen.di.AllAnyTypes
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendering.FileProducer
+import io.vrap.rmf.codegen.rendering.utils.escapeAll
 import io.vrap.rmf.codegen.rendering.utils.keepIndentation
 import io.vrap.rmf.codegen.types.*
 import io.vrap.rmf.raml.model.types.*
@@ -194,7 +195,13 @@ class JoiValidatorModuleRenderer constructor(override val vrapTypeProvider: Vrap
                 vrapType.renderTypeRef()
         val uniqueAnnotation = this.getAnnotation("uniqueProperty") ?: this.type.getAnnotation("uniqueProperty")
         val uniquePropConstraint = if (uniqueAnnotation != null) ".unique(\"${(uniqueAnnotation.value as StringInstance).value}\")" else ""
-        return "${name}: ${joiSchema}${minConstraint}${maxConstraint}${patternConstraint}${discriminatorConstraint}${uniquePropConstraint}${requiredConstraint}"
+        val uniquePropsAnnotation = this.getAnnotation("uniqueProperties") ?: this.type.getAnnotation("uniqueProperties")
+        val uniquePropsConstraint = if (uniquePropsAnnotation != null) ".unique((a, b) => ${
+            (uniquePropsAnnotation.value as ArrayInstance).value.joinToString(
+                " && "
+            ) { "a[\"${it.value}\"] === b[\"${it.value}\"]" }
+        })".escapeAll() else ""
+        return "${name}: ${joiSchema}${minConstraint}${maxConstraint}${patternConstraint}${discriminatorConstraint}${uniquePropConstraint}${uniquePropsConstraint}${requiredConstraint}"
     }
 
     private fun VrapType.renderTypeRef(): String {
