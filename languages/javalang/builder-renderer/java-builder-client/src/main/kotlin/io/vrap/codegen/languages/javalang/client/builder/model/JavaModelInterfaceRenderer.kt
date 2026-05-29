@@ -50,7 +50,7 @@ class JavaModelInterfaceRenderer constructor(override val vrapTypeProvider: Vrap
             |${type.subclassImport()}
             |
             |import com.fasterxml.jackson.annotation.*;
-            |import com.fasterxml.jackson.databind.annotation.*;
+            |import tools.jackson.databind.annotation.*;
             |import io.vrap.rmf.base.client.utils.Generated;
             |import io.vrap.rmf.base.client.Accessor;
             |import jakarta.validation.Valid;
@@ -118,8 +118,8 @@ class JavaModelInterfaceRenderer constructor(override val vrapTypeProvider: Vrap
             | * gives a TypeReference for usage with Jackson DataBind
             | * @return TypeReference
             | */
-            |public static com.fasterxml.jackson.core.type.TypeReference<${vrapType.simpleClassName}> typeReference() {
-            |    return new com.fasterxml.jackson.core.type.TypeReference<${vrapType.simpleClassName}>() {
+            |public static tools.jackson.core.type.TypeReference<${vrapType.simpleClassName}> typeReference() {
+            |    return new tools.jackson.core.type.TypeReference<${vrapType.simpleClassName}>() {
             |        @Override
             |        public String toString() {
             |            return "TypeReference<${vrapType.simpleClassName}>";

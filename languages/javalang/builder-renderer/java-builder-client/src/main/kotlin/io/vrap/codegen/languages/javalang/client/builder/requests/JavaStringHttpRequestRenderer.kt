@@ -73,7 +73,7 @@ class JavaStringHttpRequestRenderer constructor(override val vrapTypeProvider: V
             |import java.util.stream.Collectors;
             |import java.util.concurrent.CompletableFuture;
             |import io.vrap.rmf.base.client.utils.Generated;
-            |import com.fasterxml.jackson.core.type.TypeReference;
+            |import tools.jackson.core.type.TypeReference;
             |
             |import javax.annotation.Nullable;
             |
