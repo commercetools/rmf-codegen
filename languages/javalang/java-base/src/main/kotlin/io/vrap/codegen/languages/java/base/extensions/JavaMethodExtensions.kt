@@ -13,7 +13,7 @@ fun Method.javaReturnType(vrapTypeProvider: VrapTypeProvider) : String {
     if(returnType is VrapObjectType) {
         return "${returnType.`package`.toJavaPackage()}.${returnType.simpleClassName}"
     }
-    return "com.fasterxml.jackson.databind.JsonNode"
+    return "tools.jackson.databind.JsonNode"
 }
 
 fun Method.toStringRequestName(): String {

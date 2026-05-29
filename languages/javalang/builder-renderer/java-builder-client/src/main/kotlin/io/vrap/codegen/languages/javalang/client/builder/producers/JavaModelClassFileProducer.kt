@@ -50,8 +50,8 @@ class JavaModelClassFileProducer constructor(override val vrapTypeProvider: Vrap
                 |import java.util.*;
                 |import java.time.*;
                 |
-                |import com.fasterxml.jackson.core.JsonProcessingException;
-                |import com.fasterxml.jackson.databind.annotation.*;
+                |import tools.jackson.core.exc.JacksonException;
+                |import import tools.jackson.databind.annotation.*;
                 |import com.fasterxml.jackson.annotation.JsonAnySetter;
                 |import com.fasterxml.jackson.annotation.JsonCreator;
                 |import com.fasterxml.jackson.annotation.JsonIgnore;
