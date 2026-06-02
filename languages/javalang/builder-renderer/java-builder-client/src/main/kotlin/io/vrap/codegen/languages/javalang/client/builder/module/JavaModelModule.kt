@@ -14,13 +14,13 @@ object JavaModelModule: Module {
 
         override fun configure(generatorModule: RamlGeneratorModule) = setOf<CodeGenerator> (
             ObjectTypeGenerator(setOf(
-                    JavaModelInterfaceRenderer(generatorModule.vrapTypeProvider())
+                    JavaModelInterfaceRenderer(generatorModule.vrapTypeProvider(), generatorModule.generatorConfig)
             ), generatorModule.allObjectTypes()),
             StringTypeGenerator(setOf(
                     JavaStringTypeRenderer(generatorModule.vrapTypeProvider())
             ), generatorModule.allEnumStringTypes()),
             FileGenerator(setOf(
-                    JavaModelClassFileProducer(generatorModule.vrapTypeProvider(), generatorModule.allObjectTypes()),
+                    JavaModelClassFileProducer(generatorModule.vrapTypeProvider(), generatorModule.allObjectTypes(), generatorModule.generatorConfig),
                     JavaModelDraftBuilderFileProducer(generatorModule.vrapTypeProvider(), generatorModule.allObjectTypes()),
             ))
     )

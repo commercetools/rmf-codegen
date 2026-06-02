@@ -5,6 +5,7 @@ import io.vrap.codegen.languages.extensions.isPatternProperty
 import io.vrap.codegen.languages.extensions.toComment
 import io.vrap.codegen.languages.java.base.JavaSubTemplates
 import io.vrap.codegen.languages.java.base.extensions.*
+import io.vrap.rmf.codegen.CodeGeneratorConfig
 import io.vrap.rmf.codegen.di.AllObjectTypes
 import io.vrap.rmf.codegen.io.TemplateFile
 import io.vrap.rmf.codegen.rendering.FileProducer
@@ -18,8 +19,10 @@ import io.vrap.rmf.raml.model.types.Annotation
 import javax.lang.model.SourceVersion
 
 
-class JavaModelClassFileProducer constructor(override val vrapTypeProvider: VrapTypeProvider, @AllObjectTypes private val allObjectTypes: List<ObjectType>) : JavaObjectTypeExtensions, JavaEObjectTypeExtensions, FileProducer {
+class JavaModelClassFileProducer constructor(override val vrapTypeProvider: VrapTypeProvider, @AllObjectTypes private val allObjectTypes: List<ObjectType>, val generatorConfig: CodeGeneratorConfig) : JavaObjectTypeExtensions, JavaEObjectTypeExtensions, FileProducer {
 
+    val jacksonVersion = if (generatorConfig.jacksonV3) "tools" else "com.fasterxml"
+    val jacksonExcVersion = if (generatorConfig.jacksonV3) "exc.JacksonException" else "JsonProcessingException"
     override fun produceFiles(): List<TemplateFile> {
         return allObjectTypes.filter{!it.deprecated()}.map { render(it) }
     }
@@ -50,8 +53,8 @@ class JavaModelClassFileProducer constructor(override val vrapTypeProvider: Vrap
                 |import java.util.*;
                 |import java.time.*;
                 |
-                |import com.fasterxml.jackson.core.JsonProcessingException;
-                |import com.fasterxml.jackson.databind.annotation.*;
+                |import ${jacksonVersion}.jackson.core.${jacksonExcVersion};
+                |import ${jacksonVersion}.jackson.databind.annotation.*;
                 |import com.fasterxml.jackson.annotation.JsonAnySetter;
                 |import com.fasterxml.jackson.annotation.JsonCreator;
                 |import com.fasterxml.jackson.annotation.JsonIgnore;

@@ -1,5 +1,6 @@
 package io.vrap.codegen.languages.java.base
 
+import io.vrap.rmf.codegen.CodeGeneratorConfig
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 
 interface ExtensionsBase {

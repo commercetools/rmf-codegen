@@ -5,6 +5,7 @@ import com.google.common.net.MediaType
 import io.vrap.codegen.languages.extensions.*
 import io.vrap.codegen.languages.java.base.JavaSubTemplates
 import io.vrap.codegen.languages.java.base.extensions.*
+import io.vrap.rmf.codegen.CodeGeneratorConfig
 import io.vrap.rmf.codegen.firstUpperCase
 import io.vrap.rmf.codegen.firstLowerCase
 import io.vrap.rmf.codegen.io.TemplateFile
@@ -26,8 +27,9 @@ import org.eclipse.emf.ecore.EObject
  * Query parameters with this annotation should be ignored by JVM sdk.
  */
 
-class JavaStringHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTypeProvider) : MethodRenderer, JavaObjectTypeExtensions, JavaEObjectTypeExtensions {
+class JavaStringHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTypeProvider, val generatorConfig: CodeGeneratorConfig) : MethodRenderer, JavaObjectTypeExtensions, JavaEObjectTypeExtensions {
 
+    val jacksonVersion = if (generatorConfig.jacksonV3) "tools" else "com.fasterxml"
     override fun render(type: Method): TemplateFile {
         val vrapType = vrapTypeProvider.doSwitch(type as EObject) as VrapObjectType
 
@@ -73,7 +75,7 @@ class JavaStringHttpRequestRenderer constructor(override val vrapTypeProvider: V
             |import java.util.stream.Collectors;
             |import java.util.concurrent.CompletableFuture;
             |import io.vrap.rmf.base.client.utils.Generated;
-            |import com.fasterxml.jackson.core.type.TypeReference;
+            |import ${jacksonVersion}.jackson.core.type.TypeReference;
             |
             |import javax.annotation.Nullable;
             |
@@ -94,11 +96,11 @@ class JavaStringHttpRequestRenderer constructor(override val vrapTypeProvider: V
             | */
             |<${JavaSubTemplates.generatedAnnotation}>${if (type.markDeprecated() ) """
             |@Deprecated""" else ""}
-            |public class ${type.toStringRequestName()} extends StringBodyApiMethod\<${type.toStringRequestName()}, ${type.javaReturnType(vrapTypeProvider)}\>${if (implements.isNotEmpty()) " implements ${implements.joinToString(", ")}" else ""} {
+            |public class ${type.toStringRequestName()} extends StringBodyApiMethod\<${type.toStringRequestName()}, ${type.javaReturnType(vrapTypeProvider, generatorConfig.jacksonV3)}\>${if (implements.isNotEmpty()) " implements ${implements.joinToString(", ")}" else ""} {
             |
             |    @Override
-            |    public TypeReference\<${type.javaReturnType(vrapTypeProvider)}\> resultType() {
-            |        return new TypeReference\<${type.javaReturnType(vrapTypeProvider)}\>() {
+            |    public TypeReference\<${type.javaReturnType(vrapTypeProvider, generatorConfig.jacksonV3)}\> resultType() {
+            |        return new TypeReference\<${type.javaReturnType(vrapTypeProvider, generatorConfig.jacksonV3)}\>() {
             |        };
             |    }
             |
@@ -147,7 +149,7 @@ class JavaStringHttpRequestRenderer constructor(override val vrapTypeProvider: V
         return """
             |\<div class=code-example\>
             |\<pre\>\<code class='java'\>{@code
-            |  CompletableFuture\<ApiHttpResponse\<${this.javaReturnType(vrapTypeProvider)}\>\> result = apiRoot
+            |  CompletableFuture\<ApiHttpResponse\<${this.javaReturnType(vrapTypeProvider, generatorConfig.jacksonV3)}\>\> result = apiRoot
             |           <${builderComment(resource, this)}>
             |}\</code\>\</pre\>
             |\</div\>
@@ -293,8 +295,8 @@ class JavaStringHttpRequestRenderer constructor(override val vrapTypeProvider: V
     private fun Method.executeBlockingMethod() : String {
         return """
             |@Override
-            |public ApiHttpResponse\<${this.javaReturnType(vrapTypeProvider)}\> executeBlocking(final ApiHttpClient client, final Duration timeout) {
-            |    return executeBlocking(client, timeout, ${this.javaReturnType(vrapTypeProvider)}.class);
+            |public ApiHttpResponse\<${this.javaReturnType(vrapTypeProvider, generatorConfig.jacksonV3)}\> executeBlocking(final ApiHttpClient client, final Duration timeout) {
+            |    return executeBlocking(client, timeout, ${this.javaReturnType(vrapTypeProvider, generatorConfig.jacksonV3)}.class);
             |}
         """.trimMargin()
     }
@@ -302,8 +304,8 @@ class JavaStringHttpRequestRenderer constructor(override val vrapTypeProvider: V
     private fun Method.executeMethod() : String {
         return """
             |@Override
-            |public CompletableFuture\<ApiHttpResponse\<${this.javaReturnType(vrapTypeProvider)}\>\> execute(final ApiHttpClient client) {
-            |    return execute(client, ${this.javaReturnType(vrapTypeProvider)}.class);
+            |public CompletableFuture\<ApiHttpResponse\<${this.javaReturnType(vrapTypeProvider, generatorConfig.jacksonV3)}\>\> execute(final ApiHttpClient client) {
+            |    return execute(client, ${this.javaReturnType(vrapTypeProvider, generatorConfig.jacksonV3)}.class);
             |}
         """.trimMargin()
     }
