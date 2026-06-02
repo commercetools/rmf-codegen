@@ -7,6 +7,7 @@ import io.vrap.codegen.languages.extensions.namedSubTypes
 import io.vrap.codegen.languages.extensions.toComment
 import io.vrap.codegen.languages.java.base.JavaSubTemplates
 import io.vrap.codegen.languages.java.base.extensions.*
+import io.vrap.rmf.codegen.CodeGeneratorConfig
 import io.vrap.rmf.codegen.firstLowerCase
 import io.vrap.rmf.codegen.firstUpperCase
 import io.vrap.rmf.codegen.io.TemplateFile
@@ -20,8 +21,9 @@ import io.vrap.rmf.raml.model.types.util.TypesSwitch
 import org.eclipse.emf.ecore.EObject
 import javax.lang.model.SourceVersion
 
-class JavaModelInterfaceRenderer constructor(override val vrapTypeProvider: VrapTypeProvider) : JavaObjectTypeExtensions, JavaEObjectTypeExtensions, ObjectTypeRenderer {
+class JavaModelInterfaceRenderer constructor(override val vrapTypeProvider: VrapTypeProvider, override val generatorConfig: CodeGeneratorConfig) : JavaObjectTypeExtensions, JavaEObjectTypeExtensions, ObjectTypeRenderer {
 
+    val jacksonVersion = if (generatorConfig.jacksonV3) "tools" else "com.fasterxml"
     override fun render(type: ObjectType): TemplateFile {
         val vrapType = vrapTypeProvider.doSwitch(type).toJavaVType() as VrapObjectType
 
@@ -42,7 +44,6 @@ class JavaModelInterfaceRenderer constructor(override val vrapTypeProvider: Vrap
                     }
                 )
             .filterNotNull()
-
         val content= """
             |package ${vrapType.`package`};
             |
@@ -50,7 +51,7 @@ class JavaModelInterfaceRenderer constructor(override val vrapTypeProvider: Vrap
             |${type.subclassImport()}
             |
             |import com.fasterxml.jackson.annotation.*;
-            |import tools.jackson.databind.annotation.*;
+            |import ${jacksonVersion}.jackson.databind.annotation.*;
             |import io.vrap.rmf.base.client.utils.Generated;
             |import io.vrap.rmf.base.client.Accessor;
             |import jakarta.validation.Valid;
@@ -118,8 +119,8 @@ class JavaModelInterfaceRenderer constructor(override val vrapTypeProvider: Vrap
             | * gives a TypeReference for usage with Jackson DataBind
             | * @return TypeReference
             | */
-            |public static tools.jackson.core.type.TypeReference<${vrapType.simpleClassName}> typeReference() {
-            |    return new tools.jackson.core.type.TypeReference<${vrapType.simpleClassName}>() {
+            |public static ${jacksonVersion}.jackson.core.type.TypeReference<${vrapType.simpleClassName}> typeReference() {
+            |    return new ${jacksonVersion}.jackson.core.type.TypeReference<${vrapType.simpleClassName}>() {
             |        @Override
             |        public String toString() {
             |            return "TypeReference<${vrapType.simpleClassName}>";

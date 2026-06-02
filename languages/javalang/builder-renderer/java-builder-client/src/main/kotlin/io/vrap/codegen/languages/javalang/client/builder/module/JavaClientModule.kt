@@ -19,8 +19,8 @@ object JavaClientModule: Module {
                     JavaRequestBuilderResourceRenderer(generatorModule.vrapTypeProvider())
             ), generatorModule.allResources().filterNot { it.deprecated() }),
             MethodGenerator(setOf(
-                    JavaHttpRequestRenderer(generatorModule.vrapTypeProvider()),
-                    JavaStringHttpRequestRenderer(generatorModule.vrapTypeProvider())
+                    JavaHttpRequestRenderer(generatorModule.vrapTypeProvider(), generatorModule.generatorConfig),
+                    JavaStringHttpRequestRenderer(generatorModule.vrapTypeProvider(), generatorModule.generatorConfig)
             ), generatorModule.allResourceMethods().filterNot { it.deprecated() }),
             TraitGenerator(setOf(
                     JavaTraitRenderer(generatorModule.vrapTypeProvider())
