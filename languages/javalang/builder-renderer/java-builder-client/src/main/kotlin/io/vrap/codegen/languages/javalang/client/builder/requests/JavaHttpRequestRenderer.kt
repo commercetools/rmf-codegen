@@ -28,7 +28,7 @@ import org.eclipse.emf.ecore.EObject
  */
 const val PLACEHOLDER_PARAM_ANNOTATION = "placeholderParam"
 
-class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTypeProvider, override val generatorConfig: CodeGeneratorConfig) : MethodRenderer, JavaObjectTypeExtensions, JavaEObjectTypeExtensions {
+class JavaHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTypeProvider, val generatorConfig: CodeGeneratorConfig) : MethodRenderer, JavaObjectTypeExtensions, JavaEObjectTypeExtensions {
 
     val jacksonVersion = if (generatorConfig.jacksonV3) "tools" else "com.fasterxml"
     override fun render(type: Method): TemplateFile {

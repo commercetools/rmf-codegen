@@ -21,7 +21,7 @@ import io.vrap.rmf.raml.model.types.util.TypesSwitch
 import org.eclipse.emf.ecore.EObject
 import javax.lang.model.SourceVersion
 
-class JavaModelInterfaceRenderer constructor(override val vrapTypeProvider: VrapTypeProvider, override val generatorConfig: CodeGeneratorConfig) : JavaObjectTypeExtensions, JavaEObjectTypeExtensions, ObjectTypeRenderer {
+class JavaModelInterfaceRenderer constructor(override val vrapTypeProvider: VrapTypeProvider, val generatorConfig: CodeGeneratorConfig) : JavaObjectTypeExtensions, JavaEObjectTypeExtensions, ObjectTypeRenderer {
 
     val jacksonVersion = if (generatorConfig.jacksonV3) "tools" else "com.fasterxml"
     override fun render(type: ObjectType): TemplateFile {

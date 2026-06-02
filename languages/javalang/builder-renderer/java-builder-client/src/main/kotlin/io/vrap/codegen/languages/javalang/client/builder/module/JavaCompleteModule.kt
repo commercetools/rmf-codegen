@@ -25,7 +25,7 @@ object JavaCompleteModule: Module {
                     JavaStringTypeRenderer(generatorModule.vrapTypeProvider())
             ), generatorModule.allEnumStringTypes()),
             FileGenerator(setOf(
-                    JavaModelClassFileProducer(generatorModule.vrapTypeProvider(), generatorModule.allObjectTypes()),
+                    JavaModelClassFileProducer(generatorModule.vrapTypeProvider(), generatorModule.allObjectTypes(), generatorModule.generatorConfig),
                     JavaModelDraftBuilderFileProducer(generatorModule.vrapTypeProvider(), generatorModule.allObjectTypes()),
                     JavaApiRootFileProducer(generatorModule.provideClientPackageName(), generatorModule.provideRamlModel())
             )),

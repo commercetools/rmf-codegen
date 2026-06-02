@@ -27,7 +27,7 @@ import org.eclipse.emf.ecore.EObject
  * Query parameters with this annotation should be ignored by JVM sdk.
  */
 
-class JavaStringHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTypeProvider, override val generatorConfig: CodeGeneratorConfig) : MethodRenderer, JavaObjectTypeExtensions, JavaEObjectTypeExtensions {
+class JavaStringHttpRequestRenderer constructor(override val vrapTypeProvider: VrapTypeProvider, val generatorConfig: CodeGeneratorConfig) : MethodRenderer, JavaObjectTypeExtensions, JavaEObjectTypeExtensions {
 
     val jacksonVersion = if (generatorConfig.jacksonV3) "tools" else "com.fasterxml"
     override fun render(type: Method): TemplateFile {

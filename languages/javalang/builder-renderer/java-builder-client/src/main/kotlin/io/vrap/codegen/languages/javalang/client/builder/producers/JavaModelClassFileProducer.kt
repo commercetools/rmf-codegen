@@ -19,7 +19,7 @@ import io.vrap.rmf.raml.model.types.Annotation
 import javax.lang.model.SourceVersion
 
 
-class JavaModelClassFileProducer constructor(override val vrapTypeProvider: VrapTypeProvider, override val generatorConfig: CodeGeneratorConfig, @AllObjectTypes private val allObjectTypes: List<ObjectType>) : JavaObjectTypeExtensions, JavaEObjectTypeExtensions, FileProducer {
+class JavaModelClassFileProducer constructor(override val vrapTypeProvider: VrapTypeProvider, @AllObjectTypes private val allObjectTypes: List<ObjectType>, val generatorConfig: CodeGeneratorConfig) : JavaObjectTypeExtensions, JavaEObjectTypeExtensions, FileProducer {
 
     val jacksonVersion = if (generatorConfig.jacksonV3) "tools" else "com.fasterxml"
     val jacksonExcVersion = if (generatorConfig.jacksonV3) "exc.JacksonException" else "JsonProcessingException"
