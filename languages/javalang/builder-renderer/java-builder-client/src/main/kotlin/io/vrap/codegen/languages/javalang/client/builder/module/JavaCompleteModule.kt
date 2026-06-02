@@ -19,7 +19,7 @@ object JavaCompleteModule: Module {
 
         override fun configure(generatorModule: RamlGeneratorModule) = setOf<CodeGenerator> (
             ObjectTypeGenerator(setOf(
-                    JavaModelInterfaceRenderer(generatorModule.vrapTypeProvider())
+                    JavaModelInterfaceRenderer(generatorModule.vrapTypeProvider(), generatorModule.generatorConfig)
             ), generatorModule.allObjectTypes()),
             StringTypeGenerator(setOf(
                     JavaStringTypeRenderer(generatorModule.vrapTypeProvider())
@@ -33,8 +33,8 @@ object JavaCompleteModule: Module {
                     JavaRequestBuilderResourceRenderer(generatorModule.vrapTypeProvider())
             ), generatorModule.allResources().filterNot { it.deprecated() }),
             MethodGenerator(setOf(
-                    JavaHttpRequestRenderer(generatorModule.vrapTypeProvider()),
-                    JavaStringHttpRequestRenderer(generatorModule.vrapTypeProvider())
+                    JavaHttpRequestRenderer(generatorModule.vrapTypeProvider(), generatorModule.generatorConfig),
+                    JavaStringHttpRequestRenderer(generatorModule.vrapTypeProvider(),  generatorModule.generatorConfig)
             ), generatorModule.allResourceMethods().filterNot { it.deprecated() }),
             TraitGenerator(setOf(
                     JavaTraitRenderer(generatorModule.vrapTypeProvider())

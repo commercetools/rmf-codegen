@@ -95,6 +95,8 @@ const val ValidTargets = "JAVA_CLIENT, JAVA_TEST, JAVA_QUERY_PREDICATES, TYPESCR
 
 @CommandLine.Command(name = "generate",description = ["Generate source code from a RAML specification."])
 class GenerateSubcommand : Callable<Int> {
+    @CommandLine.Option(names = ["--jackson-version"], description = ["Jackson major version to target (2 or 3)"], required = false, defaultValue = "2")
+    var jacksonVersion: Int = 2
 
     @CommandLine.Option(names = ["-h", "--help"], usageHelp = true, description = ["display this help message"])
     var usageHelpRequested = false

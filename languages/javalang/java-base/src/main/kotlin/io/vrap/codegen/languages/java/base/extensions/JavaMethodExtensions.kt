@@ -8,12 +8,16 @@ import io.vrap.rmf.codegen.types.VrapObjectType
 import io.vrap.rmf.codegen.types.VrapTypeProvider
 import io.vrap.rmf.raml.model.resources.Method
 
-fun Method.javaReturnType(vrapTypeProvider: VrapTypeProvider) : String {
+fun Method.javaReturnType(vrapTypeProvider: VrapTypeProvider, jacksonV3: Boolean = false) : String {
     val returnType = vrapTypeProvider.doSwitch(this.returnType())
     if(returnType is VrapObjectType) {
         return "${returnType.`package`.toJavaPackage()}.${returnType.simpleClassName}"
     }
-    return "tools.jackson.databind.JsonNode"
+    return if (jacksonV3) {
+        "tools.jackson.databind.JsonNode"
+    } else {
+    "com.fasterxml.jackson.databind.JsonNode"
+    }
 }
 
 fun Method.toStringRequestName(): String {

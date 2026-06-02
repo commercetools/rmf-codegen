@@ -20,5 +20,6 @@ data class CodeGeneratorConfig (
         val writeGitHash: Boolean = false,
         val outputFolder: Path = Paths.get("build/gensrc"),
         val customTypeMapping: Map<String, VrapType> = mapOf(),
-        val inlineExamples: Boolean = false
+        val inlineExamples: Boolean = false,
+        val jacksonV3: Boolean = false
 )
