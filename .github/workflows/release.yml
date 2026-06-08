@@ -48,13 +48,15 @@ jobs:
           SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: stefanzweifel/git-auto-commit-action@v4.6.0
+      - name: Commit and push api-reference to branch
+        uses: planetscale/ghcommit-action@v0.2.21
         with:
           file_pattern: "scripts/install.sh"
+          repo: ${{ github.repository }}
+          branch: ${{ github.ref_name }}
           commit_message: "TASK: Updating version in README"
-          commit_user_name: Auto Mation
-          commit_user_email: automation@commercetools.com
-          commit_author: Auto Mation <automation@commercetools.com>
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   release_tag:
     permissions:
@@ -145,10 +147,12 @@ jobs:
         working-directory: node/rmf-codegen
         run: yarn version --no-git-tag-version --minor
 
-      - uses: stefanzweifel/git-auto-commit-action@v4.6.0
+      - name: Commit and push api-reference to branch
+        uses: planetscale/ghcommit-action@v0.2.21
         with:
           file_pattern: "node/rmf-codegen/package.json"
           commit_message: "Bump codegen version"
-          commit_user_name: Auto Mation
-          commit_user_email: automation@commercetools.com
-          commit_author: Auto Mation <automation@commercetools.com>
+          repo: ${{ github.repository }}
+          branch: ${{ github.ref_name }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
