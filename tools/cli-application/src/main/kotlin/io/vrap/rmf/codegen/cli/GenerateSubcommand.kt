@@ -186,8 +186,8 @@ class GenerateSubcommand : Callable<Int> {
                 outputFolder = outputFolder,
                 writeGitHash = writeGitHash,
                 customTypeMapping = customTypeMapping,
-                inlineExamples = inlineExamples
-
+                inlineExamples = inlineExamples,
+                jacksonV3 = jacksonV3,
         )
 
         val res = safeRun { generate(ramlFileLocation, target, generatorConfig) }
@@ -324,8 +324,9 @@ class GenerateSubcommand : Callable<Int> {
                             clientPackage = generatorConfig.clientPackage,
                             outputFolder = generatorConfig.outputFolder,
                             writeGitHash = generatorConfig.writeGitHash,
-                            inlineExamples = generatorConfig.inlineExamples
-                        )
+                            inlineExamples = generatorConfig.inlineExamples,
+                            jacksonV3 = jacksonV3,
+                            )
                         val generatorModule = RamlGeneratorModule(apiProvider, ramlConfig, RamldocBaseTypes, dataSink = sink)
                         RamlGeneratorComponent(generatorModule, RamldocModelModule)
                     }
@@ -337,7 +338,8 @@ class GenerateSubcommand : Callable<Int> {
                                 clientPackage = generatorConfig.clientPackage,
                                 outputFolder = generatorConfig.outputFolder,
                                 writeGitHash = generatorConfig.writeGitHash,
-                                inlineExamples = generatorConfig.inlineExamples
+                                inlineExamples = generatorConfig.inlineExamples,
+                                jacksonV3 = jacksonV3,
                         )
                         val generatorModule = RamlGeneratorModule(apiProvider, ramlConfig, RamldocBaseTypes, dataSink = sink)
                         RamlGeneratorComponent(generatorModule, MarkdownModelModule)
@@ -349,8 +351,9 @@ class GenerateSubcommand : Callable<Int> {
                             modelPackage = generatorConfig.modelPackage,
                             clientPackage = generatorConfig.clientPackage,
                             outputFolder = generatorConfig.outputFolder,
-                            writeGitHash = generatorConfig.writeGitHash
-                        )
+                            writeGitHash = generatorConfig.writeGitHash,
+                            jacksonV3 = jacksonV3,
+                            )
                         val generatorModule = RamlGeneratorModule(apiProvider, ramlConfig, PlantUmlBaseTypes, dataSink = sink)
                         RamlGeneratorComponent(generatorModule, PlantUmlModule)
                     }
@@ -361,8 +364,9 @@ class GenerateSubcommand : Callable<Int> {
                             modelPackage = generatorConfig.modelPackage,
                             clientPackage = generatorConfig.clientPackage,
                             outputFolder = generatorConfig.outputFolder,
-                            writeGitHash = generatorConfig.writeGitHash
-                        )
+                            writeGitHash = generatorConfig.writeGitHash,
+                            jacksonV3 = jacksonV3,
+                            )
                         val generatorModule = RamlGeneratorModule(apiProvider, ramlConfig, OasBaseTypes, dataSink = sink)
                         RamlGeneratorComponent(generatorModule, OasModelModule)
                     }
@@ -385,8 +389,9 @@ class GenerateSubcommand : Callable<Int> {
                             modelPackage = generatorConfig.modelPackage,
                             clientPackage = generatorConfig.clientPackage,
                             outputFolder = generatorConfig.outputFolder,
-                            writeGitHash = generatorConfig.writeGitHash
-                        )
+                            writeGitHash = generatorConfig.writeGitHash,
+                            jacksonV3 = jacksonV3,
+                            )
                         val generatorModule = OasGeneratorModule(apiProvider, ramlConfig, RamldocBaseTypes, dataSink = sink)
                         OasGeneratorComponent(generatorModule, RamldocModelModule)
                     }
