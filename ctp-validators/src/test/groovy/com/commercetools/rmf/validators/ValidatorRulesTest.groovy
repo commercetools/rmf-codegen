@@ -475,58 +475,105 @@ class ValidatorRulesTest extends Specification implements ValidatorFixtures {
         result.validationResults.size() == 17
     }
 
-    def "property min max abbreviation rule"() {
+    def "resource allowed characters rule"() {
         when:
-        def options = singletonList(new RuleOption(RuleOptionType.EXCLUDE.toString(), "InvalidMinMax:minimumExcluded"))
-        def validators = Arrays.asList(new TypesValidator(Arrays.asList(PropertyMinMaxAbbreviationRule.create(options))))
-        def uri = uriFromClasspath("/property-minmax-abbreviation-rule.raml")
+        def validators = Arrays.asList(new ResourcesValidator(Arrays.asList(ResourceAllowedCharactersRule.create(emptyList()))))
+        def uri = uriFromClasspath("/resource-path-segment-rule.raml")
         def result = new RamlModelBuilder(validators).buildApi(uri)
         then:
-        result.validationResults.size() == 8
-        result.validationResults[0].message == "Property \"minimumQuantity\" of type \"InvalidMinMax\" must use \"min\"/\"max\" instead of \"minimum\"/\"maximum\""
-        result.validationResults[1].message == "Property \"maximumPrice\" of type \"InvalidMinMax\" must use \"min\"/\"max\" instead of \"minimum\"/\"maximum\""
-        result.validationResults[2].message == "Property \"minimumOrder\" of type \"InvalidMinMax\" must use \"min\"/\"max\" instead of \"minimum\"/\"maximum\""
-        result.validationResults[3].message == "Property \"maximumItems\" of type \"InvalidMinMax\" must use \"min\"/\"max\" instead of \"minimum\"/\"maximum\""
-        result.validationResults[4].message == "Property \"minimum\" of type \"InvalidMinMax\" must use \"min\"/\"max\" instead of \"minimum\"/\"maximum\""
-        result.validationResults[5].message == "Property \"maximum\" of type \"InvalidMinMax\" must use \"min\"/\"max\" instead of \"minimum\"/\"maximum\""
-        result.validationResults[6].message == "Property \"minimumTypeNumber\" of type \"InvalidMinMax\" must use \"min\"/\"max\" instead of \"minimum\"/\"maximum\""
-        result.validationResults[7].message == "Property \"minimumNumber\" of type \"InvalidMinMax\" must use \"min\"/\"max\" instead of \"minimum\"/\"maximum\""
+        result.validationResults.size() == 4
+        result.validationResults[0].message == "Resource \"/{projectKey}/invalid_underscore\" path segment \"invalid_underscore\" must only contain lowercase letters, digits, and hyphens"
+        result.validationResults[1].message == "Resource \"/{projectKey}/invalid~tilde\" path segment \"invalid~tilde\" must only contain lowercase letters, digits, and hyphens"
+        result.validationResults[2].message == "Resource \"/{projectKey}/products.json\" path segment \"products.json\" must only contain lowercase letters, digits, and hyphens"
+        result.validationResults[3].message == "Resource \"/{projectKey}/export.csv\" path segment \"export.csv\" must only contain lowercase letters, digits, and hyphens"
     }
 
-    def "property min max abbreviation rule without exclusions"() {
+    def "resource allowed characters rule with exclusions"() {
         when:
-        def validators = Arrays.asList(new TypesValidator(Arrays.asList(PropertyMinMaxAbbreviationRule.create(emptyList()))))
-        def uri = uriFromClasspath("/property-minmax-abbreviation-rule.raml")
+        def options = singletonList(new RuleOption(RuleOptionType.EXCLUDE.toString(), "invalid_underscore"))
+        def validators = Arrays.asList(new ResourcesValidator(Arrays.asList(ResourceAllowedCharactersRule.create(options))))
+        def uri = uriFromClasspath("/resource-path-segment-rule.raml")
         def result = new RamlModelBuilder(validators).buildApi(uri)
         then:
-        result.validationResults.size() == 9
+        result.validationResults.size() == 3
     }
 
-    def "parameter min max abbreviation rule"() {
+    def "resource no file extension rule"() {
         when:
-        def options = singletonList(new RuleOption(RuleOptionType.EXCLUDE.toString(), "minimumExcluded"))
-        def validators = Arrays.asList(new ResourcesValidator(Arrays.asList(ParameterMinMaxAbbreviationRule.create(options))))
-        def uri = uriFromClasspath("/parameter-minmax-abbreviation-rule.raml")
+        def validators = Arrays.asList(new ResourcesValidator(Arrays.asList(ResourceNoFileExtensionRule.create(emptyList()))))
+        def uri = uriFromClasspath("/resource-path-segment-rule.raml")
         def result = new RamlModelBuilder(validators).buildApi(uri)
         then:
-        result.validationResults.size() == 8
-        result.validationResults[0].message == "Query parameter \"minimumQuantity\" must use \"min\"/\"max\" instead of \"minimum\"/\"maximum\""
-        result.validationResults[1].message == "Query parameter \"maximumPrice\" must use \"min\"/\"max\" instead of \"minimum\"/\"maximum\""
-        result.validationResults[2].message == "Query parameter \"minimum\" must use \"min\"/\"max\" instead of \"minimum\"/\"maximum\""
-        result.validationResults[3].message == "Query parameter \"maximum\" must use \"min\"/\"max\" instead of \"minimum\"/\"maximum\""
-        result.validationResults[4].message == "Query parameter \"minimumTypeNumber\" must use \"min\"/\"max\" instead of \"minimum\"/\"maximum\""
-        result.validationResults[5].message == "Query parameter \"minimumDescNumber\" must use \"min\"/\"max\" instead of \"minimum\"/\"maximum\""
-        result.validationResults[6].message == "Header \"minimumRetry\" must use \"min\"/\"max\" instead of \"minimum\"/\"maximum\""
-        result.validationResults[7].message == "Header \"maximumRetry\" must use \"min\"/\"max\" instead of \"minimum\"/\"maximum\""
+        result.validationResults.size() == 2
+        result.validationResults[0].message == "Resource \"/{projectKey}/products.json\" path segment \"products.json\" must not contain a file extension"
+        result.validationResults[1].message == "Resource \"/{projectKey}/export.csv\" path segment \"export.csv\" must not contain a file extension"
     }
 
-    def "parameter min max abbreviation rule without exclusions"() {
+    def "resource no file extension rule with exclusions"() {
         when:
-        def validators = Arrays.asList(new ResourcesValidator(Arrays.asList(ParameterMinMaxAbbreviationRule.create(emptyList()))))
-        def uri = uriFromClasspath("/parameter-minmax-abbreviation-rule.raml")
+        def options = singletonList(new RuleOption(RuleOptionType.EXCLUDE.toString(), "products.json"))
+        def validators = Arrays.asList(new ResourcesValidator(Arrays.asList(ResourceNoFileExtensionRule.create(options))))
+        def uri = uriFromClasspath("/resource-path-segment-rule.raml")
         def result = new RamlModelBuilder(validators).buildApi(uri)
         then:
-        result.validationResults.size() == 9
+        result.validationResults.size() == 1
+    }
+
+    def "resource plural rule with classifier - valid collections and skipped non-collections"() {
+        when:
+        def validators = Arrays.asList(new ResourcesValidator(Arrays.asList(ResourcePluralRule.create(emptyList()))))
+        def uri = uriFromClasspath("/resource-classifier-plural.raml")
+        def result = new RamlModelBuilder(validators).buildApi(uri)
+        then:
+        result.validationResults.size() == 0
+    }
+
+    def "resource plural rule with classifier - singular collection detected"() {
+        when:
+        def validators = Arrays.asList(new ResourcesValidator(Arrays.asList(ResourcePluralRule.create(emptyList()))))
+        def uri = uriFromClasspath("/resource-classifier-plural-invalid.raml")
+        def result = new RamlModelBuilder(validators).buildApi(uri)
+        then:
+        result.validationResults.size() == 1
+        result.validationResults[0].message == "Resource \"category\" must be plural"
+    }
+
+    def "resource singular rule - valid singletons"() {
+        when:
+        def validators = Arrays.asList(new ResourcesValidator(Arrays.asList(ResourceSingularRule.create(emptyList()))))
+        def uri = uriFromClasspath("/resource-singular-rule.raml")
+        def result = new RamlModelBuilder(validators).buildApi(uri)
+        then:
+        result.validationResults.size() == 0
+    }
+
+    def "resource singular rule - plural singleton detected"() {
+        when:
+        def validators = Arrays.asList(new ResourcesValidator(Arrays.asList(ResourceSingularRule.create(emptyList()))))
+        def uri = uriFromClasspath("/resource-singular-rule-invalid.raml")
+        def result = new RamlModelBuilder(validators).buildApi(uri)
+        then:
+        result.validationResults.size() == 1
+        result.validationResults[0].message == "Singleton resource \"configurations\" must be singular"
+    }
+
+    def "scoping order rule - valid order"() {
+        when:
+        def validators = Arrays.asList(new ResourcesValidator(Arrays.asList(ScopingOrderRule.create(emptyList()))))
+        def uri = uriFromClasspath("/scoping-order-rule.raml")
+        def result = new RamlModelBuilder(validators).buildApi(uri)
+        then:
+        result.validationResults.size() == 0
+    }
+
+    def "scoping order rule - invalid order"() {
+        when:
+        def validators = Arrays.asList(new ResourcesValidator(Arrays.asList(ScopingOrderRule.create(emptyList()))))
+        def uri = uriFromClasspath("/scoping-order-rule-invalid.raml")
+        def result = new RamlModelBuilder(validators).buildApi(uri)
+        then:
+        result.validationResults.size() == 1
+        result.validationResults[0].message.contains("incorrect scoping order")
     }
 
     def "error response structure rule"() {
