@@ -1,0 +1,22 @@
+#%RAML 1.0
+---
+title: Array Example Test API
+version: 1.0
+baseUri: http://example.com/api
+/items:
+  get:
+    displayName: QueryItems
+    securedBy: []
+    responses:
+      200:
+        body:
+          application/json:
+            type: array
+            items:
+              type: object
+            examples:
+              default:
+                strict: true
+                value:
+                  - name: "first"
+                  - name: "second"

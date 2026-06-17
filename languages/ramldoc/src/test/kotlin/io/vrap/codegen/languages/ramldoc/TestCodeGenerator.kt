@@ -1,7 +1,6 @@
 package io.vrap.codegen.languages.ramldoc
 
 import io.vrap.codegen.languages.ramldoc.extensions.renderAnnotation
-import io.vrap.codegen.languages.ramldoc.extensions.renderExample
 import io.vrap.codegen.languages.ramldoc.extensions.toJson
 import io.vrap.codegen.languages.ramldoc.model.MarkdownModelModule
 import io.vrap.codegen.languages.ramldoc.model.RamldocBaseTypes
@@ -10,7 +9,6 @@ import io.vrap.rmf.codegen.CodeGeneratorConfig
 import io.vrap.rmf.codegen.di.*
 import io.vrap.rmf.codegen.io.MemoryDataSink
 import io.vrap.rmf.raml.model.types.ObjectInstance
-import io.vrap.rmf.raml.model.types.TypesFactory
 import org.assertj.core.api.Assertions
 import org.assertj.core.util.diff.DiffUtils
 import org.junit.jupiter.api.Test
@@ -309,23 +307,22 @@ class TestCodeGenerator {
 
     @Test
     fun testArrayExampleRenderUsesMultilineBlock() {
-        val example = TypesFactory.eINSTANCE.createExample()
-        example.strict = TypesFactory.eINSTANCE.createBooleanInstance().apply {
-            value = true
-        }
+        val generatorConfig = CodeGeneratorConfig(
+            basePackageName = "com/commercetools/importer",
+            outputFolder = Paths.get("build/gensrc"),
+            inlineExamples = true
+        )
 
-        val arrayInstance = TypesFactory.eINSTANCE.createArrayInstance()
-        arrayInstance.value.add(TypesFactory.eINSTANCE.createStringInstance().apply {
-            value = "first"
-        })
-        arrayInstance.value.add(TypesFactory.eINSTANCE.createStringInstance().apply {
-            value = "second"
-        })
-        example.value = arrayInstance
+        val apiProvider = RamlApiProvider(Paths.get("src/test/resources/arrayexample.raml"))
 
-        val rendered = example.renderExample("Test", inlineExample = true)
+        val dataSink = MemoryDataSink()
+        val generatorModule = RamlGeneratorModule(apiProvider, generatorConfig, RamldocBaseTypes, dataSink = dataSink)
+        val generatorComponent = RamlGeneratorComponent(generatorModule, RamldocModelModule)
+        generatorComponent.generateFiles()
 
-        Assertions.assertThat(rendered)
+        val resourceContent = dataSink.files.get("resources/QueryItems.raml")
+        Assertions.assertThat(resourceContent).isNotNull()
+        Assertions.assertThat(resourceContent)
             .contains("value: |")
             .doesNotContain("value: [ {")
     }
