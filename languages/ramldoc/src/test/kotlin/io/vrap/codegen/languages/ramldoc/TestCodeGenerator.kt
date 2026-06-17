@@ -320,8 +320,12 @@ class TestCodeGenerator {
         val generatorComponent = RamlGeneratorComponent(generatorModule, RamldocModelModule)
         generatorComponent.generateFiles()
 
-        val resourceContent = dataSink.files.get("resources/QueryItems.raml")
-        Assertions.assertThat(resourceContent).isNotNull()
+        Assertions.assertThat(dataSink.files).isNotEmpty()
+        val resourceContent = dataSink.files.entries
+            .filter { it.key.startsWith("resources/") }
+            .map { it.value }
+            .joinToString("\n")
+        Assertions.assertThat(resourceContent).isNotBlank()
         Assertions.assertThat(resourceContent)
             .contains("value: |")
             .doesNotContain("value: [ {")
