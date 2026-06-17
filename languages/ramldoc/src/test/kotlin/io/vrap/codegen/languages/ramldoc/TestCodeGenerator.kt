@@ -1,6 +1,7 @@
 package io.vrap.codegen.languages.ramldoc
 
 import io.vrap.codegen.languages.ramldoc.extensions.renderAnnotation
+import io.vrap.codegen.languages.ramldoc.extensions.renderExample
 import io.vrap.codegen.languages.ramldoc.extensions.toJson
 import io.vrap.codegen.languages.ramldoc.model.MarkdownModelModule
 import io.vrap.codegen.languages.ramldoc.model.RamldocBaseTypes
@@ -9,6 +10,7 @@ import io.vrap.rmf.codegen.CodeGeneratorConfig
 import io.vrap.rmf.codegen.di.*
 import io.vrap.rmf.codegen.io.MemoryDataSink
 import io.vrap.rmf.raml.model.types.ObjectInstance
+import io.vrap.rmf.raml.model.types.TypesFactory
 import org.assertj.core.api.Assertions
 import org.assertj.core.util.diff.DiffUtils
 import org.junit.jupiter.api.Test
@@ -303,6 +305,29 @@ class TestCodeGenerator {
                 New paragraph.
               enumWithMarkdownDescription: "`inline-code` should be formatted as an inline code. [ObjectTestType](/types/general#objecttesttype) should link to the header of the definition of `ObjectTestType` on this website - `api-docs-smoke-test`. [Links](/../docs-smoke-test/views/markdown#links) should link to the header for the definition of  `Links` on `docs-smoke-test` microsite."
         """.trimIndent().trimStart())
+    }
+
+    @Test
+    fun testArrayExampleRenderUsesMultilineBlock() {
+        val example = TypesFactory.eINSTANCE.createExample()
+        example.strict = TypesFactory.eINSTANCE.createBooleanInstance().apply {
+            value = true
+        }
+
+        val arrayInstance = TypesFactory.eINSTANCE.createArrayInstance()
+        arrayInstance.value.add(TypesFactory.eINSTANCE.createStringInstance().apply {
+            value = "first"
+        })
+        arrayInstance.value.add(TypesFactory.eINSTANCE.createStringInstance().apply {
+            value = "second"
+        })
+        example.value = arrayInstance
+
+        val rendered = example.renderExample("Test", inlineExample = true)
+
+        Assertions.assertThat(rendered)
+            .contains("value: |")
+            .doesNotContain("value: [ {")
     }
 
     @Test
