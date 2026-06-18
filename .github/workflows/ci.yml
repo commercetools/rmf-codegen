@@ -21,9 +21,27 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '11'
+          cache: 'gradle'
 
       - name: Build and Release
-        run: ./gradlew clean check shadowJar
+        env:
+          GRADLE_OPTS: "-Dorg.gradle.internal.http.connectionTimeout=120000 -Dorg.gradle.internal.http.socketTimeout=120000"
+        run: |
+          set -euo pipefail
+          for attempt in 1 2 3; do
+            echo "Gradle build attempt ${attempt}/3"
+            if ./gradlew --no-daemon clean check shadowJar; then
+              exit 0
+            fi
+
+            if [[ "${attempt}" -lt 3 ]]; then
+              echo "Build failed, retrying in 15 seconds..."
+              sleep 15
+            fi
+          done
+
+          echo "Build failed after 3 attempts."
+          exit 1
 
       - run: ./scripts/install_local.sh
       - name: Checkout
@@ -50,6 +68,7 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '11'
+          cache: 'gradle'
 
       - name: Setup Node
         uses: actions/setup-node@v4
