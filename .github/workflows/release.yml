@@ -34,29 +34,18 @@ jobs:
         with:
           node-version: "18"
 
-      - run: scripts/setup-signing-key.sh
-        env:
-          DECRYPTER: ${{ secrets.DECRYPTER }}
-          SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
-          PASSPHRASE: ${{ secrets.PASSPHRASE }}
-          GRADLE_PUBLISH_KEY: ${{ secrets.GRADLE_PUBLISH_KEY }}
-          GRADLE_PUBLISH_SECRET: ${{ secrets.GRADLE_PUBLISH_SECRET }}
-      - name: Build and Release
-        run: export VERSION="1.0.0-`date '+%Y%m%d%H%M%S'`"; ./gradlew -Pversion=$VERSION clean check publishMavenPublicationToSonatype closeAndReleaseSonatypeStagingRepository writeVersionToReadme
+      - name: Build
+        run: ./gradlew -Pversion=$VERSION clean check tools:cli-application:shadowJar
         env:
           SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
           SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Commit and push api-reference to branch
-        uses: planetscale/ghcommit-action@v0.2.21
+      - uses: ncipollo/release-action@v1
         with:
-          file_pattern: "scripts/install.sh"
-          repo: ${{ github.repository }}
-          branch: ${{ github.ref_name }}
-          commit_message: "TASK: Updating version in README"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          artifacts: "rmf-codegen.jar"
+          allowUpdates: true
+          name: "latest"
 
   release_tag:
     permissions:
