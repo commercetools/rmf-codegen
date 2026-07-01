@@ -45,7 +45,8 @@ jobs:
         with:
           artifacts: "rmf-codegen.jar"
           allowUpdates: true
-          name: "latest"
+          name: "Latest"
+          tag: "latest"
 
   release_tag:
     permissions:
