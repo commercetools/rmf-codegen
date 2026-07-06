@@ -112,7 +112,7 @@ class TypescriptRequestTestRenderer constructor(override val vrapTypeProvider: V
         return """
                 |{   
                 |    method: '${method.method}',
-                |    uri: '/${resource.fullUri.expand(resource.fullUriParameters.map { it.name to "test_${it.name}" }.toMap()).trimStart('/')}?${URLEncoder.encode(paramName.replace("\"", ""), "UTF-8")}=${URLEncoder.encode(queryParamValueString(paramName, parameter.type, Random(paramName.hashCode())).toString().replace("\"",""), "UTF-8")}${ if(requiredParamsStrUrl!="") "&${requiredParamsStrUrl.replace(":","=")}" else ""}',            
+                |    uri: '/${resource.fullUri.expand(resource.fullUriParameters.map { it.name to "test_${it.name}" }.toMap()).trimStart('/')}?${paramName.replace("\"", "")}=${URLEncoder.encode(queryParamValueString(paramName, parameter.type, Random(paramName.hashCode())).toString().replace("\"",""), "UTF-8")}${ if(requiredParamsStrUrl!="") "&${requiredParamsStrUrl.replace(":","=")}" else ""}',            
                 |    request: apiRoot
                 |    <<${builderChain.joinToString("\n.", ".")}>>,    
                 |}
