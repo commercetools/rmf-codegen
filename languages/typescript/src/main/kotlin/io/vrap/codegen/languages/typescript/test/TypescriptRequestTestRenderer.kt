@@ -50,8 +50,8 @@ class TypescriptRequestTestRenderer constructor(override val vrapTypeProvider: V
                     |  const requestsToTest = getRequestsWithMethodParameters()
                     |  requestsToTest.forEach(rm =\> {
                     |  test(`Testing =\> request method: $methodAndUrl`, async () =\> {
-                    |    expect(rm.method.toLowerCase()).toBe(rm.request.clientRequest().method.toLowerCase())
-                    |    expect(rm.uri.toLowerCase()).toBe(rm.request.clientRequest().uri.toLowerCase())
+                    |    expect(rm.request.clientRequest().method.toLowerCase()).toBe(rm.method.toLowerCase())
+                    |    expect(rm.request.clientRequest().uri.toLowerCase()).toBe(rm.uri.toLowerCase())
                     |    })
                     |  })
                     |})      
@@ -92,7 +92,7 @@ class TypescriptRequestTestRenderer constructor(override val vrapTypeProvider: V
         var methodValue = parameter.template()
         var requiredParams = method.queryParameters.toMutableList().filter { p -> p.name != parameter.name && p.required  }
         var requiredParamsStr: String = requiredParams.map { r -> "\'${r.name}\':${queryParamValueString(r.name, r.type, Random(r.name.hashCode()))}" }.joinToString(", ")
-        var requiredParamsStrUrl: String = requiredParams.map { r -> "${r.name}:${URLEncoder.encode(queryParamValueString(r.name, r.type, Random(r.name.hashCode())).toString().replace("\"",""), "UTF-8")}" }.joinToString("&")
+        var requiredParamsStrUrl: String = requiredParams.map { r -> "${URLEncoder.encode(r.name, "UTF-8")}=${URLEncoder.encode(queryParamValueString(r.name, r.type, Random(r.name.hashCode())).toString().replace("\"",""), "UTF-8")}" }.joinToString("&")
 
         if (anno != null) {
             val o = anno.value as ObjectInstance
@@ -112,7 +112,7 @@ class TypescriptRequestTestRenderer constructor(override val vrapTypeProvider: V
         return """
                 |{   
                 |    method: '${method.method}',
-                |    uri: '/${resource.fullUri.expand(resource.fullUriParameters.map { it.name to "test_${it.name}" }.toMap()).trimStart('/')}?${paramName.replace("\"", "")}=${URLEncoder.encode(queryParamValueString(paramName, parameter.type, Random(paramName.hashCode())).toString().replace("\"",""), "UTF-8")}${ if(requiredParamsStrUrl!="") "&${requiredParamsStrUrl.replace(":","=")}" else ""}',            
+                |    uri: '/${resource.fullUri.expand(resource.fullUriParameters.map { it.name to "test_${it.name}" }.toMap()).trimStart('/')}?${URLEncoder.encode(paramName.replace("\"", ""), "UTF-8")}=${URLEncoder.encode(queryParamValueString(paramName, parameter.type, Random(paramName.hashCode())).toString().replace("\"",""), "UTF-8")}${ if(requiredParamsStrUrl!="") "&${requiredParamsStrUrl}" else ""}',            
                 |    request: apiRoot
                 |    <<${builderChain.joinToString("\n.", ".")}>>,    
                 |}
