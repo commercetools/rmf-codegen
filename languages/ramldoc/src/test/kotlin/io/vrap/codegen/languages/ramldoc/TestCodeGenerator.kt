@@ -126,7 +126,7 @@ class TestCodeGenerator {
                       examples:
                         default:
                           strict: true
-                          value:
+                          value: |
                             {
                               "predicate" : "lineItem = \"SKU\""
                             }
@@ -158,7 +158,7 @@ class TestCodeGenerator {
                   examples:
                     default:
                       strict: true
-                      value:
+                      value: |
                         {
                           "foo" : "bar"
                         }
@@ -188,7 +188,7 @@ class TestCodeGenerator {
                   examples:
                     default:
                       strict: true
-                      value:
+                      value: |
                         {
                           "foo" : "bar"
                         }
@@ -303,6 +303,32 @@ class TestCodeGenerator {
                 New paragraph.
               enumWithMarkdownDescription: "`inline-code` should be formatted as an inline code. [ObjectTestType](/types/general#objecttesttype) should link to the header of the definition of `ObjectTestType` on this website - `api-docs-smoke-test`. [Links](/../docs-smoke-test/views/markdown#links) should link to the header for the definition of  `Links` on `docs-smoke-test` microsite."
         """.trimIndent().trimStart())
+    }
+
+    @Test
+    fun testArrayExampleRenderUsesMultilineBlock() {
+        val generatorConfig = CodeGeneratorConfig(
+            basePackageName = "com/commercetools/importer",
+            outputFolder = Paths.get("build/gensrc"),
+            inlineExamples = true
+        )
+
+        val apiProvider = RamlApiProvider(Paths.get("src/test/resources/arrayexample.raml"))
+
+        val dataSink = MemoryDataSink()
+        val generatorModule = RamlGeneratorModule(apiProvider, generatorConfig, RamldocBaseTypes, dataSink = dataSink)
+        val generatorComponent = RamlGeneratorComponent(generatorModule, RamldocModelModule)
+        generatorComponent.generateFiles()
+
+        Assertions.assertThat(dataSink.files).isNotEmpty()
+        val resourceContent = dataSink.files.entries
+            .filter { it.key.startsWith("resources/") }
+            .map { it.value }
+            .joinToString("\n")
+        Assertions.assertThat(resourceContent).isNotBlank()
+        Assertions.assertThat(resourceContent)
+            .contains("value: |")
+            .doesNotContain("value: [ {")
     }
 
     @Test
