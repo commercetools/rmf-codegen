@@ -126,7 +126,7 @@ class TestCodeGenerator {
                       examples:
                         default:
                           strict: true
-                          value:
+                          value: |
                             {
                               "predicate" : "lineItem = \"SKU\""
                             }
@@ -158,7 +158,7 @@ class TestCodeGenerator {
                   examples:
                     default:
                       strict: true
-                      value:
+                      value: |
                         {
                           "foo" : "bar"
                         }
@@ -188,7 +188,7 @@ class TestCodeGenerator {
                   examples:
                     default:
                       strict: true
-                      value:
+                      value: |
                         {
                           "foo" : "bar"
                         }
