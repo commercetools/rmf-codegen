@@ -32,21 +32,19 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: "18"
+          node-version: "24"
 
-      - run: scripts/setup-signing-key.sh
+      - name: Build
+        run: export VERSION="1.0.0-`date '+%Y%m%d%H%M%S'`"; ./gradlew -Pversion=$VERSION clean check tools:cli-application:shadowJar writeVersionToReadme
         env:
-          DECRYPTER: ${{ secrets.DECRYPTER }}
-          SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
-          PASSPHRASE: ${{ secrets.PASSPHRASE }}
-          GRADLE_PUBLISH_KEY: ${{ secrets.GRADLE_PUBLISH_KEY }}
-          GRADLE_PUBLISH_SECRET: ${{ secrets.GRADLE_PUBLISH_SECRET }}
-      - name: Build and Release
-        run: export VERSION="1.0.0-`date '+%Y%m%d%H%M%S'`"; ./gradlew -Pversion=$VERSION clean check publishMavenPublicationToSonatype closeAndReleaseSonatypeStagingRepository writeVersionToReadme
-        env:
-          SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
-          SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: ncipollo/release-action@v1
+        with:
+          artifacts: "rmf-codegen.jar"
+          allowUpdates: true
+          name: "Latest"
+          tag: "latest"
 
       - name: Commit and push api-reference to branch
         uses: planetscale/ghcommit-action@v0.2.21
@@ -78,20 +76,15 @@ jobs:
           distribution: 'temurin'
           java-version: '11'
 
-      - run: scripts/setup-signing-key.sh
+      - name: Build
+        run: ./gradlew -Pversion=${{ github.ref_name }} clean check tools:cli-application:shadowJar
         env:
-          DECRYPTER: ${{ secrets.DECRYPTER }}
-          SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
-          PASSPHRASE: ${{ secrets.PASSPHRASE }}
-          GRADLE_PUBLISH_KEY: ${{ secrets.GRADLE_PUBLISH_KEY }}
-          GRADLE_PUBLISH_SECRET: ${{ secrets.GRADLE_PUBLISH_SECRET }}
-
-      - name: Build and Release
-        run: ./gradlew -Pversion=${{ github.ref_name }} clean check publishMavenPublicationToSonatype closeAndReleaseSonatypeStagingRepository
-        env:
-          SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
-          SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: ncipollo/release-action@v1
+        with:
+          artifacts: "rmf-codegen.jar"
+          allowUpdates: true
 
       # Configure npm for OIDC authentication with trusted publishing
       # This must be done after CI setup to ensure npm is properly configured
@@ -105,7 +98,6 @@ jobs:
 
       - name: Build NPM package
         run: |
-          ./gradlew -Pversion=${{ github.ref_name }} tools:cli-application:shadowJar
           cp rmf-codegen.jar node/rmf-codegen/bin
 
       - name: Verify npm OIDC configuration
