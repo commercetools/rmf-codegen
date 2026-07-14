@@ -48,10 +48,22 @@ jobs:
 
       - name: Commit and push api-reference to branch
         uses: planetscale/ghcommit-action@v0.2.21
+        if: ${{ !startsWith( github.ref, 'refs/tags/') }}
         with:
           file_pattern: "scripts/install.sh"
           repo: ${{ github.repository }}
           branch: ${{ github.ref_name }}
+          commit_message: "TASK: Updating version in README"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Commit and push api-reference to branch
+        uses: planetscale/ghcommit-action@v0.2.21
+        if: ${{ startsWith( github.ref, 'refs/tags/') }}
+        with:
+          file_pattern: "scripts/install.sh"
+          repo: ${{ github.repository }}
+          branch: main
           commit_message: "TASK: Updating version in README"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
