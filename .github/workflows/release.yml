@@ -82,11 +82,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: ncipollo/release-action@v1
-        with:
-          artifacts: "rmf-codegen.jar"
-          allowUpdates: true
-
       # Configure npm for OIDC authentication with trusted publishing
       # This must be done after CI setup to ensure npm is properly configured
 
