@@ -45,6 +45,7 @@ jobs:
           allowUpdates: true
           name: "Latest"
           tag: "latest"
+          makeLatest: true
 
       - name: Commit and push api-reference to branch
         uses: planetscale/ghcommit-action@v0.2.21
