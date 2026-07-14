@@ -141,6 +141,6 @@ jobs:
           file_pattern: "node/rmf-codegen/package.json"
           commit_message: "Bump codegen version"
           repo: ${{ github.repository }}
-          branch: ${{ github.ref_name }}
+          branch: main
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
