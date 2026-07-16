@@ -156,7 +156,7 @@ fun Example.renderExample(exampleName: String, inlineExample: Boolean = false): 
             |    <<${this.description.value.trim()}>>""" else ""}${if (this.annotations.isNotEmpty()) """
             |  <<${this.annotations.joinToString("\n") { it.renderAnnotation() }}>>""" else ""}
             |  strict: ${this.strict.value}
-            |  value:${if (!inlineExample) " !include ../examples/$exampleName.json" else if (this.value is ObjectInstance || this.value is ArrayInstance) """ \|
+            |  value:${if (!inlineExample) " !include ../examples/$exampleName.json" else if (this.value is ObjectInstance || this.value is ArrayInstance) """
             |    <<${this.value.toJson().escapeAll()}>>""".trimMargin().keepAngleIndent().escapeAll() else " " + this.value.toJson().escapeAll() }
         """.trimMargin().keepAngleIndent().escapeAll()
 }

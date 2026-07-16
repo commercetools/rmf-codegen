@@ -327,8 +327,9 @@ class TestCodeGenerator {
             .joinToString("\n")
         Assertions.assertThat(resourceContent).isNotBlank()
         Assertions.assertThat(resourceContent)
-            .contains("value: |")
+            .contains("value:")
             .doesNotContain("value: [ {")
+            .doesNotContain("value: |")
     }
 
     @Test
