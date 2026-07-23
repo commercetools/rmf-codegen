@@ -6,7 +6,7 @@ import org.eclipse.emf.common.util.Diagnostic
 import java.util.*
 
 @ValidatorSet
-class ResourcePluralRule(severity: RuleSeverity, options: List<RuleOption>? = null) : ResourcesRule(severity, options) {
+class ResourceSingularRule(severity: RuleSeverity, options: List<RuleOption>? = null) : ResourcesRule(severity, options) {
 
     private val exclude: List<String> =
         (options?.filter { ruleOption -> ruleOption.type.lowercase(Locale.getDefault()) == RuleOptionType.EXCLUDE.toString() }?.map { ruleOption -> ruleOption.value }?.plus("") ?: defaultExcludes)
@@ -19,27 +19,27 @@ class ResourcePluralRule(severity: RuleSeverity, options: List<RuleOption>? = nu
         val validationResults: MutableList<Diagnostic> = ArrayList()
 
         val category = ResourceClassifier.classify(resource, actionVerbs)
-        if (category != ResourceCategory.COLLECTION) return emptyList()
+        if (category != ResourceCategory.SINGLETON) return emptyList()
 
         val resourcePathName = resource.resourcePathName
-        val pluralName = English.plural(English.singular(resourcePathName))
-        if (exclude.contains(resourcePathName).not() && pluralName != resourcePathName) {
-            validationResults.add(create(resource, "Resource \"{0}\" must be plural", resourcePathName))
+        val singularName = English.singular(resourcePathName)
+        if (exclude.contains(resourcePathName).not() && singularName != resourcePathName) {
+            validationResults.add(create(resource, "Singleton resource \"{0}\" must be singular", resourcePathName))
         }
         return validationResults
     }
 
-    companion object : ValidatorFactory<ResourcePluralRule> {
-        private val defaultExcludes by lazy { listOf("", "inventory") }
+    companion object : ValidatorFactory<ResourceSingularRule> {
+        private val defaultExcludes by lazy { listOf("") }
 
         @JvmStatic
-        override fun create(options: List<RuleOption>?): ResourcePluralRule {
-            return ResourcePluralRule(RuleSeverity.ERROR, options)
+        override fun create(options: List<RuleOption>?): ResourceSingularRule {
+            return ResourceSingularRule(RuleSeverity.ERROR, options)
         }
 
         @JvmStatic
-        override fun create(severity: RuleSeverity, options: List<RuleOption>?): ResourcePluralRule {
-            return ResourcePluralRule(severity, options)
+        override fun create(severity: RuleSeverity, options: List<RuleOption>?): ResourceSingularRule {
+            return ResourceSingularRule(severity, options)
         }
     }
 }

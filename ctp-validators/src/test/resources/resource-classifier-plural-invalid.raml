@@ -1,0 +1,19 @@
+#%RAML 1.0
+title: resource classifier plural rule invalid test
+
+resourceTypes:
+  baseDomain:
+    get:
+    post:
+
+/{projectKey}:
+  /category:
+    type:
+      baseDomain:
+        resourceType: Category
+        resourceQueryType: CategoryPagedQueryResponse
+        resourceDraft: CategoryDraft
+        whereExample: 'name(en = "Category")'
+        sortExample: createdAt asc
+    get:
+    post:
