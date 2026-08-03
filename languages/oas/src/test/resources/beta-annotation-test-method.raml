@@ -1,0 +1,21 @@
+#%RAML 1.0
+title: Beta Method Annotation Test API
+baseUri: https://example.com/{version}
+version: v1
+mediaType: application/json
+
+annotationTypes:
+  beta:
+    type: boolean
+    allowedTargets: [ Method, Trait ]
+
+traits:
+  betaTrait:
+    (beta): true
+    description: a trait that marks any method using it as beta
+
+/test:
+  get:
+    is: [ betaTrait ]
+    responses:
+      200:

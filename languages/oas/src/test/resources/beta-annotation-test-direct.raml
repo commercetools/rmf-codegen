@@ -1,0 +1,21 @@
+#%RAML 1.0
+title: Beta Annotation Test API (direct, no trait)
+baseUri: https://example.com/{version}
+version: v1
+mediaType: application/json
+
+annotationTypes:
+  beta:
+    type: boolean
+    allowedTargets: [ TypeDeclaration ]
+
+/test:
+  get:
+    queryParameters:
+      priceRecurrencePolicy?:
+        type: string
+        (beta): true
+        description: |
+          `id` of an existing RecurrencePolicy used for Product price selection.
+    responses:
+      200:
