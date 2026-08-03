@@ -30,7 +30,8 @@ class OasResourceRenderer constructor(val api: Api, val vrapTypeProvider: VrapTy
             |  description: |-
             |    <<${type.description.value.trim()}>>""" else ""}${if (type.fullUriParameters.size > 0) """
             |  parameters:
-            |    <<${type.fullUriParameters.joinToString("\n") { it.renderUriParameter() }}>>""" else ""}
+            |    <<${type.fullUriParameters.joinToString("\n") { it.renderUriParameter() }}>>""" else ""}${if (type.annotations.isNotEmpty()) """
+            |  <<${type.annotations.joinToString("\n") { it.renderAnnotation() }} >>""" else ""}
             |  <<${type.methods.joinToString("\n") { renderMethod(it) }}>>
         """.trimMargin().keepAngleIndent()
         val relativePath = "resources/" + type.toResourceName()+ ".raml"
@@ -42,6 +43,7 @@ class OasResourceRenderer constructor(val api: Api, val vrapTypeProvider: VrapTy
 
     private fun renderMethod(method: Method): String {
         val bodies = method.bodies.filter { it.type != null }.filterNot { it.type is FileType }.plus(method.bodies.firstOrNull { it.type is FileType }).filterNotNull()
+        val annotations = method.annotations.plus(method.`is`.flatMap { it.trait.annotations }).distinctBy { it.type.name }
         return """
             |${method.methodName}:${if (method.securedBy.isNotEmpty()) """
             |  security:
@@ -50,9 +52,10 @@ class OasResourceRenderer constructor(val api: Api, val vrapTypeProvider: VrapTy
             |  description: |-
             |    <<${method.description.value.trim()}>>""" else ""}${if (method.queryParameters.isNotEmpty()) """
             |  parameters:
-            |    <<${method.queryParameters.joinToString("\n") { renderQueryParameter(it) }}>>""" else ""}${if (method.bodies.any { it.type != null }) """
+            |    <<${method.queryParameters.joinToString("\n") { renderQueryParameter(method,it) }}>>""" else ""}${if (method.bodies.any { it.type != null }) """
             |  requestBody:
-            |    <<${bodies.joinToString("\n") { renderBody(it, method) } }>>""" else ""}
+            |    <<${bodies.joinToString("\n") { renderBody(it, method) } }>>""" else ""}${if (annotations.isNotEmpty()) """
+            |  <<${annotations.joinToString("\n") { it.renderAnnotation() }} >>""" else ""}
             |  responses:
             |    <<${method.responses.joinToString("\n") { renderResponse(it, method) }}>>
         """.trimMargin().keepAngleIndent()
@@ -157,19 +160,27 @@ class OasResourceRenderer constructor(val api: Api, val vrapTypeProvider: VrapTy
     }
 
     public fun renderUriParameter(uriParameter: UriParameter): String {
+        val annotations = uriParameter.annotations.plus(uriParameter.type.annotations).distinctBy { it.type.name }
         return """
             |${uriParameter.name}:${if (uriParameter.type.enum.size > 0) """
             |  enum:
-            |  <<${uriParameter.type.enum.joinToString("\n") { "- ${it.value}"}}>>""" else ""}
+            |  <<${uriParameter.type.enum.joinToString("\n") { "- ${it.value}"}}>>""" else ""}${if (annotations.isNotEmpty()) """
+            |  <<${annotations.joinToString("\n") { it.renderAnnotation() }} >>""" else ""}
             |  <<${uriParameter.type.renderType()}>>
             |  required: ${uriParameter.required}
         """.trimMargin().keepAngleIndent()
     }
 
-    private fun renderQueryParameter(queryParameter: QueryParameter): String {
+    private fun renderQueryParameter(method: Method, queryParameter: QueryParameter): String {
+        val traitAnnotations = method.`is`
+            .flatMap { it.trait.queryParameters }
+            .filter { it.name == queryParameter.name }
+            .flatMap { it.annotations.plus(it.type.annotations) }
+        val annotations = queryParameter.annotations.plus(queryParameter.type.annotations).plus(traitAnnotations).distinctBy { it.type.name }
         return """
             |- name: ${queryParameter.name}${if (queryParameter.type.default != null) """
-            |  x-annotation-default: ${queryParameter.type.default.toYaml()}""" else ""}
+            |  x-annotation-default: ${queryParameter.type.default.toYaml()}""" else ""}${if (annotations.isNotEmpty()) """
+            |  <<${ annotations.joinToString("\n") { it.renderAnnotation() } } >>""" else ""}
             |  in: query
             |  required: ${queryParameter.required}
             |  style: form
