@@ -30,7 +30,8 @@ class OasResourceRenderer constructor(val api: Api, val vrapTypeProvider: VrapTy
             |  description: |-
             |    <<${type.description.value.trim()}>>""" else ""}${if (type.fullUriParameters.size > 0) """
             |  parameters:
-            |    <<${type.fullUriParameters.joinToString("\n") { it.renderUriParameter() }}>>""" else ""}
+            |    <<${type.fullUriParameters.joinToString("\n") { it.renderUriParameter() }}>>""" else ""}${if (type.annotations.isNotEmpty()) """
+            |  <<${type.annotations.joinToString("\n") { it.renderAnnotation() }} >>""" else ""}
             |  <<${type.methods.joinToString("\n") { renderMethod(it) }}>>
         """.trimMargin().keepAngleIndent()
         val relativePath = "resources/" + type.toResourceName()+ ".raml"
@@ -52,7 +53,8 @@ class OasResourceRenderer constructor(val api: Api, val vrapTypeProvider: VrapTy
             |  parameters:
             |    <<${method.queryParameters.joinToString("\n") { renderQueryParameter(it) }}>>""" else ""}${if (method.bodies.any { it.type != null }) """
             |  requestBody:
-            |    <<${bodies.joinToString("\n") { renderBody(it, method) } }>>""" else ""}
+            |    <<${bodies.joinToString("\n") { renderBody(it, method) } }>>""" else ""}${if (method.annotations.isNotEmpty()) """
+            |  <<${method.annotations.joinToString("\n") { it.renderAnnotation() }} >>""" else ""}
             |  responses:
             |    <<${method.responses.joinToString("\n") { renderResponse(it, method) }}>>
         """.trimMargin().keepAngleIndent()
@@ -160,7 +162,8 @@ class OasResourceRenderer constructor(val api: Api, val vrapTypeProvider: VrapTy
         return """
             |${uriParameter.name}:${if (uriParameter.type.enum.size > 0) """
             |  enum:
-            |  <<${uriParameter.type.enum.joinToString("\n") { "- ${it.value}"}}>>""" else ""}
+            |  <<${uriParameter.type.enum.joinToString("\n") { "- ${it.value}"}}>>""" else ""}${if (uriParameter.annotations.isNotEmpty()) """
+            |  <<${uriParameter.annotations.joinToString("\n") { it.renderAnnotation() }} >>""" else ""}
             |  <<${uriParameter.type.renderType()}>>
             |  required: ${uriParameter.required}
         """.trimMargin().keepAngleIndent()
@@ -169,7 +172,8 @@ class OasResourceRenderer constructor(val api: Api, val vrapTypeProvider: VrapTy
     private fun renderQueryParameter(queryParameter: QueryParameter): String {
         return """
             |- name: ${queryParameter.name}${if (queryParameter.type.default != null) """
-            |  x-annotation-default: ${queryParameter.type.default.toYaml()}""" else ""}
+            |  x-annotation-default: ${queryParameter.type.default.toYaml()}""" else ""}${if (queryParameter.annotations.isNotEmpty()) """
+            |  <<${ queryParameter.annotations.joinToString("\n") { it.renderAnnotation() } } >>""" else ""}
             |  in: query
             |  required: ${queryParameter.required}
             |  style: form
