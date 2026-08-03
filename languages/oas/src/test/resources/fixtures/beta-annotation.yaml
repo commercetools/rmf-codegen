@@ -1,0 +1,33 @@
+openapi: "3.0.0"
+info:
+  title: Beta Annotation Regression Test API
+  version: "v1"
+
+servers:
+  - url: https://example.com/{version}
+
+paths:
+  /test:
+    get:
+      operationId: TestGet
+      description: |-
+        a trait that marks any method using it as beta
+      parameters:
+        - name: priceRecurrencePolicy
+          x-beta: true 
+          in: query
+          required: false
+          style: form
+          schema:
+            type: "string"
+          explode: true
+      x-beta: true 
+      responses:
+        "200":
+          description: |-
+            200
+          content: {}
+
+components:
+
+  schemas:
