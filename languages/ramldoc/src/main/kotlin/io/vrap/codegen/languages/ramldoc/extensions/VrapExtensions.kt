@@ -373,6 +373,8 @@ fun Instance.toYaml(): String {
             example = mapper.writeValueAsString(this)
         } catch (e: JsonProcessingException) {
         }
+    } else if (this is ArrayInstance && this.value.size == 1) {
+        example = this.value[0].toYaml()
     } else {
         example = mapper.writeValueAsString(this.value)
     }

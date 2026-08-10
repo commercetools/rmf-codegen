@@ -1,0 +1,18 @@
+#%RAML 1.0
+---
+title: Array Default Example Test API
+version: 1.0
+baseUri: http://example.com/api
+types:
+  ChannelRoleEnum:
+    type: string
+    enum:
+      - InventorySupply
+      - OrderExport
+      - OrderImport
+  foo:
+    properties:
+      roles:
+        type: ChannelRoleEnum[]
+        default: [ InventorySupply ]
+
