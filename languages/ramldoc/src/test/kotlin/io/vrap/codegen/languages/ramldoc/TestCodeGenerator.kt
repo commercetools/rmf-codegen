@@ -356,6 +356,31 @@ class TestCodeGenerator {
     }
 
     @Test
+    fun testArrayAnnotationWithSingleElementRendersAsSequence() {
+        val generatorConfig = CodeGeneratorConfig(
+            basePackageName = "com/commercetools/importer",
+            outputFolder = Paths.get("build/gensrc")
+        )
+
+        val apiProvider = RamlApiProvider(Paths.get("src/test/resources/arrayannotation.raml"))
+
+        val generatorModule = RamlGeneratorModule(apiProvider, generatorConfig, RamldocBaseTypes)
+        val generatorComponent = RamlGeneratorComponent(generatorModule, RamldocModelModule)
+        generatorComponent.generateFiles()
+
+        val api = apiProvider.api
+        val t = api.getAnnotation("test").renderAnnotation()
+
+        // Guards against regressing renderAnnotation() (ArrayAnnotationType) into rendering a
+        // single-item array as a bare scalar - it must stay a YAML sequence, unlike the
+        // `default:` single-line rendering which intentionally unwraps single-item arrays.
+        Assertions.assertThat(t).isEqualTo("""
+            (test):
+              - "foo"
+        """.trimIndent().trimStart())
+    }
+
+    @Test
     fun ramlRenderToRamlDoc() {
         val generatorConfig = CodeGeneratorConfig(
             basePackageName = "com/commercetools/importer",

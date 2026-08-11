@@ -182,7 +182,7 @@ class RamlResourceRenderer constructor(val api: Api, val vrapTypeProvider: VrapT
         }
         return """
             |${parameterName}:${if (queryParameter.type.default != null) """
-            |  default: ${queryParameter.type.default.toYaml()}""" else ""}
+            |  default: ${queryParameter.type.default.toYaml(true)}""" else ""}
             |  required: ${queryParameter.required}
             |  <<${queryParameter.type.renderType()}>>${if (parameterExamples.isNotEmpty()) """
             |  examples:
