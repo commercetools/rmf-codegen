@@ -147,6 +147,16 @@ class OasResourceRenderer constructor(val api: Api, val vrapTypeProvider: VrapTy
 
     private fun renderBody(body: Body, method: Method, response: Response): String {
 //        val bodyExamples = body.inlineTypes.flatMap { inlineType -> inlineType.examples.map { example -> "${method.toRequestName()}-${response.statusCode}-${if (example.name.isNotEmpty()) example.name else "default"}" to example } }.toMap()
+        if (body.type is ArrayType) {
+            return """
+                |${body.contentType}:${if (body.type != null) """
+                |  schema:
+                |    type: array
+                |    items:
+                |      ${"$"}ref: '#/components/schemas/${(body.type as ArrayType).items.name}'
+                """ else ""}
+            """.trimMargin().keepAngleIndent()
+        }
         return """
             |${body.contentType}:${if (body.type != null) """
             |  schema:

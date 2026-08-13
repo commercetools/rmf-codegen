@@ -1,0 +1,19 @@
+#%RAML 1.0
+title: Arrays Response Regression Test API
+baseUri: https://example.com/{version}
+version: v1
+mediaType: application/json
+
+types:
+  Foo:
+    properties:
+      foo: string
+
+/test:
+  get:
+    responses:
+      200:
+        body:
+          application/json:
+            type: array
+            items: Foo
