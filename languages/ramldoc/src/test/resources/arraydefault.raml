@@ -1,0 +1,28 @@
+#%RAML 1.0
+---
+title: Array Default Example Test API
+version: 1.0
+baseUri: http://example.com/api
+types:
+  foo:
+    properties:
+      foo:
+        type: object
+        default: { test: 1 }
+      bar:
+        type: string[]
+        default: [ "foo", "bar" ]
+      foobaz:
+        type: string[]
+        default: [ "foo" ]
+      fooz:
+        type: string[]
+        default:
+          - "foo"
+      baz:
+        type: string
+        default: "baz"
+      foobar:
+        type: object
+        default:
+          test: 1

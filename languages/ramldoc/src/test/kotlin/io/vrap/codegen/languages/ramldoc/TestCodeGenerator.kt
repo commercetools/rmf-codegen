@@ -333,6 +333,106 @@ class TestCodeGenerator {
     }
 
     @Test
+    fun testDefaultValueRenders() {
+        val generatorConfig = CodeGeneratorConfig(
+            basePackageName = "com/commercetools/importer",
+            outputFolder = Paths.get("build/gensrc"),
+            inlineExamples = true
+        )
+
+        val apiProvider = RamlApiProvider(Paths.get("src/test/resources/arraydefault.raml"))
+
+        val dataSink = MemoryDataSink()
+        val generatorModule = RamlGeneratorModule(apiProvider, generatorConfig, RamldocBaseTypes, dataSink = dataSink)
+        val generatorComponent = RamlGeneratorComponent(generatorModule, RamldocModelModule)
+        generatorComponent.generateFiles()
+
+        Assertions.assertThat(dataSink.files).isNotEmpty()
+        val typeContent = dataSink.files.get("types/foo.raml")
+        Assertions.assertThat(typeContent).isNotNull()
+        Assertions.assertThat(typeContent).isEqualTo("""
+            #%RAML 1.0 DataType
+            displayName: foo
+            type: object
+            (builtinType): object
+            properties:
+              foo:
+                type: object
+                (builtinType): object
+                default: 
+                  test: 1
+                required: true
+                (inherited): false
+              bar:
+                type: array
+                items:
+                  type: string
+                (builtinType): array
+                default: 
+                  - "foo"
+                  - "bar"
+                required: true
+                (inherited): false
+              foobaz:
+                type: array
+                items:
+                  type: string
+                (builtinType): array
+                default: 
+                  - "foo"
+                required: true
+                (inherited): false
+              fooz:
+                type: array
+                items:
+                  type: string
+                (builtinType): array
+                default: 
+                  - "foo"
+                required: true
+                (inherited): false
+              baz:
+                type: string
+                (builtinType): string
+                default: "baz"
+                required: true
+                (inherited): false
+              foobar:
+                type: object
+                (builtinType): object
+                default: 
+                  test: 1
+                required: true
+                (inherited): false
+        """.trimIndent().trimStart())
+    }
+
+    @Test
+    fun testArrayAnnotationWithSingleElementRendersAsSequence() {
+        val generatorConfig = CodeGeneratorConfig(
+            basePackageName = "com/commercetools/importer",
+            outputFolder = Paths.get("build/gensrc")
+        )
+
+        val apiProvider = RamlApiProvider(Paths.get("src/test/resources/arrayannotation.raml"))
+
+        val generatorModule = RamlGeneratorModule(apiProvider, generatorConfig, RamldocBaseTypes)
+        val generatorComponent = RamlGeneratorComponent(generatorModule, RamldocModelModule)
+        generatorComponent.generateFiles()
+
+        val api = apiProvider.api
+        val t = api.getAnnotation("test").renderAnnotation()
+
+        // Guards against regressing renderAnnotation() (ArrayAnnotationType) into rendering a
+        // single-item array as a bare scalar - it must stay a YAML sequence, unlike the
+        // `default:` single-line rendering which intentionally unwraps single-item arrays.
+        Assertions.assertThat(t).isEqualTo("""
+            (test):
+              - "foo"
+        """.trimIndent().trimStart())
+    }
+
+    @Test
     fun ramlRenderToRamlDoc() {
         val generatorConfig = CodeGeneratorConfig(
             basePackageName = "com/commercetools/importer",
