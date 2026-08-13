@@ -333,7 +333,7 @@ class TestCodeGenerator {
     }
 
     @Test
-    fun testArrayDefaultWithSingleElementRendersAsScalar() {
+    fun testDefaultValueRenders() {
         val generatorConfig = CodeGeneratorConfig(
             basePackageName = "com/commercetools/importer",
             outputFolder = Paths.get("build/gensrc"),
@@ -350,9 +350,43 @@ class TestCodeGenerator {
         Assertions.assertThat(dataSink.files).isNotEmpty()
         val typeContent = dataSink.files.get("types/foo.raml")
         Assertions.assertThat(typeContent).isNotNull()
-        Assertions.assertThat(typeContent)
-            .contains("default: \"InventorySupply\"")
-            .doesNotContain("default: - \"InventorySupply\"")
+        Assertions.assertThat(typeContent).isEqualTo("""
+            #%RAML 1.0 DataType
+            displayName: foo
+            type: object
+            (builtinType): object
+            properties:
+              foo:
+                type: object
+                (builtinType): object
+                default: 
+                  test: 1
+                required: true
+                (inherited): false
+              bar:
+                type: array
+                items:
+                  type: string
+                (builtinType): array
+                default: 
+                  - "foo"
+                  - "bar"
+                required: true
+                (inherited): false
+              baz:
+                type: string
+                (builtinType): string
+                default: "baz"
+                required: true
+                (inherited): false
+              foobar:
+                type: object
+                (builtinType): object
+                default: 
+                  test: 1
+                required: true
+                (inherited): false
+        """.trimIndent().trimStart())
     }
 
     @Test

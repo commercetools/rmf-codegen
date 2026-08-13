@@ -108,7 +108,8 @@ class RamlObjectTypeRenderer constructor(override val vrapTypeProvider: VrapType
             |  <<${property.type.enum.joinToString("\n") { "- '${it.value}'" }}>>""" else ""}${if (examples.isNotEmpty()) """
             |  examples:
             |    <<${examples.joinToString("\n") { renderExample(it) }}>>""" else ""}${if (discriminatorProp != property.name && property.type.default != null) """
-            |  default: ${property.type.default.toYaml(true)}""" else ""}${if (property.type?.isInlineType == true && property.type?.annotations != null) """
+            |  default: ${if (property.type.default is ObjectInstance || property.type.default is ArrayInstance) """
+            |    <<${property.type.default.toYaml().escapeAll()}>>""" else property.type.default.toYaml()}""" else ""}${if (property.type?.isInlineType == true && property.type?.annotations != null) """
             |  <<${property.type.annotations.joinToString("\n") { it.renderAnnotation() }}>>""" else ""}
             |  required: ${property.required}
             |  (inherited): $inherited

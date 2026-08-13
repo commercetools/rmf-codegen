@@ -352,7 +352,7 @@ class ObjectInstanceSerializer : JsonSerializer<ObjectInstance>() {
     }
 }
 
-fun Instance.toYaml(unwrapSingleItemArray: Boolean = false): String {
+fun Instance.toYaml(): String {
     var example = ""
     val mapper = YAMLMapper()
     mapper.disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER)
@@ -373,12 +373,6 @@ fun Instance.toYaml(unwrapSingleItemArray: Boolean = false): String {
             example = mapper.writeValueAsString(this)
         } catch (e: JsonProcessingException) {
         }
-    } else if (unwrapSingleItemArray && this is ArrayInstance && this.value.size == 1) {
-        // Only used for single-line `default:` rendering, where a block-sequence item
-        // cannot be spliced onto the same line as the key. Sequence-valued renderings
-        // (e.g. annotations) must keep calling toYaml() without this flag so a
-        // single-item array still renders as a YAML sequence.
-        example = this.value[0].toYaml()
     } else {
         example = mapper.writeValueAsString(this.value)
     }
