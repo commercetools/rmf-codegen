@@ -373,6 +373,24 @@ class TestCodeGenerator {
                   - "bar"
                 required: true
                 (inherited): false
+              foobaz:
+                type: array
+                items:
+                  type: string
+                (builtinType): array
+                default: 
+                  - "foo"
+                required: true
+                (inherited): false
+              fooz:
+                type: array
+                items:
+                  type: string
+                (builtinType): array
+                default: 
+                  - "foo"
+                required: true
+                (inherited): false
               baz:
                 type: string
                 (builtinType): string
