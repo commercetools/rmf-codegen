@@ -1,0 +1,105 @@
+#%RAML 1.0
+title: resource classifier plural rule test
+
+resourceTypes:
+  baseDomain:
+    get:
+    post:
+  baseResource:
+    get:
+    post:
+    delete:
+  base:
+    description: <<description>>
+
+/{projectKey}:
+  /categories:
+    type:
+      baseDomain:
+        resourceType: Category
+        resourceQueryType: CategoryPagedQueryResponse
+        resourceDraft: CategoryDraft
+        whereExample: 'name(en = "Category")'
+        sortExample: createdAt asc
+    get:
+    post:
+    /{id}:
+      type:
+        baseResource:
+          uriParameterName: id
+          resourceType: Category
+      get:
+      post:
+      delete:
+  /login:
+    type: base
+    post:
+  /me:
+    type: base
+    get:
+    /active-cart:
+      type: base
+      get:
+  /in-store:
+    /key={storeKey}:
+      /carts:
+        get:
+        post:
+  /as-associate:
+    /{associateId}:
+      /in-business-unit:
+        /key={businessUnitKey}:
+          /carts:
+            get:
+  /shipping-methods:
+    get:
+    /matching-cart:
+      type: base
+      post:
+    /matching-location:
+      type: base
+      post:
+  /search:
+    type: base
+    post:
+  /suggest:
+    type: base
+    post:
+  /graphql:
+    type: base
+    post:
+  /carts:
+    type:
+      baseDomain:
+        resourceType: Cart
+        resourceQueryType: CartPagedQueryResponse
+        resourceDraft: CartDraft
+        whereExample: 'customerEmail = "john.doe@example.com"'
+        sortExample: createdAt asc
+    get:
+    post:
+    /replicate:
+      type: base
+      post:
+    /{id}:
+      type:
+        baseResource:
+          uriParameterName: id
+          resourceType: Cart
+      get:
+      post:
+      delete:
+  /email-token={token}:
+    get:
+  /key={key}:
+    get:
+  /orders:
+    get:
+    /{id}:
+      get:
+    /import:
+      type: base
+      post:
+  /bulk:
+    type: base
+    post:
