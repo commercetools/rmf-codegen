@@ -127,4 +127,23 @@ class TestCodeGenerator {
         Assertions.assertThat(dataSink.files.get("openapi.yaml")?.trim())
             .isEqualTo("src/test/resources/fixtures/array-response.yaml".readFile())
     }
+
+    @Test
+    fun multipartBodyRender() {
+        val generatorConfig = CodeGeneratorConfig(
+            basePackageName = "com/commercetools/importer",
+            outputFolder = Paths.get("build/gensrc-multipart")
+        )
+
+        val apiProvider = RamlApiProvider(Paths.get("src/test/resources/multipart-body-test.raml"))
+
+        val dataSink = MemoryDataSink()
+        val generatorModule = RamlGeneratorModule(apiProvider, generatorConfig, OasBaseTypes, dataSink = dataSink)
+        val generatorComponent = RamlGeneratorComponent(generatorModule, OasModelModule)
+        generatorComponent.generateFiles()
+
+        Assertions.assertThat(dataSink.files).hasSize(1)
+        Assertions.assertThat(dataSink.files.get("openapi.yaml")?.trim())
+            .isEqualTo("src/test/resources/fixtures/multipart-body.yaml".readFile())
+    }
 }
