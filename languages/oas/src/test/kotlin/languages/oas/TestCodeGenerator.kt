@@ -143,6 +143,13 @@ class TestCodeGenerator {
         generatorComponent.generateFiles()
 
         Assertions.assertThat(dataSink.files).hasSize(1)
+
+        Assertions.assertThat(
+            DiffUtils.diff(
+                "src/test/resources/fixtures/multipart-body.yaml".readFileLines(),
+                dataSink.files.get("openapi.yaml")?.trim()?.lines(),
+            ).deltas).`as`("openapi.yaml").isEmpty()
+
         Assertions.assertThat(dataSink.files.get("openapi.yaml")?.trim())
             .isEqualTo("src/test/resources/fixtures/multipart-body.yaml".readFile())
     }
