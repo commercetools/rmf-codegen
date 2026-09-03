@@ -1,0 +1,25 @@
+#%RAML 1.0
+title: Multipart Body Test API
+baseUri: https://example.com/{version}
+version: v1
+mediaType: application/json
+
+types:
+  TestRequest:
+    type: object
+    properties:
+      prompt: string
+  TestMultipartRequest:
+    type: object
+    properties:
+      prompt: string
+
+/test:
+  post:
+    body:
+      application/json:
+        type: TestRequest
+      multipart/form-data:
+        type: TestMultipartRequest
+    responses:
+      200:
