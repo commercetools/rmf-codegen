@@ -54,7 +54,7 @@ class OasResourceRenderer constructor(val api: Api, val vrapTypeProvider: VrapTy
             |  parameters:
             |    <<${method.queryParameters.joinToString("\n") { renderQueryParameter(method,it) }}>>""" else ""}${if (method.bodies.any { it.type != null }) """
             |  requestBody:
-            |  content:
+            |    content:
             |    <<${bodies.joinToString("\n") { renderBody(it, method) } }>>""" else ""}${if (annotations.isNotEmpty()) """
             |  <<${annotations.joinToString("\n") { it.renderAnnotation() }} >>""" else ""}
             |  responses:
