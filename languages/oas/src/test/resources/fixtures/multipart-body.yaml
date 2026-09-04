@@ -11,7 +11,7 @@ paths:
     post:
       operationId: TestPost
       requestBody:
-      content:
+        content:
           application/json:
             schema:
               $ref: '#/components/schemas/TestRequest'
