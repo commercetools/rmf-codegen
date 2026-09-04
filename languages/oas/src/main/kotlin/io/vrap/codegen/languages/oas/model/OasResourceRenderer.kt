@@ -54,6 +54,7 @@ class OasResourceRenderer constructor(val api: Api, val vrapTypeProvider: VrapTy
             |  parameters:
             |    <<${method.queryParameters.joinToString("\n") { renderQueryParameter(method,it) }}>>""" else ""}${if (method.bodies.any { it.type != null }) """
             |  requestBody:
+            |    content:
             |    <<${bodies.joinToString("\n") { renderBody(it, method) } }>>""" else ""}${if (annotations.isNotEmpty()) """
             |  <<${annotations.joinToString("\n") { it.renderAnnotation() }} >>""" else ""}
             |  responses:
@@ -126,14 +127,12 @@ class OasResourceRenderer constructor(val api: Api, val vrapTypeProvider: VrapTy
 //        val bodyExamples = requestExamples(body, method)
         if (body.type is FileType) {
             return """
-                |content:
                 |  "*/*":
                 |    schema:
                 |      type: string
             """.trimMargin().keepAngleIndent()
         }
         return """
-            |content:
             |  ${body.contentType}:${if (body.type != null) """
             |    schema:
             |      <<${body.type.renderAnyType()}>>
