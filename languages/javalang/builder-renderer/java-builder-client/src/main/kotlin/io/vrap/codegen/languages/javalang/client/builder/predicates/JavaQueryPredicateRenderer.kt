@@ -100,7 +100,9 @@ class JavaQueryPredicateRenderer constructor(val basePackage: String, override v
             methodName = "_$methodName"
         }
 
-        if (this.simpleName() == ZonedDateTime::class.simpleName || this.simpleName() == LocalTime::class.simpleName || this.simpleName() == LocalDate::class.simpleName || this.simpleName() == Object::class.java.simpleName) {
+        if (this.simpleName() == ZonedDateTime::class.simpleName || this.simpleName() == LocalTime::class.simpleName
+            || this.simpleName() == LocalDate::class.simpleName || this.simpleName() == Object::class.java.simpleName
+            || this.simpleName() == java.io.File::class.simpleName) {
             return """
                 |public ${propertyType.comparisonPredicate()}<${vrapType.builderDslName()}> $methodName() {
                 |    return new ${propertyType.comparisonPredicate()}<>(BinaryQueryPredicate.of().left(new ConstantQueryPredicate("${propertyName}")),
