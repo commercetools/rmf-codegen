@@ -26,7 +26,8 @@ class JavaBuilderTestRenderer constructor(override val vrapTypeProvider: VrapTyp
     fun render(type: ObjectType): TemplateFile {
         val vrapType = vrapTypeProvider.doSwitch(type).toJavaVType() as VrapObjectType
 
-        val properties = type.properties.filterNot { it.deprecated() || it.isPatternProperty() || it.name == type.discriminator() }
+        val properties = type.properties.filterNot { it.deprecated() || it.isPatternProperty() || it.name == type.discriminator() || it.type.isFile()
+                || (it.type is ArrayType && (it.type as ArrayType).items.isFile()) }
         val content = """
             |package ${vrapType.`package`};
             |
