@@ -14,14 +14,14 @@ class ResourceRenderer {
                 .plus(ActionRenderer().render(resource))
 
         if ((resource.relativeUri.template.contains(resource.resourcePathName).not() && resource.relativeUriParameters.size > 0) || resource.resources.size == 0) {
-            return items.joinToString(",\n")
+            return items.filterNot { it.isBlank() }.joinToString(",\n")
         }
         return """
             |{
             |    "name": "${resource.displayName?.value ?: resource.resourcePathName.firstUpperCase()}",
             |    "description": "${resource.description?.description()}",
             |    "item": [
-            |        <<${items.joinToString(",\n")}>>
+            |        <<${items.filterNot { it.isBlank() }.joinToString(",\n")}>>
             |    ]
             |}
         """.trimMargin()
