@@ -79,7 +79,7 @@ class PostmanModuleRenderer constructor(val api: Api, override val vrapTypeProvi
                     |        <<${auth()}>>,
                     |    "item": [
                     |        <<${authorization(api.oAuth2())}>>,
-                    |        <<${api.resources.joinToString(",") { ResourceRenderer().render(it) }}>>
+                    |        <<${api.resources.map { ResourceRenderer().render(it) }.filterNot { it.isBlank() }.joinToString(",")}>>
                     |    ]
                     |}
                 """.trimMargin().keepAngleIndent())
