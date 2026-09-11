@@ -13,7 +13,7 @@ object PhpBaseTypes : LanguageBaseTypes(
         dateTimeType = fromDateTimeType("","DateTimeImmutable", DateTimeTypes.DateTime),
         dateOnlyType = fromDateTimeType("","DateTimeImmutable",DateTimeTypes.DateOnly),
         timeOnlyType = fromDateTimeType("","DateTimeImmutable",DateTimeTypes.TimeOnly),
-        file = fromPhpType("","File")
+        file = fromScalarPhpType("string")
 )
 
 fun fromDateTimeType(`package`: String, simpleName: String, dateTimeType: DateTimeTypes):VrapDateTimeType{
