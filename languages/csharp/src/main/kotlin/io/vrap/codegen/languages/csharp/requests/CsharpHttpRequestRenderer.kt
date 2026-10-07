@@ -139,7 +139,7 @@ class CsharpHttpRequestRenderer constructor(override val vrapTypeProvider: VrapT
     private fun Method.constructor(): String? {
         val pathArguments = this.pathArguments().map { "{$it}" }
         var requestUrl = this.resource().fullUri.template
-        pathArguments.forEach { requestUrl = requestUrl.replace(it, "{"+it.replace("{","").replace("}","").firstUpperCase()+"}") }
+        pathArguments.forEach { requestUrl = requestUrl.replace(it, "{Uri.EscapeDataString("+it.replace("{","").replace("}","").firstUpperCase()+")}") }
 
         val constructorArguments = mutableListOf("IClient apiHttpClient")
         val constructorAssignments = mutableListOf("this.ApiHttpClient = apiHttpClient;")
