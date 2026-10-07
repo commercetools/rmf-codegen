@@ -1,7 +1,8 @@
 package com.commercetools.rmf.validators;
 
 enum RuleOptionType {
-    EXCLUDE("exclude");
+    EXCLUDE("exclude"),
+    ACTION_VERB("action-verb");
 
     private final String type;
 

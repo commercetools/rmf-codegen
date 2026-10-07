@@ -1,0 +1,19 @@
+#%RAML 1.0
+title: resource path segment rule
+
+/{projectKey}:
+  /valid:
+    /key={key}:
+    /{id}:
+  /valid-resource:
+    /{id}:
+  /also-valid-123:
+    /{id}:
+  /invalid_underscore:
+    /{id}:
+  /invalid~tilde:
+    /{id}:
+  /products.json:
+    /{id}:
+  /export.csv:
+    /{id}:

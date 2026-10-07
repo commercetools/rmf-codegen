@@ -1,0 +1,18 @@
+#%RAML 1.0
+title: scoping order rule test - valid
+
+/{projectKey}:
+  /as-associate:
+    /{associateId}:
+      /in-business-unit:
+        /key={businessUnitKey}:
+          /carts:
+            get:
+  /in-store:
+    /key={storeKey}:
+      /carts:
+        get:
+  /me:
+    get:
+    /carts:
+      get:
