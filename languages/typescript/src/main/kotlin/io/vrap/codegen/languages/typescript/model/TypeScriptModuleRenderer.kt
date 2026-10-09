@@ -52,7 +52,17 @@ class TypeScriptModuleRenderer constructor(override val vrapTypeProvider: VrapTy
 
     private fun ObjectType.renderObjectType(): String {
         return if (discriminator() != null) {
-            if (discriminatorValue === null) {
+            if (discriminatorValue === null && subTypes.isEmpty()) {
+                // A default subtype without discriminator value (e.g. used when the discriminator property is absent)
+                // has no subtypes to build a union from, so it is rendered as a plain interface.
+                """
+                |<${toTsComment().escapeAll()}>
+                |export interface ${name} ${renderExtendsExpr("I")} {
+                |  <${renderPatternSpec()}>
+                |  <${renderPropertyDecls(false, true)}>
+                |}
+                """.trimMargin()
+            } else if (discriminatorValue === null) {
                 """
                 |<${toTsComment().escapeAll()}>
                 |export type ${name} =
