@@ -266,7 +266,7 @@ class JavaStringHttpRequestRenderer constructor(override val vrapTypeProvider: V
         pathArguments.forEach { stringFormat = stringFormat.replace(it, "%s") }
         val stringFormatArgs = pathArguments
                 .map { it.replace("{", "").replace("}", "") }
-                .map { "this.$it" }
+                .map { "encodePathParam(this.$it)" }
                 .joinToString(separator = ", ")
         stringFormat = stringFormat.trimStart('/')
         val methodBodyVrapType = this.bodies[0].type.toVrapType() as VrapObjectType
