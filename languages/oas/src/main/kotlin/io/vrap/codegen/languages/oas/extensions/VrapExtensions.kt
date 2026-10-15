@@ -112,9 +112,9 @@ fun AnyType.renderTypeFacet(): String {
 fun UriParameter.renderBaseUriParameter(): String {
     return """
             |${this.name}:
-            |  default: ${this.type.enum.first().value}
+            |  default: ${this.type.enum.firstOrNull()?.value ?: "\"\""}${if (this.type.enum.isNotEmpty()) """
             |  enum:
-            |   <<${this.type.enum.joinToString("\n") { "- ${it.value}" }}>>
+            |   <<${this.type.enum.joinToString("\n") { "- ${it.value}" }}>>""" else ""}
             |  description: |
             |    <<${this.type.description?.value ?: ""}>>${if (this.type.examples.isNotEmpty()) """
             |  x-annotation-examples:
