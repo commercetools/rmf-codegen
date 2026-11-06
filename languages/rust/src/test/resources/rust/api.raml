@@ -1,0 +1,114 @@
+#%RAML 1.0
+title: Rust types fixture
+version: v1
+annotationTypes:
+  package:
+    type: string
+types:
+  ReferenceTypeId:
+    (package): Common
+    type: string
+    enum: [cart, customer-group, Self]
+  CountryCode:
+    (package): Common
+    type: string
+    pattern: ^[A-Z]{2}$
+  CountryCodes:
+    (package): Common
+    type: CountryCode[]
+  Reference:
+    (package): Common
+    type: object
+    discriminator: typeId
+    properties:
+      typeId: ReferenceTypeId
+      id: string
+  CartReference:
+    (package): Cart
+    type: Reference
+    discriminatorValue: cart
+  CustomerGroupReference:
+    (package): Common
+    type: Reference
+    discriminatorValue: customer-group
+  CartUpdateAction:
+    (package): Cart
+    type: object
+    discriminator: action
+    properties:
+      action: string
+  CartAddLineItemAction:
+    (package): Cart
+    type: CartUpdateAction
+    discriminatorValue: addLineItem
+    properties:
+      sku?: string
+      quantity?: number
+  CartSetKeyAction:
+    (package): Cart
+    type: CartUpdateAction
+    discriminatorValue: set-key
+    properties:
+      key: string
+  LocalizedString:
+    (package): Common
+    type: object
+    properties:
+      /^[a-z]{2}$/: string
+  Attributes:
+    (package): Common
+    type: object
+    properties:
+      name: string
+      /^x-/: string
+  Node:
+    (package): Cart
+    type: object
+    properties:
+      id: string
+      next?: Node
+  Pair:
+    (package): Cart
+    type: object
+    properties:
+      other: Other
+  Other:
+    (package): Cart
+    type: object
+    properties:
+      pair?: Pair
+      items: Pair[]
+  Cart:
+    (package): Cart
+    type: object
+    properties:
+      id: string
+      version: integer
+      type?: string
+      ISOCode?: string
+      isPlatformClient?: boolean
+      customerGroup?: CustomerGroupReference
+      reference?: Reference
+      target: CartReference | CustomerGroupReference
+      countries?: CountryCodes
+      localized: LocalizedString
+      attributes?: Attributes
+      updateActions?: CartUpdateAction[]
+      createdAt: datetime
+      obj?: object
+  OpenObject:
+    (package): Cart
+    type: object
+  ErrorObject:
+    (package): Common
+    type: object
+    discriminator: code
+    properties:
+      code: string
+      /^.+$/: string
+  InvalidInputError:
+    (package): Common
+    type: ErrorObject
+    discriminatorValue: InvalidInput
+    properties:
+      field?: string

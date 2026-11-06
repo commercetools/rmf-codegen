@@ -13,6 +13,7 @@ The code generators are written in [kotlin](https://kotlinlang.org/).
   - TypeScript types for validating JSON payloads via [hapijs/joi](https://github.com/hapijs/joi)
 - `CSHARP_CLIENT`
 - `PHP_CLIENT`
+- `RUST_TYPES`: Rust types for the RAML types, as serde structs, enums and maps. Work in progress: the types only, no client yet. See [languages/rust](languages/rust/README.md)
 - `POSTMAN`: Collection file for the [Postman API Client](https://www.postman.com/product/api-client/)
 - `RAML_DOC`: Emits RAML files targeted at generating robust and stable API documentation. Fully flattens and resolves types and resources. The output RAML has a fixed canonical filesystem structure and every type or resource file contains all information to fully document it. It's used by the [commercetools-docs-kit](https://github.com/commercetools/commercetools-docs-kit/tree/master/packages/gatsby-theme-api-docs)
 

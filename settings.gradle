@@ -11,6 +11,7 @@ include 'languages:postman'
 include 'languages:typescript'
 include 'languages:python'
 include 'languages:go'
+include 'languages:rust'
 include 'languages:ramldoc'
 include 'languages:bruno'
 

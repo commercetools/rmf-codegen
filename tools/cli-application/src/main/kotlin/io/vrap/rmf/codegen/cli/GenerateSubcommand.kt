@@ -36,6 +36,8 @@ import io.vrap.codegen.languages.typescript.test.TypescriptTestModule
 import io.vrap.codegen.languages.go.GoBaseTypes
 import io.vrap.codegen.languages.go.model.GoModelModule
 import io.vrap.codegen.languages.go.client.GoClientModule
+import io.vrap.codegen.languages.rust.RustBaseTypes
+import io.vrap.codegen.languages.rust.model.RustModelModule
 import io.vrap.codegen.languages.java.base.PlantUmlBaseTypes
 import io.vrap.codegen.languages.javalang.client.builder.module.JavaClientModule
 import io.vrap.codegen.languages.javalang.client.builder.module.JavaModelModule
@@ -79,6 +81,7 @@ enum class GenerationTarget {
     PHP_BASE,
     PHP_TEST,
     GO_CLIENT,
+    RUST_TYPES,
     POSTMAN,
     RAML_DOC,
     CSHARP_CLIENT,
@@ -91,7 +94,7 @@ enum class GenerationTarget {
     BRUNO,
     TYPESCRIPT_JOI_VALIDATOR
 }
-const val ValidTargets = "JAVA_CLIENT, JAVA_TEST, JAVA_QUERY_PREDICATES, TYPESCRIPT_CLIENT, TYPESCRIPT_TEST, CSHARP_CLIENT, CSHARP_TEST, CSHARP_QUERY_PREDICATES, PHP_CLIENT, PHP_BASE, PHP_TEST, POSTMAN, RAML_DOC, OAS, PYTHON_CLIENT, PLANTUML, DOC_MARKDOWN, BRUNO, TYPESCRIPT_JOI_VALIDATOR"
+const val ValidTargets = "JAVA_CLIENT, JAVA_TEST, JAVA_QUERY_PREDICATES, TYPESCRIPT_CLIENT, TYPESCRIPT_TEST, CSHARP_CLIENT, CSHARP_TEST, CSHARP_QUERY_PREDICATES, PHP_CLIENT, PHP_BASE, PHP_TEST, POSTMAN, RAML_DOC, OAS, PYTHON_CLIENT, PLANTUML, DOC_MARKDOWN, BRUNO, TYPESCRIPT_JOI_VALIDATOR, RUST_TYPES"
 
 @CommandLine.Command(name = "generate",description = ["Generate source code from a RAML specification."])
 class GenerateSubcommand : Callable<Int> {
@@ -377,6 +380,10 @@ class GenerateSubcommand : Callable<Int> {
                     GenerationTarget.GO_CLIENT -> {
                         val generatorModule = RamlGeneratorModule(apiProvider, generatorConfig, GoBaseTypes, dataSink = sink)
                         RamlGeneratorComponent(generatorModule, GoModelModule, GoClientModule)
+                    }
+                    GenerationTarget.RUST_TYPES -> {
+                        val generatorModule = RamlGeneratorModule(apiProvider, generatorConfig, RustBaseTypes, dataSink = sink)
+                        RamlGeneratorComponent(generatorModule, RustModelModule)
                     }
                 }
             } else {
